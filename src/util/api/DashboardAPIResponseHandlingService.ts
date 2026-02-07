@@ -9,7 +9,6 @@ export default class DashboardAPIResponseHandlingService {
    * Processes the final output of a series of API requests.
    *
    * @param output The combined output of all API requests
-   * @param isFirstInitData Whether this is the first initial data fetch
    */
   static processDashboardApiOutput(output: ProjectDashboardOutput) {
     if (output.translations) {
