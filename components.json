@@ -1,19 +1,24 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-nova",
   "rsc": false,
   "tsx": true,
-  "typescript": true,
-  "style": "base-nova",
   "tailwind": {
+    "config": "",
     "css": "src/globalStyles/global.css",
+    "baseColor": "zinc",
     "cssVariables": true,
-    "baseColor": "zinc"
+    "prefix": ""
   },
   "iconLibrary": "tabler",
+  "typescript": true,
+  "rtl": false,
   "aliases": {
     "components": "$components",
     "utils": "$util",
-    "ui": "$components/ui"
+    "ui": "$components/presentational",
+    "lib": "$lib",
+    "hooks": "$util/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",
