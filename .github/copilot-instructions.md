@@ -1,44 +1,68 @@
 # Repo-specific instructions for AI coding agents
 
-This repository is a SvelteKit app (Svelte 5) managed with pnpm.
+This repository is a SvelteKit app (Svelte 5) using Tailwind CSS v4 and shadcn-svelte components, managed with pnpm.
 
-- Quick commands (use `pnpm`):
-  - Dev server: `pnpm dev` (runs `pnpm theme` then `vite dev`)
-  - Build: `pnpm build` (runs `pnpm theme` then `vite build`)
-  - Preview: `pnpm preview`
-  - Storybook: `pnpm storybook` (also runs `pnpm theme`)
-  - Check: `pnpm check` (TypeScript)
-  - Lint: `pnpm lint` (ESLint)
+## Quick Commands
 
-- Important project files to consult:
-  - `package.json` — scripts, pnpm configuration.
-  - `README.md` — architecture notes (store flow, singletons, recurring tasks) and local development tips.
-  - `svelte.config.js` — adapter (static), and path aliases ($components, $stores, $services, ...).
-  - `vite.config.ts` — Sentry integration, node polyfills for browser crypto, Vitest merge.
-  - `src/globalStyles/_smui-theme.scss` and `src/globalStyles` — theme inputs used by `yarn theme`.
-  - `src/components` — UI components; look for files prefixed with `Singleton` (single-instance components exposing imperative update functions).
-  - `src/stores` and `src/services` — core state patterns. See `README.md` for parent/child store sequence diagram and `pageInfo.ts` usage.
+Use `pnpm` for all package management:
 
-- Architecture & conventions (concrete):
-  - Singleton UI components: files named `Singleton*` are single-instance widgets (snackbar, confetti, dialogs). They export imperative functions to update/show state rather than being instantiated multiple times.
-  - Routes: prefer copying an existing route folder and adapting. `pageInfo.ts` files are kept outside module context because they must be importable before Svelte module load.
-  - State management: Use modern Svelte 5 typically such as the `$state()` syntax. For more complex state, use stores and services in `src/stores` and `src/services`.
+- Dev server: `pnpm dev`
+- Build: `pnpm build`
+- Preview: `pnpm preview`
+- Storybook: `pnpm storybook`
+- Check: `pnpm check` (TypeScript + circular dependency check)
+- Lint: `pnpm lint` (ESLint)
+- Test: `pnpm test` (Vitest)
 
-- Integrations & environment notes:
-  - Sentry: configured both in `vite.config.ts` (upload source maps) and `hooks.client.ts`. `SENTRY_AUTH_TOKEN` must be set to enable uploads. Vite logs an error if the token is missing.
-  - Node polyfills: `vite-plugin-node-polyfills` is used so some node packages (crypto, util, stream) work in browser bundles.
-  - Adapter: SvelteKit uses `@sveltejs/adapter-static` with `fallback: 'app.html'`. Production output is in `build/`.
+## Important Project Files
 
-- Small contract for an agent working here:
-  1. Read `package.json` & `README.md` to learn workflow scripts and store patterns.
-  2. For code changes, run `pnpm test`, `pnpm lint`, and `pnpm check` before considering a task complete.
+- `package.json` — scripts, pnpm configuration
+- `README.md` — architecture notes, local development tips
+- `svelte.config.js` — adapter (static), path aliases ($components, $stores, $services, etc.)
+- `vite.config.ts` — Sentry integration, Tailwind, node polyfills for browser crypto, Vitest
+- `src/globalStyles/global.css` — Tailwind v4 imports, CSS variables for theming (base-nova style)
+- `src/components/presentational` — shadcn-svelte UI components (installed via CLI)
+- `src/stores` and `src/services` — core state management patterns
 
-- Examples to reference when making edits:
-  - Aliases useful for imports: `$components`, `$stores`, `$services` (defined in `svelte.config.js`).
+## Architecture & Conventions
+
+### UI Components & Styling
+
+- **shadcn-svelte**: Use pre-built accessible components from shadcn-svelte. Reference: https://shadcn-svelte.com/llms.txt
+- **Adding components**: `pnpm dlx shadcn-svelte@latest add COMPONENT-NAME` (see [available components](https://shadcn-svelte.com/docs/components))
+- **Tailwind CSS v4**: Use utility classes for styling. No `@apply` in components; use `cn()` utility from `$util/svelte-shadcn-util` to merge classes
+- **Class merging**: Always use `cn()` when conditionally applying Tailwind classes: `class={cn('base-class', condition && 'conditional-class')}`
+- **CSS Variables**: Theme colors defined in `src/globalStyles/global.css` using CSS custom properties (e.g., `--primary`, `--background`)
+- **Icon library**: Tabler icons via `@tabler/icons-svelte`
+- **Dark mode**: Managed by `mode-watcher` package; use `.dark` class variant in Tailwind
+
+### Component Patterns
+
+- **Svelte 5 syntax**: Use modern runes (`$state()`, `$derived()`, `$effect()`, `$props()`)
+- **Singleton components**: Files named `Singleton*` are single-instance widgets (snackbar, confetti, dialogs) that export imperative functions
+- **Presentational components**: Store in `src/components/presentational` (matches shadcn-svelte alias)
+- **Component docs**: Use JSDoc `@component` tag at top of `.svelte` files
+
+### Routes & Pages
+
+- Copy an existing route folder and adapt when creating new routes
+- `pageInfo.ts` files are kept outside module context because they must be importable before Svelte component load
+
+### State Management
+
+- **Simple state**: Use Svelte 5 runes (`$state()`, `$derived()`)
+- **Complex state**: Use stores (`src/stores`) and services (`src/services`)
+- **Store types**: `local/` (persisted), `session/` (session-only), `derived/` (computed)
+
+## Before Completing Tasks
+
+1. Run: `pnpm test`, `pnpm lint`, and `pnpm check`
 
 ## Tool Information
 
-- When using the Sentry MCP server, the organization slug is `anton-neuhold`.
+- **Svelte MCP server**: Use the Svelte MCP server to better understand how Svelte works and to get help with Svelte-specific questions.
+- **shadcn-svelte**: For component documentation and patterns, reference https://shadcn-svelte.com/llms.txt.
+- **Sentry MCP server**: Organization slug is `anton-neuhold`
 
 ## Code Style
 

@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
   import '../globalStyles/global.css';
+  import { ModeWatcher } from 'mode-watcher';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
   import taskMapService from '$services/Task/TaskMapService/TaskMapService';
@@ -42,6 +43,11 @@
   });
 </script>
 
+<!-- 
+Light / Dark mode watcher. This comes with a component toggle as well if you want to use that
+at some point.
+-->
+<ModeWatcher />
 <div class="app">
   {#if !mounted || $loginState === LoginState.Initializing}
     <div class="loading">

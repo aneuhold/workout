@@ -24,6 +24,10 @@ Checkout the [shadcn-svelte site for what is available](https://shadcn-svelte.co
 pnpm dlx shadcn-svelte@latest add COMPONENT-NAME
 ```
 
+### Icons
+
+Icons are from [Tabler here](https://tabler.io/icons). Just import them from the `@tabler/icons-svelte` package.
+
 ### Adding new Routes
 
 - Copy an existing route folder and modify
