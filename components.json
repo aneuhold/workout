@@ -16,7 +16,7 @@
   "aliases": {
     "components": "$components",
     "utils": "$util/svelte-shadcn-util",
-    "ui": "$components/presentational",
+    "ui": "$ui",
     "lib": "$lib",
     "hooks": "$util/hooks"
   },

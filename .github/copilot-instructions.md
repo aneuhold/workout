@@ -18,10 +18,10 @@ Use `pnpm` for all package management:
 
 - `package.json` — scripts, pnpm configuration
 - `README.md` — architecture notes, local development tips
-- `svelte.config.js` — adapter (static), path aliases ($components, $stores, $services, etc.)
+- `svelte.config.js` — adapter (static), path aliases ($components, $stores, $services, $ui, etc.)
 - `vite.config.ts` — Sentry integration, Tailwind, node polyfills for browser crypto, Vitest
 - `src/globalStyles/global.css` — Tailwind v4 imports, CSS variables for theming (base-nova style)
-- `src/components/presentational` — shadcn-svelte UI components (installed via CLI)
+- `src/components/ui` — shadcn-svelte UI components (installed via CLI)
 - `src/stores` and `src/services` — core state management patterns
 
 ## Architecture & Conventions
@@ -29,7 +29,12 @@ Use `pnpm` for all package management:
 ### UI Components & Styling
 
 - **shadcn-svelte**: Use pre-built accessible components from shadcn-svelte. Reference: https://shadcn-svelte.com/llms.txt
-- **Adding components**: `pnpm dlx shadcn-svelte@latest add COMPONENT-NAME` (see [available components](https://shadcn-svelte.com/docs/components))
+- **Adding components**:
+  1.  `pnpm dlx shadcn-svelte@latest add COMPONENT-NAME` (see [available components](https://shadcn-svelte.com/docs/components))
+  2.  Run `pnpm lint --fix` after installing to fix any formatting issues
+  3.  Rename all the components to what they are, by default, exported as. For example when `Card`, `CardAction`, and `CardFooter` are first installed, the files are named `card.svelte`, `card-action.svelte`, and `card-footer.svelte`. They should be renamed to `Card.svelte`, `CardAction.svelte`, and `CardFooter.svelte` respectively.`
+  4.  Rename the containing folder of the new components to the capital case version of the component name. For example, if you add the `Alert` component, the containing folder should be renamed from `alert` to `Alert`.
+  5.  Delete the `index.ts` file that gets generated, and import from the files directly.
 - **Tailwind CSS v4**: Use utility classes for styling. No `@apply` in components; use `cn()` utility from `$util/svelte-shadcn-util` to merge classes
 - **Class merging**: Always use `cn()` when conditionally applying Tailwind classes: `class={cn('base-class', condition && 'conditional-class')}`
 - **CSS Variables**: Theme colors defined in `src/globalStyles/global.css` using CSS custom properties (e.g., `--primary`, `--background`)
@@ -40,7 +45,7 @@ Use `pnpm` for all package management:
 
 - **Svelte 5 syntax**: Use modern runes (`$state()`, `$derived()`, `$effect()`, `$props()`)
 - **Singleton components**: Files named `Singleton*` are single-instance widgets (snackbar, confetti, dialogs) that export imperative functions
-- **Presentational components**: Store in `src/components/presentational` (matches shadcn-svelte alias)
+- **UI components**: shadcn-svelte components are stored in `src/components/ui` (accessible via `$ui` alias)
 - **Component docs**: Use JSDoc `@component` tag at top of `.svelte` files
 
 ### Routes & Pages

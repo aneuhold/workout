@@ -21,6 +21,7 @@ const config = {
       // directory (the built tsconfig doesn't have a dir/* alias)
       $routes: 'src/routes',
       $components: 'src/components',
+      $ui: 'src/components/ui',
       $util: 'src/util',
       $actions: 'src/actions',
       $stores: 'src/stores',
