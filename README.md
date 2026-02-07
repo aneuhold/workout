@@ -16,6 +16,14 @@ To start working on the project simply run:
 
 Modify the [localOverride.ts](src/util/localOverride.ts) file so that it is set to true.
 
+### Adding new Components
+
+Checkout the [shadcn-svelte site for what is available](https://shadcn-svelte.com/docs/components), and then run some variation of:
+
+```
+pnpm dlx shadcn-svelte@latest add COMPONENT-NAME
+```
+
 ### Adding new Routes
 
 - Copy an existing route folder and modify

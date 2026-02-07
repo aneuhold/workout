@@ -7,15 +7,10 @@
   import '../globalStyles/global.css';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
-  import Confetti from '$components/singletons/Confetti/Confetti.svelte';
-  import nonogramKatanaItemMapService from '$services/NonogramKatana/NonogramKatanaItemMapService';
-  import nonogramKatanaUpgradeMapService from '$services/NonogramKatana/NonogramKatanaUpgradeMapService';
   import taskMapService from '$services/Task/TaskMapService/TaskMapService';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
-  import Login from '../components/Login/Login.svelte';
-  import NavBar from '../components/NavBar.svelte';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -24,12 +19,6 @@
   onMount(() => {
     // Initialize services from LocalData. Not sure if this is the best place, but it does solve
     // the loop issue where services depend upon each other and LocalData needs to be loaded first.
-    if (LocalData.nonogramKatanaItemMap) {
-      nonogramKatanaItemMapService.setMap(LocalData.nonogramKatanaItemMap);
-    }
-    if (LocalData.nonogramKatanaUpgradeMap) {
-      nonogramKatanaUpgradeMapService.setMap(LocalData.nonogramKatanaUpgradeMap);
-    }
     if (LocalData.taskMap) {
       taskMapService.setMap(LocalData.taskMap);
     }
@@ -59,15 +48,8 @@
       <p>Loading...</p>
     </div>
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
-    <Login />
+    Login should be here
   {:else}
-    <main>
-      <Confetti />
-      <NavBar>
-        <div class="content">
-          {@render children?.()}
-        </div>
-      </NavBar>
-    </main>
+    <main>{@render children?.()}</main>
   {/if}
 </div>
