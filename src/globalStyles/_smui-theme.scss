@@ -1,0 +1,163 @@
+// This file has to be named `_smui-theme.scss` for it to build properly with
+// the smui-theme package.
+//
+// If this file is changed, then the dev server needs to be restarted to
+// regenerate styles.
+
+@use 'sass:color';
+
+// Import overall colors
+@use '@material/theme/color-palette';
+
+$background-color: #000;
+$surface-color: color.adjust(color-palette.$grey-900, $blue: +4);
+$primary-color: #098e1f;
+
+$success-color: color-palette.$green-500;
+$warning-color: color-palette.$orange-500;
+$error-color: color-palette.$red-500;
+
+// Svelte Colors! (Dark Theme)
+// If this is updated, make sure to update the colors in the `manifest.json` file
+// as well.
+@use '@material/theme/index' as theme with (
+  $primary: $primary-color,
+  $secondary: color.scale(#676778, $whiteness: -10%),
+  $surface: $surface-color,
+  $background: $background-color,
+  $error: $error-color
+);
+
+// Adds all the typogoraphy classes to the global styles. Those are:
+//   mdc-typography--headline1
+//   mdc-typography--headline2
+//   mdc-typography--headline3
+//   mdc-typography--headline4
+//   mdc-typography--headline5
+//   mdc-typography--headline6
+//   mdc-typography--subtitle1
+//   mdc-typography--subtitle2
+//   mdc-typography--body1
+//   mdc-typography--body2
+//   mdc-typography--caption
+//   mdc-typography--button
+//   mdc-typography--overline
+//   mdc-typography--body1
+@use '@material/typography/mdc-typography';
+@use '@smui/snackbar/style' as smui-snackabar;
+
+// Import the mixins.
+@use '@material/typography/mixins' as typography;
+@use '@material/snackbar/mixins' as snackbar;
+@use '@material/button/mixins' as button;
+@use '@material/icon-button/mixins' as icon-button;
+
+// Import the colors last. Order matters in this file. This allows usage
+// of vars from MDC
+@use '@material/theme/styles';
+@use '@material/theme/theme-color';
+
+// Customized MDC Components
+.mdc-snackbar.success {
+  @include snackbar.fill-color($success-color);
+  @include snackbar.label-ink-color(theme-color.accessible-ink-color($success-color));
+}
+.mdc-snackbar.warning {
+  @include snackbar.fill-color($warning-color);
+  @include snackbar.label-ink-color(theme-color.accessible-ink-color($warning-color));
+}
+.mdc-snackbar.error {
+  @include snackbar.fill-color($error-color);
+  @include snackbar.label-ink-color(theme-color.accessible-ink-color($error-color));
+}
+.primary-button {
+  &.mdc-button--outlined {
+    @include button.outline-color($primary-color);
+  }
+}
+.danger-button {
+  &.mdc-button {
+    @include button.ink-color($error-color);
+  }
+  &.mdc-button--unelevated,
+  &.mdc-button--raised {
+    @include button.filled-accessible($error-color);
+  }
+  &.mdc-button--outlined {
+    @include button.outline-color($error-color);
+    @include button.ink-color($error-color);
+  }
+  @include button.ripple-states($error-color);
+  @include icon-button.ink-color($error-color);
+  @include icon-button.disabled-ink-color($error-color);
+}
+
+// Custom colors for use in components
+// These have to be defined as a variable first, then used in the :root
+//
+// bg-color-on-surface is something to use that isn't totally black, but
+// isn't the same as the surface color. This is the chip BG color.
+$text-on-success: theme-color.accessible-ink-color($success-color);
+$bg-color-on-surface: color.scale($surface-color, $whiteness: +10%);
+:root {
+  --success: #{$success-color};
+  --text-on-success: #{$text-on-success};
+  --bg-color-on-surface: #{$bg-color-on-surface};
+  --error: #{$error-color};
+}
+
+// --- Global Styles ---
+
+html,
+body {
+  background-color: #000;
+  color: theme.$on-surface;
+  margin: 0px;
+  height: 100%;
+}
+a {
+  color: #40b3ff;
+}
+a:visited {
+  color: color.scale(#40b3ff, $lightness: -35%);
+}
+
+// --- Typography Defaults ---
+html {
+  @include typography.typography('body1');
+}
+h1 {
+  @include typography.typography('headline1');
+}
+h2 {
+  @include typography.typography('headline2');
+}
+h3 {
+  @include typography.typography('headline3');
+}
+h4 {
+  @include typography.typography('headline4');
+}
+h5 {
+  @include typography.typography('headline5');
+}
+h6 {
+  @include typography.typography('headline6');
+}
+caption {
+  @include typography.typography('caption');
+}
+code,
+pre {
+  font-family: 'Roboto Mono', monospace;
+}
+small {
+  font-size: 0.9em;
+}
+big {
+  font-size: 1.1em;
+}
+b,
+strong {
+  font-weight: bold;
+}

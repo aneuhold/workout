@@ -1,0 +1,4 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+# Disallow all robot traffic for this site
+Disallow: /

@@ -1,0 +1,48 @@
+@import './sveltyPicker.css';
+
+.dimmed-color {
+  color: var(--mdc-theme-text-hint-on-background, rgba(255, 255, 255, 0.5));
+}
+
+.small-icon {
+  font-size: 16px;
+}
+
+.x-small-icon {
+  font-size: 14px;
+}
+
+/* For weird cases where hiding is important through CSS */
+.display-none {
+  display: none;
+}
+
+/* Min-height for text areas */
+.mdc-text-field--textarea .mdc-text-field__input {
+  min-height: 5lh;
+}
+
+/* Fixes a strange issue with mdc-deprecated-list-item__secondary-text and 
+other text classes */
+.no-before::before {
+  display: none;
+}
+
+/* For adjusting the width of text areas */
+span:has(> .mdc-text-field__input) {
+  width: 100%;
+}
+
+/* For making it so accordions will show Select menu's correctly over other
+content. */
+.smui-accordion {
+  z-index: 1;
+}
+
+/* A fix that took a long time to find. This was causing the panel to constrain
+any dialogs contained within it, and only happend on `variant="outlined"` or
+`variant="raised"`, but this fixes it for all the panels. It was only tied
+to the `smui-accordion__panel--raised class` originally. */
+.smui-accordion .smui-accordion__panel {
+  will-change: auto;
+}
