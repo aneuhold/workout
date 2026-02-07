@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "rsc": false,
+  "tsx": true,
+  "typescript": true,
+  "style": "base-nova",
+  "tailwind": {
+    "css": "src/globalStyles/global.css",
+    "cssVariables": true,
+    "baseColor": "zinc"
+  },
+  "iconLibrary": "tabler",
+  "aliases": {
+    "components": "$components",
+    "utils": "$util",
+    "ui": "$components/ui"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "registry": "https://shadcn-svelte.com/registry"
+}
