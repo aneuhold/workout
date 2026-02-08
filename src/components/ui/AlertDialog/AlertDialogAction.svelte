@@ -1,11 +1,6 @@
-<script lang="ts" module>
-  import { buttonVariants } from '$ui/Button/Button.svelte';
-
-  const buttonVariantsDefaultClass: string = buttonVariants();
-</script>
-
 <script lang="ts">
   import { AlertDialog as AlertDialogPrimitive } from 'bits-ui';
+  import { buttonVariants } from '$ui/Button/Button.svelte';
   import { cn } from '$util/svelte-shadcn-util.js';
 
   let {
@@ -18,6 +13,6 @@
 <AlertDialogPrimitive.Action
   bind:ref
   data-slot="alert-dialog-action"
-  class={cn(buttonVariantsDefaultClass, className)}
+  class={cn(buttonVariants(), className)}
   {...restProps}
 />

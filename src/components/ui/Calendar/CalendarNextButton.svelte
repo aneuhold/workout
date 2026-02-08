@@ -13,8 +13,6 @@
   }: CalendarPrimitive.NextButtonProps & {
     variant?: ButtonVariant;
   } = $props();
-
-  let buttonClass: string = $derived(buttonVariants({ variant }));
 </script>
 
 {#snippet Fallback()}
@@ -24,7 +22,7 @@
 <CalendarPrimitive.NextButton
   bind:ref
   class={cn(
-    buttonClass,
+    buttonVariants({ variant }),
     'size-(--cell-size) bg-transparent p-0 select-none disabled:opacity-50 rtl:rotate-180',
     className
   )}
