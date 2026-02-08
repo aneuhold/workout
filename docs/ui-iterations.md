@@ -1,5 +1,42 @@
 ## Examples / Iterations
 
+### Idea / Iteration 5 (Claude Sonnet 4.5)
+
+<details>
+<summary>Open / Close </summary>
+
+![alt text](images/image-17.png)
+
+![alt text](images/image-18.png)
+
+![alt text](images/image-19.png)
+
+![alt text](images/image-20.png)
+
+![alt text](images/image-21.png)
+
+![alt text](images/image-22.png)
+
+![alt text](images/image-23.png)
+
+![alt text](images/image-24.png)
+
+![alt text](images/image-25.png)
+
+![alt text](images/image-26.png)
+
+![alt text](images/image-27.png)
+
+![alt text](images/image-28.png)
+
+![alt text](images/image-29.png)
+
+![alt text](images/image-30.png)
+
+![alt text](images/image-31.png)
+
+</details>
+
 ### Idea / Iteration 4 (Gemini 3 Pro)
 
 <details>
