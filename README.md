@@ -2,11 +2,17 @@
 
 A workout tracking app.
 
+## Architecture
+
+### Styling
+
+This was done originally with [this variant of shadcn](https://ui.shadcn.com/create?base=base&baseColor=zinc&theme=emerald&iconLibrary=tabler&template=start).
+
 ### Logging
 
 Logging is done via Sentry. Configuration is setup in `hooks.client.ts` primarily.
 
-## Developing
+## Development
 
 To start working on the project simply run:
 
