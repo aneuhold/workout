@@ -1,6 +1,21 @@
 ## Examples / Iterations
 
-### Idea / Iteration 3
+### Idea / Iteration 4 (Gemini 3 Pro)
+
+<details>
+<summary>Open / Close </summary>
+
+![alt text](images/image-13.png)
+
+![alt text](images/image-14.png)
+
+![alt text](images/image-15.png)
+
+![alt text](images/image-16.png)
+
+</details>
+
+### Idea / Iteration 3 (GPT-5.2)
 
 <details>
 <summary>Open / Close </summary>
@@ -27,7 +42,7 @@
 
 </details>
 
-### Idea / Iteration 2
+### Idea / Iteration 2 (Gemini 3 Pro)
 
 <details>
 <summary>Open / Close </summary>
