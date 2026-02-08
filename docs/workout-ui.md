@@ -14,9 +14,13 @@ When in desktop width, it should move to the left:
 
 Things that seem good on this page:
 
-- Call to action for logging a session
+- Call to action for logging a session (probably the next session)
 - Call to action for any pending logs that are needed for a previous session
 - Quick navigation for previous session
+
+Idea 2:
+
+![alt text](images/image-1.png)
 
 ### Analytics
 
