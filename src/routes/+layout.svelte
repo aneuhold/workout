@@ -8,10 +8,8 @@
   import { ModeWatcher } from 'mode-watcher';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
-  import taskMapService from '$services/Task/TaskMapService/TaskMapService';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
-  import LocalData from '$util/LocalData/LocalData';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -20,9 +18,7 @@
   onMount(() => {
     // Initialize services from LocalData. Not sure if this is the best place, but it does solve
     // the loop issue where services depend upon each other and LocalData needs to be loaded first.
-    if (LocalData.taskMap) {
-      taskMapService.setMap(LocalData.taskMap);
-    }
+    // TODO: Initialize workout services from LocalData when needed
     // Without this, the layout fluctuates a lot when the page is starting up.
     mounted = true;
   });
