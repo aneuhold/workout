@@ -16,5 +16,8 @@
   },
   "eslint.run": "onSave",
   // Below is super important for ESLint to run at all with Svelte
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "svelte"]
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "svelte"],
+  "markdown.copyFiles.destination": {
+    "/docs/**/*": "${documentDirName}/images/"
+  }
 }
