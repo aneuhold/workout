@@ -1,6 +1,7 @@
 <script lang="ts">
   import { scaleBand } from 'd3-scale';
-  import { BarChart } from 'layerchart';
+  import { BarChart, type ChartContextValue } from 'layerchart';
+  import { cubicInOut } from 'svelte/easing';
   import ChartContainer from './ChartContainer.svelte';
   import ChartTooltip from './ChartTooltip.svelte';
   import type { ChartConfig } from './ChartUtils.js';
@@ -34,10 +35,13 @@
       color: '#60a5fa'
     }
   } satisfies ChartConfig;
+
+  let context = $state<ChartContextValue>();
 </script>
 
-<ChartContainer config={chartConfig} class="min-h-50 w-full">
+<ChartContainer config={chartConfig}>
   <BarChart
+    bind:context
     data={chartData}
     xScale={scaleBand().padding(0.25)}
     x="month"
@@ -58,6 +62,19 @@
       }
     ]}
     props={{
+      bars: {
+        stroke: 'none',
+        strokeWidth: 0,
+        rounded: 'all',
+        // use the height of the chart to animate the bars
+        initialY: context?.height,
+        initialHeight: 0,
+        motion: {
+          y: { type: 'tween', duration: 500, easing: cubicInOut },
+          height: { type: 'tween', duration: 500, easing: cubicInOut }
+        }
+      },
+      highlight: { area: { fill: 'none' } },
       xAxis: {
         format: (d) => d.slice(0, 3)
       }
