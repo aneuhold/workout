@@ -12,7 +12,9 @@ export default [
       // Disabling this because we have a bunch of dynamic routes
       'svelte/no-navigation-without-resolve': 'off',
       // Disabled due to false positives with Svelte components
-      '@typescript-eslint/no-useless-default-assignment': 'off'
+      '@typescript-eslint/no-useless-default-assignment': 'off',
+      // Disabled because it wasn't working correctly with Svelte snippets
+      '@typescript-eslint/no-confusing-void-expression': 'off'
     }
   }
 ];

@@ -57,6 +57,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-storybook": "10.2.7",
     "jsdom": "^28.0.0",
+    "layerchart": "2.0.0-next.43",
     "madge": "^8.0.0",
     "mode-watcher": "^1.1.0",
     "prettier": "^3.8.1",

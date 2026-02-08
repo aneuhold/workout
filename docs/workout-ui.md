@@ -16,7 +16,7 @@ Things that seem good on this page:
 
 - Call to action for logging a session (probably the next session)
 - Call to action for any pending logs that are needed for a previous session
-- Quick navigation for previous session
+- Quick navigation for a few previous sessions
 
 Idea 2:
 
