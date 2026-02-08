@@ -9,6 +9,7 @@ import TestSetup from '$testUtils/TestSetup';
 TestSetup.setupGlobalMocks(spyOn);
 
 const preview: Preview = {
+  tags: ['autodocs'],
   beforeEach: () => {
     TestSetup.setupGlobalMocks(spyOn);
   },

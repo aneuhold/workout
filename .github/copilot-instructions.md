@@ -36,6 +36,7 @@ Use `pnpm` for all package management:
   4.  Rename the containing folder of the new components to the capital case version of the component name. For example, if you add the `Alert` component, the containing folder should be renamed from `alert` to `Alert`.
   5.  Delete the `index.ts` file that gets generated, and import from the files directly.
   6.  Go to the actual shadcn component examples starting here: https://github.com/shadcn-ui/ui/tree/main/apps/v4/examples/base/ui (you can use the GitHub MCP server) for the associated components that were generated, grab the class names / styling that is used in the React components and replace the class names / styling that comes by default from shadcn-svelte with the ones you retrieved. So put React class names -> Svelte components. Don't over complicate this, and make sure the class names match exactly.
+  7.  Look at the existing examples of storybook stories, and then create a single story file per component with a few stories in that file showcasing different variants and use cases.
 - **Tailwind CSS v4**: Use utility classes for styling. No `@apply` in components; use `cn()` utility from `$util/svelte-shadcn-util` to merge classes
 - **Class merging**: Always use `cn()` when conditionally applying Tailwind classes: `class={cn('base-class', condition && 'conditional-class')}`
 - **CSS Variables**: Theme colors defined in `src/globalStyles/global.css` using CSS custom properties (e.g., `--primary`, `--background`)
