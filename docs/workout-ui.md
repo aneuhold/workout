@@ -26,7 +26,7 @@ Things that seem good on this page:
 
 ### Session Logging
 
-- Sliders are needed for the SFR + Soreness + Performance, etc. values to make it easy to adjust them. The first value of the slider (all the way to the left) should indicate "Not Set". Then the next values should proceed 0-3, with 3 at the far right. 3 is bad, 0 is good. So if you feel like doing color indicators, then go ahead for this.
+- Sliders are needed for the SFR + Soreness + Performance, etc. values to make it easy to adjust them. The first value of the slider (all the way to the left) should indicate "Not Set". Then the next values should proceed 0-3, with 3 at the far right. 3 can be good or bad depending on the thing being measured. So if you feel like doing color indicators, then go ahead for this.
 - A clear indication somehow of the current set and current session exercise being logged / worked. Maybe heart-beat animation or something cool, but still easy on the eyes.
 - The full session should be in one scrollable view while recording. Try to make the controls in this UI intuitive to enable this. Do not add pagination for this route.
 - Progress bar could be nice on this route somewhere to indicate progress through the session.
