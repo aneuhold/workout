@@ -5,37 +5,10 @@ import { userConfig } from '../local/userConfig/userConfig';
 function createEnabledPagesStore() {
   const { subscribe, set } = writable<PageInfo[]>(Object.values(navInfo));
 
-  let devModeEnabled: boolean | null = null;
-  let previousEnabledFeaturesString = '';
-
-  userConfig.subscribe((settings) => {
-    const newEnabledFeaturesString = JSON.stringify(settings.config.enabledFeatures);
-    if (
-      settings.config.enableDevMode !== devModeEnabled ||
-      newEnabledFeaturesString !== previousEnabledFeaturesString
-    ) {
-      devModeEnabled = settings.config.enableDevMode;
-      previousEnabledFeaturesString = newEnabledFeaturesString;
-      set(
-        Object.values(navInfo).filter((pageInfo) => {
-          const pageTitle = pageInfo.title;
-          switch (pageTitle) {
-            case navInfo.dev.title:
-            case navInfo.devArch.title:
-              return devModeEnabled;
-            case navInfo.finance.title:
-              return settings.config.enabledFeatures.financePage;
-            case navInfo.automation.title:
-              return settings.config.enabledFeatures.automationPage;
-            case navInfo.entertainment.title:
-            case navInfo.nonogramKatana.title:
-              return settings.config.enabledFeatures.entertainmentPage;
-            default:
-              return true;
-          }
-        })
-      );
-    }
+  // TODO: Re-implement page filtering when workout-specific feature flags are needed
+  userConfig.subscribe((_settings) => {
+    // For now, just enable all pages in navInfo
+    set(Object.values(navInfo));
   });
 
   return {

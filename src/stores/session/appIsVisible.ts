@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import DashboardAPIService from '$util/api/DashboardAPIService';
+import WorkoutAPIService from '$util/api/WorkoutAPIService';
 
 function createAppIsVisibleStore() {
   let _appIsVisible = true;
@@ -12,7 +12,7 @@ function createAppIsVisibleStore() {
         _appIsVisible = isVisible;
         set(_appIsVisible);
         if (_appIsVisible) {
-          DashboardAPIService.getInitialDataIfNeeded();
+          WorkoutAPIService.getInitialDataIfNeeded();
         }
       }
     },

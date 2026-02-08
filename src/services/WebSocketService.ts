@@ -1,4 +1,4 @@
-import { APIService, type DashboardWebSocketServerToClientEvents } from '@aneuhold/core-ts-api-lib';
+import { APIService, type WorkoutWebSocketServerToClientEvents } from '@aneuhold/core-ts-api-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { io, Socket } from 'socket.io-client';
 import { apiKey } from '$stores/local/apiKey';
@@ -10,15 +10,15 @@ const log = createLogger('WebSocketService.ts');
  * A service for handling WebSocket connections used in the application.
  */
 export default class WebSocketService {
-  static #socket?: Socket<DashboardWebSocketServerToClientEvents, never>;
+  static #socket?: Socket<WorkoutWebSocketServerToClientEvents, never>;
   static #unsubs: (() => void)[] = [];
 
   static connect() {
     if (this.#socket) {
       return;
     } else {
-      // Use the namespace `/dashboard` to ensure that we only connect to the dashboard parts
-      this.#socket = io(`${APIService.getCurrentAPIUrl()}dashboard`, {
+      // Use the namespace `/workout` to ensure that we only connect to the workout parts
+      this.#socket = io(`${APIService.getCurrentAPIUrl()}workout`, {
         auth: {
           apiKey: apiKey.get()
         }
@@ -51,7 +51,7 @@ export default class WebSocketService {
    * @returns a function to unsubscribe from the event
    */
   static subscribeToRootPostResult(
-    callback: DashboardWebSocketServerToClientEvents['rootPostResult']
+    callback: WorkoutWebSocketServerToClientEvents['rootPostResult']
   ) {
     if (!this.#socket) {
       this.connect();

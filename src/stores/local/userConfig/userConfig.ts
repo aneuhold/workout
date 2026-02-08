@@ -6,7 +6,6 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import { type Updater, writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import DashboardAPIService from '$util/api/DashboardAPIService';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 
@@ -37,28 +36,29 @@ function createUserConfigStore() {
     LocalData.userConfig = currentConfig;
   };
 
-  const updateUserConfigAndSave = (updater: Updater<UserConfig>) => {
-    updateUserConfig(updater);
-    DashboardAPIService.updateSettings(currentConfig.config);
-  };
+  // TODO: Re-implement API persistence when workout user config is needed
+  // const updateUserConfigAndSave = (updater: Updater<UserConfig>) => {
+  //   updateUserConfig(updater);
+  //   WorkoutAPIService.updateSettings(currentConfig.config);
+  // };
 
   return {
     subscribe,
     set: (newConfig: UserConfig) => {
-      updateUserConfigAndSave(() => newConfig);
+      updateUserConfig(() => newConfig);
     },
     update: (updater: Updater<UserConfig>) => {
-      updateUserConfigAndSave(updater);
+      updateUserConfig(updater);
     },
     addCollaborator: (user: UserCTO) => {
-      updateUserConfigAndSave((config) => {
+      updateUserConfig((config) => {
         config.config.collaborators.push(user._id);
         config.collaborators[user._id] = user;
         return config;
       });
     },
     removeCollaborator: (userName: string) => {
-      updateUserConfigAndSave((config) => {
+      updateUserConfig((config) => {
         const collaboratorId = Object.values(config.collaborators).find(
           (userCto) => userCto.userName === userName
         )?._id;

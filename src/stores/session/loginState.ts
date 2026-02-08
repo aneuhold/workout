@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocketService';
-import DashboardAPIResponseHandlingService from '$util/api/DashboardAPIResponseHandlingService';
-import DashboardAPIService from '$util/api/DashboardAPIService';
+import WorkoutAPIResponseHandlingService from '$util/api/WorkoutAPIResponseHandlingService';
+import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
@@ -42,7 +42,7 @@ function createLoginStateStore() {
   // Determine initial login state based on persisted API key.
   if (browser && LocalData.apiKey && LocalData.apiKey !== '') {
     setLoginState(LoginState.LoggedIn);
-    DashboardAPIService.getInitialDataIfNeeded();
+    WorkoutAPIService.getInitialDataIfNeeded();
   } else {
     log.info('No API key found, setting login state to LoggedOut');
     setLoginState(LoginState.LoggedOut);
@@ -71,7 +71,7 @@ function createHandleLoginStateChangeForWebSocket(): (newLoginState: LoginState)
       if (!subscribedToWebSocket) {
         WebSocketService.subscribeToRootPostResult((payload) => {
           log.info('Received WebSocket payload:', payload);
-          DashboardAPIResponseHandlingService.processDashboardApiOutput(payload, false);
+          WorkoutAPIResponseHandlingService.processWorkoutApiOutput(payload, false);
         });
         subscribedToWebSocket = true;
       } else {

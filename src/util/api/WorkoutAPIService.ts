@@ -1,21 +1,20 @@
 import {
   APIService,
-  type ProjectDashboardOptions,
-  type ProjectDashboardOutput
+  type ProjectWorkoutPrimaryEndpointOptions,
+  type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import type { DashboardUserConfig, UserCTO } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import WebSocketService from '$services/WebSocketService';
 import { apiKey } from '$stores/local/apiKey';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
-import DashboardAPIResponseHandlingService from './DashboardAPIResponseHandlingService';
+import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandlingService';
 
-const log = createLogger('DashboardAPIService.ts');
+const log = createLogger('WorkoutAPIService.ts');
 
 const SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA = 10;
 
-export default class DashboardAPIService {
+export default class WorkoutAPIService {
   /**
    * A variable to determine if the initial data is currently being fetched
    * for the first time.
@@ -34,7 +33,7 @@ export default class DashboardAPIService {
    *
    * @param apiOptions The API options that describe the desired operation(s).
    */
-  static queryApi(apiOptions: ProjectDashboardOptions) {
+  static queryApi(apiOptions: ProjectWorkoutPrimaryEndpointOptions) {
     // Add the options to the queue
     this.pushApiRequest(apiOptions);
 
@@ -88,50 +87,20 @@ export default class DashboardAPIService {
 
     this.queryApi({
       get: {
-        translations: true,
-        userConfig: true,
-        tasks: true,
-        nonogramKatanaItems: true,
-        nonogramKatanaUpgrades: true
+        mesocycles: { all: true },
+        microcycles: { all: true },
+        sessions: { all: true },
+        sessionExercises: { all: true },
+        sets: { all: true },
+        exercises: { all: true },
+        exerciseCalibrations: { all: true },
+        muscleGroups: { all: true },
+        equipmentTypes: { all: true }
       }
     });
   }
 
-  static updateSettings(updatedConfig: DashboardUserConfig) {
-    log.info('Saving user settings...');
-    this.queryApi({
-      // Get tasks as well because the collaborators might have changed
-      get: { userConfig: true, tasks: true },
-      update: {
-        userConfig: updatedConfig
-      }
-    });
-  }
-
-  /**
-   * This processes separately from the queue because it is a special case.
-   *
-   * @param username The username to validate.
-   */
-  static async checkIfUsernameIsValid(username: string): Promise<UserCTO | null> {
-    const apiKeyValue = this.checkOrSetupDashboardAPI();
-    const result = await APIService.callDashboardAPI({
-      apiKey: apiKeyValue,
-      options: {
-        get: {
-          userNameIsValid: username
-        }
-      }
-    });
-    if (result.success && result.data.userFromUserName) {
-      return result.data.userFromUserName;
-    } else {
-      log.info('Invalid username', result);
-      return null;
-    }
-  }
-
-  static checkOrSetupDashboardAPI(): UUID {
+  static checkOrSetupWorkoutAPI(): UUID {
     const apiKeyValue = apiKey.get();
     if (!apiKeyValue) {
       throw new Error('API Key not set!');
@@ -145,7 +114,7 @@ export default class DashboardAPIService {
    */
   private static async processApiRequests() {
     this.processingRequestQueue = true;
-    let combinedOutput: ProjectDashboardOutput = {};
+    let combinedOutput: ProjectWorkoutPrimaryOutput = {};
     while (LocalData.apiRequestQueue.length > 0) {
       const currentRequest = this.shiftApiRequestQueue();
       LocalData.currentApiRequest = currentRequest;
@@ -153,7 +122,7 @@ export default class DashboardAPIService {
         log.error('No current API request to process, something went wrong!!');
         break;
       }
-      const result = await this.callDashboardAPI(currentRequest);
+      const result = await this.callWorkoutAPI(currentRequest);
       if (result) {
         combinedOutput = { ...combinedOutput, ...result };
       }
@@ -161,7 +130,7 @@ export default class DashboardAPIService {
         // Only set the stores if there are no more requests to process. This
         // should help prevent the stores from being set to an old value if
         // the user refreshes the page while the task queue is being processed.
-        DashboardAPIResponseHandlingService.processDashboardApiOutput(
+        WorkoutAPIResponseHandlingService.processWorkoutApiOutput(
           combinedOutput,
           this.processingFirstInitData
         );
@@ -169,18 +138,18 @@ export default class DashboardAPIService {
       } else {
         // If there was an error, add the task back to the queue and try again
         // Save this for later to ensure there is no infinite loop
-        // this.unshiftTaskQueueItem(LocalData.currentTaskQueueItem!);
+        // this.unshiftTaskQueueItem(LocalData.currentTaskQueueItem);
       }
     }
     this.processingRequestQueue = false;
   }
 
-  private static async callDashboardAPI(
-    input: ProjectDashboardOptions
-  ): Promise<ProjectDashboardOutput | null> {
-    const apiKeyValue = this.checkOrSetupDashboardAPI();
+  private static async callWorkoutAPI(
+    input: ProjectWorkoutPrimaryEndpointOptions
+  ): Promise<ProjectWorkoutPrimaryOutput | null> {
+    const apiKeyValue = this.checkOrSetupWorkoutAPI();
     log.info('Processing API request', input);
-    const result = await APIService.callDashboardAPI({
+    const result = await APIService.callWorkoutAPI({
       apiKey: apiKeyValue,
       options: input,
       socketId: WebSocketService.getSocketId()
@@ -194,13 +163,13 @@ export default class DashboardAPIService {
     }
   }
 
-  private static pushApiRequest(apiInput: ProjectDashboardOptions) {
+  private static pushApiRequest(apiInput: ProjectWorkoutPrimaryEndpointOptions) {
     const apiRequestQueue = LocalData.apiRequestQueue;
     apiRequestQueue.push(apiInput);
     LocalData.apiRequestQueue = apiRequestQueue;
   }
 
-  private static shiftApiRequestQueue(): ProjectDashboardOptions | undefined {
+  private static shiftApiRequestQueue(): ProjectWorkoutPrimaryEndpointOptions | undefined {
     const apiRequestQueue = LocalData.apiRequestQueue;
     const result = apiRequestQueue.shift();
     LocalData.apiRequestQueue = apiRequestQueue;

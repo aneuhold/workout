@@ -17,7 +17,7 @@ export default class TestSetup {
    */
   static setupGlobalMocks(spyOnFn: SpyOnFn) {
     // Mock API
-    spyOnFn(APIService, 'callDashboardAPI').mockImplementation((_) => {
+    spyOnFn(APIService, 'callWorkoutAPI').mockImplementation((_) => {
       return Promise.resolve({
         success: true,
         errors: [],
@@ -33,7 +33,6 @@ export default class TestSetup {
     apiKey.set(DocumentService.generateID());
 
     // Reset stores
-    MockData.taskMapServiceMock.reset();
     MockData.userSettingsMock.reset();
     MockData.userSettingsMock.enableConfetti();
     MockData.userSettingsMock.addCollaborator(TestUsers.collaborator1);
