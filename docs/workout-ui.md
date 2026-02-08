@@ -2,11 +2,11 @@
 
 ## Persistent Action Bar at the bottom
 
-This will be a fixed action bar at the bottom when inside the workouts route ![alt text](images/image.png)
+This will be a fixed action bar at the bottom when inside the app. When in desktop width, it should move to the left. Yet to be decided what it should contain, but probably the most important buttons / touch targets.
 
-When in desktop width, it should move to the left:
+## Timer
 
-![alt text](images/image2.png)
+There should be a way to start a timer while resting. So it should be accessible when looking at the session logging screen somehow. Also it should be persistent somehow in the UI if a timer is running no matter where you are currently in the app. The timer itself should be dirt simple for the most part. We don't need anything complicated.
 
 ## Routes
 
@@ -18,23 +18,17 @@ Things that seem good on this page:
 - Call to action for any pending logs that are needed for a previous session
 - Quick navigation for a few previous sessions
 
-Idea 2:
-
-![alt text](images/image-1.png)
-
 ### Analytics
 
-Idea 1:
+### Exercise Library / Exercises
 
-![alt text](images/image3.png)
-
-![alt text](images/image4.png)
+- This should contain the list of exercises the user has, and their associated calibrations somehow. If an exercise hasn't been calibrated, it should be easily viewable here.
 
 ### Session Logging
 
-Idea 1:
+- Sliders are needed for the SFR + Soreness + Performance, etc. values to make it easy to adjust them. The first value of the slider (all the way to the left) should indicate "Not Set" and gray it out (or whatever seems appropriate as far as design). Then the next values should proceed 0-3, with 3 at the far right.
+- A clear indication somehow of the current set and current session exercise being logged / worked. Maybe heart-beat animation or something cool, but still easy on the eyes.
 
-![alt text](images/image6.png)
+### Settings
 
-The sliders might be okay, but there has to be a way to record nothing. So we need another way to indicate that.
-Also I have an idea for sets that aren't being recorded here.
+- Some kind of settings page that perhaps includes muscle groups and equipment types. Not
