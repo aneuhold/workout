@@ -54,7 +54,7 @@
 
 <!--
 Discriminated Unions + Destructing (required for bindable) do not
-get along, so we shut typescript up by casting `value` to `never`.
+get along at the moment. So this is casted to never.
 -->
 <CalendarPrimitive.Root
   bind:value={value as never}
@@ -110,7 +110,7 @@ get along, so we shut typescript up by casting `value` to `never`.
                       {#if day}
                         {@render day({
                           day: date,
-                          outsideMonth: !isEqualMonth(date, month.value)
+                          outsideMonth: !isEqualMonth(date, month.value as DateValue)
                         })}
                       {:else}
                         <CalendarDay />

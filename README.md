@@ -30,6 +30,8 @@ Checkout the [shadcn-svelte site for what is available](https://shadcn-svelte.co
 pnpm dlx shadcn-svelte@latest add COMPONENT-NAME
 ```
 
+For the actual reference to the shadcn components, see them [here](https://ui.shadcn.com/docs/components).
+
 ### Icons
 
 Icons are from [Tabler here](https://tabler.io/icons). Just import them from the `@tabler/icons-svelte` package.

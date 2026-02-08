@@ -4,17 +4,17 @@
   let { id, config }: { id: string; config: ChartConfig } = $props();
 
   const colorConfig = $derived(
-    config ? Object.entries(config).filter(([, config]) => config.theme || config.color) : null
+    Object.entries(config).filter(([, config]) => config.theme || config.color)
   );
 
   const themeContents = $derived.by(() => {
-    if (!colorConfig || !colorConfig.length) return;
+    if (!colorConfig.length) return;
 
     const themeContents = [];
     for (let [_theme, prefix] of Object.entries(THEMES)) {
       let content = `${prefix} [data-chart=${id}] {\n`;
       const color = colorConfig.map(([key, itemConfig]) => {
-        const theme = _theme as keyof typeof itemConfig.theme;
+        const theme = _theme as 'light' | 'dark';
         const color = itemConfig.theme?.[theme] || itemConfig.color;
         return color ? `\t--color-${key}: ${color};` : null;
       });

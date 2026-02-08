@@ -5,9 +5,8 @@
   import { cn, type WithElementRef, type WithoutChildren } from '$util/svelte-shadcn-util.js';
   import { getPayloadConfigFromPayload, type TooltipPayload, useChart } from './ChartUtils.js';
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function defaultFormatter(value: any, _payload: TooltipPayload[]) {
-    return `${value}`;
+  function defaultFormatter(value: unknown, _payload: TooltipPayload[]): string | number | Snippet {
+    return String(value);
   }
 
   let {
@@ -32,8 +31,9 @@
     labelKey?: string;
     hideIndicator?: boolean;
     labelClassName?: string;
-    labelFormatter?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((value: any, payload: TooltipPayload[]) => string | number | Snippet) | null;
+    labelFormatter?:
+      | ((value: unknown, payload: TooltipPayload[]) => string | number | Snippet)
+      | null;
     formatter?: Snippet<
       [
         {

@@ -15,5 +15,8 @@ vite.config.ts.timestamp-*
 # Sentry Config File
 .sentryclirc
 
+# ESLint
+.eslintcache
+
 # Storybook
 *storybook.log

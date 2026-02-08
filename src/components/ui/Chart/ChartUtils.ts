@@ -27,7 +27,7 @@ export function getPayloadConfigFromPayload(
   payload: TooltipPayload,
   key: string
 ) {
-  if (typeof payload !== 'object' || payload === null) return undefined;
+  if (typeof payload !== 'object') return undefined;
 
   const payloadPayload =
     'payload' in payload && typeof payload.payload === 'object' && payload.payload !== null

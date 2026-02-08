@@ -1,6 +1,12 @@
+<script lang="ts" module>
+  import { buttonVariants } from '$ui/Button/Button.svelte';
+
+  // Added this way because the type of `tv` derived functions is kind of nuts.
+  const alertDialogCancelClass: string = buttonVariants({ variant: 'ghost' });
+</script>
+
 <script lang="ts">
   import { Calendar as CalendarPrimitive } from 'bits-ui';
-  import { buttonVariants } from '$ui/Button/Button.svelte';
   import { cn } from '$util/svelte-shadcn-util.js';
 
   let {
@@ -13,7 +19,7 @@
 <CalendarPrimitive.Day
   bind:ref
   class={cn(
-    buttonVariants({ variant: 'ghost' }),
+    alertDialogCancelClass,
     'flex size-(--cell-size) flex-col items-center justify-center gap-1 p-0 leading-none font-normal whitespace-nowrap select-none',
     '[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground [&[data-today][data-disabled]]:text-muted-foreground',
     'data-selected:bg-primary dark:data-selected:hover:bg-accent/50 data-selected:text-primary-foreground',
