@@ -51,16 +51,16 @@
   const tooltipCtx = getTooltipContext();
 
   const formattedLabel = $derived.by(() => {
-    if (hideLabel || !tooltipCtx.payload?.length) return null;
+    if (hideLabel || !tooltipCtx.payload.length) return null;
 
     const [item] = tooltipCtx.payload;
-    const key = labelKey ?? item?.label ?? item?.name ?? 'value';
+    const key = labelKey ?? item.label ?? item.name ?? 'value';
 
     const itemConfig = getPayloadConfigFromPayload(chart.config, item, key);
 
     const value =
       !labelKey && typeof label === 'string'
-        ? (chart.config[label]?.label ?? label)
+        ? (chart.config[label].label ?? label)
         : (itemConfig?.label ?? item.label);
 
     if (value === undefined) return null;
@@ -85,8 +85,9 @@
 
 <TooltipPrimitive.Root variant="none">
   <div
+    bind:this={ref}
     class={cn(
-      'border-border/50 bg-background grid min-w-[9rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+      'border-border/50 bg-background grid min-w-36 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
       className
     )}
     {...restProps}
@@ -95,7 +96,7 @@
       {@render TooltipLabel()}
     {/if}
     <div class="grid gap-1.5">
-      {#each tooltipCtx.payload as item, i (item.key + i)}
+      {#each tooltipCtx.payload as item, i (item.key + i.toString())}
         {@const key = nameKey || item.key || item.name || 'value'}
         {@const itemConfig = getPayloadConfigFromPayload(chart.config, item, key)}
         {@const indicatorColor = color || item.payload?.color || item.color}
