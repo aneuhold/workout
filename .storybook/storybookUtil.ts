@@ -4,7 +4,8 @@
  * of as `0`, `1`, etc.
  *
  * Because of reverse-mapping in TypeScript enums https://www.typescriptlang.org/docs/handbook/enums.html#reverse-mappings
- * the options need to be filtered to just the string values.
+ * the options need to be filtered to just the string values for numeric enums.
+ * For string enums, the values are used directly.
  * This solution was found here: https://stackoverflow.com/questions/67467762/how-to-map-enum-to-select-dropdown-in-storybook
  *
  * Example:
@@ -17,14 +18,28 @@
  *
  * @param enumType The enum type to create the argType for.
  */
-export function createEnumArgType(enumType: object): object {
-  return {
-    options: Object.values(enumType).filter((x) => typeof x === 'number'),
-    control: {
-      type: 'radio',
-      labels: Object.values(enumType).filter((x) => typeof x === 'string')
-    }
-  };
+export function createEnumArgType<T extends Record<string, string | number>>(enumType: T): object {
+  const values = Object.values(enumType);
+  const isNumericEnum = values.some((x) => typeof x === 'number');
+
+  if (isNumericEnum) {
+    // Numeric enum - filter to get numbers as options and strings as labels
+    return {
+      options: values.filter((x) => typeof x === 'number'),
+      control: {
+        type: 'radio',
+        labels: values.filter((x) => typeof x === 'string')
+      }
+    };
+  } else {
+    // String enum - use values directly
+    return {
+      control: {
+        type: 'select'
+      },
+      options: values
+    };
+  }
 }
 
 /**

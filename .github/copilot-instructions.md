@@ -30,7 +30,7 @@ Use `pnpm` for all package management:
 
 - **shadcn-svelte**: Use pre-built accessible components from shadcn-svelte. Reference: https://shadcn-svelte.com/llms.txt
 - **Adding components**: Use the `add-new-shadcn-component` sub-agent to add new shadcn-svelte components to the project (unless you are currently that agent, in which case follow your defined workflow directly).
-- **Tailwind CSS v4**: Use utility classes for styling. No `@apply` in components; use `cn()` utility from `$util/svelte-shadcn-util` to merge classes
+- **Tailwind CSS v4**: Use utility classes for styling. No `@apply` in components; use `cn()` utility from `$util/svelte-shadcn-util` to merge classes. Do not use `w-[100px]` or similar px values. Use Tailwind's spacing scale (e.g., `w-25`) or custom CSS variables if needed. Note that some things need to still contain the brackets because they actually mean something that needs to be a variable, such as `supports-[backdrop-filter]`.
 - **Class merging**: Always use `cn()` when conditionally applying Tailwind classes: `class={cn('base-class', condition && 'conditional-class')}`
 - **CSS Variables**: Theme colors defined in `src/globalStyles/global.css` using CSS custom properties (e.g., `--primary`, `--background`)
 - **Icon library**: Tabler icons via `@tabler/icons-svelte`
@@ -42,6 +42,11 @@ Use `pnpm` for all package management:
 - **Singleton components**: Files named `Singleton*` are single-instance widgets (snackbar, confetti, dialogs) that export imperative functions
 - **UI components**: shadcn-svelte components are stored in `src/components/ui` (accessible via `$ui` alias)
 - **Component docs**: Use JSDoc `@component` tag at top of `.svelte` files
+
+### Storybook Stories
+
+- Each `Story` is an instance of the component being tested, not a wrapper. Build variations accordingly.
+- If a wrapper is needed in order to properly demonstrate the functionality of the component, or provide easier access / test data to the various properties of the component, build a separate component next to the original called `SB<ComponentName>Example.svelte` and use that as your target component for the story variations.
 
 ### Routes & Pages
 
@@ -90,13 +95,20 @@ Use `pnpm` for all package management:
 ### Imports
 
 - Use relative imports within package, package references for external packages
-- Use named imports only (never `import * as`)
+- Use named imports only (NEVER `import * as`)
 - Import at file top (inline only when absolutely necessary)
 
 ### Enums
 
 - Use PascalCase for enum names and values
 - Use TypeScript `enum` (not `const enum` or `type`)
+- Avoid string unions in as many cases as possible, prefer string enums for better readability and maintainability
+
+### Syntax and Best Practices
+
+- NEVER use `['propertyName']` syntax to access properties, always use `.propertyName` unless the property name is dynamic. Even then though, a variable / constant should be used instead of a string literal.
+- Use object destructuring when accessing multiple properties from an object
+- Prefer template literals over string concatenation.
 
 ## Tests
 

@@ -44,6 +44,7 @@ Follow these steps in order:
    - Look at existing storybook examples in the project
    - Create a single story file per component
    - Include multiple stories showcasing different variants and use cases
+   - Make sure to understand the storybook story guidelines in copilot-instructions.md before writing stories
 
 ## Final Steps
 
