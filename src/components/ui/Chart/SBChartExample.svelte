@@ -1,7 +1,6 @@
 <script lang="ts">
   import { scaleBand } from 'd3-scale';
-  import { BarChart, type ChartContextValue } from 'layerchart';
-  import { cubicInOut } from 'svelte/easing';
+  import { BarChart } from 'layerchart';
   import ChartContainer from './ChartContainer.svelte';
   import ChartTooltip from './ChartTooltip.svelte';
   import type { ChartConfig } from './ChartUtils.js';
@@ -28,63 +27,74 @@
   const chartConfig = {
     desktop: {
       label: 'Desktop',
-      color: '#2563eb'
+      color: 'var(--chart-1)'
     },
     mobile: {
       label: 'Mobile',
-      color: '#60a5fa'
+      color: 'var(--chart-3)'
     }
   } satisfies ChartConfig;
-
-  let context = $state<ChartContextValue>();
 </script>
 
 <ChartContainer config={chartConfig}>
-  <BarChart
-    bind:context
-    data={chartData}
-    xScale={scaleBand().padding(0.25)}
-    x="month"
-    axis="x"
-    {seriesLayout}
-    legend={showLegend}
-    tooltip={!showTooltip}
-    series={[
-      {
-        key: 'desktop',
-        label: chartConfig.desktop.label,
-        color: chartConfig.desktop.color
-      },
-      {
-        key: 'mobile',
-        label: chartConfig.mobile.label,
-        color: chartConfig.mobile.color
-      }
-    ]}
-    props={{
-      bars: {
-        stroke: 'none',
-        strokeWidth: 0,
-        rounded: 'all',
-        // use the height of the chart to animate the bars
-        initialY: context?.height,
-        initialHeight: 0,
-        motion: {
-          y: { type: 'tween', duration: 500, easing: cubicInOut },
-          height: { type: 'tween', duration: 500, easing: cubicInOut }
+  {#if showTooltip}
+    <BarChart
+      data={chartData}
+      xScale={scaleBand().padding(0.25)}
+      x="month"
+      axis="x"
+      {seriesLayout}
+      legend={showLegend}
+      series={[
+        {
+          key: 'desktop',
+          label: chartConfig.desktop.label,
+          color: chartConfig.desktop.color
+        },
+        {
+          key: 'mobile',
+          label: chartConfig.mobile.label,
+          color: chartConfig.mobile.color
         }
-      },
-      highlight: { area: { fill: 'none' } },
-      xAxis: {
-        format: (d) => d.slice(0, 3)
-      }
-    }}
-  >
-    {#if showTooltip}
-      <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+      ]}
+      props={{
+        xAxis: {
+          format: (d) => d.slice(0, 3)
+        }
+      }}
+    >
+      <!-- It seems like this has to be at the root inside of BarChart in order to work, otherwise
+       there would be a conditional here.-->
       {#snippet tooltip()}
         <ChartTooltip />
       {/snippet}
-    {/if}
-  </BarChart>
+    </BarChart>
+  {:else}
+    <BarChart
+      data={chartData}
+      xScale={scaleBand().padding(0.25)}
+      x="month"
+      axis="x"
+      {seriesLayout}
+      legend={showLegend}
+      tooltip={false}
+      series={[
+        {
+          key: 'desktop',
+          label: chartConfig.desktop.label,
+          color: chartConfig.desktop.color
+        },
+        {
+          key: 'mobile',
+          label: chartConfig.mobile.label,
+          color: chartConfig.mobile.color
+        }
+      ]}
+      props={{
+        xAxis: {
+          format: (d) => d.slice(0, 3)
+        }
+      }}
+    />
+  {/if}
 </ChartContainer>

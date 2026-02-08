@@ -1,3 +1,11 @@
+<!-- 
+ @component 
+ 
+ A flexible container for LayerChart charts via Svelte shadcn.
+
+ - [See here for docs on shadcn charts](https://shadcn-svelte.com/docs/components/chart)
+ - [See here for a nice clickable walkthrough of various examples of the charts](https://shadcn-svelte.com/charts/area)
+-->
 <script lang="ts">
   import type { HTMLAttributes } from 'svelte/elements';
   import { cn, type WithElementRef } from '$util/svelte-shadcn-util.js';
