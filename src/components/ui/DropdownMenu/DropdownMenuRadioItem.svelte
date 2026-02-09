@@ -25,7 +25,10 @@
   {...restProps}
 >
   {#snippet children({ checked })}
-    <span class="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
+    <span
+      class="pointer-events-none absolute right-2 flex items-center justify-center"
+      data-slot="dropdown-menu-radio-item-indicator"
+    >
       {#if checked}
         <IconCircleFilled class="size-2 fill-current" />
       {/if}

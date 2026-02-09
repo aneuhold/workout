@@ -31,7 +31,10 @@
   {...restProps}
 >
   {#snippet children({ checked, indeterminate })}
-    <span class="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
+    <span
+      class="pointer-events-none absolute right-2 flex items-center justify-center"
+      data-slot="dropdown-menu-checkbox-item-indicator"
+    >
       {#if indeterminate}
         <IconMinus class="size-4" />
       {:else}

@@ -21,7 +21,7 @@
     options,
     groups,
     size = 'default',
-    placeholder,
+    placeholder = 'Select an option',
     disabled
   }: {
     groups?: SelectGroupData[];
@@ -32,10 +32,20 @@
   } = $props();
 
   let value = $state('');
+
+  // Create a flat list of all options for lookup
+  const allOptions = $derived(groups ? groups.flatMap((g) => g.options) : options || []);
+
+  // Compute the trigger content based on selected value
+  const triggerContent = $derived(
+    allOptions.find((opt) => opt.value === value)?.label ?? placeholder
+  );
 </script>
 
 <Select bind:value type="single">
-  <SelectTrigger {size} {disabled} {placeholder} />
+  <SelectTrigger {size} {disabled}>
+    {triggerContent}
+  </SelectTrigger>
   <SelectContent>
     {#if groups}
       {#each groups as group, idx (group.label || idx)}
