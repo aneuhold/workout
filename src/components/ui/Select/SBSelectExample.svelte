@@ -42,8 +42,8 @@
   );
 </script>
 
-<Select bind:value type="single">
-  <SelectTrigger {size} {disabled}>
+<Select bind:value {disabled} type="single">
+  <SelectTrigger {size}>
     {triggerContent}
   </SelectTrigger>
   <SelectContent>

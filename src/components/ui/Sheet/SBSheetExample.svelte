@@ -35,7 +35,7 @@
       <SheetTitle>{title}</SheetTitle>
       <SheetDescription>{description}</SheetDescription>
     </SheetHeader>
-    <div class="py-4">Sheet content goes here.</div>
+    <div class="py-4 px-4">Sheet content goes here.</div>
     {#if showFooter}
       <SheetFooter>
         <SheetClose>
