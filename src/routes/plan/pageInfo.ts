@@ -2,8 +2,8 @@ import type { PageInfo } from '$util/navInfo';
 
 export const planPageInfo: PageInfo = {
   shortTitle: 'Plan',
-  title: 'Mesocycle Planner',
-  description: 'Plan and configure your mesocycle',
+  title: 'Mesocycles',
+  description: 'View and manage your mesocycles',
   url: '/plan',
   iconName: 'calendar',
   nestingLevel: 0

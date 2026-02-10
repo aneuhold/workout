@@ -1,6 +1,7 @@
 import { analyticsPageInfo } from '$routes/analytics/pageInfo';
 import { exercisesPageInfo } from '$routes/exercises/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
+import { planNewPageInfo } from '$routes/plan/new/pageInfo';
 import { planPageInfo } from '$routes/plan/pageInfo';
 import { sessionPageInfo } from '$routes/session/[id]/pageInfo';
 
@@ -39,7 +40,8 @@ const navInfo = {
   session: sessionPageInfo,
   exercises: exercisesPageInfo,
   analytics: analyticsPageInfo,
-  plan: planPageInfo
+  plan: planPageInfo,
+  planNew: planNewPageInfo
 } satisfies Record<string, PageInfo>;
 
 export default navInfo;
