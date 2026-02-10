@@ -9,7 +9,9 @@
     IconAlertCircle,
     IconBarbell,
     IconCalendarEvent,
+    IconChevronDown,
     IconChevronRight,
+    IconChevronUp,
     IconPlayerPlay,
     IconTrendingUp
   } from '@tabler/icons-svelte';
@@ -79,6 +81,98 @@
       rsmTotal: 5
     }
   ];
+
+  // Available exercises (same data as plan page - shared module in real app)
+  const availableExercises = [
+    { id: 'ex-1', name: 'Barbell Bench Press', repRange: 'Heavy' },
+    { id: 'ex-2', name: 'Incline DB Press', repRange: 'Medium' },
+    { id: 'ex-3', name: 'Cable Fly', repRange: 'Medium' },
+    { id: 'ex-4', name: 'Barbell Squat', repRange: 'Heavy' },
+    { id: 'ex-5', name: 'Romanian Deadlift', repRange: 'Medium' },
+    { id: 'ex-6', name: 'Lateral Raise', repRange: 'Light' },
+    { id: 'ex-7', name: 'Tricep Pushdown', repRange: 'Medium' },
+    { id: 'ex-8', name: 'Barbell Row', repRange: 'Heavy' },
+    { id: 'ex-9', name: 'Pull Up', repRange: 'Heavy' },
+    { id: 'ex-10', name: 'Barbell Curl', repRange: 'Medium' },
+    { id: 'ex-11', name: 'Leg Press', repRange: 'Medium' },
+    { id: 'ex-12', name: 'Leg Curl', repRange: 'Medium' }
+  ];
+
+  const exerciseCalibrations: Record<string, { oneRepMax: number; baseSets: number }> = {
+    'ex-1': { oneRepMax: 225, baseSets: 3 },
+    'ex-2': { oneRepMax: 160, baseSets: 3 },
+    'ex-3': { oneRepMax: 50, baseSets: 3 },
+    'ex-4': { oneRepMax: 315, baseSets: 3 },
+    'ex-5': { oneRepMax: 275, baseSets: 3 },
+    'ex-6': { oneRepMax: 30, baseSets: 3 },
+    'ex-7': { oneRepMax: 80, baseSets: 3 },
+    'ex-8': { oneRepMax: 205, baseSets: 3 },
+    'ex-9': { oneRepMax: 100, baseSets: 3 },
+    'ex-10': { oneRepMax: 105, baseSets: 3 },
+    'ex-11': { oneRepMax: 400, baseSets: 3 },
+    'ex-12': { oneRepMax: 140, baseSets: 3 }
+  };
+
+  const baseReps: Record<string, number> = {
+    Heavy: 6,
+    Medium: 10,
+    Light: 15
+  };
+
+  function getWeekProgression(weekNum: number, totalWeeks: number) {
+    if (weekNum > totalWeeks) {
+      return { rir: 5, setsModifier: -1 };
+    }
+    const rirStart = totalWeeks - 1;
+    const rir = Math.max(0, rirStart - (weekNum - 1));
+    const setsModifier = weekNum <= 2 ? 0 : weekNum <= 4 ? 1 : 2;
+    return { rir, setsModifier };
+  }
+
+  function calculateWeight(oneRepMax: number, reps: number, rir: number): number {
+    const effectiveReps = reps + rir;
+    const weight = oneRepMax / (1 + effectiveReps / 30);
+    return Math.round(weight / 5) * 5;
+  }
+
+  // Mesocycle session definitions
+  const mesoSessions = [
+    { title: 'Push Day A', exercises: ['ex-1', 'ex-2', 'ex-3', 'ex-6', 'ex-7'] },
+    { title: 'Pull Day A', exercises: ['ex-8', 'ex-9', 'ex-10'] },
+    { title: 'Legs A', exercises: ['ex-4', 'ex-5', 'ex-11', 'ex-12'] },
+    { title: 'Push Day B', exercises: ['ex-1', 'ex-3', 'ex-6', 'ex-7'] }
+  ];
+
+  // Upcoming sessions for this week with computed targets
+  const upcomingSessions = $derived.by(() => {
+    const { rir, setsModifier } = getWeekProgression(
+      currentMesocycle.week,
+      currentMesocycle.totalWeeks
+    );
+    return mesoSessions.map((session, idx) => ({
+      title: session.title,
+      isNext: idx === 0,
+      exerciseCount: session.exercises.length,
+      totalSets: session.exercises.reduce((sum, exId) => {
+        const cal = exerciseCalibrations[exId];
+        return sum + (cal ? Math.max(1, cal.baseSets + setsModifier) : 3);
+      }, 0),
+      rir,
+      details: session.exercises
+        .map((exId) => {
+          const exercise = availableExercises.find((e) => e.id === exId);
+          const cal = exerciseCalibrations[exId];
+          if (!exercise || !cal) return null;
+          const reps = baseReps[exercise.repRange] ?? 10;
+          const sets = Math.max(1, cal.baseSets + setsModifier);
+          const weight = calculateWeight(cal.oneRepMax, reps, rir);
+          return { name: exercise.name, sets, reps, rir, weight };
+        })
+        .filter((e): e is NonNullable<typeof e> => e !== null)
+    }));
+  });
+
+  let expandedUpcoming = $state<number | null>(null);
 </script>
 
 <div class="mx-auto max-w-lg space-y-4 p-4">
@@ -115,6 +209,55 @@
         <IconPlayerPlay size={18} data-icon="inline-start" />
         Start Session
       </Button>
+    </CardContent>
+  </Card>
+
+  <!-- This Week's Sessions -->
+  <Card>
+    <CardHeader>
+      <CardTitle>This Week's Sessions</CardTitle>
+      <CardDescription>Week {currentMesocycle.week} targets</CardDescription>
+    </CardHeader>
+    <CardContent class="space-y-2">
+      {#each upcomingSessions as session, idx (idx)}
+        <div class="border-border rounded-lg border">
+          <button
+            class="flex w-full items-center justify-between p-3 text-left"
+            onclick={() => {
+              expandedUpcoming = expandedUpcoming === idx ? null : idx;
+            }}
+          >
+            <div class="flex min-w-0 items-center gap-2">
+              <span class="truncate text-sm font-medium">{session.title}</span>
+              {#if session.isNext}
+                <Badge variant="default" class="shrink-0">Next</Badge>
+              {/if}
+            </div>
+            <div class="text-muted-foreground flex shrink-0 items-center gap-2 text-xs">
+              <span>{session.exerciseCount} ex</span>
+              <span>{session.totalSets} sets</span>
+              <span>RIR {session.rir}</span>
+              {#if expandedUpcoming === idx}
+                <IconChevronUp size={14} />
+              {:else}
+                <IconChevronDown size={14} />
+              {/if}
+            </div>
+          </button>
+          {#if expandedUpcoming === idx}
+            <div class="space-y-1 border-t px-3 pb-3 pt-2">
+              {#each session.details as ex (ex.name)}
+                <div class="flex justify-between text-xs">
+                  <span class="mr-2 truncate">{ex.name}</span>
+                  <span class="text-muted-foreground shrink-0">
+                    {ex.sets}x{ex.reps} @{ex.rir}RIR {ex.weight}lb
+                  </span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/each}
     </CardContent>
   </Card>
 

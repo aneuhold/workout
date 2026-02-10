@@ -23,6 +23,11 @@
   import CardDescription from '$ui/Card/CardDescription.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
   import CardTitle from '$ui/Card/CardTitle.svelte';
+  import Dialog from '$ui/Dialog/Dialog.svelte';
+  import DialogContent from '$ui/Dialog/DialogContent.svelte';
+  import DialogDescription from '$ui/Dialog/DialogDescription.svelte';
+  import DialogHeader from '$ui/Dialog/DialogHeader.svelte';
+  import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Popover from '$ui/Popover/Popover.svelte';
@@ -33,6 +38,10 @@
   import SelectItem from '$ui/Select/SelectItem.svelte';
   import SelectTrigger from '$ui/Select/SelectTrigger.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
+  import Tabs from '$ui/Tabs/Tabs.svelte';
+  import TabsContent from '$ui/Tabs/TabsContent.svelte';
+  import TabsList from '$ui/Tabs/TabsList.svelte';
+  import TabsTrigger from '$ui/Tabs/TabsTrigger.svelte';
 
   // Configuration state
   let cycleType = $state('MuscleGain');
@@ -70,10 +79,56 @@
     { id: 'ex-12', name: 'Leg Curl', muscles: ['Hamstrings'], repRange: 'Medium' }
   ];
 
+  // Exercise calibration data (would come from user's training history)
+  const exerciseCalibrations: Record<string, { oneRepMax: number; baseSets: number }> = {
+    'ex-1': { oneRepMax: 225, baseSets: 3 },
+    'ex-2': { oneRepMax: 160, baseSets: 3 },
+    'ex-3': { oneRepMax: 50, baseSets: 3 },
+    'ex-4': { oneRepMax: 315, baseSets: 3 },
+    'ex-5': { oneRepMax: 275, baseSets: 3 },
+    'ex-6': { oneRepMax: 30, baseSets: 3 },
+    'ex-7': { oneRepMax: 80, baseSets: 3 },
+    'ex-8': { oneRepMax: 205, baseSets: 3 },
+    'ex-9': { oneRepMax: 100, baseSets: 3 },
+    'ex-10': { oneRepMax: 105, baseSets: 3 },
+    'ex-11': { oneRepMax: 400, baseSets: 3 },
+    'ex-12': { oneRepMax: 140, baseSets: 3 }
+  };
+
+  const baseReps: Record<string, number> = {
+    Heavy: 6,
+    Medium: 10,
+    Light: 15
+  };
+
+  function getWeekProgression(weekNum: number, totalWeeks: number) {
+    if (weekNum > totalWeeks) {
+      return { rir: 5, setsModifier: -1, label: 'Deload' };
+    }
+    const rirStart = totalWeeks - 1;
+    const rir = Math.max(0, rirStart - (weekNum - 1));
+    const setsModifier = weekNum <= 2 ? 0 : weekNum <= 4 ? 1 : 2;
+    return { rir, setsModifier, label: `Week ${String(weekNum)}` };
+  }
+
+  function calculateWeight(oneRepMax: number, reps: number, rir: number): number {
+    const effectiveReps = reps + rir;
+    const weight = oneRepMax / (1 + effectiveReps / 30);
+    return Math.round(weight / 5) * 5;
+  }
+
   // Session definitions (the plan)
   type PlannedSession = {
     title: string;
     exercises: string[];
+  };
+
+  type CalendarDay = {
+    day: number;
+    dayOfWeek: number;
+    sessions: PlannedSession[];
+    isRest: boolean;
+    weekNum: number;
   };
 
   let sessions = $state<PlannedSession[]>([
@@ -86,30 +141,29 @@
   let expandedSession = $state<number | null>(0);
 
   // Calendar generation
-  const generateCalendar = () => {
-    const weeks: {
-      day: number;
-      dayOfWeek: number;
-      session: PlannedSession | null;
-      isRest: boolean;
-      weekNum: number;
-    }[][] = [];
+  const generateCalendar = (): CalendarDay[][] => {
+    const weeks: CalendarDay[][] = [];
     const totalDays = microcycleLengthDays * microcycleCount;
     let sessionIndex = 0;
 
-    let currentWeek: (typeof weeks)[0] = [];
+    let currentWeek: CalendarDay[] = [];
     for (let day = 0; day < totalDays; day++) {
       const dayOfWeek = day % 7;
       const weekNum = Math.floor(day / microcycleLengthDays) + 1;
       const isRest = restDays.includes(dayOfWeek);
 
-      let session: PlannedSession | null = null;
+      let daySessions: PlannedSession[] = [];
       if (!isRest && sessionIndex < sessions.length * microcycleCount) {
-        session = sessions[sessionIndex % sessions.length];
+        daySessions = [sessions[sessionIndex % sessions.length]];
         sessionIndex++;
       }
 
-      currentWeek.push({ day: day + 1, dayOfWeek, session, isRest, weekNum });
+      // Fake double-session on day 9 to demonstrate multi-session feature
+      if (day === 8 && daySessions.length > 0) {
+        daySessions = [...daySessions, sessions[3]];
+      }
+
+      currentWeek.push({ day: day + 1, dayOfWeek, sessions: daySessions, isRest, weekNum });
 
       if (dayOfWeek === 6 || day === totalDays - 1) {
         weeks.push(currentWeek);
@@ -121,6 +175,30 @@
   };
 
   const calendarWeeks = $derived(generateCalendar());
+
+  // Day detail dialog state
+  let selectedDay = $state<CalendarDay | null>(null);
+  let dayDialogOpen = $state(false);
+  let activeWeekTab = $state('w1');
+
+  const selectedDayProjections = $derived.by(() => {
+    if (!selectedDay || selectedDay.sessions.length === 0) return [];
+    const { rir, setsModifier } = getWeekProgression(selectedDay.weekNum, microcycleCount);
+    return selectedDay.sessions.map((session) => ({
+      title: session.title,
+      exercises: session.exercises
+        .map((exId) => {
+          const exercise = availableExercises.find((e) => e.id === exId);
+          const cal = exerciseCalibrations[exId];
+          if (!exercise || !cal) return null;
+          const reps = baseReps[exercise.repRange] ?? 10;
+          const sets = Math.max(1, cal.baseSets + setsModifier);
+          const weight = calculateWeight(cal.oneRepMax, reps, rir);
+          return { name: exercise.name, sets, reps, rir, weight };
+        })
+        .filter((e): e is NonNullable<typeof e> => e !== null)
+    }));
+  });
 
   const removeExerciseFromSession = (sessionIdx: number, exerciseId: string) => {
     sessions[sessionIdx].exercises = sessions[sessionIdx].exercises.filter((e) => e !== exerciseId);
@@ -400,28 +478,42 @@
         {#each calendarWeeks as week, wIdx (wIdx)}
           <div class="grid grid-cols-7 gap-1">
             {#each week as day (day.day)}
-              <div
-                class={`flex min-h-12 flex-col items-center justify-start rounded-lg p-0.5 text-center ${
+              <button
+                type="button"
+                class={`flex min-h-12 w-full flex-col items-center justify-start rounded-lg p-0.5 text-center transition-colors ${
                   day.isRest
                     ? 'bg-muted/30'
-                    : day.session
-                      ? 'bg-primary/5 ring-primary/20 ring-1'
+                    : day.sessions.length > 0
+                      ? 'bg-primary/5 ring-primary/20 cursor-pointer ring-1 hover:bg-primary/10 active:bg-primary/15'
                       : 'bg-muted/50'
                 }`}
+                onclick={() => {
+                  if (day.sessions.length > 0) {
+                    selectedDay = day;
+                    dayDialogOpen = true;
+                  }
+                }}
               >
                 <span class="text-muted-foreground text-[0.55rem]">
                   {day.day}
                 </span>
                 {#if day.isRest}
                   <span class="text-muted-foreground mt-0.5 text-[0.5rem]">Rest</span>
-                {:else if day.session}
+                {:else if day.sessions.length > 0}
                   <span
                     class="text-primary mt-0.5 truncate text-[0.5rem] font-medium leading-tight"
                   >
-                    {day.session.title}
+                    {day.sessions[0].title}
                   </span>
+                  {#if day.sessions.length > 1}
+                    <div class="mt-0.5 flex gap-0.5">
+                      {#each day.sessions as _, dotIdx (dotIdx)}
+                        <div class="bg-primary size-1 rounded-full"></div>
+                      {/each}
+                    </div>
+                  {/if}
                 {/if}
-              </div>
+              </button>
             {/each}
             <!-- Pad remaining days if week is incomplete -->
             {#each Array(7 - week.length) as _, padIdx (padIdx)}
@@ -439,6 +531,65 @@
           <p class="text-muted-foreground mt-1 text-xs">Half volume & reps, same exercises</p>
         </div>
       </div>
+    </CardContent>
+  </Card>
+
+  <!-- Week Progression -->
+  <Card>
+    <CardHeader>
+      <CardTitle>Week Progression</CardTitle>
+      <CardDescription>How targets change across your mesocycle</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Tabs bind:value={activeWeekTab}>
+        <TabsList>
+          {#each Array(microcycleCount) as _, i (i)}
+            <TabsTrigger value={`w${String(i + 1)}`}>W{i + 1}</TabsTrigger>
+          {/each}
+          <TabsTrigger value="dl">DL</TabsTrigger>
+        </TabsList>
+        {#each Array(microcycleCount + 1) as _, i (i)}
+          {@const weekNum = i + 1}
+          {@const isDeload = weekNum > microcycleCount}
+          {@const tabValue = isDeload ? 'dl' : `w${String(weekNum)}`}
+          {@const prog = getWeekProgression(weekNum, microcycleCount)}
+          <TabsContent value={tabValue}>
+            <div class="mb-2 flex gap-2">
+              <Badge variant="secondary">RIR {prog.rir}</Badge>
+              <Badge variant="outline">
+                {prog.setsModifier > 0
+                  ? `+${String(prog.setsModifier)}`
+                  : prog.setsModifier === 0
+                    ? 'Base'
+                    : String(prog.setsModifier)} sets
+              </Badge>
+            </div>
+            {#if sessions.length > 0}
+              {@const firstSession = sessions[0]}
+              <div class="space-y-1 text-xs">
+                {#each firstSession.exercises.slice(0, 4) as exId (exId)}
+                  {@const exercise = availableExercises.find((e) => e.id === exId)}
+                  {@const cal = exerciseCalibrations[exId]}
+                  {#if exercise && cal}
+                    {@const reps = baseReps[exercise.repRange] ?? 10}
+                    {@const sets = Math.max(1, cal.baseSets + prog.setsModifier)}
+                    {@const weight = calculateWeight(cal.oneRepMax, reps, prog.rir)}
+                    <div class="flex justify-between">
+                      <span class="mr-2 truncate">{exercise.name}</span>
+                      <span class="text-muted-foreground shrink-0">{sets}x{reps} @{weight}lb</span>
+                    </div>
+                  {/if}
+                {/each}
+                {#if firstSession.exercises.length > 4}
+                  <span class="text-muted-foreground"
+                    >+{firstSession.exercises.length - 4} more</span
+                  >
+                {/if}
+              </div>
+            {/if}
+          </TabsContent>
+        {/each}
+      </Tabs>
     </CardContent>
   </Card>
 
@@ -476,3 +627,47 @@
     </CardContent>
   </Card>
 </div>
+
+<!-- Day Detail Dialog -->
+<Dialog bind:open={dayDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>
+        Day {selectedDay?.day} — Week {selectedDay?.weekNum}
+      </DialogTitle>
+      <DialogDescription>Projected targets</DialogDescription>
+    </DialogHeader>
+    <div class="space-y-3">
+      {#each selectedDayProjections as sessionProj, sIdx (sIdx)}
+        {#if sIdx > 0}
+          <Separator />
+        {/if}
+        <h4 class="text-sm font-medium">{sessionProj.title}</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="text-muted-foreground border-b">
+                <th class="py-1 pr-2 text-left">Exercise</th>
+                <th class="px-1 py-1 text-center">Sets</th>
+                <th class="px-1 py-1 text-center">Reps</th>
+                <th class="px-1 py-1 text-center">RIR</th>
+                <th class="py-1 pl-1 text-right">Load</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each sessionProj.exercises as ex (ex.name)}
+                <tr class="border-border/50 border-b">
+                  <td class="max-w-24 truncate py-1 pr-2">{ex.name}</td>
+                  <td class="px-1 py-1 text-center">{ex.sets}</td>
+                  <td class="px-1 py-1 text-center">{ex.reps}</td>
+                  <td class="px-1 py-1 text-center">{ex.rir}</td>
+                  <td class="py-1 pl-1 text-right">{ex.weight}lb</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/each}
+    </div>
+  </DialogContent>
+</Dialog>
