@@ -1,4 +1,8 @@
+import { analyticsPageInfo } from '$routes/analytics/pageInfo';
+import { exercisesPageInfo } from '$routes/exercises/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
+import { planPageInfo } from '$routes/plan/pageInfo';
+import { sessionPageInfo } from '$routes/session/[id]/pageInfo';
 
 export interface PageInfo {
   /**
@@ -31,7 +35,11 @@ export interface PageInfo {
  * Navigation info. Each key is the relative path to the page.
  */
 const navInfo = {
-  home: homePageInfo
+  home: homePageInfo,
+  session: sessionPageInfo,
+  exercises: exercisesPageInfo,
+  analytics: analyticsPageInfo,
+  plan: planPageInfo
 } satisfies Record<string, PageInfo>;
 
 export default navInfo;

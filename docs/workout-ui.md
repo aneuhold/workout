@@ -1,5 +1,9 @@
 # Current Workout UI Design Requirements
 
+## Overall
+
+- Mobile first, but flows nicely into desktop view, especially for things like analytics
+
 ## Persistent Action Bar at the bottom
 
 This will be a fixed action bar at the bottom when inside the app. When in desktop width, it should move to the left. Yet to be decided what it should contain, but probably the most important buttons / touch targets.
