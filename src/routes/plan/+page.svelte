@@ -117,6 +117,34 @@
     return Math.round(weight / 5) * 5;
   }
 
+  type SetTarget = { setNum: number; reps: number; weight: number };
+
+  function generateSetTargets(
+    oneRepMax: number,
+    baseRepsVal: number,
+    numSets: number,
+    rir: number
+  ): SetTarget[] {
+    const targets: SetTarget[] = [];
+    for (let i = 1; i <= numSets; i++) {
+      if (i === 1) {
+        targets.push({
+          setNum: i,
+          reps: baseRepsVal,
+          weight: calculateWeight(oneRepMax, baseRepsVal, rir)
+        });
+      } else {
+        const backoffReps = baseRepsVal + 2;
+        targets.push({
+          setNum: i,
+          reps: backoffReps,
+          weight: calculateWeight(oneRepMax, backoffReps, rir)
+        });
+      }
+    }
+    return targets;
+  }
+
   // Session definitions (the plan)
   type PlannedSession = {
     title: string;
@@ -186,6 +214,7 @@
     const { rir, setsModifier } = getWeekProgression(selectedDay.weekNum, microcycleCount);
     return selectedDay.sessions.map((session) => ({
       title: session.title,
+      rir,
       exercises: session.exercises
         .map((exId) => {
           const exercise = availableExercises.find((e) => e.id === exId);
@@ -193,8 +222,8 @@
           if (!exercise || !cal) return null;
           const reps = baseReps[exercise.repRange] ?? 10;
           const sets = Math.max(1, cal.baseSets + setsModifier);
-          const weight = calculateWeight(cal.oneRepMax, reps, rir);
-          return { name: exercise.name, sets, reps, rir, weight };
+          const setTargets = generateSetTargets(cal.oneRepMax, reps, sets, rir);
+          return { name: exercise.name, setTargets };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null)
     }));
@@ -573,10 +602,21 @@
                   {#if exercise && cal}
                     {@const reps = baseReps[exercise.repRange] ?? 10}
                     {@const sets = Math.max(1, cal.baseSets + prog.setsModifier)}
-                    {@const weight = calculateWeight(cal.oneRepMax, reps, prog.rir)}
+                    {@const setTargets = generateSetTargets(cal.oneRepMax, reps, sets, prog.rir)}
+                    {@const minReps = Math.min(...setTargets.map((s) => s.reps))}
+                    {@const maxReps = Math.max(...setTargets.map((s) => s.reps))}
+                    {@const minWeight = Math.min(...setTargets.map((s) => s.weight))}
+                    {@const maxWeight = Math.max(...setTargets.map((s) => s.weight))}
                     <div class="flex justify-between">
                       <span class="mr-2 truncate">{exercise.name}</span>
-                      <span class="text-muted-foreground shrink-0">{sets}x{reps} @{weight}lb</span>
+                      <span class="text-muted-foreground shrink-0">
+                        {minReps === maxReps
+                          ? minReps
+                          : `${String(minReps)}\u2013${String(maxReps)}`} reps &middot;
+                        {minWeight === maxWeight
+                          ? minWeight
+                          : `${String(minWeight)}\u2013${String(maxWeight)}`} lb
+                      </span>
                     </div>
                   {/if}
                 {/each}
@@ -637,35 +677,30 @@
       </DialogTitle>
       <DialogDescription>Projected targets</DialogDescription>
     </DialogHeader>
-    <div class="space-y-3">
+    <div class="space-y-4">
       {#each selectedDayProjections as sessionProj, sIdx (sIdx)}
         {#if sIdx > 0}
           <Separator />
         {/if}
-        <h4 class="text-sm font-medium">{sessionProj.title}</h4>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs">
-            <thead>
-              <tr class="text-muted-foreground border-b">
-                <th class="py-1 pr-2 text-left">Exercise</th>
-                <th class="px-1 py-1 text-center">Sets</th>
-                <th class="px-1 py-1 text-center">Reps</th>
-                <th class="px-1 py-1 text-center">RIR</th>
-                <th class="py-1 pl-1 text-right">Load</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each sessionProj.exercises as ex (ex.name)}
-                <tr class="border-border/50 border-b">
-                  <td class="max-w-24 truncate py-1 pr-2">{ex.name}</td>
-                  <td class="px-1 py-1 text-center">{ex.sets}</td>
-                  <td class="px-1 py-1 text-center">{ex.reps}</td>
-                  <td class="px-1 py-1 text-center">{ex.rir}</td>
-                  <td class="py-1 pl-1 text-right">{ex.weight}lb</td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
+        <div class="flex items-center gap-2">
+          <h4 class="text-sm font-medium">{sessionProj.title}</h4>
+          <Badge variant="secondary">RIR {sessionProj.rir}</Badge>
+        </div>
+        <div class="space-y-3">
+          {#each sessionProj.exercises as ex (ex.name)}
+            <div>
+              <p class="mb-1 text-xs font-medium">{ex.name}</p>
+              <div
+                class="text-muted-foreground grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-0.5 pl-2 text-xs"
+              >
+                {#each ex.setTargets as st (st.setNum)}
+                  <span>S{st.setNum}</span>
+                  <span>{st.reps} reps</span>
+                  <span class="text-right">{st.weight} lb</span>
+                {/each}
+              </div>
+            </div>
+          {/each}
         </div>
       {/each}
     </div>

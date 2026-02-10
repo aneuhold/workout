@@ -135,6 +135,34 @@
     return Math.round(weight / 5) * 5;
   }
 
+  type SetTarget = { setNum: number; reps: number; weight: number };
+
+  function generateSetTargets(
+    oneRepMax: number,
+    baseRepsVal: number,
+    numSets: number,
+    rir: number
+  ): SetTarget[] {
+    const targets: SetTarget[] = [];
+    for (let i = 1; i <= numSets; i++) {
+      if (i === 1) {
+        targets.push({
+          setNum: i,
+          reps: baseRepsVal,
+          weight: calculateWeight(oneRepMax, baseRepsVal, rir)
+        });
+      } else {
+        const backoffReps = baseRepsVal + 2;
+        targets.push({
+          setNum: i,
+          reps: backoffReps,
+          weight: calculateWeight(oneRepMax, backoffReps, rir)
+        });
+      }
+    }
+    return targets;
+  }
+
   // Mesocycle session definitions
   const mesoSessions = [
     { title: 'Push Day A', exercises: ['ex-1', 'ex-2', 'ex-3', 'ex-6', 'ex-7'] },
@@ -165,8 +193,8 @@
           if (!exercise || !cal) return null;
           const reps = baseReps[exercise.repRange] ?? 10;
           const sets = Math.max(1, cal.baseSets + setsModifier);
-          const weight = calculateWeight(cal.oneRepMax, reps, rir);
-          return { name: exercise.name, sets, reps, rir, weight };
+          const setTargets = generateSetTargets(cal.oneRepMax, reps, sets, rir);
+          return { name: exercise.name, setTargets };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null)
     }));
@@ -245,13 +273,15 @@
             </div>
           </button>
           {#if expandedUpcoming === idx}
-            <div class="space-y-1 border-t px-3 pb-3 pt-2">
+            <div class="space-y-2 border-t px-3 pb-3 pt-2">
               {#each session.details as ex (ex.name)}
-                <div class="flex justify-between text-xs">
-                  <span class="mr-2 truncate">{ex.name}</span>
-                  <span class="text-muted-foreground shrink-0">
-                    {ex.sets}x{ex.reps} @{ex.rir}RIR {ex.weight}lb
-                  </span>
+                <div class="text-xs">
+                  <p class="font-medium">{ex.name}</p>
+                  <p class="text-muted-foreground">
+                    {ex.setTargets
+                      .map((st) => `${String(st.weight)}\u00d7${String(st.reps)}`)
+                      .join(' \u00b7 ')}
+                  </p>
                 </div>
               {/each}
             </div>
