@@ -6,7 +6,7 @@ This will be a fixed action bar at the bottom when inside the app. When in deskt
 
 ## Timer
 
-There should be a way to start a timer while resting. So it should be accessible when looking at the session logging screen somehow. Also it should be persistent somehow in the UI if a timer is running no matter where you are currently in the app. The timer itself should be dirt simple for the most part. We don't need anything complicated.
+There should be a way to start a timer while resting. So it should be accessible when looking at the session logging screen somehow. Also it should be persistent somehow in the UI if a timer is running no matter where you are currently in the app. The timer itself should be dirt-simple for the most part. We don't need anything complicated.
 
 ## Routes
 
@@ -20,7 +20,7 @@ Things that seem good on this page:
 
 ### Analytics
 
-### Exercise Library / Exercises
+### Exercise Library / Exercises (Route name up for debate / decision)
 
 - This should contain the list of exercises the user has, and their associated calibrations somehow. If an exercise hasn't been calibrated, it should be easily viewable here.
 
@@ -31,6 +31,6 @@ Things that seem good on this page:
 - The full session should be in one scrollable view while recording. Try to make the controls in this UI intuitive to enable this. Do not add pagination for this route.
 - Progress bar could be nice on this route somewhere to indicate progress through the session.
 
-### Settings
+## Other functionality that needs to exist somehow
 
-- Some kind of settings page that perhaps includes muscle groups and equipment types. Not
+- Mesocycle planning. This needs to provide some kind of an interactive calendar view so that as exercises are chosen for the cycle, and configuration is adjusted for the cycle, it updates in real-time based on selections. The UI does not need to do this in the mockup, but the calendar view and functionality "in-theory" should be there where it shows visually how it could work for the user. Completely up for debate on how this should work in practice.
