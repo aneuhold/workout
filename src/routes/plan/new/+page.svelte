@@ -241,7 +241,7 @@
   // Day detail dialog state
   let selectedDay = $state<CalendarDay | null>(null);
   let dayDialogOpen = $state(false);
-  let activeWeekTab = $state('w1');
+  let activeProgressionSession = $state('s0');
 
   const selectedDayProjections = $derived.by(() => {
     if (!selectedDay || selectedDay.sessions.length === 0) return [];
@@ -621,70 +621,119 @@
     </CardContent>
   </Card>
 
-  <!-- Week Progression -->
+  <!-- Microcycle Progression -->
   <Card>
     <CardHeader>
-      <CardTitle>Week Progression</CardTitle>
-      <CardDescription>How targets change across your mesocycle</CardDescription>
+      <CardTitle>Microcycle Progression</CardTitle>
+      <CardDescription>Per-exercise targets across cycles</CardDescription>
     </CardHeader>
     <CardContent>
-      <Tabs bind:value={activeWeekTab}>
+      <Tabs bind:value={activeProgressionSession}>
         <TabsList>
-          {#each Array(microcycleCount) as _, i (i)}
-            <TabsTrigger value={`w${String(i + 1)}`}>C{i + 1}</TabsTrigger>
+          {#each sessions as session, sIdx (sIdx)}
+            <TabsTrigger value={`s${String(sIdx)}`}>{session.title}</TabsTrigger>
           {/each}
-          <TabsTrigger value="dl">DL</TabsTrigger>
         </TabsList>
-        {#each Array(microcycleCount + 1) as _, i (i)}
-          {@const weekNum = i + 1}
-          {@const isDeload = weekNum > microcycleCount}
-          {@const tabValue = isDeload ? 'dl' : `w${String(weekNum)}`}
-          {@const prog = getWeekProgression(weekNum, microcycleCount)}
-          <TabsContent value={tabValue}>
-            <div class="mb-2 flex gap-2">
-              <Badge variant="secondary">RIR {prog.rir}</Badge>
-              <Badge variant="outline">
-                {prog.setsModifier > 0
-                  ? `+${String(prog.setsModifier)}`
-                  : prog.setsModifier === 0
-                    ? 'Base'
-                    : String(prog.setsModifier)} sets
-              </Badge>
-            </div>
-            {#if sessions.length > 0}
-              {@const firstSession = sessions[0]}
-              <div class="space-y-1 text-xs">
-                {#each firstSession.exercises.slice(0, 4) as exId (exId)}
-                  {@const exercise = availableExercises.find((e) => e.id === exId)}
-                  {@const cal = exerciseCalibrations[exId]}
-                  {#if exercise && cal}
-                    {@const reps = baseReps[exercise.repRange] ?? 10}
-                    {@const sets = Math.max(1, cal.baseSets + prog.setsModifier)}
-                    {@const setTargets = generateSetTargets(cal.oneRepMax, reps, sets, prog.rir)}
-                    {@const minReps = Math.min(...setTargets.map((s) => s.reps))}
-                    {@const maxReps = Math.max(...setTargets.map((s) => s.reps))}
-                    {@const minWeight = Math.min(...setTargets.map((s) => s.weight))}
-                    {@const maxWeight = Math.max(...setTargets.map((s) => s.weight))}
-                    <div class="flex justify-between">
-                      <span class="mr-2 truncate">{exercise.name}</span>
-                      <span class="text-muted-foreground shrink-0">
-                        {minReps === maxReps
-                          ? minReps
-                          : `${String(minReps)}\u2013${String(maxReps)}`} reps &middot;
-                        {minWeight === maxWeight
-                          ? minWeight
-                          : `${String(minWeight)}\u2013${String(maxWeight)}`} lb
-                      </span>
+        {#each sessions as session, sIdx (sIdx)}
+          <TabsContent value={`s${String(sIdx)}`}>
+            <div class="space-y-3">
+              {#each session.exercises as exId (exId)}
+                {@const exercise = availableExercises.find((e) => e.id === exId)}
+                {@const cal = exerciseCalibrations[exId]}
+                {#if exercise && cal}
+                  {@const reps = baseReps[exercise.repRange] ?? 10}
+                  <div>
+                    <div class="mb-1 flex items-center gap-1.5">
+                      <span class="text-sm font-medium">{exercise.name}</span>
+                      <Badge
+                        variant="outline"
+                        class={`text-[0.65rem] ${repRangeColor[exercise.repRange]}`}
+                      >
+                        {exercise.repRange}
+                      </Badge>
                     </div>
-                  {/if}
-                {/each}
-                {#if firstSession.exercises.length > 4}
-                  <span class="text-muted-foreground"
-                    >+{firstSession.exercises.length - 4} more</span
-                  >
+                    <div class="divide-y rounded-lg border text-xs">
+                      <!-- Column headers -->
+                      <div class="text-muted-foreground flex px-2 py-0.5 text-[0.65rem]">
+                        <span class="w-7 shrink-0"></span>
+                        <span class="w-6 shrink-0 text-center">RIR</span>
+                        <span class="w-8 shrink-0">Sets</span>
+                        <span>Targets (reps × lb)</span>
+                      </div>
+                      <!-- Cycle rows -->
+                      {#each Array(microcycleCount + 1) as _, i (i)}
+                        {@const weekNum = i + 1}
+                        {@const isDeload = weekNum > microcycleCount}
+                        {@const prog = getWeekProgression(weekNum, microcycleCount)}
+                        {@const sets = Math.max(1, cal.baseSets + prog.setsModifier)}
+                        {@const setTargets = generateSetTargets(
+                          cal.oneRepMax,
+                          reps,
+                          sets,
+                          prog.rir
+                        )}
+                        {@const prevProg = i > 0 ? getWeekProgression(i, microcycleCount) : null}
+                        {@const prevSets = prevProg
+                          ? Math.max(1, cal.baseSets + prevProg.setsModifier)
+                          : sets}
+                        {@const prevTargets = prevProg
+                          ? generateSetTargets(cal.oneRepMax, reps, prevSets, prevProg.rir)
+                          : null}
+                        <div
+                          class={`flex items-baseline px-2 py-1 ${isDeload ? 'bg-muted/30' : ''}`}
+                        >
+                          <span class="w-7 shrink-0 font-medium">
+                            {isDeload ? 'DL' : `C${String(weekNum)}`}
+                          </span>
+                          <span class="text-muted-foreground w-6 shrink-0 text-center">
+                            {prog.rir}
+                          </span>
+                          <span
+                            class={`w-8 shrink-0 ${sets > prevSets ? 'text-green-500' : sets < prevSets ? 'text-orange-500' : ''}`}
+                          >
+                            {sets}{sets > prevSets ? '↑' : sets < prevSets ? '↓' : ''}
+                          </span>
+                          <div class="flex flex-1 flex-wrap gap-x-2">
+                            {#each setTargets as st, stIdx (stIdx)}
+                              {@const prev =
+                                prevTargets && stIdx < prevTargets.length
+                                  ? prevTargets[stIdx]
+                                  : null}
+                              {@const isNew = prevTargets !== null && stIdx >= prevSets}
+                              {@const weightUp = prev !== null && st.weight > prev.weight}
+                              {@const weightDown = prev !== null && st.weight < prev.weight}
+                              {@const repsUp = prev !== null && st.reps > prev.reps}
+                              {@const repsDown = prev !== null && st.reps < prev.reps}
+                              {#if isNew}
+                                <span class="text-green-500">
+                                  {st.reps}×{st.weight}
+                                </span>
+                              {:else}
+                                <span>
+                                  <span
+                                    class={repsUp
+                                      ? 'text-green-500'
+                                      : repsDown
+                                        ? 'text-orange-500'
+                                        : ''}>{st.reps}</span
+                                  >×<span
+                                    class={weightUp
+                                      ? 'text-green-500'
+                                      : weightDown
+                                        ? 'text-orange-500'
+                                        : ''}>{st.weight}</span
+                                  >
+                                </span>
+                              {/if}
+                            {/each}
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
                 {/if}
-              </div>
-            {/if}
+              {/each}
+            </div>
           </TabsContent>
         {/each}
       </Tabs>

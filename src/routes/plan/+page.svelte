@@ -381,10 +381,7 @@
                   }}
                 >
                   {#if !day.isRest && day.sessions.length > 0 && day.weekNum < currentMeso.currentWeek}
-                    <IconCheck
-                      size={10}
-                      class="absolute right-0.5 top-0 text-green-500/60"
-                    />
+                    <IconCheck size={10} class="absolute right-0.5 top-0 text-green-500/60" />
                   {/if}
                   <span class="text-muted-foreground text-[0.5rem]">{day.date.getDate()}</span>
                   {#if day.isRest}
