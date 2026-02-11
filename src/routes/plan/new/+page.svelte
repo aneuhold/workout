@@ -7,7 +7,6 @@
 -->
 <script lang="ts">
   import {
-    IconCalendarEvent,
     IconCheck,
     IconChevronDown,
     IconChevronUp,
@@ -46,12 +45,29 @@
   // Configuration state
   let cycleType = $state('MuscleGain');
   let mesoTitle = $state('Upper/Lower Hypertrophy');
-  let microcycleLengthDays = $state(7);
+  let microcycleLengthDays = $state(8);
   let sessionsPerMicrocycle = $state(4);
   let microcycleCount = $state(5);
   let restDays = $state([0, 3]); // Sunday = 0, Wednesday = 3
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  // Preview start date (defaults to today)
+  const startDate = new Date();
 
   // Available exercises (fake data)
   const availableExercises = [
@@ -108,7 +124,7 @@
     const rirStart = totalWeeks - 1;
     const rir = Math.max(0, rirStart - (weekNum - 1));
     const setsModifier = weekNum <= 2 ? 0 : weekNum <= 4 ? 1 : 2;
-    return { rir, setsModifier, label: `Week ${String(weekNum)}` };
+    return { rir, setsModifier, label: `Cycle ${String(weekNum)}` };
   }
 
   function calculateWeight(oneRepMax: number, reps: number, rir: number): number {
@@ -157,6 +173,10 @@
     sessions: PlannedSession[];
     isRest: boolean;
     weekNum: number;
+    isDeload: boolean;
+    isCycleStart: boolean;
+    isMonthStart: boolean;
+    date: Date;
   };
 
   let sessions = $state<PlannedSession[]>([
@@ -168,20 +188,24 @@
 
   let expandedSession = $state<number | null>(0);
 
-  // Calendar generation
+  // Calendar generation (includes deload week)
   const generateCalendar = (): CalendarDay[][] => {
     const weeks: CalendarDay[][] = [];
-    const totalDays = microcycleLengthDays * microcycleCount;
+    const totalDays = microcycleLengthDays * (microcycleCount + 1);
     let sessionIndex = 0;
 
     let currentWeek: CalendarDay[] = [];
     for (let day = 0; day < totalDays; day++) {
       const dayOfWeek = day % 7;
       const weekNum = Math.floor(day / microcycleLengthDays) + 1;
+      const isDeload = weekNum > microcycleCount;
       const isRest = restDays.includes(dayOfWeek);
+      // eslint-disable-next-line svelte/prefer-svelte-reactivity -- static data, not reactive state
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + day);
 
       let daySessions: PlannedSession[] = [];
-      if (!isRest && sessionIndex < sessions.length * microcycleCount) {
+      if (!isRest && sessionIndex < sessions.length * (microcycleCount + 1)) {
         daySessions = [sessions[sessionIndex % sessions.length]];
         sessionIndex++;
       }
@@ -191,7 +215,17 @@
         daySessions = [...daySessions, sessions[3]];
       }
 
-      currentWeek.push({ day: day + 1, dayOfWeek, sessions: daySessions, isRest, weekNum });
+      currentWeek.push({
+        day: day + 1,
+        dayOfWeek,
+        sessions: daySessions,
+        isRest,
+        weekNum,
+        isDeload,
+        isCycleStart: day % microcycleLengthDays === 0,
+        isMonthStart: day === 0 || date.getDate() === 1,
+        date
+      });
 
       if (dayOfWeek === 6 || day === totalDays - 1) {
         weeks.push(currentWeek);
@@ -505,6 +539,33 @@
       <!-- Calendar grid -->
       <div class="space-y-1">
         {#each calendarWeeks as week, wIdx (wIdx)}
+          {@const hasLabels = week.some((d) => d.isCycleStart || d.isMonthStart)}
+          {#if hasLabels}
+            <div class="mt-1.5 grid grid-cols-7 gap-1 first:mt-0">
+              {#each week as day (day.day)}
+                <div>
+                  {#if day.isCycleStart || day.isMonthStart}
+                    <div class="flex items-baseline gap-1 whitespace-nowrap">
+                      {#if day.isCycleStart}
+                        <span class="text-muted-foreground text-[0.65rem] font-medium">
+                          {day.isDeload ? 'Deload' : `Cycle ${String(day.weekNum)}`}
+                        </span>
+                      {/if}
+                      {#if day.isMonthStart}
+                        <span class="text-muted-foreground/60 text-[0.6rem]">
+                          {monthNames[day.date.getMonth()]}
+                          {String(day.date.getFullYear())}
+                        </span>
+                      {/if}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+              {#each Array(7 - week.length) as _, padIdx (padIdx)}
+                <div></div>
+              {/each}
+            </div>
+          {/if}
           <div class="grid grid-cols-7 gap-1">
             {#each week as day (day.day)}
               <button
@@ -513,9 +574,11 @@
                   day.isRest
                     ? 'bg-muted/30'
                     : day.sessions.length > 0
-                      ? 'bg-primary/5 ring-primary/20 cursor-pointer ring-1 hover:bg-primary/10 active:bg-primary/15'
+                      ? day.isDeload
+                        ? 'bg-primary/3 ring-primary/15 cursor-pointer ring-1 ring-dashed hover:bg-primary/8 active:bg-primary/12'
+                        : 'bg-primary/5 ring-primary/20 cursor-pointer ring-1 hover:bg-primary/10 active:bg-primary/15'
                       : 'bg-muted/50'
-                }`}
+                } ${day.isCycleStart ? (day.isDeload ? 'border-l-2 border-muted-foreground/30' : 'border-l-2 border-primary/40') : ''}`}
                 onclick={() => {
                   if (day.sessions.length > 0) {
                     selectedDay = day;
@@ -524,20 +587,24 @@
                 }}
               >
                 <span class="text-muted-foreground text-[0.55rem]">
-                  {day.day}
+                  {day.date.getDate()}
                 </span>
                 {#if day.isRest}
                   <span class="text-muted-foreground mt-0.5 text-[0.5rem]">Rest</span>
                 {:else if day.sessions.length > 0}
                   <span
-                    class="text-primary mt-0.5 truncate text-[0.5rem] font-medium leading-tight"
+                    class={`mt-0.5 truncate text-[0.5rem] font-medium leading-tight ${
+                      day.isDeload ? 'text-foreground/60' : 'text-primary'
+                    }`}
                   >
                     {day.sessions[0].title}
                   </span>
                   {#if day.sessions.length > 1}
                     <div class="mt-0.5 flex gap-0.5">
                       {#each day.sessions as _, dotIdx (dotIdx)}
-                        <div class="bg-primary size-1 rounded-full"></div>
+                        <div
+                          class={`size-1 rounded-full ${day.isDeload ? 'bg-foreground/40' : 'bg-primary'}`}
+                        ></div>
                       {/each}
                     </div>
                   {/if}
@@ -550,15 +617,6 @@
             {/each}
           </div>
         {/each}
-
-        <!-- Deload week indicator -->
-        <div class="border-border mt-2 rounded-lg border border-dashed p-3 text-center">
-          <div class="flex items-center justify-center gap-2">
-            <IconCalendarEvent size={16} class="text-muted-foreground" />
-            <span class="text-muted-foreground text-sm">Deload Week ({microcycleCount + 1})</span>
-          </div>
-          <p class="text-muted-foreground mt-1 text-xs">Half volume & reps, same exercises</p>
-        </div>
       </div>
     </CardContent>
   </Card>
@@ -573,7 +631,7 @@
       <Tabs bind:value={activeWeekTab}>
         <TabsList>
           {#each Array(microcycleCount) as _, i (i)}
-            <TabsTrigger value={`w${String(i + 1)}`}>W{i + 1}</TabsTrigger>
+            <TabsTrigger value={`w${String(i + 1)}`}>C{i + 1}</TabsTrigger>
           {/each}
           <TabsTrigger value="dl">DL</TabsTrigger>
         </TabsList>
@@ -673,7 +731,10 @@
   <DialogContent>
     <DialogHeader>
       <DialogTitle>
-        Day {selectedDay?.day} — Week {selectedDay?.weekNum}
+        {monthNames[selectedDay?.date.getMonth() ?? 0]}
+        {selectedDay?.date.getDate()} — {selectedDay?.isDeload
+          ? 'Deload'
+          : `Cycle ${String(selectedDay?.weekNum)}`}
       </DialogTitle>
       <DialogDescription>Projected targets</DialogDescription>
     </DialogHeader>

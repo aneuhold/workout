@@ -6,7 +6,7 @@
   planner lives at /plan/new.
 -->
 <script lang="ts">
-  import { IconCalendarEvent, IconChevronRight, IconPlus } from '@tabler/icons-svelte';
+  import { IconCalendarEvent, IconCheck, IconChevronRight, IconPlus } from '@tabler/icons-svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -77,7 +77,7 @@
     const rirStart = totalWeeks - 1;
     const rir = Math.max(0, rirStart - (weekNum - 1));
     const setsModifier = weekNum <= 2 ? 0 : weekNum <= 4 ? 1 : 2;
-    return { rir, setsModifier, label: `Week ${String(weekNum)}` };
+    return { rir, setsModifier, label: `Cycle ${String(weekNum)}` };
   }
 
   function calculateWeight(oneRepMax: number, reps: number, rir: number): number {
@@ -127,8 +127,9 @@
     cycleType: 'MuscleGain',
     currentWeek: 3,
     totalWeeks: 5,
-    microcycleLengthDays: 7,
+    microcycleLengthDays: 8,
     restDays: [0, 3],
+    startDate: new Date(2026, 0, 18), // Sun Jan 18 2026 — week 3 lands on ~Feb 1-7
     sessions: [
       { title: 'Push A', exercises: ['ex-1', 'ex-2', 'ex-3', 'ex-6', 'ex-7'] },
       { title: 'Pull A', exercises: ['ex-8', 'ex-9', 'ex-10'] },
@@ -138,6 +139,20 @@
   };
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
 
   type PlannedSession = { title: string; exercises: string[] };
 
@@ -147,22 +162,30 @@
     sessions: PlannedSession[];
     isRest: boolean;
     weekNum: number;
+    isDeload: boolean;
+    isCycleStart: boolean;
+    isMonthStart: boolean;
+    date: Date;
   };
 
-  // Calendar generation (same logic as planner)
+  // Calendar generation (includes deload week)
   const generateCalendar = (): CalendarDay[][] => {
     const weeks: CalendarDay[][] = [];
-    const totalDays = currentMeso.microcycleLengthDays * currentMeso.totalWeeks;
+    const totalDays = currentMeso.microcycleLengthDays * (currentMeso.totalWeeks + 1);
     let sessionIndex = 0;
 
     let currentWeek: CalendarDay[] = [];
     for (let day = 0; day < totalDays; day++) {
       const dayOfWeek = day % 7;
       const weekNum = Math.floor(day / currentMeso.microcycleLengthDays) + 1;
+      const isDeload = weekNum > currentMeso.totalWeeks;
       const isRest = currentMeso.restDays.includes(dayOfWeek);
+      // eslint-disable-next-line svelte/prefer-svelte-reactivity -- static data, not reactive state
+      const date = new Date(currentMeso.startDate);
+      date.setDate(currentMeso.startDate.getDate() + day);
 
       let daySessions: PlannedSession[] = [];
-      if (!isRest && sessionIndex < currentMeso.sessions.length * currentMeso.totalWeeks) {
+      if (!isRest && sessionIndex < currentMeso.sessions.length * (currentMeso.totalWeeks + 1)) {
         daySessions = [currentMeso.sessions[sessionIndex % currentMeso.sessions.length]];
         sessionIndex++;
       }
@@ -171,7 +194,17 @@
         daySessions = [...daySessions, currentMeso.sessions[3]];
       }
 
-      currentWeek.push({ day: day + 1, dayOfWeek, sessions: daySessions, isRest, weekNum });
+      currentWeek.push({
+        day: day + 1,
+        dayOfWeek,
+        sessions: daySessions,
+        isRest,
+        weekNum,
+        isDeload,
+        isCycleStart: day % currentMeso.microcycleLengthDays === 0,
+        isMonthStart: day === 0 || date.getDate() === 1,
+        date
+      });
 
       if (dayOfWeek === 6 || day === totalDays - 1) {
         weeks.push(currentWeek);
@@ -183,6 +216,31 @@
   };
 
   const calendarWeeks = generateCalendar();
+
+  // Cell styling helpers for completed / current / upcoming / deload distinction
+  function getDayCellClass(day: CalendarDay): string {
+    if (day.isRest) return 'bg-muted/30';
+    if (day.sessions.length === 0) return 'bg-muted/50';
+    if (day.isDeload)
+      return 'bg-primary/3 ring-primary/15 cursor-pointer ring-1 ring-dashed hover:bg-primary/8 active:bg-primary/12';
+    if (day.weekNum < currentMeso.currentWeek)
+      return 'bg-muted/40 ring-muted-foreground/15 cursor-pointer ring-1 hover:bg-muted/50 active:bg-muted/60';
+    if (day.weekNum === currentMeso.currentWeek)
+      return 'bg-primary/5 ring-primary/20 cursor-pointer ring-1 hover:bg-primary/10 active:bg-primary/15';
+    return 'bg-primary/3 ring-primary/10 cursor-pointer ring-1 hover:bg-primary/8 active:bg-primary/12';
+  }
+
+  function getDayTitleClass(day: CalendarDay): string {
+    if (day.isDeload) return 'text-foreground/60';
+    if (day.weekNum < currentMeso.currentWeek) return 'text-muted-foreground';
+    return 'text-primary';
+  }
+
+  function getDayDotClass(day: CalendarDay): string {
+    if (day.isDeload) return 'bg-foreground/40';
+    if (day.weekNum < currentMeso.currentWeek) return 'bg-muted-foreground';
+    return 'bg-primary';
+  }
 
   // Day detail dialog
   let selectedDay = $state<CalendarDay | null>(null);
@@ -263,7 +321,7 @@
         <Badge variant="secondary">{cycleTypeLabels[currentMeso.cycleType]}</Badge>
       </div>
       <CardDescription>
-        Week {currentMeso.currentWeek} of {currentMeso.totalWeeks}
+        Cycle {currentMeso.currentWeek} of {currentMeso.totalWeeks}
       </CardDescription>
     </CardHeader>
     <CardContent class="space-y-4">
@@ -283,17 +341,38 @@
         </div>
         <div class="space-y-1">
           {#each calendarWeeks as week, wIdx (wIdx)}
+            {@const hasLabels = week.some((d) => d.isCycleStart || d.isMonthStart)}
+            {#if hasLabels}
+              <div class="mt-1 grid grid-cols-7 gap-1 first:mt-0">
+                {#each week as day (day.day)}
+                  <div>
+                    {#if day.isCycleStart || day.isMonthStart}
+                      <div class="flex items-baseline gap-1 whitespace-nowrap">
+                        {#if day.isCycleStart}
+                          <span class="text-muted-foreground text-[0.6rem] font-medium">
+                            {day.isDeload ? 'Deload' : `Cycle ${String(day.weekNum)}`}
+                          </span>
+                        {/if}
+                        {#if day.isMonthStart}
+                          <span class="text-muted-foreground/60 text-[0.55rem]">
+                            {monthNames[day.date.getMonth()]}
+                            {String(day.date.getFullYear())}
+                          </span>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+                {#each Array(7 - week.length) as _, padIdx (padIdx)}
+                  <div></div>
+                {/each}
+              </div>
+            {/if}
             <div class="grid grid-cols-7 gap-1">
               {#each week as day (day.day)}
                 <button
                   type="button"
-                  class={`flex min-h-10 w-full flex-col items-center justify-start rounded-lg p-0.5 text-center transition-colors ${
-                    day.isRest
-                      ? 'bg-muted/30'
-                      : day.sessions.length > 0
-                        ? 'bg-primary/5 ring-primary/20 cursor-pointer ring-1 hover:bg-primary/10 active:bg-primary/15'
-                        : 'bg-muted/50'
-                  }`}
+                  class={`relative flex min-h-10 w-full flex-col items-center justify-start rounded-lg p-0.5 text-center transition-colors ${getDayCellClass(day)} ${day.isCycleStart ? (day.isDeload || day.weekNum < currentMeso.currentWeek ? 'border-l-2 border-muted-foreground/30' : 'border-l-2 border-primary/40') : ''}`}
                   onclick={() => {
                     if (day.sessions.length > 0) {
                       selectedDay = day;
@@ -301,19 +380,25 @@
                     }
                   }}
                 >
-                  <span class="text-muted-foreground text-[0.5rem]">{day.day}</span>
+                  {#if !day.isRest && day.sessions.length > 0 && day.weekNum < currentMeso.currentWeek}
+                    <IconCheck
+                      size={10}
+                      class="absolute right-0.5 top-0 text-green-500/60"
+                    />
+                  {/if}
+                  <span class="text-muted-foreground text-[0.5rem]">{day.date.getDate()}</span>
                   {#if day.isRest}
                     <span class="text-muted-foreground mt-0.5 text-[0.45rem]">Rest</span>
                   {:else if day.sessions.length > 0}
                     <span
-                      class="text-primary mt-0.5 truncate text-[0.45rem] font-medium leading-tight"
+                      class={`mt-0.5 truncate text-[0.45rem] font-medium leading-tight ${getDayTitleClass(day)}`}
                     >
                       {day.sessions[0].title}
                     </span>
                     {#if day.sessions.length > 1}
                       <div class="mt-0.5 flex gap-0.5">
                         {#each day.sessions as _, dotIdx (dotIdx)}
-                          <div class="bg-primary size-1 rounded-full"></div>
+                          <div class={`size-1 rounded-full ${getDayDotClass(day)}`}></div>
                         {/each}
                       </div>
                     {/if}
@@ -340,7 +425,7 @@
             }`}
           >
             <span class={isCurrent ? 'text-primary' : 'text-muted-foreground'}>
-              {isDeload ? 'DL' : `W${String(weekNum)}`}
+              {isDeload ? 'DL' : `C${String(weekNum)}`}
             </span>
             <Badge variant="secondary" class="h-4 px-1 text-[0.6rem]">
               RIR {prog.rir}
@@ -399,7 +484,10 @@
   <DialogContent>
     <DialogHeader>
       <DialogTitle>
-        Day {selectedDay?.day} — Week {selectedDay?.weekNum}
+        {monthNames[selectedDay?.date.getMonth() ?? 0]}
+        {selectedDay?.date.getDate()} — {selectedDay?.isDeload
+          ? 'Deload'
+          : `Cycle ${String(selectedDay?.weekNum)}`}
       </DialogTitle>
       <DialogDescription>Projected targets</DialogDescription>
     </DialogHeader>
