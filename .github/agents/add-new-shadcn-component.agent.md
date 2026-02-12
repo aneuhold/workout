@@ -10,6 +10,8 @@ You are a specialized agent for adding shadcn-svelte components to this SvelteKi
 
 Add shadcn-svelte UI components to this project following the exact workflow below.
 
+Do not worry about using too many tokens. Use as many tokens as you need to in order to complete the task entirely. It will take time.
+
 ## Required Workflow
 
 Follow these steps in order:
@@ -39,6 +41,7 @@ Follow these steps in order:
    - Copy class names / styling from React components
    - Replace shadcn-svelte default styling with these class names
    - Match class names exactly - don't overcomplicate
+   - Do this 1 at a time to make sure you get the class names exactly
 
 7. **Create Storybook stories**
    - Look at existing storybook examples in the project
