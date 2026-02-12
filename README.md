@@ -2,11 +2,17 @@
 
 A workout tracking app.
 
+## Architecture
+
+### Styling
+
+This was done originally with [this variant of shadcn](https://ui.shadcn.com/create?base=base&baseColor=zinc&theme=emerald&iconLibrary=tabler&template=start).
+
 ### Logging
 
 Logging is done via Sentry. Configuration is setup in `hooks.client.ts` primarily.
 
-## Developing
+## Development
 
 To start working on the project simply run:
 
@@ -15,6 +21,20 @@ To start working on the project simply run:
 ### To use the backend locally
 
 Modify the [localOverride.ts](src/util/localOverride.ts) file so that it is set to true.
+
+### Adding new Components
+
+Checkout the [shadcn-svelte site for what is available](https://shadcn-svelte.com/docs/components), and then run some variation of:
+
+```
+pnpm dlx shadcn-svelte@latest add COMPONENT-NAME
+```
+
+For the actual reference to the shadcn components, see them [here](https://ui.shadcn.com/docs/components).
+
+### Icons
+
+Icons are from [Tabler here](https://tabler.io/icons). Just import them from the `@tabler/icons-svelte` package.
 
 ### Adding new Routes
 

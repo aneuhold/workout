@@ -1,0 +1,46 @@
+{
+  "name": "Personal Dashboard",
+  "short_name": "Dashboard",
+  "description": "Dashboard for a few things used on a daily basis",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000",
+  "theme_color": "#098e1f",
+  "icons": [
+    {
+      "src": "icons/48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/168.png",
+      "sizes": "168x168",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
