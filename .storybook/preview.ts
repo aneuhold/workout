@@ -1,5 +1,6 @@
 import '../src/globalStyles/global.css';
-import type { Preview } from '@storybook/sveltekit';
+import { withThemeByClassName } from '@storybook/addon-themes';
+import type { Preview, SvelteRenderer } from '@storybook/sveltekit';
 import { spyOn } from 'storybook/test';
 import TestSetup from '$testUtils/TestSetup';
 
@@ -20,7 +21,16 @@ const preview: Preview = {
         date: /Date$/i
       }
     }
-  }
+  },
+  decorators: [
+    withThemeByClassName<SvelteRenderer>({
+      themes: {
+        light: 'light',
+        dark: 'dark'
+      },
+      defaultTheme: 'dark'
+    })
+  ]
 };
 
 export default preview;
