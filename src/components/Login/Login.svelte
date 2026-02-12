@@ -76,57 +76,55 @@
   }
 </script>
 
-<div class="flex min-h-screen items-center justify-center p-4">
+<form class="flex min-h-screen items-center justify-center p-4" onsubmit={handleSubmit}>
   <Card class="w-full max-w-sm">
     <CardHeader>
       <CardTitle>Login</CardTitle>
       <CardDescription>Enter your credentials to continue.</CardDescription>
     </CardHeader>
-    <form onsubmit={handleSubmit}>
-      <CardContent class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <Label for="username">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            placeholder="Username"
-            autocomplete="username"
-            spellcheck={false}
-            bind:value={typedUserName}
-            disabled={processingCredentials}
-          />
-        </div>
-        <div class="flex flex-col gap-2">
-          <Label for="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Password"
-            autocomplete="current-password"
-            spellcheck={false}
-            bind:value={typedPassword}
-            disabled={processingCredentials}
-          />
-        </div>
-        {#if invalidCredentials}
-          <p class="text-destructive text-sm">Invalid username or password.</p>
-        {/if}
-      </CardContent>
-      <CardFooter>
-        <Button
-          type="submit"
-          class="w-full"
+    <CardContent class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <Label for="username">Username</Label>
+        <Input
+          id="username"
+          type="text"
+          placeholder="Username"
+          autocomplete="username"
+          spellcheck={false}
+          bind:value={typedUserName}
           disabled={processingCredentials}
-          data-testid="login-submit-button"
-        >
-          {#if processingCredentials}
-            <IconLoader2 class="animate-spin" />
-            Logging in...
-          {:else}
-            Login
-          {/if}
-        </Button>
-      </CardFooter>
-    </form>
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <Label for="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          spellcheck={false}
+          bind:value={typedPassword}
+          disabled={processingCredentials}
+        />
+      </div>
+      {#if invalidCredentials}
+        <p class="text-destructive text-sm">Invalid username or password.</p>
+      {/if}
+    </CardContent>
+    <CardFooter>
+      <Button
+        type="submit"
+        class="w-full"
+        disabled={processingCredentials}
+        data-testid="login-submit-button"
+      >
+        {#if processingCredentials}
+          <IconLoader2 class="animate-spin" />
+          Logging in...
+        {:else}
+          Login
+        {/if}
+      </Button>
+    </CardFooter>
   </Card>
-</div>
+</form>
