@@ -8,6 +8,7 @@
   import { ModeWatcher } from 'mode-watcher';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
+  import Login from '$components/Login/Login.svelte';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
 
@@ -50,7 +51,7 @@ at some point.
       <p>Loading...</p>
     </div>
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
-    Login should be here
+    <Login />
   {:else}
     <main>{@render children?.()}</main>
   {/if}

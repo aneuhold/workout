@@ -1,4 +1,4 @@
-import { DashboardUserConfigSchema, type UserCTO } from '@aneuhold/core-ts-db-lib';
+import { DashboardUserConfigSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { type UserConfig, userConfig } from './userConfig';
 
@@ -13,21 +13,8 @@ export default class UserConfigMock {
 
   reset(): void {
     const mockConfig: UserConfig = {
-      config: DashboardUserConfigSchema.parse({ userId: this.userId }),
-      collaborators: {}
+      config: DashboardUserConfigSchema.parse({ userId: this.userId })
     };
     userConfig.setWithoutPropagation(mockConfig);
-  }
-
-  enableConfetti(): void {
-    const currentUserConfig = userConfig.get();
-    currentUserConfig.config.enabledFeatures.useConfettiForTasks = true;
-    userConfig.setWithoutPropagation(currentUserConfig);
-  }
-
-  addCollaborator(collaborator: UserCTO): void {
-    const currentUserConfig = userConfig.get();
-    currentUserConfig.collaborators[collaborator._id] = collaborator;
-    userConfig.setWithoutPropagation(currentUserConfig);
   }
 }
