@@ -5,5 +5,6 @@ export const homePageInfo: PageInfo = {
   title: 'Personal Dashboard',
   description: 'Home page for the personal dashboard',
   url: '/',
+  iconName: 'IconHome',
   nestingLevel: 0
 };

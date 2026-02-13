@@ -35,6 +35,7 @@ Use `pnpm` for all package management:
 - **CSS Variables**: Theme colors defined in `src/globalStyles/global.css` using CSS custom properties (e.g., `--primary`, `--background`)
 - **Icon library**: Tabler icons via `@tabler/icons-svelte`
 - **Dark mode**: Managed by `mode-watcher` package; use `.dark` class variant in Tailwind
+- **Clean CSS**: Never use inline styles, and try to keep the number of CSS classes to the absolute minimum. Using a small amount of CSS classes is a good indication that you are leveraging CSS correctly. If you find yourself needing to add a large number of CSS classes to a component, it's often a sign you need to take a step back and rethink your approach.
 
 ### Component Patterns
 

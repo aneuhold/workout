@@ -8,7 +8,9 @@
   import { ModeWatcher } from 'mode-watcher';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
+  import { page } from '$app/stores';
   import Login from '$components/Login/Login.svelte';
+  import NavBar from '$components/NavBar/NavBar.svelte';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
 
@@ -53,6 +55,7 @@ at some point.
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
     <Login />
   {:else}
-    <main>{@render children?.()}</main>
+    <NavBar currentPath={$page.url.pathname} />
+    <main class="pb-16 md:pb-0 md:pl-48">{@render children?.()}</main>
   {/if}
 </div>
