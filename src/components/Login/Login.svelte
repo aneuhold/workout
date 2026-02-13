@@ -33,6 +33,7 @@
   let typedPassword = $state(LocalData.password);
   let processingCredentials = $derived($loginState === LoginState.ProcessingCredentials);
   let invalidCredentials = $state(false);
+  let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
 
   /**
    * Handles the login form submission by validating credentials against the API.
@@ -115,7 +116,7 @@
       <Button
         type="submit"
         class="w-full"
-        disabled={processingCredentials}
+        disabled={processingCredentials || !formIsValid}
         data-testid="login-submit-button"
       >
         {#if processingCredentials}
