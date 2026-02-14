@@ -11,10 +11,11 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      ...createBoolArgTypes('isNew')
+      ...createBoolArgTypes('isNew', 'notFound')
     },
     args: {
-      isNew: false
+      isNew: false,
+      notFound: false
     }
   });
 </script>
@@ -22,3 +23,5 @@
 <Story name="Existing Exercise" />
 
 <Story name="New Exercise" args={{ isNew: true }} />
+
+<Story name="Exercise Not Found" args={{ notFound: true }} />

@@ -4,15 +4,18 @@
   import ExercisePage from '../ExercisePage.svelte';
 
   let {
-    isNew = false
+    isNew = false,
+    notFound = false
   }: {
     isNew?: boolean;
+    notFound?: boolean;
   } = $props();
 
   let exerciseId = $state<string | null>(null);
 
   $effect(() => {
     const creating = isNew;
+    const missing = notFound;
 
     untrack(() => {
       MockData.muscleGroupMapServiceMock.reset();
@@ -28,7 +31,11 @@
       );
       MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
 
-      exerciseId = creating ? null : exercises[0]._id;
+      if (missing) {
+        exerciseId = 'non-existent-id';
+      } else {
+        exerciseId = creating ? null : exercises[0]._id;
+      }
     });
 
     return () => {
