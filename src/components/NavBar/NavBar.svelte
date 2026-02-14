@@ -11,7 +11,8 @@
     IconCalendar,
     IconChartBar,
     IconHome,
-    IconList
+    IconList,
+    IconStopwatch
   } from '@tabler/icons-svelte';
   import { navBarItems } from '$util/navInfo';
 
@@ -22,7 +23,8 @@
     IconBarbell,
     IconList,
     IconChartBar,
-    IconCalendar
+    IconCalendar,
+    IconStopwatch
   };
 
   function isActive(itemUrl: string, path: string): boolean {
