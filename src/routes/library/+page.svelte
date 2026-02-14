@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LibraryPage from '$pages/LibraryPage/LibraryPage.svelte';
   import { libraryPageInfo } from './pageInfo';
 </script>
 
@@ -7,4 +8,4 @@
   <meta name="description" content={libraryPageInfo.description} />
 </svelte:head>
 
-<h1>{libraryPageInfo.title}</h1>
+<LibraryPage />
