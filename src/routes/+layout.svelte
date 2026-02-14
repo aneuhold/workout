@@ -11,8 +11,10 @@
   import { page } from '$app/stores';
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
+  import TopBar from '$components/TopBar/TopBar.svelte';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
+  import { timerStore } from '$stores/session/timerStore.svelte';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -55,7 +57,12 @@ at some point.
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
     <Login />
   {:else}
+    <TopBar />
     <NavBar currentPath={$page.url.pathname} />
-    <main class="pb-16 md:pb-0 md:pl-48">{@render children?.()}</main>
+    <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
+     Otherwise, it is only fixed for desktop. -->
+    <main class="pb-16 md:pb-0 md:pl-48 {timerStore.isActive ? 'pt-12' : 'md:pt-12'}">
+      {@render children?.()}
+    </main>
   {/if}
 </div>
