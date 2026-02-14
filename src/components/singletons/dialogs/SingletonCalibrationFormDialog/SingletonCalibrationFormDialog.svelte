@@ -109,7 +109,7 @@
       {#if estimated1RM !== null}
         <div class="rounded-lg bg-muted/50 p-3 text-center">
           <span class="text-xs text-muted-foreground">Estimated 1RM</span>
-          <p class="text-lg font-semibold">{estimated1RM} lb</p>
+          <p class="text-lg font-semibold">{Math.round(estimated1RM)} lb</p>
         </div>
       {/if}
 
