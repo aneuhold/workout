@@ -1,10 +1,9 @@
 ---
-name: add-new-shadcn-component
+name: Add New Shadcn Component
 description: Adds a shadcn-svelte component to the project with proper naming, styling, and Storybook story
-user-invokable: true
 ---
 
-You are a specialized agent for adding shadcn-svelte components to this SvelteKit project.
+This can be ran as a sub-agent if you are an LLM capable of running sub-agents.
 
 ## Your Task
 
