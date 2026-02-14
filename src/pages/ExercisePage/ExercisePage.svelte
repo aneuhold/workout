@@ -26,6 +26,7 @@
   import { currentUserId } from '$stores/derived/currentUserId';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
+  import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
@@ -75,12 +76,9 @@
   let formSecondary = new SvelteSet<string>();
   let formRestSeconds = $state<number | undefined>(undefined);
   let formNotes = $state('');
-  let formJointFatigue = $state<number[]>([]);
-  let formPerceivedEffort = $state<number[]>([]);
-  let formUnusedMuscle = $state<number[]>([]);
-  let jointFatigueNotSet = $state(true);
-  let perceivedEffortNotSet = $state(true);
-  let unusedMuscleNotSet = $state(true);
+  let formJointFatigue = $state<number[]>([0]);
+  let formPerceivedEffort = $state<number[]>([0]);
+  let formUnusedMuscle = $state<number[]>([0]);
 
   // Populate form when entering edit mode.
   // Track only the triggers (editMode, exercise, isNew), untrack state mutations.
@@ -102,27 +100,9 @@
         formRestSeconds = ex.restSeconds ?? undefined;
         formNotes = ex.notes ?? '';
         const fg = ex.initialFatigueGuess;
-        if (fg.jointAndTissueDisruption != null) {
-          formJointFatigue = [fg.jointAndTissueDisruption];
-          jointFatigueNotSet = false;
-        } else {
-          formJointFatigue = [0];
-          jointFatigueNotSet = true;
-        }
-        if (fg.perceivedEffort != null) {
-          formPerceivedEffort = [fg.perceivedEffort];
-          perceivedEffortNotSet = false;
-        } else {
-          formPerceivedEffort = [0];
-          perceivedEffortNotSet = true;
-        }
-        if (fg.unusedMusclePerformance != null) {
-          formUnusedMuscle = [fg.unusedMusclePerformance];
-          unusedMuscleNotSet = false;
-        } else {
-          formUnusedMuscle = [0];
-          unusedMuscleNotSet = true;
-        }
+        formJointFatigue = [fg.jointAndTissueDisruption ?? 0];
+        formPerceivedEffort = [fg.perceivedEffort ?? 0];
+        formUnusedMuscle = [fg.unusedMusclePerformance ?? 0];
       } else if (mode && creating) {
         formName = '';
         formEquipmentId = allEquipment.length > 0 ? allEquipment[0]._id : '';
@@ -135,14 +115,13 @@
         formJointFatigue = [0];
         formPerceivedEffort = [0];
         formUnusedMuscle = [0];
-        jointFatigueNotSet = true;
-        perceivedEffortNotSet = true;
-        unusedMuscleNotSet = true;
       }
     });
   });
 
-  let formIsValid = $derived(formName.trim().length > 0 && formEquipmentId.length > 0);
+  let formIsValid = $derived(
+    formName.trim().length > 0 && formEquipmentId.length > 0 && formPrimary.size > 0
+  );
 
   // --- Helpers ---
 
@@ -177,23 +156,16 @@
     'Your performance on subsequent exercises targeting unused muscles was hugely deteriorated'
   ];
 
-  // --- Muscle group toggle ---
+  // --- Muscle group toggle (cycles: unselected -> primary -> secondary -> unselected) ---
 
-  function togglePrimary(id: string) {
+  function toggleMuscleGroup(id: string) {
     if (formPrimary.has(id)) {
       formPrimary.delete(id);
-    } else {
-      formSecondary.delete(id);
-      formPrimary.add(id);
-    }
-  }
-
-  function toggleSecondary(id: string) {
-    if (formSecondary.has(id)) {
-      formSecondary.delete(id);
-    } else {
-      formPrimary.delete(id);
       formSecondary.add(id);
+    } else if (formSecondary.has(id)) {
+      formSecondary.delete(id);
+    } else {
+      formPrimary.add(id);
     }
   }
 
@@ -204,9 +176,9 @@
     const userId = $currentUserId;
 
     const fatigueGuess = {
-      jointAndTissueDisruption: jointFatigueNotSet ? null : formJointFatigue[0],
-      perceivedEffort: perceivedEffortNotSet ? null : formPerceivedEffort[0],
-      unusedMusclePerformance: unusedMuscleNotSet ? null : formUnusedMuscle[0]
+      jointAndTissueDisruption: formJointFatigue[0],
+      perceivedEffort: formPerceivedEffort[0],
+      unusedMusclePerformance: formUnusedMuscle[0]
     };
 
     const formData = {
@@ -276,13 +248,15 @@
         handleSave();
       }}
     >
+      <p class="text-xs text-muted-foreground">* Required</p>
+
       <div class="flex flex-col gap-1.5">
-        <Label for="ex-name">Exercise Name</Label>
+        <Label for="ex-name">Exercise Name *</Label>
         <Input id="ex-name" placeholder="e.g. Barbell Bench Press" bind:value={formName} required />
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <Label>Equipment</Label>
+        <Label>Equipment *</Label>
         <Select bind:value={formEquipmentId} type="single">
           <SelectTrigger>
             {allEquipment.find((e) => e._id === formEquipmentId)?.title ?? 'Select equipment'}
@@ -319,32 +293,55 @@
         </div>
       </div>
 
-      <!-- Primary muscle groups -->
-      <div class="flex flex-col gap-1.5">
-        <Label>Primary Muscle Groups</Label>
+      <!-- Muscle groups -->
+      <div class="flex flex-col gap-3 rounded-lg border border-border p-3">
+        <div class="flex flex-col gap-1">
+          <Label>Muscle Groups *</Label>
+          <p class="text-xs text-muted-foreground">
+            At least one primary muscle group is required. Tap once to mark as primary, tap again to
+            mark as secondary, tap a third time to remove.
+          </p>
+        </div>
+
         <div class="flex flex-wrap gap-1.5">
           {#each allMuscleGroups as mg (mg._id)}
-            <button type="button" onclick={() => togglePrimary(mg._id)}>
-              <Badge variant={formPrimary.has(mg._id) ? 'default' : 'outline'}>
+            <button type="button" onclick={() => toggleMuscleGroup(mg._id)}>
+              <Badge
+                variant={formPrimary.has(mg._id)
+                  ? 'default'
+                  : formSecondary.has(mg._id)
+                    ? 'secondary'
+                    : 'outline'}
+              >
                 {mg.name}
+                {#if formPrimary.has(mg._id)}
+                  <span class="ml-0.5 text-[10px] opacity-70">1°</span>
+                {:else if formSecondary.has(mg._id)}
+                  <span class="ml-0.5 text-[10px] opacity-70">2°</span>
+                {/if}
               </Badge>
             </button>
           {/each}
         </div>
-      </div>
 
-      <!-- Secondary muscle groups -->
-      <div class="flex flex-col gap-1.5">
-        <Label>Secondary Muscle Groups</Label>
-        <div class="flex flex-wrap gap-1.5">
-          {#each allMuscleGroups.filter((mg) => !formPrimary.has(mg._id)) as mg (mg._id)}
-            <button type="button" onclick={() => toggleSecondary(mg._id)}>
-              <Badge variant={formSecondary.has(mg._id) ? 'secondary' : 'outline'}>
-                {mg.name}
-              </Badge>
-            </button>
-          {/each}
-        </div>
+        {#if formPrimary.size > 0 || formSecondary.size > 0}
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            {#if formPrimary.size > 0}
+              <span
+                >Primary: {[...formPrimary]
+                  .map((id) => getMuscleGroupName(id as UUID))
+                  .join(', ')}</span
+              >
+            {/if}
+            {#if formSecondary.size > 0}
+              <span
+                >Secondary: {[...formSecondary]
+                  .map((id) => getMuscleGroupName(id as UUID))
+                  .join(', ')}</span
+              >
+            {/if}
+          </div>
+        {/if}
       </div>
 
       <div class="flex flex-col gap-1.5">
@@ -366,77 +363,45 @@
 
       <!-- Fatigue Guess -->
       <Separator />
-      <h2 class="text-base font-medium">Initial Fatigue Guess</h2>
+      <div class="flex items-center gap-2">
+        <h2 class="text-base font-medium">Initial Fatigue Guess</h2>
+        <InfoPopover>
+          These values help position the exercise correctly within your mesocycles. Without them,
+          the app can't determine how fatiguing this exercise is relative to others, which affects
+          volume and recovery planning.
+        </InfoPopover>
+      </div>
 
       <!-- Joint & Tissue Disruption -->
       <div class="flex flex-col gap-2">
+        <Label>Joint & Tissue Disruption</Label>
+        <Slider type="multiple" bind:value={formJointFatigue} min={0} max={3} step={1} />
         <div class="flex items-center justify-between">
-          <Label>Joint & Tissue Disruption</Label>
-          <button
-            type="button"
-            class="text-xs text-muted-foreground hover:text-foreground"
-            onclick={() => (jointFatigueNotSet = !jointFatigueNotSet)}
-          >
-            {jointFatigueNotSet ? 'Set value' : 'Clear'}
-          </button>
+          <span class="text-sm font-medium">{formJointFatigue[0]}</span>
         </div>
-        {#if !jointFatigueNotSet}
-          <Slider type="multiple" bind:value={formJointFatigue} min={0} max={3} step={1} />
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">{formJointFatigue[0]}</span>
-          </div>
-          <p class="text-xs text-muted-foreground">{jointDescriptions[formJointFatigue[0]]}</p>
-        {:else}
-          <p class="text-xs text-muted-foreground italic">Not set</p>
-        {/if}
+        <p class="text-xs text-muted-foreground">{jointDescriptions[formJointFatigue[0]]}</p>
       </div>
 
       <!-- Perceived Effort -->
       <div class="flex flex-col gap-2">
+        <Label>Perceived Effort</Label>
+        <Slider type="multiple" bind:value={formPerceivedEffort} min={0} max={3} step={1} />
         <div class="flex items-center justify-between">
-          <Label>Perceived Effort</Label>
-          <button
-            type="button"
-            class="text-xs text-muted-foreground hover:text-foreground"
-            onclick={() => (perceivedEffortNotSet = !perceivedEffortNotSet)}
-          >
-            {perceivedEffortNotSet ? 'Set value' : 'Clear'}
-          </button>
+          <span class="text-sm font-medium">{formPerceivedEffort[0]}</span>
         </div>
-        {#if !perceivedEffortNotSet}
-          <Slider type="multiple" bind:value={formPerceivedEffort} min={0} max={3} step={1} />
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">{formPerceivedEffort[0]}</span>
-          </div>
-          <p class="text-xs text-muted-foreground">{effortDescriptions[formPerceivedEffort[0]]}</p>
-        {:else}
-          <p class="text-xs text-muted-foreground italic">Not set</p>
-        {/if}
+        <p class="text-xs text-muted-foreground">{effortDescriptions[formPerceivedEffort[0]]}</p>
       </div>
 
       <!-- Unused Muscle Performance -->
       <div class="flex flex-col gap-2">
+        <Label>Unused Muscle Performance</Label>
+        <Slider type="multiple" bind:value={formUnusedMuscle} min={0} max={3} step={1} />
         <div class="flex items-center justify-between">
-          <Label>Unused Muscle Performance</Label>
-          <button
-            type="button"
-            class="text-xs text-muted-foreground hover:text-foreground"
-            onclick={() => (unusedMuscleNotSet = !unusedMuscleNotSet)}
-          >
-            {unusedMuscleNotSet ? 'Set value' : 'Clear'}
-          </button>
+          <span class="text-sm font-medium">{formUnusedMuscle[0]}</span>
         </div>
-        {#if !unusedMuscleNotSet}
-          <Slider type="multiple" bind:value={formUnusedMuscle} min={0} max={3} step={1} />
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">{formUnusedMuscle[0]}</span>
-          </div>
-          <p class="text-xs text-muted-foreground">
-            {unusedMuscleDescriptions[formUnusedMuscle[0]]}
-          </p>
-        {:else}
-          <p class="text-xs text-muted-foreground italic">Not set</p>
-        {/if}
+        <p class="text-xs text-muted-foreground">
+          {unusedMuscleDescriptions[formUnusedMuscle[0]]}
+        </p>
       </div>
 
       <Separator />
