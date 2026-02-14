@@ -16,12 +16,18 @@
     equipmentType,
     showTypeLabel,
     expanded,
-    onToggle
+    onToggle,
+    onEdit,
+    onDelete,
+    onExerciseClick
   }: {
     equipmentType: WorkoutEquipmentType;
     showTypeLabel: boolean;
     expanded: boolean;
     onToggle: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    onExerciseClick: (exerciseId: UUID) => void;
   } = $props();
 
   let exercises = $derived(exerciseMapService.getDocs());
@@ -72,7 +78,10 @@
           <ul class="mt-1 flex flex-col gap-0.5">
             {#each linkedExercises as exercise (exercise._id)}
               <li>
-                <button class="text-left text-primary hover:underline">
+                <button
+                  class="text-left text-primary hover:underline"
+                  onclick={() => onExerciseClick(exercise._id)}
+                >
                   {exercise.exerciseName}
                 </button>
               </li>
@@ -91,7 +100,7 @@
       {/if}
 
       <div class="flex gap-2">
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onclick={onEdit}>
           <IconPencil size={14} />
           Edit
         </Button>
@@ -100,6 +109,7 @@
           size="sm"
           disabled={linkedExercises.length > 0}
           title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
+          onclick={onDelete}
         >
           <IconTrash size={14} />
           Delete

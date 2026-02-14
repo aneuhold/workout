@@ -33,12 +33,18 @@
     exercise,
     showTypeLabel,
     expanded,
-    onToggle
+    onToggle,
+    onEdit,
+    onDelete,
+    onAddCalibration
   }: {
     exercise: WorkoutExercise;
     showTypeLabel: boolean;
     expanded: boolean;
     onToggle: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    onAddCalibration: () => void;
   } = $props();
 
   function getMuscleGroupName(id: UUID): string {
@@ -182,7 +188,7 @@
             Calibration data is needed for accurate load recommendations.
           </p>
         </div>
-        <Button variant="outline" size="sm" class="w-full">
+        <Button variant="outline" size="sm" class="w-full" onclick={onAddCalibration}>
           <IconBarbell size={14} />
           Add Calibration
         </Button>
@@ -190,11 +196,11 @@
 
       <!-- Actions -->
       <div class="flex gap-2">
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onclick={onEdit}>
           <IconPencil size={14} />
           Edit
         </Button>
-        <Button variant="destructive" size="sm">
+        <Button variant="destructive" size="sm" onclick={onDelete}>
           <IconTrash size={14} />
           Delete
         </Button>

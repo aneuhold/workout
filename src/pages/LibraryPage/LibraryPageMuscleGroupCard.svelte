@@ -7,6 +7,7 @@
 <script lang="ts">
   import type { WorkoutExercise, WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
   import { IconChevronDown, IconChevronUp, IconPencil, IconTrash } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
@@ -15,12 +16,18 @@
     muscleGroup,
     showTypeLabel,
     expanded,
-    onToggle
+    onToggle,
+    onEdit,
+    onDelete,
+    onExerciseClick
   }: {
     muscleGroup: WorkoutMuscleGroup;
     showTypeLabel: boolean;
     expanded: boolean;
     onToggle: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    onExerciseClick: (exerciseId: UUID) => void;
   } = $props();
 
   let exercises = $derived(exerciseMapService.getDocs());
@@ -76,7 +83,10 @@
           <ul class="mt-1 flex flex-col gap-0.5">
             {#each linkedExercises.primary as exercise (exercise._id)}
               <li>
-                <button class="text-left text-primary hover:underline">
+                <button
+                  class="text-left text-primary hover:underline"
+                  onclick={() => onExerciseClick(exercise._id)}
+                >
                   {exercise.exerciseName}
                 </button>
               </li>
@@ -90,7 +100,10 @@
           <ul class="mt-1 flex flex-col gap-0.5">
             {#each linkedExercises.secondary as exercise (exercise._id)}
               <li>
-                <button class="text-left text-primary hover:underline">
+                <button
+                  class="text-left text-primary hover:underline"
+                  onclick={() => onExerciseClick(exercise._id)}
+                >
                   {exercise.exerciseName}
                 </button>
               </li>
@@ -110,7 +123,7 @@
       {/if}
 
       <div class="flex gap-2">
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onclick={onEdit}>
           <IconPencil size={14} />
           Edit
         </Button>
@@ -119,6 +132,7 @@
           size="sm"
           disabled={exerciseCount > 0}
           title={exerciseCount > 0 ? 'Remove from all exercises first' : undefined}
+          onclick={onDelete}
         >
           <IconTrash size={14} />
           Delete
