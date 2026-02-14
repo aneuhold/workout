@@ -17,15 +17,27 @@ export type UpsertManyInfo<T> = {
   newDocs: T[];
 };
 
+export interface DocumentMapStoreConfig<T extends BaseDocument> {
+  persistToLocalData: (map: DocumentMap<T>) => void;
+  persistToDb: (updateInfo: DocumentInsertOrUpdateInfo<T>) => void;
+}
+
 /**
- * A service which can be used to interact with a Svelte store that directly
- * maps to a document type in the database. This is for the situation where
- * multiple documents of the same type are being handled.
+ * A service which manages a Svelte reactive store that directly maps to a
+ * document type in the database. Handles CRUD operations with automatic
+ * dual persistence to both local storage and the backend API.
  *
- * This service is meant to be used as a singleton.
+ * Configure via constructor and export the instance as a default export
+ * for singleton behavior.
  */
-export default abstract class DocumentMapStoreService<T extends BaseDocument> {
+export default class DocumentMapStoreService<T extends BaseDocument> {
   public mapState: DocumentMap<T> = $state({});
+
+  private config: DocumentMapStoreConfig<T>;
+
+  constructor(config: DocumentMapStoreConfig<T>) {
+    this.config = config;
+  }
 
   public addDoc(doc: T): void {
     this.addManyDocs([doc]);
@@ -33,12 +45,8 @@ export default abstract class DocumentMapStoreService<T extends BaseDocument> {
 
   public addManyDocs(docs: T[]): void {
     this.addManyDocsWithoutPersist(docs);
-
-    // Persist
-    this.persistToLocalData();
-    this.persistToDb({
-      insert: docs
-    });
+    this.config.persistToLocalData(this.mapState);
+    this.config.persistToDb({ insert: docs });
   }
 
   private addManyDocsWithoutPersist(docs: T[]): T[] {
@@ -57,12 +65,8 @@ export default abstract class DocumentMapStoreService<T extends BaseDocument> {
     mutator: Updater<T>
   ): void {
     const docsToUpdate = this.updateManyDocsWithoutPersist(filterOrDocIds, mutator);
-
-    // Persist
-    this.persistToLocalData();
-    this.persistToDb({
-      update: docsToUpdate
-    });
+    this.config.persistToLocalData(this.mapState);
+    this.config.persistToDb({ update: docsToUpdate });
   }
 
   private updateManyDocsWithoutPersist(
@@ -71,7 +75,6 @@ export default abstract class DocumentMapStoreService<T extends BaseDocument> {
   ): T[] {
     let docsToUpdate: T[] = [];
     if (Array.isArray(filterOrDocIds)) {
-      // It's an array of doc IDs
       const docIds = filterOrDocIds;
       docIds.forEach((docId) => {
         const currentDoc = this.mapState[docId];
@@ -82,7 +85,6 @@ export default abstract class DocumentMapStoreService<T extends BaseDocument> {
         docsToUpdate.push(mutator(currentDoc));
       });
     } else {
-      // It's a filter function
       const filter = filterOrDocIds as (currentDoc: T) => boolean;
       docsToUpdate = Object.values(this.mapState).filter(
         (doc): doc is T => doc !== undefined && filter(doc)
@@ -107,49 +109,29 @@ export default abstract class DocumentMapStoreService<T extends BaseDocument> {
       docsToDelete.push(doc);
       delete this.mapState[id];
     });
-
-    // Persist
-    this.persistToLocalData();
-    this.persistToDb({
-      delete: docsToDelete
-    });
+    this.config.persistToLocalData(this.mapState);
+    this.config.persistToDb({ delete: docsToDelete });
   }
 
   public upsertManyDocs(upsertInfo: UpsertManyInfo<T>): void {
     const { filter, mutator, newDocs } = upsertInfo;
-
     const addedDocs = this.addManyDocsWithoutPersist(newDocs);
     const docsToUpdate = this.updateManyDocsWithoutPersist(filter, mutator);
-
-    // Persist
-    this.persistToLocalData();
-    this.persistToDb({
+    this.config.persistToLocalData(this.mapState);
+    this.config.persistToDb({
       insert: addedDocs,
       update: docsToUpdate
     });
   }
 
   /**
-   * Should only be called to initialize or replace the entire map. This does persist to localData
-   * but doesn't persist to the DB.
+   * Initializes or replaces the entire map. Persists to local data but
+   * not to the DB (used when loading data from the API).
    *
    * @param newMap The new document map
    */
   public setMap(newMap: DocumentMap<T>): void {
     this.mapState = newMap;
-    this.persistToLocalData();
+    this.config.persistToLocalData(this.mapState);
   }
-
-  /**
-   * Persists the entire map to local storage. This should return a deep copy
-   * of the map that is to be persisted.
-   */
-  protected abstract persistToLocalData(): DocumentMap<T>;
-
-  /**
-   * Gets the map from local storage. Returning null means no local data exists.
-   */
-  protected abstract getFromLocalData(): DocumentMap<T> | null;
-
-  protected abstract persistToDb(updateInfo: DocumentInsertOrUpdateInfo<T>): void;
 }
