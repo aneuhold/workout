@@ -9,6 +9,10 @@
   const { Story } = defineMeta({
     title: 'Components/Login',
     component: Login,
+    parameters: {
+      // To remove the padding, because this component is meant to be centered in the viewport
+      layout: 'fullscreen'
+    },
     beforeEach: () => {
       const spy = spyOn(APIService, 'validateUser').mockResolvedValue({
         success: true,

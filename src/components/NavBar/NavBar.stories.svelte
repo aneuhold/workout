@@ -39,19 +39,13 @@
   }
 </script>
 
-<Story name="Home Active" args={{ currentPath: '/' }}>
+<Story name="Default" args={{ currentPath: '/' }} globals={{ viewport: null }}>
   {#snippet template(args)}
     <NavBar {...captureArgs(args)} />
   {/snippet}
 </Story>
 
-<Story name="Session Active" args={{ currentPath: '/session' }}>
-  {#snippet template(args)}
-    <NavBar {...captureArgs(args)} />
-  {/snippet}
-</Story>
-
-<Story name="Exercises Active" args={{ currentPath: '/exercises' }}>
+<Story name="Mobile" args={{ currentPath: '/' }} globals={{ viewport: { value: 'mobile' } }}>
   {#snippet template(args)}
     <NavBar {...captureArgs(args)} />
   {/snippet}

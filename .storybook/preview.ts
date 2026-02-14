@@ -20,6 +20,15 @@ const preview: Preview = {
         color: /(background|color)$/i,
         date: /Date$/i
       }
+    },
+    viewport: {
+      options: {
+        mobile: {
+          name: 'Mobile (450x800)',
+          styles: { width: '450px', height: '800px' },
+          type: 'mobile'
+        }
+      }
     }
   },
   decorators: [
