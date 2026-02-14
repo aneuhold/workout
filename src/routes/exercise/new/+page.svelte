@@ -1,9 +1,6 @@
 <script lang="ts">
-  import { page } from '$app/state';
   import ExercisePage from '$pages/ExercisePage/ExercisePage.svelte';
-  import { exercisePageInfo } from './pageInfo';
-
-  let exerciseId = $derived(page.url.searchParams.get('exerciseId'));
+  import { exercisePageInfo } from '../pageInfo';
 </script>
 
 <svelte:head>
@@ -11,4 +8,4 @@
   <meta name="description" content={exercisePageInfo.description} />
 </svelte:head>
 
-<ExercisePage {exerciseId} isNew={false} />
+<ExercisePage exerciseId={null} isNew={true} />

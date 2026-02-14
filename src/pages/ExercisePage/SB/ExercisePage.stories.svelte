@@ -1,24 +1,24 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createBoolArgTypes } from '$storybook/storybookUtil';
-  import SBLibraryPageExample from './SBLibraryPageExample.svelte';
+  import SBExercisePageExample from './SBExercisePageExample.svelte';
 
   const { Story } = defineMeta({
-    title: 'Pages/LibraryPage',
+    title: 'Pages/ExercisePage',
     tags: ['!autodocs'],
-    component: SBLibraryPageExample,
+    component: SBExercisePageExample,
     parameters: {
       layout: 'fullscreen'
     },
     argTypes: {
-      ...createBoolArgTypes('populateDefaultData')
+      ...createBoolArgTypes('isNew')
     },
     args: {
-      populateDefaultData: true
+      isNew: false
     }
   });
 </script>
 
-<Story name="Default" />
+<Story name="Existing Exercise" />
 
-<Story name="Empty Library" args={{ populateDefaultData: false }} />
+<Story name="New Exercise" args={{ isNew: true }} />
