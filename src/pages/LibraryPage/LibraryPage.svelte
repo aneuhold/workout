@@ -27,10 +27,10 @@
   import TabsContent from '$ui/Tabs/TabsContent.svelte';
   import TabsList from '$ui/Tabs/TabsList.svelte';
   import TabsTrigger from '$ui/Tabs/TabsTrigger.svelte';
-  import LibraryEmptyState from './LibraryEmptyState.svelte';
-  import LibraryEquipmentCard from './LibraryEquipmentCard.svelte';
-  import LibraryExerciseCard from './LibraryExerciseCard.svelte';
-  import LibraryMuscleGroupCard from './LibraryMuscleGroupCard.svelte';
+  import LibraryPageEmptyState from './LibraryPageEmptyState.svelte';
+  import LibraryPageEquipmentCard from './LibraryPageEquipmentCard.svelte';
+  import LibraryPageExerciseCard from './LibraryPageExerciseCard.svelte';
+  import LibraryPageMuscleGroupCard from './LibraryPageMuscleGroupCard.svelte';
 
   let searchQuery = $state('');
   let activeTab = $state('all');
@@ -196,21 +196,21 @@
         <div class="flex flex-col gap-2">
           {#each allItems as item (item.id)}
             {#if item.type === 'exercise'}
-              <LibraryExerciseCard
+              <LibraryPageExerciseCard
                 exercise={item.data}
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
               />
             {:else if item.type === 'muscleGroup'}
-              <LibraryMuscleGroupCard
+              <LibraryPageMuscleGroupCard
                 muscleGroup={item.data}
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
               />
             {:else}
-              <LibraryEquipmentCard
+              <LibraryPageEquipmentCard
                 equipmentType={item.data}
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
@@ -220,7 +220,7 @@
           {/each}
         </div>
       {:else}
-        <LibraryEmptyState />
+        <LibraryPageEmptyState />
       {/if}
     </TabsContent>
 
@@ -229,7 +229,7 @@
       {#if filteredExercises.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredExercises as exercise (exercise._id)}
-            <LibraryExerciseCard
+            <LibraryPageExerciseCard
               {exercise}
               showTypeLabel={false}
               expanded={expandedIds.has(`exercise-${exercise._id}`)}
@@ -238,7 +238,7 @@
           {/each}
         </div>
       {:else}
-        <LibraryEmptyState />
+        <LibraryPageEmptyState />
       {/if}
     </TabsContent>
 
@@ -247,7 +247,7 @@
       {#if filteredMuscleGroups.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredMuscleGroups as muscleGroup (muscleGroup._id)}
-            <LibraryMuscleGroupCard
+            <LibraryPageMuscleGroupCard
               {muscleGroup}
               showTypeLabel={false}
               expanded={expandedIds.has(`muscle-${muscleGroup._id}`)}
@@ -256,7 +256,7 @@
           {/each}
         </div>
       {:else}
-        <LibraryEmptyState />
+        <LibraryPageEmptyState />
       {/if}
     </TabsContent>
 
@@ -265,7 +265,7 @@
       {#if filteredEquipment.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredEquipment as equipmentType (equipmentType._id)}
-            <LibraryEquipmentCard
+            <LibraryPageEquipmentCard
               {equipmentType}
               showTypeLabel={false}
               expanded={expandedIds.has(`equipment-${equipmentType._id}`)}
@@ -274,7 +274,7 @@
           {/each}
         </div>
       {:else}
-        <LibraryEmptyState />
+        <LibraryPageEmptyState />
       {/if}
     </TabsContent>
   </Tabs>

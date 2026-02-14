@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
-  import Library from '../Library.svelte';
+  import LibraryPage from '../LibraryPage.svelte';
 
   let { populateDefaultData = true }: { populateDefaultData?: boolean } = $props();
 
@@ -34,4 +34,4 @@
   });
 </script>
 
-<Library />
+<LibraryPage />

@@ -1,11 +1,11 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createBoolArgTypes } from '$storybook/storybookUtil';
-  import SBLibraryExample from './SBLibraryExample.svelte';
+  import SBLibraryPageExample from './SBLibraryPageExample.svelte';
 
   const { Story } = defineMeta({
-    title: 'Pages/Library',
-    component: SBLibraryExample,
+    title: 'Pages/LibraryPage',
+    component: SBLibraryPageExample,
     parameters: {
       layout: 'fullscreen'
     },
