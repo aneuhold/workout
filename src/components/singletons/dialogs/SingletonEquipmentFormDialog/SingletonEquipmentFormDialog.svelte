@@ -23,14 +23,13 @@
 </script>
 
 <script lang="ts">
-  import {
-    WorkoutEquipmentTypeSchema,
-    WorkoutEquipmentTypeService
-  } from '@aneuhold/core-ts-db-lib';
+  import { WorkoutEquipmentTypeSchema } from '@aneuhold/core-ts-db-lib';
+  import { IconPlus, IconX } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
-  import Button from '$ui/Button/Button.svelte';
+  import Badge from '$ui/Badge/Badge.svelte';
+  import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
   import DialogClose from '$ui/Dialog/DialogClose.svelte';
   import DialogContent from '$ui/Dialog/DialogContent.svelte';
@@ -39,14 +38,16 @@
   import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
-  import Switch from '$ui/Switch/Switch.svelte';
+  import EquipmentFormDialogWeightGenerator from './EquipmentFormDialogWeightGenerator.svelte';
 
   let title = $state('');
-  let hasWeightOptions = $state(false);
-  let minWeight = $state<number | undefined>(undefined);
-  let maxWeight = $state<number | undefined>(undefined);
-  let increment = $state<number | undefined>(undefined);
 
+  // Single source of truth for weight options
+  let weightOptions = $state<number[]>([]);
+  let newWeight = $state('');
+  let showGenerator = $state(false);
+
+  // Open/reset effect
   $effect(() => {
     const opened = open;
     const current = currentEquipment;
@@ -54,62 +55,48 @@
     untrack(() => {
       if (opened) {
         title = current?.title ?? '';
+        newWeight = '';
+
         if (current?.weightOptions && current.weightOptions.length > 0) {
-          hasWeightOptions = true;
-          minWeight = current.weightOptions[0];
-          maxWeight = current.weightOptions[current.weightOptions.length - 1];
-          if (current.weightOptions.length > 1) {
-            increment = current.weightOptions[1] - current.weightOptions[0];
-          } else {
-            increment = 5;
-          }
+          weightOptions = [...current.weightOptions];
+          showGenerator = false;
         } else {
-          hasWeightOptions = false;
-          minWeight = undefined;
-          maxWeight = undefined;
-          increment = undefined;
+          weightOptions = [];
+          showGenerator = true;
         }
       }
     });
   });
 
-  let weightPreview = $derived.by(() => {
-    if (!hasWeightOptions || !minWeight || !increment || !maxWeight) return null;
-    if (minWeight <= 0 || increment <= 0 || maxWeight < minWeight) return null;
-    const options = WorkoutEquipmentTypeService.generateWeightOptions(
-      minWeight,
-      increment,
-      maxWeight
-    );
-    if (options.length === 0) return null;
-    return `${options[0]}–${options[options.length - 1]} lb (${options.length} options)`;
-  });
-
-  let isValid = $derived.by(() => {
-    if (title.trim().length === 0) return false;
-    if (hasWeightOptions) {
-      if (!minWeight || minWeight <= 0) return false;
-      if (!increment || increment <= 0) return false;
-      if (!maxWeight || maxWeight < minWeight) return false;
-    }
-    return true;
-  });
+  let isValid = $derived(title.trim().length > 0 && weightOptions.length > 0);
 
   let isEditMode = $derived(currentEquipment !== null);
+
+  function removeWeight(weight: number) {
+    weightOptions = weightOptions.filter((v) => v !== weight);
+  }
+
+  function addWeight() {
+    const parsed = parseFloat(newWeight);
+    if (isNaN(parsed) || parsed < 0) return;
+    if (weightOptions.includes(parsed)) {
+      newWeight = '';
+      return;
+    }
+    weightOptions = [...weightOptions, parsed].sort((a, b) => a - b);
+    newWeight = '';
+  }
 
   function handleSubmit() {
     if (!isValid) return;
     const userId = $currentUserId;
 
-    const weightOptions =
-      hasWeightOptions && minWeight && increment && maxWeight
-        ? WorkoutEquipmentTypeService.generateWeightOptions(minWeight, increment, maxWeight)
-        : null;
+    const finalWeights = weightOptions.length > 0 ? [...weightOptions] : null;
 
     if (isEditMode && currentEquipment) {
       equipmentTypeMapService.updateDoc(currentEquipment._id, (doc) => {
         doc.title = title.trim();
-        doc.weightOptions = weightOptions;
+        doc.weightOptions = finalWeights;
         doc.lastUpdatedDate = new Date();
         return doc;
       });
@@ -117,7 +104,7 @@
       const doc = WorkoutEquipmentTypeSchema.parse({
         userId,
         title: title.trim(),
-        weightOptions
+        weightOptions: finalWeights
       });
       equipmentTypeMapService.addDoc(doc);
     }
@@ -142,36 +129,79 @@
         <Input id="eq-title" placeholder="e.g. Barbell" bind:value={title} required />
       </div>
 
-      <div class="flex items-center gap-2">
-        <Switch bind:checked={hasWeightOptions} />
-        <Label>Weight options</Label>
+      <div class="flex flex-col gap-3 rounded-lg bg-muted/50 p-3">
+        <Label>Weight Options</Label>
+
+        <div class="flex items-end gap-2">
+          <Input
+            id="eq-add-weight"
+            type="number"
+            placeholder="Add weight (lb)"
+            class="flex-1"
+            bind:value={newWeight}
+            min="0"
+            step="any"
+            onkeydown={(e: KeyboardEvent) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addWeight();
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            type="button"
+            class="size-9 shrink-0"
+            onclick={addWeight}
+          >
+            <IconPlus class="size-4" />
+          </Button>
+        </div>
+
+        {#if !showGenerator}
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            class="w-fit"
+            onclick={() => (showGenerator = true)}
+          >
+            Regenerate weights
+          </Button>
+        {/if}
+
+        {#if showGenerator}
+          <EquipmentFormDialogWeightGenerator
+            onGenerate={(weights) => (weightOptions = weights)}
+            onDone={() => (showGenerator = false)}
+          />
+        {/if}
+
+        <p class="text-xs text-muted-foreground">
+          {weightOptions.length} weight option{weightOptions.length !== 1 ? 's' : ''}
+        </p>
+        {#if weightOptions.length > 0}
+          <div class="flex max-h-32 flex-wrap gap-1 overflow-y-auto">
+            {#each weightOptions as weight (weight)}
+              <Badge variant="secondary" class="gap-0.5 pr-1">
+                {weight}
+                <button
+                  type="button"
+                  class="ml-0.5 rounded-full hover:bg-muted-foreground/20"
+                  onclick={() => removeWeight(weight)}
+                >
+                  <IconX class="size-3" />
+                </button>
+              </Badge>
+            {/each}
+          </div>
+        {/if}
       </div>
 
-      {#if hasWeightOptions}
-        <div class="flex flex-col gap-3 rounded-lg bg-muted/50 p-3">
-          <div class="grid grid-cols-3 gap-2">
-            <div class="flex flex-col gap-1">
-              <Label for="eq-min">Min (lb)</Label>
-              <Input id="eq-min" type="number" bind:value={minWeight} min="0" step="any" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <Label for="eq-inc">Increment</Label>
-              <Input id="eq-inc" type="number" bind:value={increment} min="0" step="any" />
-            </div>
-            <div class="flex flex-col gap-1">
-              <Label for="eq-max">Max (lb)</Label>
-              <Input id="eq-max" type="number" bind:value={maxWeight} min="0" step="any" />
-            </div>
-          </div>
-          {#if weightPreview}
-            <p class="text-xs text-muted-foreground">{weightPreview}</p>
-          {/if}
-        </div>
-      {/if}
-
       <DialogFooter>
-        <DialogClose>
-          <Button variant="outline" type="button">Cancel</Button>
+        <DialogClose class={buttonVariants({ variant: 'outline' })} type="button">
+          Cancel
         </DialogClose>
         <Button type="submit" disabled={!isValid}>
           {isEditMode ? 'Save' : 'Add'}

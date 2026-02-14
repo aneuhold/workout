@@ -27,7 +27,7 @@
   import { untrack } from 'svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
-  import Button from '$ui/Button/Button.svelte';
+  import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
   import DialogClose from '$ui/Dialog/DialogClose.svelte';
   import DialogContent from '$ui/Dialog/DialogContent.svelte';
@@ -104,8 +104,8 @@
         />
       </div>
       <DialogFooter>
-        <DialogClose>
-          <Button variant="outline" type="button">Cancel</Button>
+        <DialogClose class={buttonVariants({ variant: 'outline' })} type="button">
+          Cancel
         </DialogClose>
         <Button type="submit" disabled={!isValid}>
           {isEditMode ? 'Save' : 'Add'}
