@@ -13,6 +13,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { IconPlus, IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
+  import { SvelteSet } from 'svelte/reactivity';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -33,7 +34,7 @@
 
   let searchQuery = $state('');
   let activeTab = $state('all');
-  let expandedIds: string[] = $state([]);
+  let expandedIds = new SvelteSet<string>();
   let addMenuOpen = $state(false);
 
   // --- Derived data from stores ---
@@ -56,9 +57,10 @@
 
   // --- Search ---
 
+  let normalizedQuery = $derived(searchQuery.trim().toLowerCase());
+
   function exerciseMatchesSearch(exercise: WorkoutExercise): boolean {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return true;
     const equipmentName = getEquipmentName(exercise.workoutEquipmentTypeId).toLowerCase();
     const primaryNames = exercise.primaryMuscleGroups.map((id) =>
       getMuscleGroupName(id).toLowerCase()
@@ -67,24 +69,24 @@
       getMuscleGroupName(id).toLowerCase()
     );
     return (
-      exercise.exerciseName.toLowerCase().includes(query) ||
-      equipmentName.includes(query) ||
-      primaryNames.some((name) => name.includes(query)) ||
-      secondaryNames.some((name) => name.includes(query))
+      exercise.exerciseName.toLowerCase().includes(normalizedQuery) ||
+      equipmentName.includes(normalizedQuery) ||
+      primaryNames.some((name) => name.includes(normalizedQuery)) ||
+      secondaryNames.some((name) => name.includes(normalizedQuery))
     );
   }
 
   let filteredExercises = $derived(exercises.filter(exerciseMatchesSearch));
   let filteredMuscleGroups = $derived(
     muscleGroups.filter((muscleGroup) => {
-      if (!searchQuery.trim()) return true;
-      return muscleGroup.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
+      if (!normalizedQuery) return true;
+      return muscleGroup.name.toLowerCase().includes(normalizedQuery);
     })
   );
   let filteredEquipment = $derived(
     equipmentTypes.filter((equipmentType) => {
-      if (!searchQuery.trim()) return true;
-      return equipmentType.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
+      if (!normalizedQuery) return true;
+      return equipmentType.title.toLowerCase().includes(normalizedQuery);
     })
   );
 
@@ -122,10 +124,10 @@
   // --- Expand / collapse ---
 
   function toggleCard(key: string) {
-    if (expandedIds.includes(key)) {
-      expandedIds = expandedIds.filter((id) => id !== key);
+    if (expandedIds.has(key)) {
+      expandedIds.delete(key);
     } else {
-      expandedIds = [...expandedIds, key];
+      expandedIds.add(key);
     }
   }
 
@@ -197,21 +199,21 @@
               <LibraryExerciseCard
                 exercise={item.data}
                 showTypeLabel={true}
-                expanded={expandedIds.includes(item.id)}
+                expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
               />
             {:else if item.type === 'muscleGroup'}
               <LibraryMuscleGroupCard
                 muscleGroup={item.data}
                 showTypeLabel={true}
-                expanded={expandedIds.includes(item.id)}
+                expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
               />
             {:else}
               <LibraryEquipmentCard
                 equipmentType={item.data}
                 showTypeLabel={true}
-                expanded={expandedIds.includes(item.id)}
+                expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
               />
             {/if}
@@ -230,7 +232,7 @@
             <LibraryExerciseCard
               {exercise}
               showTypeLabel={false}
-              expanded={expandedIds.includes(`exercise-${exercise._id}`)}
+              expanded={expandedIds.has(`exercise-${exercise._id}`)}
               onToggle={() => toggleCard(`exercise-${exercise._id}`)}
             />
           {/each}
@@ -248,7 +250,7 @@
             <LibraryMuscleGroupCard
               {muscleGroup}
               showTypeLabel={false}
-              expanded={expandedIds.includes(`muscle-${muscleGroup._id}`)}
+              expanded={expandedIds.has(`muscle-${muscleGroup._id}`)}
               onToggle={() => toggleCard(`muscle-${muscleGroup._id}`)}
             />
           {/each}
@@ -266,7 +268,7 @@
             <LibraryEquipmentCard
               {equipmentType}
               showTypeLabel={false}
-              expanded={expandedIds.includes(`equipment-${equipmentType._id}`)}
+              expanded={expandedIds.has(`equipment-${equipmentType._id}`)}
               onToggle={() => toggleCard(`equipment-${equipmentType._id}`)}
             />
           {/each}

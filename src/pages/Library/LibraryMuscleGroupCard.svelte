@@ -5,9 +5,8 @@
   and action buttons.
 -->
 <script lang="ts">
-  import type { WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
+  import type { WorkoutExercise, WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
   import { IconChevronDown, IconChevronUp, IconPencil, IconTrash } from '@tabler/icons-svelte';
-  import type { UUID } from 'crypto';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
@@ -26,25 +25,23 @@
 
   let exercises = $derived(exerciseMapService.getDocs());
 
-  function exercisesForMuscleGroup(muscleGroupId: UUID) {
-    return {
-      primary: exercises.filter((exercise) => exercise.primaryMuscleGroups.includes(muscleGroupId)),
-      secondary: exercises.filter((exercise) =>
-        exercise.secondaryMuscleGroups.includes(muscleGroupId)
-      )
-    };
-  }
-
-  function exerciseCountForMuscleGroup(muscleGroupId: UUID): number {
-    return exercises.filter(
-      (exercise) =>
-        exercise.primaryMuscleGroups.includes(muscleGroupId) ||
-        exercise.secondaryMuscleGroups.includes(muscleGroupId)
-    ).length;
-  }
-
-  let linkedExercises = $derived(exercisesForMuscleGroup(muscleGroup._id));
-  let exerciseCount = $derived(exerciseCountForMuscleGroup(muscleGroup._id));
+  let linkedExercises = $derived.by(() => {
+    const primary: WorkoutExercise[] = [];
+    const secondary: WorkoutExercise[] = [];
+    for (const exercise of exercises) {
+      const isPrimary = exercise.primaryMuscleGroups.includes(muscleGroup._id);
+      const isSecondary = exercise.secondaryMuscleGroups.includes(muscleGroup._id);
+      if (isPrimary) primary.push(exercise);
+      if (isSecondary) secondary.push(exercise);
+    }
+    return { primary, secondary };
+  });
+  let exerciseCount = $derived(
+    new Set([
+      ...linkedExercises.primary.map((e) => e._id),
+      ...linkedExercises.secondary.map((e) => e._id)
+    ]).size
+  );
 </script>
 
 <div

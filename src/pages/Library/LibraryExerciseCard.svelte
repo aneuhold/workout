@@ -6,9 +6,10 @@
 -->
 <script lang="ts">
   import {
-    ExerciseRepRange,
     type WorkoutExercise,
-    type WorkoutExerciseCalibration
+    type WorkoutExerciseCalibration,
+    WorkoutExerciseCalibrationService,
+    WorkoutExerciseService
   } from '@aneuhold/core-ts-db-lib';
   import {
     IconAlertTriangle,
@@ -20,6 +21,7 @@
     IconTrash
   } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
+  import { SvelteMap } from 'svelte/reactivity';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -39,8 +41,6 @@
     onToggle: () => void;
   } = $props();
 
-  let calibrations = $derived(exerciseCalibrationMapService.getDocs());
-
   function getMuscleGroupName(id: UUID): string {
     const muscleGroup = muscleGroupMapService.getDoc(id);
     return muscleGroup?.name ?? 'Unknown';
@@ -51,49 +51,21 @@
     return equipmentType?.title ?? 'Unknown';
   }
 
-  function getCalibrationForExercise(exerciseId: UUID): WorkoutExerciseCalibration | undefined {
-    return calibrations.find((calibration) => calibration.workoutExerciseId === exerciseId);
-  }
-
-  function calculate1RM(weight: number, reps: number): number {
-    return Math.round((weight * reps) / 30.48 + weight);
-  }
-
-  function repRangeDisplay(repRange: ExerciseRepRange): string {
-    switch (repRange) {
-      case ExerciseRepRange.Heavy:
-        return '5-15';
-      case ExerciseRepRange.Medium:
-        return '10-20';
-      case ExerciseRepRange.Light:
-        return '15-30';
+  let calibrationsByExerciseId = $derived.by(() => {
+    const map = new SvelteMap<UUID, WorkoutExerciseCalibration[]>();
+    for (const c of exerciseCalibrationMapService.getDocs()) {
+      const existing = map.get(c.workoutExerciseId);
+      if (existing) {
+        existing.push(c);
+      } else {
+        map.set(c.workoutExerciseId, [c]);
+      }
     }
-  }
-
-  function repRangeCategory(repRange: ExerciseRepRange) {
-    switch (repRange) {
-      case ExerciseRepRange.Heavy:
-        return 'Strength';
-      case ExerciseRepRange.Medium:
-        return 'Hypertrophy';
-      case ExerciseRepRange.Light:
-        return 'Endurance';
-    }
-  }
-
-  function repRangeClass(repRange: ExerciseRepRange): string {
-    switch (repRange) {
-      case ExerciseRepRange.Heavy:
-        return 'border-blue-400/60 text-blue-700 dark:border-blue-500/50 dark:text-blue-400';
-      case ExerciseRepRange.Medium:
-        return 'border-green-400/60 text-green-700 dark:border-green-500/50 dark:text-green-400';
-      case ExerciseRepRange.Light:
-        return 'border-amber-400/60 text-amber-700 dark:border-amber-500/50 dark:text-amber-400';
-    }
-  }
-
-  let calibration = $derived(getCalibrationForExercise(exercise._id));
-  let category = $derived(repRangeCategory(exercise.repRange));
+    return map;
+  });
+  let calibrations = $derived(calibrationsByExerciseId.get(exercise._id) ?? []);
+  let latestCalibration = $derived(calibrations[calibrations.length - 1]);
+  let repRange = $derived(WorkoutExerciseService.getRepRangeValues(exercise.repRange));
 </script>
 
 <div
@@ -109,13 +81,13 @@
       {/if}
       <div class="flex items-center gap-1.5">
         <span class="font-medium">{exercise.exerciseName}</span>
-        {#if !calibration}
+        {#if !latestCalibration}
           <IconAlertTriangle size={14} class="shrink-0 text-amber-500" />
         {/if}
       </div>
       <div class="flex flex-wrap gap-1">
-        <Badge variant="outline" class={repRangeClass(exercise.repRange)}>
-          {repRangeDisplay(exercise.repRange)} reps
+        <Badge variant="outline">
+          {repRange.min}-{repRange.max} reps ({exercise.repRange})
         </Badge>
         {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
           <Badge variant="secondary">{getMuscleGroupName(muscleGroupId)}</Badge>
@@ -148,7 +120,7 @@
         </div>
         <div>
           <span class="text-xs text-muted-foreground">Rep Range</span>
-          <p>{category}</p>
+          <p>{repRange.min}-{repRange.max} ({exercise.repRange})</p>
         </div>
       </div>
 
@@ -175,24 +147,26 @@
 
       <!-- Calibration -->
       <Separator />
-      {#if calibration}
+      {#if latestCalibration}
         <div class="rounded-lg bg-muted/50 p-3">
           <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
             <IconCheck size={14} class="text-green-600" />
-            Calibrated on {calibration.dateRecorded.toLocaleDateString()}
+            Calibrated on {latestCalibration.dateRecorded.toLocaleDateString()}
           </div>
           <div class="mt-2 grid grid-cols-3 text-center">
             <div>
               <span class="text-xs text-muted-foreground">Weight</span>
-              <p class="font-medium">{calibration.weight} lb</p>
+              <p class="font-medium">{latestCalibration.weight} lb</p>
             </div>
             <div>
               <span class="text-xs text-muted-foreground">Reps</span>
-              <p class="font-medium">{calibration.reps}</p>
+              <p class="font-medium">{latestCalibration.reps}</p>
             </div>
             <div>
               <span class="text-xs text-muted-foreground">Est. 1RM</span>
-              <p class="font-medium">{calculate1RM(calibration.weight, calibration.reps)} lb</p>
+              <p class="font-medium">
+                {Math.round(WorkoutExerciseCalibrationService.get1RM(latestCalibration))} lb
+              </p>
             </div>
           </div>
         </div>
