@@ -26,6 +26,14 @@
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
+  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
+  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
+  import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
+  import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
+  import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
+  import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
+  import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
   import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';
@@ -178,7 +186,7 @@
   function handleTabAdd() {
     switch (activeTab) {
       case LibraryTab.Exercise:
-        goto('/exercise?new=true');
+        handleAddExercise();
         break;
       case LibraryTab.MuscleGroup:
         muscleGroupFormDialog.openNew();
@@ -186,6 +194,20 @@
       case LibraryTab.Equipment:
         equipmentFormDialog.openNew();
         break;
+    }
+  }
+
+  // --- Exercise prerequisite check ---
+
+  let prerequisiteDialogOpen = $state(false);
+  let missingEquipment = $derived(equipmentTypes.length === 0);
+  let missingMuscleGroups = $derived(muscleGroups.length === 0);
+
+  function handleAddExercise() {
+    if (missingEquipment || missingMuscleGroups) {
+      prerequisiteDialogOpen = true;
+    } else {
+      goto('/exercise?new=true');
     }
   }
 </script>
@@ -205,7 +227,7 @@
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onclick={() => goto('/exercise?new=true')}>Exercise</DropdownMenuItem>
+          <DropdownMenuItem onclick={handleAddExercise}>Exercise</DropdownMenuItem>
           <DropdownMenuItem onclick={() => muscleGroupFormDialog.openNew()}
             >Muscle Group</DropdownMenuItem
           >
@@ -376,3 +398,42 @@
 <SingletonMuscleGroupFormDialog />
 <SingletonEquipmentFormDialog />
 <SingletonCalibrationFormDialog />
+
+<AlertDialog bind:open={prerequisiteDialogOpen}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>
+        {#if missingEquipment && missingMuscleGroups}
+          Before adding an exercise
+        {:else if missingEquipment}
+          Equipment required
+        {:else}
+          Muscle group required
+        {/if}
+      </AlertDialogTitle>
+      <AlertDialogDescription>
+        {#if missingEquipment && missingMuscleGroups}
+          Exercises require at least one equipment type and one muscle group. Add these first to get
+          started.
+        {:else if missingEquipment}
+          Exercises require at least one equipment type. Add one first.
+        {:else}
+          Exercises require at least one muscle group. Add one first.
+        {/if}
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      {#if missingMuscleGroups}
+        <AlertDialogAction onclick={() => muscleGroupFormDialog.openNew()}>
+          Add Muscle Group
+        </AlertDialogAction>
+      {/if}
+      {#if missingEquipment}
+        <AlertDialogAction onclick={() => equipmentFormDialog.openNew()}>
+          Add Equipment
+        </AlertDialogAction>
+      {/if}
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
