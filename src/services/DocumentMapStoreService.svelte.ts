@@ -31,7 +31,7 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
  * for singleton behavior.
  */
 export default class DocumentMapStoreService<T extends BaseDocument> {
-  public mapState: DocumentMap<T> = $state({});
+  private mapState: DocumentMap<T> = $state({});
 
   private config: DocumentMapStoreConfig<T>;
 
@@ -39,21 +39,43 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     this.config = config;
   }
 
+  /**
+   * Returns all documents in the map as an array.
+   */
+  public getDocs(): T[] {
+    return Object.values(this.mapState).filter((doc): doc is T => doc !== undefined);
+  }
+
+  /**
+   * Returns a single document by ID, or undefined if not found.
+   *
+   * @param docId The ID of the document to retrieve
+   */
+  public getDoc(docId: UUID): T | undefined {
+    return this.mapState[docId];
+  }
+
+  /**
+   * Adds a document to the local map without triggering persistence.
+   * Useful for mocks and tests where you want to populate the store
+   * without side effects.
+   *
+   * @param doc The document to add
+   */
+  public addDocWithoutPersist(doc: T): void {
+    this.mapState[doc._id] = doc;
+  }
+
   public addDoc(doc: T): void {
     this.addManyDocs([doc]);
   }
 
   public addManyDocs(docs: T[]): void {
-    this.addManyDocsWithoutPersist(docs);
+    docs.forEach((doc) => {
+      this.addDocWithoutPersist(doc);
+    });
     this.config.persistToLocalData(this.mapState);
     this.config.persistToDb({ insert: docs });
-  }
-
-  private addManyDocsWithoutPersist(docs: T[]): T[] {
-    docs.forEach((doc) => {
-      this.mapState[doc._id] = doc;
-    });
-    return docs;
   }
 
   public updateDoc(docId: UUID, mutator: Updater<T>): void {
@@ -86,9 +108,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       });
     } else {
       const filter = filterOrDocIds as (currentDoc: T) => boolean;
-      docsToUpdate = Object.values(this.mapState).filter(
-        (doc): doc is T => doc !== undefined && filter(doc)
-      );
+      docsToUpdate = this.getDocs().filter(filter);
       docsToUpdate.forEach(mutator);
     }
     return docsToUpdate;
@@ -115,11 +135,13 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
 
   public upsertManyDocs(upsertInfo: UpsertManyInfo<T>): void {
     const { filter, mutator, newDocs } = upsertInfo;
-    const addedDocs = this.addManyDocsWithoutPersist(newDocs);
+    newDocs.forEach((doc) => {
+      this.addDocWithoutPersist(doc);
+    });
     const docsToUpdate = this.updateManyDocsWithoutPersist(filter, mutator);
     this.config.persistToLocalData(this.mapState);
     this.config.persistToDb({
-      insert: addedDocs,
+      insert: newDocs,
       update: docsToUpdate
     });
   }

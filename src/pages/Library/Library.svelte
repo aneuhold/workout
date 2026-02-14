@@ -3,43 +3,16 @@
 
   Tabbed library for managing exercises, muscle groups, and equipment.
   Each tab displays a searchable list of cards with expandable detail panels.
+  Reads data from DocumentMapStoreService singletons.
 -->
-<script lang="ts" module>
-  export type RepRangeCategory = 'Strength' | 'Hypertrophy' | 'Endurance';
-
-  export type Exercise = {
-    id: string;
-    name: string;
-    equipment: string;
-    progressionType: 'Rep' | 'Load';
-    restTime: number;
-    repRange: string;
-    repRangeCategory: RepRangeCategory;
-    primaryMuscles: string[];
-    secondaryMuscles: string[];
-    notes?: string;
-    calibration?: {
-      date: string;
-      weight: number;
-      reps: number;
-      estimated1RM: number;
-    };
-  };
-
-  export type MuscleGroup = {
-    id: string;
-    name: string;
-    notes?: string;
-  };
-
-  export type EquipmentItem = {
-    id: string;
-    name: string;
-    notes?: string;
-  };
-</script>
-
 <script lang="ts">
+  import {
+    ExerciseRepRange,
+    type WorkoutEquipmentType,
+    type WorkoutExercise,
+    type WorkoutExerciseCalibration,
+    type WorkoutMuscleGroup
+  } from '@aneuhold/core-ts-db-lib';
   import {
     IconAlertTriangle,
     IconBarbell,
@@ -51,6 +24,11 @@
     IconSearch,
     IconTrash
   } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
+  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
@@ -64,74 +42,126 @@
   import TabsList from '$ui/Tabs/TabsList.svelte';
   import TabsTrigger from '$ui/Tabs/TabsTrigger.svelte';
 
-  let {
-    exercises = [],
-    muscleGroups = [],
-    equipment = []
-  }: {
-    exercises?: Exercise[];
-    muscleGroups?: MuscleGroup[];
-    equipment?: EquipmentItem[];
-  } = $props();
-
   let searchQuery = $state('');
   let activeTab = $state('all');
   let expandedIds: string[] = $state([]);
   let addMenuOpen = $state(false);
 
+  // --- Derived data from stores ---
+
+  let exercises = $derived(exerciseMapService.getDocs());
+  let muscleGroups = $derived(muscleGroupMapService.getDocs());
+  let equipmentTypes = $derived(equipmentTypeMapService.getDocs());
+  let calibrations = $derived(exerciseCalibrationMapService.getDocs());
+
+  // --- Lookup helpers ---
+
+  function getMuscleGroupName(id: UUID): string {
+    const muscleGroup = muscleGroupMapService.getDoc(id);
+    return muscleGroup?.name ?? 'Unknown';
+  }
+
+  function getEquipmentName(id: UUID): string {
+    const equipmentType = equipmentTypeMapService.getDoc(id);
+    return equipmentType?.title ?? 'Unknown';
+  }
+
+  function getCalibrationForExercise(exerciseId: UUID): WorkoutExerciseCalibration | undefined {
+    return calibrations.find((calibration) => calibration.workoutExerciseId === exerciseId);
+  }
+
+  function calculate1RM(weight: number, reps: number): number {
+    return Math.round((weight * reps) / 30.48 + weight);
+  }
+
+  function repRangeDisplay(repRange: ExerciseRepRange): string {
+    switch (repRange) {
+      case ExerciseRepRange.Heavy:
+        return '5-15';
+      case ExerciseRepRange.Medium:
+        return '10-20';
+      case ExerciseRepRange.Light:
+        return '15-30';
+    }
+  }
+
+  function repRangeCategory(repRange: ExerciseRepRange): 'Strength' | 'Hypertrophy' | 'Endurance' {
+    switch (repRange) {
+      case ExerciseRepRange.Heavy:
+        return 'Strength';
+      case ExerciseRepRange.Medium:
+        return 'Hypertrophy';
+      case ExerciseRepRange.Light:
+        return 'Endurance';
+    }
+  }
+
+  function weightOptionsSummary(equipmentType: WorkoutEquipmentType): string | undefined {
+    if (!equipmentType.weightOptions || equipmentType.weightOptions.length === 0) return undefined;
+    const options = equipmentType.weightOptions;
+    return `${options[0]}–${options[options.length - 1]} lb (${options.length} options)`;
+  }
+
   // --- Search ---
 
-  function exerciseMatchesSearch(e: Exercise): boolean {
+  function exerciseMatchesSearch(exercise: WorkoutExercise): boolean {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
+    const equipmentName = getEquipmentName(exercise.workoutEquipmentTypeId).toLowerCase();
+    const primaryNames = exercise.primaryMuscleGroups.map((id) =>
+      getMuscleGroupName(id).toLowerCase()
+    );
+    const secondaryNames = exercise.secondaryMuscleGroups.map((id) =>
+      getMuscleGroupName(id).toLowerCase()
+    );
     return (
-      e.name.toLowerCase().includes(q) ||
-      e.equipment.toLowerCase().includes(q) ||
-      e.primaryMuscles.some((m) => m.toLowerCase().includes(q)) ||
-      e.secondaryMuscles.some((m) => m.toLowerCase().includes(q))
+      exercise.exerciseName.toLowerCase().includes(query) ||
+      equipmentName.includes(query) ||
+      primaryNames.some((name) => name.includes(query)) ||
+      secondaryNames.some((name) => name.includes(query))
     );
   }
 
   let filteredExercises = $derived(exercises.filter(exerciseMatchesSearch));
   let filteredMuscleGroups = $derived(
-    muscleGroups.filter((mg) => {
+    muscleGroups.filter((muscleGroup) => {
       if (!searchQuery.trim()) return true;
-      return mg.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
+      return muscleGroup.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
     })
   );
   let filteredEquipment = $derived(
-    equipment.filter((eq) => {
+    equipmentTypes.filter((equipmentType) => {
       if (!searchQuery.trim()) return true;
-      return eq.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
+      return equipmentType.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
     })
   );
 
   // --- All tab: intermixed, sorted alphabetically ---
 
   type AllItem =
-    | { type: 'exercise'; id: string; name: string; data: Exercise }
-    | { type: 'muscleGroup'; id: string; name: string; data: MuscleGroup }
-    | { type: 'equipment'; id: string; name: string; data: EquipmentItem };
+    | { type: 'exercise'; id: string; name: string; data: WorkoutExercise }
+    | { type: 'muscleGroup'; id: string; name: string; data: WorkoutMuscleGroup }
+    | { type: 'equipment'; id: string; name: string; data: WorkoutEquipmentType };
 
   let allItems = $derived.by(() => {
     const items: AllItem[] = [
-      ...filteredExercises.map((e) => ({
+      ...filteredExercises.map((exercise) => ({
         type: 'exercise' as const,
-        id: `exercise-${e.id}`,
-        name: e.name,
-        data: e
+        id: `exercise-${exercise._id}`,
+        name: exercise.exerciseName,
+        data: exercise
       })),
-      ...filteredMuscleGroups.map((mg) => ({
+      ...filteredMuscleGroups.map((muscleGroup) => ({
         type: 'muscleGroup' as const,
-        id: `muscle-${mg.id}`,
-        name: mg.name,
-        data: mg
+        id: `muscle-${muscleGroup._id}`,
+        name: muscleGroup.name,
+        data: muscleGroup
       })),
-      ...filteredEquipment.map((eq) => ({
+      ...filteredEquipment.map((equipmentType) => ({
         type: 'equipment' as const,
-        id: `equipment-${eq.id}`,
-        name: eq.name,
-        data: eq
+        id: `equipment-${equipmentType._id}`,
+        name: equipmentType.title,
+        data: equipmentType
       }))
     ];
     return items.sort((a, b) => a.name.localeCompare(b.name));
@@ -149,26 +179,30 @@
 
   // --- Linking helpers ---
 
-  function exercisesForMuscleGroup(mgName: string) {
+  function exercisesForMuscleGroup(muscleGroupId: UUID) {
     return {
-      primary: exercises.filter((e) => e.primaryMuscles.includes(mgName)),
-      secondary: exercises.filter((e) => e.secondaryMuscles.includes(mgName))
+      primary: exercises.filter((exercise) => exercise.primaryMuscleGroups.includes(muscleGroupId)),
+      secondary: exercises.filter((exercise) =>
+        exercise.secondaryMuscleGroups.includes(muscleGroupId)
+      )
     };
   }
 
-  function exerciseCountForMuscleGroup(mgName: string): number {
+  function exerciseCountForMuscleGroup(muscleGroupId: UUID): number {
     return exercises.filter(
-      (e) => e.primaryMuscles.includes(mgName) || e.secondaryMuscles.includes(mgName)
+      (exercise) =>
+        exercise.primaryMuscleGroups.includes(muscleGroupId) ||
+        exercise.secondaryMuscleGroups.includes(muscleGroupId)
     ).length;
   }
 
-  function exercisesForEquipment(eqName: string) {
-    return exercises.filter((e) => e.equipment === eqName);
+  function exercisesForEquipment(equipmentTypeId: UUID) {
+    return exercises.filter((exercise) => exercise.workoutEquipmentTypeId === equipmentTypeId);
   }
 
   // --- Rep range badge color ---
 
-  function repRangeClass(category: RepRangeCategory): string {
+  function repRangeClass(category: 'Strength' | 'Hypertrophy' | 'Endurance'): string {
     switch (category) {
       case 'Strength':
         return 'border-blue-400/60 text-blue-700 dark:border-blue-500/50 dark:text-blue-400';
@@ -194,9 +228,11 @@
 
 <!-- ============================== Snippets ============================== -->
 
-{#snippet exerciseCard(exercise: Exercise, showTypeLabel: boolean)}
-  {@const key = `exercise-${exercise.id}`}
+{#snippet exerciseCard(exercise: WorkoutExercise, showTypeLabel: boolean)}
+  {@const key = `exercise-${exercise._id}`}
   {@const expanded = expandedIds.includes(key)}
+  {@const calibration = getCalibrationForExercise(exercise._id)}
+  {@const category = repRangeCategory(exercise.repRange)}
   <div
     class="bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl text-sm ring-1 ring-foreground/10"
   >
@@ -209,17 +245,17 @@
           <span class="text-xs text-muted-foreground">Exercise</span>
         {/if}
         <div class="flex items-center gap-1.5">
-          <span class="font-medium">{exercise.name}</span>
-          {#if !exercise.calibration}
+          <span class="font-medium">{exercise.exerciseName}</span>
+          {#if !calibration}
             <IconAlertTriangle size={14} class="shrink-0 text-amber-500" />
           {/if}
         </div>
         <div class="flex flex-wrap gap-1">
-          <Badge variant="outline" class={repRangeClass(exercise.repRangeCategory)}>
-            {exercise.repRange} reps
+          <Badge variant="outline" class={repRangeClass(category)}>
+            {repRangeDisplay(exercise.repRange)} reps
           </Badge>
-          {#each exercise.primaryMuscles as muscle (muscle)}
-            <Badge variant="secondary">{muscle}</Badge>
+          {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
+            <Badge variant="secondary">{getMuscleGroupName(muscleGroupId)}</Badge>
           {/each}
         </div>
       </div>
@@ -237,19 +273,19 @@
         <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
           <div>
             <span class="text-xs text-muted-foreground">Equipment</span>
-            <p>{exercise.equipment}</p>
+            <p>{getEquipmentName(exercise.workoutEquipmentTypeId)}</p>
           </div>
           <div>
             <span class="text-xs text-muted-foreground">Progression</span>
-            <p>{exercise.progressionType}</p>
+            <p>{exercise.preferredProgressionType}</p>
           </div>
           <div>
             <span class="text-xs text-muted-foreground">Rest Time</span>
-            <p>{exercise.restTime}s</p>
+            <p>{exercise.restSeconds ?? '—'}s</p>
           </div>
           <div>
             <span class="text-xs text-muted-foreground">Rep Range</span>
-            <p>{exercise.repRangeCategory}</p>
+            <p>{category}</p>
           </div>
         </div>
 
@@ -257,11 +293,11 @@
         <div>
           <span class="text-xs text-muted-foreground">Muscle Groups</span>
           <div class="mt-1 flex flex-wrap gap-1">
-            {#each exercise.primaryMuscles as muscle (muscle)}
-              <Badge>{muscle}</Badge>
+            {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
+              <Badge>{getMuscleGroupName(muscleGroupId)}</Badge>
             {/each}
-            {#each exercise.secondaryMuscles as muscle (muscle)}
-              <Badge variant="outline">{muscle}</Badge>
+            {#each exercise.secondaryMuscleGroups as muscleGroupId (muscleGroupId)}
+              <Badge variant="outline">{getMuscleGroupName(muscleGroupId)}</Badge>
             {/each}
           </div>
         </div>
@@ -276,24 +312,24 @@
 
         <!-- Calibration -->
         <Separator />
-        {#if exercise.calibration}
+        {#if calibration}
           <div class="rounded-lg bg-muted/50 p-3">
             <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconCheck size={14} class="text-green-600" />
-              Calibrated on {exercise.calibration.date}
+              Calibrated on {calibration.dateRecorded.toLocaleDateString()}
             </div>
             <div class="mt-2 grid grid-cols-3 text-center">
               <div>
                 <span class="text-xs text-muted-foreground">Weight</span>
-                <p class="font-medium">{exercise.calibration.weight} lb</p>
+                <p class="font-medium">{calibration.weight} lb</p>
               </div>
               <div>
                 <span class="text-xs text-muted-foreground">Reps</span>
-                <p class="font-medium">{exercise.calibration.reps}</p>
+                <p class="font-medium">{calibration.reps}</p>
               </div>
               <div>
                 <span class="text-xs text-muted-foreground">Est. 1RM</span>
-                <p class="font-medium">{exercise.calibration.estimated1RM} lb</p>
+                <p class="font-medium">{calculate1RM(calibration.weight, calibration.reps)} lb</p>
               </div>
             </div>
           </div>
@@ -331,11 +367,11 @@
   </div>
 {/snippet}
 
-{#snippet muscleGroupCard(mg: MuscleGroup, showTypeLabel: boolean)}
-  {@const key = `muscle-${mg.id}`}
+{#snippet muscleGroupCard(muscleGroup: WorkoutMuscleGroup, showTypeLabel: boolean)}
+  {@const key = `muscle-${muscleGroup._id}`}
   {@const expanded = expandedIds.includes(key)}
-  {@const linked = exercisesForMuscleGroup(mg.name)}
-  {@const count = exerciseCountForMuscleGroup(mg.name)}
+  {@const linkedExercises = exercisesForMuscleGroup(muscleGroup._id)}
+  {@const exerciseCount = exerciseCountForMuscleGroup(muscleGroup._id)}
   <div
     class="bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl text-sm ring-1 ring-foreground/10"
   >
@@ -347,9 +383,9 @@
         {#if showTypeLabel}
           <span class="text-xs text-muted-foreground">Muscle Group</span>
         {/if}
-        <span class="font-medium">{mg.name}</span>
+        <span class="font-medium">{muscleGroup.name}</span>
         <span class="text-xs text-muted-foreground">
-          Used in {count} exercise{count !== 1 ? 's' : ''}
+          Used in {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
         </span>
       </div>
       {#if expanded}
@@ -362,42 +398,42 @@
     {#if expanded}
       <Separator />
       <div class="flex flex-col gap-3 px-3 py-3">
-        {#if linked.primary.length > 0}
+        {#if linkedExercises.primary.length > 0}
           <div>
             <span class="text-xs text-muted-foreground">Primary in</span>
             <ul class="mt-1 flex flex-col gap-0.5">
-              {#each linked.primary as exercise (exercise.id)}
+              {#each linkedExercises.primary as exercise (exercise._id)}
                 <li>
                   <button class="text-left text-primary hover:underline">
-                    {exercise.name}
+                    {exercise.exerciseName}
                   </button>
                 </li>
               {/each}
             </ul>
           </div>
         {/if}
-        {#if linked.secondary.length > 0}
+        {#if linkedExercises.secondary.length > 0}
           <div>
             <span class="text-xs text-muted-foreground">Secondary in</span>
             <ul class="mt-1 flex flex-col gap-0.5">
-              {#each linked.secondary as exercise (exercise.id)}
+              {#each linkedExercises.secondary as exercise (exercise._id)}
                 <li>
                   <button class="text-left text-primary hover:underline">
-                    {exercise.name}
+                    {exercise.exerciseName}
                   </button>
                 </li>
               {/each}
             </ul>
           </div>
         {/if}
-        {#if linked.primary.length === 0 && linked.secondary.length === 0}
+        {#if linkedExercises.primary.length === 0 && linkedExercises.secondary.length === 0}
           <p class="text-xs text-muted-foreground">No exercises use this muscle group yet.</p>
         {/if}
 
-        {#if mg.notes}
+        {#if muscleGroup.description}
           <div>
-            <span class="text-xs text-muted-foreground">Notes</span>
-            <p class="mt-0.5">{mg.notes}</p>
+            <span class="text-xs text-muted-foreground">Description</span>
+            <p class="mt-0.5">{muscleGroup.description}</p>
           </div>
         {/if}
 
@@ -409,8 +445,8 @@
           <Button
             variant="destructive"
             size="sm"
-            disabled={count > 0}
-            title={count > 0 ? 'Remove from all exercises first' : undefined}
+            disabled={exerciseCount > 0}
+            title={exerciseCount > 0 ? 'Remove from all exercises first' : undefined}
           >
             <IconTrash size={14} />
             Delete
@@ -421,10 +457,11 @@
   </div>
 {/snippet}
 
-{#snippet equipmentCard(eq: EquipmentItem, showTypeLabel: boolean)}
-  {@const key = `equipment-${eq.id}`}
+{#snippet equipmentCard(equipmentType: WorkoutEquipmentType, showTypeLabel: boolean)}
+  {@const key = `equipment-${equipmentType._id}`}
   {@const expanded = expandedIds.includes(key)}
-  {@const linked = exercisesForEquipment(eq.name)}
+  {@const linkedExercises = exercisesForEquipment(equipmentType._id)}
+  {@const weightSummary = weightOptionsSummary(equipmentType)}
   <div
     class="bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl text-sm ring-1 ring-foreground/10"
   >
@@ -436,9 +473,9 @@
         {#if showTypeLabel}
           <span class="text-xs text-muted-foreground">Equipment</span>
         {/if}
-        <span class="font-medium">{eq.name}</span>
+        <span class="font-medium">{equipmentType.title}</span>
         <span class="text-xs text-muted-foreground">
-          Used in {linked.length} exercise{linked.length !== 1 ? 's' : ''}
+          Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
         </span>
       </div>
       {#if expanded}
@@ -451,14 +488,14 @@
     {#if expanded}
       <Separator />
       <div class="flex flex-col gap-3 px-3 py-3">
-        {#if linked.length > 0}
+        {#if linkedExercises.length > 0}
           <div>
             <span class="text-xs text-muted-foreground">Used by</span>
             <ul class="mt-1 flex flex-col gap-0.5">
-              {#each linked as exercise (exercise.id)}
+              {#each linkedExercises as exercise (exercise._id)}
                 <li>
                   <button class="text-left text-primary hover:underline">
-                    {exercise.name}
+                    {exercise.exerciseName}
                   </button>
                 </li>
               {/each}
@@ -468,10 +505,10 @@
           <p class="text-xs text-muted-foreground">No exercises use this equipment yet.</p>
         {/if}
 
-        {#if eq.notes}
+        {#if weightSummary}
           <div>
-            <span class="text-xs text-muted-foreground">Notes</span>
-            <p class="mt-0.5">{eq.notes}</p>
+            <span class="text-xs text-muted-foreground">Weight Options</span>
+            <p class="mt-0.5">{weightSummary}</p>
           </div>
         {/if}
 
@@ -483,8 +520,8 @@
           <Button
             variant="destructive"
             size="sm"
-            disabled={linked.length > 0}
-            title={linked.length > 0 ? 'Remove from all exercises first' : undefined}
+            disabled={linkedExercises.length > 0}
+            title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
           >
             <IconTrash size={14} />
             Delete
@@ -574,7 +611,7 @@
     <TabsContent value="exercises">
       {#if filteredExercises.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredExercises as exercise (exercise.id)}
+          {#each filteredExercises as exercise (exercise._id)}
             {@render exerciseCard(exercise, false)}
           {/each}
         </div>
@@ -587,8 +624,8 @@
     <TabsContent value="muscle-groups">
       {#if filteredMuscleGroups.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredMuscleGroups as mg (mg.id)}
-            {@render muscleGroupCard(mg, false)}
+          {#each filteredMuscleGroups as muscleGroup (muscleGroup._id)}
+            {@render muscleGroupCard(muscleGroup, false)}
           {/each}
         </div>
       {:else}
@@ -600,8 +637,8 @@
     <TabsContent value="equipment">
       {#if filteredEquipment.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredEquipment as eq (eq.id)}
-            {@render equipmentCard(eq, false)}
+          {#each filteredEquipment as equipmentType (equipmentType._id)}
+            {@render equipmentCard(equipmentType, false)}
           {/each}
         </div>
       {:else}

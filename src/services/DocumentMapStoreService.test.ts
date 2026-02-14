@@ -41,13 +41,13 @@ describe('DocumentMapStoreService', () => {
     };
   });
 
-  it('should initialize with empty map', () => {
-    expect(service.mapState).toEqual({});
+  it('should initialize with empty values', () => {
+    expect(service.getDocs()).toEqual([]);
   });
 
   it('should add a document', () => {
     service.addDoc(doc1);
-    expect(service.mapState[doc1._id]).toEqual(doc1);
+    expect(service.getDoc(doc1._id)).toEqual(doc1);
     expect(persistToDbMock).toHaveBeenCalledWith({ insert: [doc1] });
     expect(persistToLocalDataMock).toHaveBeenCalled();
   });
@@ -57,12 +57,12 @@ describe('DocumentMapStoreService', () => {
     persistToDbMock.mockClear();
     persistToLocalDataMock.mockClear();
 
-    service.updateDoc(doc1._id, (d) => {
-      d.value = 15;
-      return d;
+    service.updateDoc(doc1._id, (doc) => {
+      doc.value = 15;
+      return doc;
     });
 
-    expect(service.mapState[doc1._id]?.value).toBe(15);
+    expect(service.getDoc(doc1._id)?.value).toBe(15);
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         update: [expect.objectContaining({ value: 15 })]
@@ -84,9 +84,8 @@ describe('DocumentMapStoreService', () => {
       }
     );
 
-    const map = service.mapState;
-    expect(map[doc1._id]?.value).toBe(20);
-    expect(map[doc2._id]?.value).toBe(40);
+    expect(service.getDoc(doc1._id)?.value).toBe(20);
+    expect(service.getDoc(doc2._id)?.value).toBe(40);
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         update: expect.arrayContaining([
@@ -103,7 +102,7 @@ describe('DocumentMapStoreService', () => {
 
     service.deleteDoc(doc1._id);
 
-    expect(service.mapState[doc1._id]).toBeUndefined();
+    expect(service.getDoc(doc1._id)).toBeUndefined();
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         delete: [doc1]
@@ -130,9 +129,8 @@ describe('DocumentMapStoreService', () => {
       newDocs: [doc3]
     });
 
-    const map = service.mapState;
-    expect(map[doc1._id]?.value).toBe(99);
-    expect(map[doc3._id]).toEqual(doc3);
+    expect(service.getDoc(doc1._id)?.value).toBe(99);
+    expect(service.getDoc(doc3._id)).toEqual(doc3);
 
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -146,7 +144,9 @@ describe('DocumentMapStoreService', () => {
     const newMap = { [doc1._id]: doc1, [doc2._id]: doc2 };
     service.setMap(newMap);
 
-    expect(service.mapState).toEqual(newMap);
+    expect(service.getDoc(doc1._id)).toEqual(doc1);
+    expect(service.getDoc(doc2._id)).toEqual(doc2);
+    expect(service.getDocs()).toHaveLength(2);
     expect(persistToLocalDataMock).toHaveBeenCalled();
     // setMap does NOT persist to DB
     expect(persistToDbMock).not.toHaveBeenCalled();
