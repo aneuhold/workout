@@ -1,5 +1,6 @@
 import '../src/globalStyles/global.css';
-import type { Preview } from '@storybook/sveltekit';
+import { withThemeByClassName } from '@storybook/addon-themes';
+import type { Preview, SvelteRenderer } from '@storybook/sveltekit';
 import { spyOn } from 'storybook/test';
 import TestSetup from '$testUtils/TestSetup';
 
@@ -19,8 +20,31 @@ const preview: Preview = {
         color: /(background|color)$/i,
         date: /Date$/i
       }
+    },
+    viewport: {
+      options: {
+        mobile: {
+          name: 'Mobile (450x800)',
+          styles: { width: '450px', height: '800px' },
+          type: 'mobile'
+        }
+      }
+    },
+    options: {
+      storySort: {
+        order: ['Pages', 'Components', '*']
+      }
     }
-  }
+  },
+  decorators: [
+    withThemeByClassName<SvelteRenderer>({
+      themes: {
+        light: 'light',
+        dark: 'dark'
+      },
+      defaultTheme: 'dark'
+    })
+  ]
 };
 
 export default preview;

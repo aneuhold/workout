@@ -2,10 +2,9 @@ import { APIService } from '@aneuhold/core-ts-api-lib';
 import { DocumentService } from '@aneuhold/core-ts-db-lib';
 import WebSocketService from '$services/WebSocketService';
 import { apiKey } from '$stores/local/apiKey';
+import MockData from '$testUtils/MockData';
 import type { SpyOnFn } from '$testUtils/testUtilTypes';
 import { createLogger } from '$util/logging/logger';
-import MockData from './MockData';
-import TestUsers from './TestUsers';
 
 const logger = createLogger('TestSetup');
 
@@ -29,13 +28,13 @@ export default class TestSetup {
       logger.debug('Mocked WebSocketService.connect called');
     });
 
+    // Reset library mocks
+    MockData.muscleGroupMapServiceMock.reset();
+    MockData.equipmentTypeMapServiceMock.reset();
+    MockData.exerciseMapServiceMock.reset();
+    MockData.exerciseCalibrationMapServiceMock.reset();
+
     // Set some stores
     apiKey.set(DocumentService.generateID());
-
-    // Reset stores
-    MockData.userSettingsMock.reset();
-    MockData.userSettingsMock.enableConfetti();
-    MockData.userSettingsMock.addCollaborator(TestUsers.collaborator1);
-    MockData.userSettingsMock.addCollaborator(TestUsers.collaborator2);
   }
 }

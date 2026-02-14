@@ -1,4 +1,10 @@
+import { analyticsPageInfo } from '$routes/analytics/pageInfo';
+import { exercisesPageInfo } from '$routes/exercises/pageInfo';
+import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
+import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
+import { sessionPageInfo } from '$routes/session/pageInfo';
+import { timerPageInfo } from '$routes/timer/pageInfo';
 
 export interface PageInfo {
   /**
@@ -21,7 +27,7 @@ export interface PageInfo {
   iconName?: string;
   /**
    * The nesting level of the page. For example, the home page is at level 0,
-   * and any pages immediatly under the home page are also 0. But it increments
+   * and any pages immediately under the home page are also 0. But it increments
    * by 1 after that.
    */
   nestingLevel: number;
@@ -31,7 +37,19 @@ export interface PageInfo {
  * Navigation info. Each key is the relative path to the page.
  */
 const navInfo = {
-  home: homePageInfo
+  home: homePageInfo,
+  session: sessionPageInfo,
+  exercises: exercisesPageInfo,
+  analytics: analyticsPageInfo,
+  mesocycles: mesocyclesPageInfo,
+  mesocycleNew: mesocycleNewPageInfo,
+  timer: timerPageInfo
 } satisfies Record<string, PageInfo>;
 
 export default navInfo;
+
+/**
+ * The nav items that should appear in the navigation bar. Excludes nested
+ * pages like mesocycle/new.
+ */
+export const navBarItems = Object.values(navInfo).filter((page) => page.nestingLevel === 0);

@@ -39,6 +39,7 @@
     "@storybook/addon-docs": "^10.2.7",
     "@storybook/addon-links": "^10.2.7",
     "@storybook/addon-svelte-csf": "^5.0.10",
+    "@storybook/addon-themes": "^10.2.8",
     "@storybook/sveltekit": "^10.2.7",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.50.2",

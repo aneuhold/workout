@@ -4,48 +4,30 @@ import DocumentMapStoreService, {
   type DocumentInsertOrUpdateInfo
 } from './DocumentMapStoreService.svelte';
 
-// Define a concrete implementation for testing
 interface TestDoc extends BaseDocument {
   name: string;
   value: number;
 }
 
-class TestDocumentMapStoreService extends DocumentMapStoreService<TestDoc> {
-  public constructor() {
-    super();
-  }
+const persistToLocalDataMock = vi.fn<(map: DocumentMap<TestDoc>) => void>();
+const persistToDbMock = vi.fn<(updateInfo: DocumentInsertOrUpdateInfo<TestDoc>) => void>();
 
-  // Mocks for abstract methods
-  public static persistToLocalDataMock = vi.fn<() => DocumentMap<TestDoc>>().mockReturnValue({});
-  public static getFromLocalDataMock = vi
-    .fn<() => DocumentMap<TestDoc> | null>()
-    .mockReturnValue(null);
-  public static persistToDbMock =
-    vi.fn<(updateInfo: DocumentInsertOrUpdateInfo<TestDoc>) => void>();
-
-  protected persistToLocalData(): DocumentMap<TestDoc> {
-    return TestDocumentMapStoreService.persistToLocalDataMock();
-  }
-
-  protected getFromLocalData(): DocumentMap<TestDoc> | null {
-    return TestDocumentMapStoreService.getFromLocalDataMock();
-  }
-
-  protected persistToDb(updateInfo: DocumentInsertOrUpdateInfo<TestDoc>): void {
-    TestDocumentMapStoreService.persistToDbMock(updateInfo);
-  }
+function createTestService() {
+  return new DocumentMapStoreService<TestDoc>({
+    persistToLocalData: persistToLocalDataMock,
+    persistToDb: persistToDbMock
+  });
 }
 
 describe('DocumentMapStoreService', () => {
-  let service: TestDocumentMapStoreService;
+  let service: DocumentMapStoreService<TestDoc>;
   let doc1: TestDoc;
   let doc2: TestDoc;
 
   beforeEach(() => {
-    TestDocumentMapStoreService.persistToLocalDataMock.mockClear();
-    TestDocumentMapStoreService.getFromLocalDataMock.mockClear();
-    TestDocumentMapStoreService.persistToDbMock.mockClear();
-    service = new TestDocumentMapStoreService();
+    persistToLocalDataMock.mockClear();
+    persistToDbMock.mockClear();
+    service = createTestService();
 
     doc1 = {
       _id: DocumentService.generateID(),
@@ -59,41 +41,40 @@ describe('DocumentMapStoreService', () => {
     };
   });
 
-  it('should initialize with empty map', () => {
-    expect(service.mapState).toEqual({});
+  it('should initialize with empty values', () => {
+    expect(service.getDocs()).toEqual([]);
   });
 
   it('should add a document', () => {
     service.addDoc(doc1);
-    expect(service.mapState[doc1._id]).toEqual(doc1);
-    expect(TestDocumentMapStoreService.persistToDbMock).toHaveBeenCalledWith({ insert: [doc1] });
-    expect(TestDocumentMapStoreService.persistToLocalDataMock).toHaveBeenCalled();
+    expect(service.getDoc(doc1._id)).toEqual(doc1);
+    expect(persistToDbMock).toHaveBeenCalledWith({ insert: [doc1] });
+    expect(persistToLocalDataMock).toHaveBeenCalled();
   });
 
   it('should update a document', () => {
     service.addDoc(doc1);
-    // Clear mocks to verify update specifically
-    TestDocumentMapStoreService.persistToDbMock.mockClear();
-    TestDocumentMapStoreService.persistToLocalDataMock.mockClear();
+    persistToDbMock.mockClear();
+    persistToLocalDataMock.mockClear();
 
-    service.updateDoc(doc1._id, (d) => {
-      d.value = 15;
-      return d;
+    service.updateDoc(doc1._id, (doc) => {
+      doc.value = 15;
+      return doc;
     });
 
-    expect(service.mapState[doc1._id]?.value).toBe(15);
-    expect(TestDocumentMapStoreService.persistToDbMock).toHaveBeenCalledWith(
+    expect(service.getDoc(doc1._id)?.value).toBe(15);
+    expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         update: [expect.objectContaining({ value: 15 })]
       })
     );
-    expect(TestDocumentMapStoreService.persistToLocalDataMock).toHaveBeenCalled();
+    expect(persistToLocalDataMock).toHaveBeenCalled();
   });
 
   it('should update many documents', () => {
     service.addDoc(doc1);
     service.addDoc(doc2);
-    TestDocumentMapStoreService.persistToDbMock.mockClear();
+    persistToDbMock.mockClear();
 
     service.updateManyDocs(
       (doc) => doc.value > 0,
@@ -103,10 +84,9 @@ describe('DocumentMapStoreService', () => {
       }
     );
 
-    const map = service.mapState;
-    expect(map[doc1._id]?.value).toBe(20);
-    expect(map[doc2._id]?.value).toBe(40);
-    expect(TestDocumentMapStoreService.persistToDbMock).toHaveBeenCalledWith(
+    expect(service.getDoc(doc1._id)?.value).toBe(20);
+    expect(service.getDoc(doc2._id)?.value).toBe(40);
+    expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         update: expect.arrayContaining([
           expect.objectContaining({ _id: doc1._id, value: 20 }),
@@ -118,12 +98,12 @@ describe('DocumentMapStoreService', () => {
 
   it('should delete a document', () => {
     service.addDoc(doc1);
-    TestDocumentMapStoreService.persistToDbMock.mockClear();
+    persistToDbMock.mockClear();
 
     service.deleteDoc(doc1._id);
 
-    expect(service.mapState[doc1._id]).toBeUndefined();
-    expect(TestDocumentMapStoreService.persistToDbMock).toHaveBeenCalledWith(
+    expect(service.getDoc(doc1._id)).toBeUndefined();
+    expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         delete: [doc1]
       })
@@ -132,7 +112,7 @@ describe('DocumentMapStoreService', () => {
 
   it('should upsert many documents', () => {
     service.addDoc(doc1);
-    TestDocumentMapStoreService.persistToDbMock.mockClear();
+    persistToDbMock.mockClear();
 
     const doc3: TestDoc = {
       _id: DocumentService.generateID(),
@@ -149,11 +129,10 @@ describe('DocumentMapStoreService', () => {
       newDocs: [doc3]
     });
 
-    const map = service.mapState;
-    expect(map[doc1._id]?.value).toBe(99);
-    expect(map[doc3._id]).toEqual(doc3);
+    expect(service.getDoc(doc1._id)?.value).toBe(99);
+    expect(service.getDoc(doc3._id)).toEqual(doc3);
 
-    expect(TestDocumentMapStoreService.persistToDbMock).toHaveBeenCalledWith(
+    expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
         insert: [doc3],
         update: [expect.objectContaining({ _id: doc1._id, value: 99 })]
@@ -165,9 +144,11 @@ describe('DocumentMapStoreService', () => {
     const newMap = { [doc1._id]: doc1, [doc2._id]: doc2 };
     service.setMap(newMap);
 
-    expect(service.mapState).toEqual(newMap);
-    expect(TestDocumentMapStoreService.persistToLocalDataMock).toHaveBeenCalled();
+    expect(service.getDoc(doc1._id)).toEqual(doc1);
+    expect(service.getDoc(doc2._id)).toEqual(doc2);
+    expect(service.getDocs()).toHaveLength(2);
+    expect(persistToLocalDataMock).toHaveBeenCalled();
     // setMap does NOT persist to DB
-    expect(TestDocumentMapStoreService.persistToDbMock).not.toHaveBeenCalled();
+    expect(persistToDbMock).not.toHaveBeenCalled();
   });
 });

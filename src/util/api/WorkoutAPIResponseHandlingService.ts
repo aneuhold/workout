@@ -1,6 +1,14 @@
 import { type ProjectWorkoutPrimaryOutput } from '@aneuhold/core-ts-api-lib';
 import type { BaseDocument } from '@aneuhold/core-ts-db-lib';
-import LocalData from '$util/LocalData/LocalData';
+import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
+import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
+import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
+import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import setMapService from '$services/documentMapServices/setMapService.svelte';
 
 export default class WorkoutAPIResponseHandlingService {
   /**
@@ -11,35 +19,33 @@ export default class WorkoutAPIResponseHandlingService {
    */
   static processWorkoutApiOutput(output: ProjectWorkoutPrimaryOutput, _isFirstInitData: boolean) {
     if (output.mesocycles) {
-      LocalData.setAndGetMesocycleMap(this.convertDocumentArrayToMap(output.mesocycles));
+      mesocycleMapService.setMap(this.convertDocumentArrayToMap(output.mesocycles));
     }
     if (output.microcycles) {
-      LocalData.setAndGetMicrocycleMap(this.convertDocumentArrayToMap(output.microcycles));
+      microcycleMapService.setMap(this.convertDocumentArrayToMap(output.microcycles));
     }
     if (output.sessions) {
-      LocalData.setAndGetSessionMap(this.convertDocumentArrayToMap(output.sessions));
+      sessionMapService.setMap(this.convertDocumentArrayToMap(output.sessions));
     }
     if (output.sessionExercises) {
-      LocalData.setAndGetSessionExerciseMap(
-        this.convertDocumentArrayToMap(output.sessionExercises)
-      );
+      sessionExerciseMapService.setMap(this.convertDocumentArrayToMap(output.sessionExercises));
     }
     if (output.sets) {
-      LocalData.setAndGetSetMap(this.convertDocumentArrayToMap(output.sets));
+      setMapService.setMap(this.convertDocumentArrayToMap(output.sets));
     }
     if (output.exercises) {
-      LocalData.setAndGetExerciseMap(this.convertDocumentArrayToMap(output.exercises));
+      exerciseMapService.setMap(this.convertDocumentArrayToMap(output.exercises));
     }
     if (output.exerciseCalibrations) {
-      LocalData.setAndGetExerciseCalibrationMap(
+      exerciseCalibrationMapService.setMap(
         this.convertDocumentArrayToMap(output.exerciseCalibrations)
       );
     }
     if (output.muscleGroups) {
-      LocalData.setAndGetMuscleGroupMap(this.convertDocumentArrayToMap(output.muscleGroups));
+      muscleGroupMapService.setMap(this.convertDocumentArrayToMap(output.muscleGroups));
     }
     if (output.equipmentTypes) {
-      LocalData.setAndGetEquipmentTypeMap(this.convertDocumentArrayToMap(output.equipmentTypes));
+      equipmentTypeMapService.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
     }
   }
 

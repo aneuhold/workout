@@ -1,5 +1,34 @@
 ## Examples / Iterations
 
+### Idea / Iteration 6 (Claude Opus 4.6)
+
+<details>
+<summary>Open / Close </summary>
+
+![alt text](images/image-33.png)
+
+![alt text](images/image-34.png)
+
+![alt text](images/image-35.png)
+
+![alt text](images/image-36.png)
+
+![alt text](images/image-37.png)
+
+![alt text](images/image-38.png)
+
+![alt text](images/image-39.png)
+
+![alt text](images/image-40.png)
+
+![alt text](images/image-41.png)
+
+![alt text](images/image-42.png)
+
+![alt text](images/image-43.png)
+
+</details>
+
 ### Idea / Iteration 5 (Claude Sonnet 4.5)
 
 <details>
