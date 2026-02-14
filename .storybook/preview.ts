@@ -29,6 +29,11 @@ const preview: Preview = {
           type: 'mobile'
         }
       }
+    },
+    options: {
+      storySort: {
+        order: ['Pages', 'Components', '*']
+      }
     }
   },
   decorators: [
