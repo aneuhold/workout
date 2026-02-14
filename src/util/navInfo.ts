@@ -1,5 +1,6 @@
 import { analyticsPageInfo } from '$routes/analytics/pageInfo';
-import { exercisesPageInfo } from '$routes/exercises/pageInfo';
+import { exercisePageInfo } from '$routes/exercise/pageInfo';
+import { libraryPageInfo } from '$routes/library/pageInfo';
 import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
 import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
@@ -39,7 +40,8 @@ export interface PageInfo {
 const navInfo = {
   home: homePageInfo,
   session: sessionPageInfo,
-  exercises: exercisesPageInfo,
+  library: libraryPageInfo,
+  exercise: exercisePageInfo,
   analytics: analyticsPageInfo,
   mesocycles: mesocyclesPageInfo,
   mesocycleNew: mesocycleNewPageInfo,

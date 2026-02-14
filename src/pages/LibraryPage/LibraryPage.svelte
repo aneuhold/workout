@@ -14,6 +14,15 @@
   import { IconPlus, IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import { SvelteSet } from 'svelte/reactivity';
+  import { goto } from '$app/navigation';
+  import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
+  import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
+  import { deleteDialog } from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
+  import SingletonDeleteDialog from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
+  import { equipmentFormDialog } from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
+  import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
+  import { muscleGroupFormDialog } from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
+  import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -27,13 +36,22 @@
   import TabsContent from '$ui/Tabs/TabsContent.svelte';
   import TabsList from '$ui/Tabs/TabsList.svelte';
   import TabsTrigger from '$ui/Tabs/TabsTrigger.svelte';
+  import { WorkoutDocumentType } from '$util/workoutDocumentType';
   import LibraryPageEmptyState from './LibraryPageEmptyState.svelte';
   import LibraryPageEquipmentCard from './LibraryPageEquipmentCard.svelte';
   import LibraryPageExerciseCard from './LibraryPageExerciseCard.svelte';
   import LibraryPageMuscleGroupCard from './LibraryPageMuscleGroupCard.svelte';
 
+  const LibraryTab = {
+    All: 'all',
+    Exercise: WorkoutDocumentType.Exercise,
+    MuscleGroup: WorkoutDocumentType.MuscleGroup,
+    Equipment: WorkoutDocumentType.Equipment
+  } as const;
+  type LibraryTab = (typeof LibraryTab)[keyof typeof LibraryTab];
+
   let searchQuery = $state('');
-  let activeTab = $state('all');
+  let activeTab = $state<LibraryTab>(LibraryTab.All);
   let expandedIds = new SvelteSet<string>();
   let addMenuOpen = $state(false);
 
@@ -93,26 +111,41 @@
   // --- All tab: intermixed, sorted alphabetically ---
 
   type AllItem =
-    | { type: 'exercise'; id: string; name: string; data: WorkoutExercise }
-    | { type: 'muscleGroup'; id: string; name: string; data: WorkoutMuscleGroup }
-    | { type: 'equipment'; id: string; name: string; data: WorkoutEquipmentType };
+    | {
+        type: typeof WorkoutDocumentType.Exercise;
+        id: string;
+        name: string;
+        data: WorkoutExercise;
+      }
+    | {
+        type: typeof WorkoutDocumentType.MuscleGroup;
+        id: string;
+        name: string;
+        data: WorkoutMuscleGroup;
+      }
+    | {
+        type: typeof WorkoutDocumentType.Equipment;
+        id: string;
+        name: string;
+        data: WorkoutEquipmentType;
+      };
 
   let allItems = $derived.by(() => {
     const items: AllItem[] = [
       ...filteredExercises.map((exercise) => ({
-        type: 'exercise' as const,
+        type: WorkoutDocumentType.Exercise,
         id: `exercise-${exercise._id}`,
         name: exercise.exerciseName,
         data: exercise
       })),
       ...filteredMuscleGroups.map((muscleGroup) => ({
-        type: 'muscleGroup' as const,
+        type: WorkoutDocumentType.MuscleGroup,
         id: `muscle-${muscleGroup._id}`,
         name: muscleGroup.name,
         data: muscleGroup
       })),
       ...filteredEquipment.map((equipmentType) => ({
-        type: 'equipment' as const,
+        type: WorkoutDocumentType.Equipment,
         id: `equipment-${equipmentType._id}`,
         name: equipmentType.title,
         data: equipmentType
@@ -134,21 +167,35 @@
   // --- Add button label ---
 
   let addButtonLabel = $derived(
-    activeTab === 'exercises'
+    activeTab === LibraryTab.Exercise
       ? 'Exercise'
-      : activeTab === 'muscle-groups'
+      : activeTab === LibraryTab.MuscleGroup
         ? 'Muscle Group'
-        : activeTab === 'equipment'
+        : activeTab === LibraryTab.Equipment
           ? 'Equipment'
           : ''
   );
+
+  function handleTabAdd() {
+    switch (activeTab) {
+      case LibraryTab.Exercise:
+        goto('/exercise?new=true');
+        break;
+      case LibraryTab.MuscleGroup:
+        muscleGroupFormDialog.openNew();
+        break;
+      case LibraryTab.Equipment:
+        equipmentFormDialog.openNew();
+        break;
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-4 p-4">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-semibold">Library</h1>
-    {#if activeTab === 'all'}
+    {#if activeTab === LibraryTab.All}
       <DropdownMenu bind:open={addMenuOpen}>
         <DropdownMenuTrigger>
           <button
@@ -159,13 +206,17 @@
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>Exercise</DropdownMenuItem>
-          <DropdownMenuItem>Muscle Group</DropdownMenuItem>
-          <DropdownMenuItem>Equipment</DropdownMenuItem>
+          <DropdownMenuItem onclick={() => goto('/exercise?new=true')}>Exercise</DropdownMenuItem>
+          <DropdownMenuItem onclick={() => muscleGroupFormDialog.openNew()}
+            >Muscle Group</DropdownMenuItem
+          >
+          <DropdownMenuItem onclick={() => equipmentFormDialog.openNew()}
+            >Equipment</DropdownMenuItem
+          >
         </DropdownMenuContent>
       </DropdownMenu>
     {:else}
-      <Button size="sm">
+      <Button size="sm" onclick={handleTabAdd}>
         <IconPlus size={14} />
         Add {addButtonLabel}
       </Button>
@@ -184,30 +235,44 @@
   <!-- Tabs -->
   <Tabs bind:value={activeTab}>
     <TabsList class="w-full">
-      <TabsTrigger value="all">All</TabsTrigger>
-      <TabsTrigger value="exercises">Exercises ({filteredExercises.length})</TabsTrigger>
-      <TabsTrigger value="muscle-groups">M.Groups ({filteredMuscleGroups.length})</TabsTrigger>
-      <TabsTrigger value="equipment">Equip. ({filteredEquipment.length})</TabsTrigger>
+      <TabsTrigger value={LibraryTab.All}>All</TabsTrigger>
+      <TabsTrigger value={LibraryTab.Exercise}>Exercises ({filteredExercises.length})</TabsTrigger>
+      <TabsTrigger value={LibraryTab.MuscleGroup}
+        >M.Groups ({filteredMuscleGroups.length})</TabsTrigger
+      >
+      <TabsTrigger value={LibraryTab.Equipment}>Equip. ({filteredEquipment.length})</TabsTrigger>
     </TabsList>
 
     <!-- All -->
-    <TabsContent value="all">
+    <TabsContent value={LibraryTab.All}>
       {#if allItems.length > 0}
         <div class="flex flex-col gap-2">
           {#each allItems as item (item.id)}
-            {#if item.type === 'exercise'}
+            {#if item.type === WorkoutDocumentType.Exercise}
               <LibraryPageExerciseCard
                 exercise={item.data}
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
+                onEdit={() => goto(`/exercise?exerciseId=${item.data._id}`)}
+                onDelete={() =>
+                  deleteDialog.open(
+                    item.data.exerciseName,
+                    WorkoutDocumentType.Exercise,
+                    item.data._id
+                  )}
+                onAddCalibration={() => calibrationFormDialog.open(item.data)}
               />
-            {:else if item.type === 'muscleGroup'}
+            {:else if item.type === WorkoutDocumentType.MuscleGroup}
               <LibraryPageMuscleGroupCard
                 muscleGroup={item.data}
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
+                onEdit={() => muscleGroupFormDialog.openEdit(item.data)}
+                onDelete={() =>
+                  deleteDialog.open(item.data.name, WorkoutDocumentType.MuscleGroup, item.data._id)}
+                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
               />
             {:else}
               <LibraryPageEquipmentCard
@@ -215,6 +280,10 @@
                 showTypeLabel={true}
                 expanded={expandedIds.has(item.id)}
                 onToggle={() => toggleCard(item.id)}
+                onEdit={() => equipmentFormDialog.openEdit(item.data)}
+                onDelete={() =>
+                  deleteDialog.open(item.data.title, WorkoutDocumentType.Equipment, item.data._id)}
+                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
               />
             {/if}
           {/each}
@@ -225,7 +294,7 @@
     </TabsContent>
 
     <!-- Exercises -->
-    <TabsContent value="exercises">
+    <TabsContent value={LibraryTab.Exercise}>
       {#if filteredExercises.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredExercises as exercise (exercise._id)}
@@ -234,6 +303,14 @@
               showTypeLabel={false}
               expanded={expandedIds.has(`exercise-${exercise._id}`)}
               onToggle={() => toggleCard(`exercise-${exercise._id}`)}
+              onEdit={() => goto(`/exercise?exerciseId=${exercise._id}`)}
+              onDelete={() =>
+                deleteDialog.open(
+                  exercise.exerciseName,
+                  WorkoutDocumentType.Exercise,
+                  exercise._id
+                )}
+              onAddCalibration={() => calibrationFormDialog.open(exercise)}
             />
           {/each}
         </div>
@@ -243,7 +320,7 @@
     </TabsContent>
 
     <!-- Muscle Groups -->
-    <TabsContent value="muscle-groups">
+    <TabsContent value={LibraryTab.MuscleGroup}>
       {#if filteredMuscleGroups.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredMuscleGroups as muscleGroup (muscleGroup._id)}
@@ -252,6 +329,14 @@
               showTypeLabel={false}
               expanded={expandedIds.has(`muscle-${muscleGroup._id}`)}
               onToggle={() => toggleCard(`muscle-${muscleGroup._id}`)}
+              onEdit={() => muscleGroupFormDialog.openEdit(muscleGroup)}
+              onDelete={() =>
+                deleteDialog.open(
+                  muscleGroup.name,
+                  WorkoutDocumentType.MuscleGroup,
+                  muscleGroup._id
+                )}
+              onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
             />
           {/each}
         </div>
@@ -261,7 +346,7 @@
     </TabsContent>
 
     <!-- Equipment -->
-    <TabsContent value="equipment">
+    <TabsContent value={LibraryTab.Equipment}>
       {#if filteredEquipment.length > 0}
         <div class="flex flex-col gap-2">
           {#each filteredEquipment as equipmentType (equipmentType._id)}
@@ -270,6 +355,14 @@
               showTypeLabel={false}
               expanded={expandedIds.has(`equipment-${equipmentType._id}`)}
               onToggle={() => toggleCard(`equipment-${equipmentType._id}`)}
+              onEdit={() => equipmentFormDialog.openEdit(equipmentType)}
+              onDelete={() =>
+                deleteDialog.open(
+                  equipmentType.title,
+                  WorkoutDocumentType.Equipment,
+                  equipmentType._id
+                )}
+              onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
             />
           {/each}
         </div>
@@ -279,3 +372,8 @@
     </TabsContent>
   </Tabs>
 </div>
+
+<SingletonDeleteDialog />
+<SingletonMuscleGroupFormDialog />
+<SingletonEquipmentFormDialog />
+<SingletonCalibrationFormDialog />
