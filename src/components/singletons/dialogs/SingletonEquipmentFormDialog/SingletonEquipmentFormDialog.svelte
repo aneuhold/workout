@@ -6,19 +6,18 @@
 -->
 <script lang="ts" module>
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
-  import { writable } from 'svelte/store';
 
-  const open = writable(false);
-  const currentEquipment = writable<WorkoutEquipmentType | null>(null);
+  let open = $state(false);
+  let currentEquipment = $state<WorkoutEquipmentType | null>(null);
 
   export const equipmentFormDialog = {
     openNew: () => {
-      currentEquipment.set(null);
-      open.set(true);
+      currentEquipment = null;
+      open = true;
     },
     openEdit: (equipmentType: WorkoutEquipmentType) => {
-      currentEquipment.set(equipmentType);
-      open.set(true);
+      currentEquipment = equipmentType;
+      open = true;
     }
   };
 </script>
@@ -42,24 +41,15 @@
   import Label from '$ui/Label/Label.svelte';
   import Switch from '$ui/Switch/Switch.svelte';
 
-  let isOpen = $state(false);
-  let editing = $state<WorkoutEquipmentType | null>(null);
   let title = $state('');
   let hasWeightOptions = $state(false);
   let minWeight = $state<number | undefined>(undefined);
   let maxWeight = $state<number | undefined>(undefined);
   let increment = $state<number | undefined>(undefined);
 
-  open.subscribe((v) => (isOpen = v));
-  currentEquipment.subscribe((v) => (editing = v));
-
-  function syncOpen(v: boolean) {
-    open.set(v);
-  }
-
   $effect(() => {
-    const opened = isOpen;
-    const current = editing;
+    const opened = open;
+    const current = currentEquipment;
 
     untrack(() => {
       if (opened) {
@@ -105,7 +95,7 @@
     return true;
   });
 
-  let isEditMode = $derived(editing !== null);
+  let isEditMode = $derived(currentEquipment !== null);
 
   function handleSubmit() {
     if (!isValid) return;
@@ -116,8 +106,8 @@
         ? WorkoutEquipmentTypeService.generateWeightOptions(minWeight, increment, maxWeight)
         : null;
 
-    if (isEditMode && editing) {
-      equipmentTypeMapService.updateDoc(editing._id, (doc) => {
+    if (isEditMode && currentEquipment) {
+      equipmentTypeMapService.updateDoc(currentEquipment._id, (doc) => {
         doc.title = title.trim();
         doc.weightOptions = weightOptions;
         doc.lastUpdatedDate = new Date();
@@ -131,11 +121,11 @@
       });
       equipmentTypeMapService.addDoc(doc);
     }
-    open.set(false);
+    open = false;
   }
 </script>
 
-<Dialog bind:open={isOpen} onOpenChange={syncOpen}>
+<Dialog bind:open>
   <DialogContent>
     <DialogHeader>
       <DialogTitle>{isEditMode ? 'Edit' : 'Add'} Equipment</DialogTitle>

@@ -4,6 +4,7 @@
 
   const { Story } = defineMeta({
     title: 'Singletons/CalibrationFormDialog',
+    tags: ['!autodocs'],
     component: SBSingletonCalibrationFormDialogExample
   });
 </script>

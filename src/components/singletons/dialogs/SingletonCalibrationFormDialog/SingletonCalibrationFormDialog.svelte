@@ -6,21 +6,23 @@
 -->
 <script lang="ts" module>
   import type { WorkoutExercise } from '@aneuhold/core-ts-db-lib';
-  import { writable } from 'svelte/store';
 
-  const open = writable(false);
-  const currentExercise = writable<WorkoutExercise | null>(null);
+  let open = $state(false);
+  let currentExercise = $state<WorkoutExercise | null>(null);
 
   export const calibrationFormDialog = {
     open: (exercise: WorkoutExercise) => {
-      currentExercise.set(exercise);
-      open.set(true);
+      currentExercise = exercise;
+      open = true;
     }
   };
 </script>
 
 <script lang="ts">
-  import { WorkoutExerciseCalibrationSchema } from '@aneuhold/core-ts-db-lib';
+  import {
+    WorkoutExerciseCalibrationSchema,
+    WorkoutExerciseCalibrationService
+  } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
@@ -34,20 +36,11 @@
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
 
-  let isOpen = $state(false);
-  let exercise = $state<WorkoutExercise | null>(null);
-  let weight = $state<number | undefined>(undefined);
-  let reps = $state<number | undefined>(undefined);
-
-  open.subscribe((v) => (isOpen = v));
-  currentExercise.subscribe((v) => (exercise = v));
-
-  function syncOpen(v: boolean) {
-    open.set(v);
-  }
+  let weight = $state<number | undefined>();
+  let reps = $state<number | undefined>();
 
   $effect(() => {
-    const opened = isOpen;
+    const opened = open;
 
     untrack(() => {
       if (opened) {
@@ -61,34 +54,33 @@
 
   let estimated1RM = $derived.by(() => {
     if (!isValid || !weight || !reps) return null;
-    // NASM formula: (Weight x Reps / 30.48) + Weight
-    return Math.round((weight * reps) / 30.48 + weight);
+    return WorkoutExerciseCalibrationService.get1RMRaw(weight, reps);
   });
 
   function handleSubmit() {
-    if (!isValid || !exercise || !weight || !reps) return;
+    if (!isValid || !currentExercise || !weight || !reps) return;
     const userId = $currentUserId;
 
     const doc = WorkoutExerciseCalibrationSchema.parse({
       userId,
-      workoutExerciseId: exercise._id,
+      workoutExerciseId: currentExercise._id,
       weight,
       reps,
       dateRecorded: new Date()
     });
     exerciseCalibrationMapService.addDoc(doc);
-    open.set(false);
+    open = false;
   }
 </script>
 
-<Dialog bind:open={isOpen} onOpenChange={syncOpen}>
+<Dialog bind:open>
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Add Calibration</DialogTitle>
     </DialogHeader>
-    {#if exercise}
+    {#if currentExercise}
       <p class="text-sm text-muted-foreground">
-        For: <span class="font-medium text-foreground">{exercise.exerciseName}</span>
+        For: <span class="font-medium text-foreground">{currentExercise.exerciseName}</span>
       </p>
     {/if}
     <form

@@ -6,7 +6,6 @@
 -->
 <script lang="ts" module>
   import type { UUID } from 'crypto';
-  import { writable } from 'svelte/store';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
 
   type ItemType =
@@ -14,13 +13,13 @@
     | WorkoutDocumentType.MuscleGroup
     | WorkoutDocumentType.Equipment;
 
-  const open = writable(false);
-  const currentItem = writable<{ name: string; type: ItemType; id: UUID } | null>(null);
+  let open = $state(false);
+  let currentItem = $state<{ name: string; type: ItemType; id: UUID } | null>(null);
 
   export const deleteDialog = {
     open: (itemName: string, itemType: ItemType, itemId: UUID) => {
-      currentItem.set({ name: itemName, type: itemType, id: itemId });
-      open.set(true);
+      currentItem = { name: itemName, type: itemType, id: itemId };
+      open = true;
     }
   };
 </script>
@@ -39,16 +38,6 @@
   import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
 
-  let isOpen = $state(false);
-  let item = $state<{ name: string; type: ItemType; id: UUID } | null>(null);
-
-  open.subscribe((v) => (isOpen = v));
-  currentItem.subscribe((v) => (item = v));
-
-  function syncOpen(v: boolean) {
-    open.set(v);
-  }
-
   function typeLabel(type: ItemType): string {
     switch (type) {
       case WorkoutDocumentType.Exercise:
@@ -61,9 +50,9 @@
   }
 
   function handleConfirm() {
-    if (!item) return;
-    const itemId = item.id;
-    switch (item.type) {
+    if (!currentItem) return;
+    const itemId = currentItem.id;
+    switch (currentItem.type) {
       case WorkoutDocumentType.Exercise: {
         const calibrationIds = exerciseCalibrationMapService
           .getDocs()
@@ -72,28 +61,28 @@
         if (calibrationIds.length > 0) {
           exerciseCalibrationMapService.deleteManyDocs(calibrationIds);
         }
-        exerciseMapService.deleteDoc(item.id);
+        exerciseMapService.deleteDoc(currentItem.id);
         break;
       }
       case WorkoutDocumentType.MuscleGroup:
-        muscleGroupMapService.deleteDoc(item.id);
+        muscleGroupMapService.deleteDoc(currentItem.id);
         break;
       case WorkoutDocumentType.Equipment:
-        equipmentTypeMapService.deleteDoc(item.id);
+        equipmentTypeMapService.deleteDoc(currentItem.id);
         break;
     }
-    open.set(false);
+    open = false;
   }
 </script>
 
-<AlertDialog bind:open={isOpen} onOpenChange={syncOpen}>
+<AlertDialog bind:open>
   <AlertDialogContent>
     <AlertDialogHeader>
-      <AlertDialogTitle>Delete {item ? typeLabel(item.type) : ''}?</AlertDialogTitle>
+      <AlertDialogTitle>Delete {currentItem ? typeLabel(currentItem.type) : ''}?</AlertDialogTitle>
       <AlertDialogDescription>
-        {#if item}
-          Are you sure you want to delete "{item.name}"? This action cannot be undone.
-          {#if item.type === WorkoutDocumentType.Exercise}
+        {#if currentItem}
+          Are you sure you want to delete "{currentItem.name}"? This action cannot be undone.
+          {#if currentItem.type === WorkoutDocumentType.Exercise}
             Associated calibration data will also be removed.
           {/if}
         {/if}

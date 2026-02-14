@@ -6,19 +6,18 @@
 -->
 <script lang="ts" module>
   import type { WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
-  import { writable } from 'svelte/store';
 
-  const open = writable(false);
-  const currentMuscleGroup = writable<WorkoutMuscleGroup | null>(null);
+  let open = $state(false);
+  let currentMuscleGroup = $state<WorkoutMuscleGroup | null>(null);
 
   export const muscleGroupFormDialog = {
     openNew: () => {
-      currentMuscleGroup.set(null);
-      open.set(true);
+      currentMuscleGroup = null;
+      open = true;
     },
     openEdit: (muscleGroup: WorkoutMuscleGroup) => {
-      currentMuscleGroup.set(muscleGroup);
-      open.set(true);
+      currentMuscleGroup = muscleGroup;
+      open = true;
     }
   };
 </script>
@@ -39,21 +38,12 @@
   import Label from '$ui/Label/Label.svelte';
   import Textarea from '$ui/Textarea/Textarea.svelte';
 
-  let isOpen = $state(false);
-  let editing = $state<WorkoutMuscleGroup | null>(null);
   let name = $state('');
   let description = $state('');
 
-  open.subscribe((v) => (isOpen = v));
-  currentMuscleGroup.subscribe((v) => (editing = v));
-
-  function syncOpen(v: boolean) {
-    open.set(v);
-  }
-
   $effect(() => {
-    const opened = isOpen;
-    const current = editing;
+    const opened = open;
+    const current = currentMuscleGroup;
 
     untrack(() => {
       if (opened) {
@@ -64,14 +54,14 @@
   });
 
   let isValid = $derived(name.trim().length > 0);
-  let isEditMode = $derived(editing !== null);
+  let isEditMode = $derived(currentMuscleGroup !== null);
 
   function handleSubmit() {
     if (!isValid) return;
     const userId = $currentUserId;
 
-    if (isEditMode && editing) {
-      muscleGroupMapService.updateDoc(editing._id, (doc) => {
+    if (isEditMode && currentMuscleGroup) {
+      muscleGroupMapService.updateDoc(currentMuscleGroup._id, (doc) => {
         doc.name = name.trim();
         doc.description = description.trim() || null;
         doc.lastUpdatedDate = new Date();
@@ -85,11 +75,11 @@
       });
       muscleGroupMapService.addDoc(doc);
     }
-    open.set(false);
+    open = false;
   }
 </script>
 
-<Dialog bind:open={isOpen} onOpenChange={syncOpen}>
+<Dialog bind:open>
   <DialogContent>
     <DialogHeader>
       <DialogTitle>{isEditMode ? 'Edit' : 'Add'} Muscle Group</DialogTitle>
