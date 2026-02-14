@@ -3,6 +3,7 @@
   import SBSingletonMuscleGroupFormDialogExample from './SBSingletonMuscleGroupFormDialogExample.svelte';
 
   const { Story } = defineMeta({
+    tags: ['!autodocs'],
     title: 'Singletons/MuscleGroupFormDialog',
     component: SBSingletonMuscleGroupFormDialogExample
   });

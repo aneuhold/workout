@@ -9,6 +9,7 @@
 
   const { Story } = defineMeta({
     title: 'Components/TopBar',
+    tags: ['!autodocs'],
     component: SBTopBarExample,
     argTypes: {
       ...createTextArgTypes('username'),

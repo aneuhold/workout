@@ -3,6 +3,7 @@
   import SBSingletonDeleteDialogExample from './SBSingletonDeleteDialogExample.svelte';
 
   const { Story } = defineMeta({
+    tags: ['!autodocs'],
     title: 'Singletons/DeleteDialog',
     component: SBSingletonDeleteDialogExample
   });

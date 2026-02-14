@@ -10,6 +10,7 @@
 
   const { Story } = defineMeta({
     title: 'Components/NavBar',
+    tags: ['!autodocs'],
     component: NavBar,
     parameters: {
       // cspell:disable-next-line

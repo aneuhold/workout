@@ -3,6 +3,7 @@
   import SBSingletonEquipmentFormDialogExample from './SBSingletonEquipmentFormDialogExample.svelte';
 
   const { Story } = defineMeta({
+    tags: ['!autodocs'],
     title: 'Singletons/EquipmentFormDialog',
     component: SBSingletonEquipmentFormDialogExample
   });
