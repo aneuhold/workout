@@ -36,23 +36,22 @@
   import TabsContent from '$ui/Tabs/TabsContent.svelte';
   import TabsList from '$ui/Tabs/TabsList.svelte';
   import TabsTrigger from '$ui/Tabs/TabsTrigger.svelte';
-  import { WorkoutDocumentType } from '$util/workoutDocumentType';
+  import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
   import LibraryPageEmptyState from './LibraryPageEmptyState.svelte';
   import LibraryPageEquipmentCard from './LibraryPageEquipmentCard.svelte';
   import LibraryPageExerciseCard from './LibraryPageExerciseCard.svelte';
   import LibraryPageMuscleGroupCard from './LibraryPageMuscleGroupCard.svelte';
 
-  const LibraryTab = {
-    All: 'all',
-    Exercise: WorkoutDocumentType.Exercise,
-    MuscleGroup: WorkoutDocumentType.MuscleGroup,
-    Equipment: WorkoutDocumentType.Equipment
-  } as const;
-  type LibraryTab = (typeof LibraryTab)[keyof typeof LibraryTab];
+  enum LibraryTab {
+    All = 'all',
+    Exercise = WorkoutDocumentType.Exercise,
+    MuscleGroup = WorkoutDocumentType.MuscleGroup,
+    Equipment = WorkoutDocumentType.Equipment
+  }
 
   let searchQuery = $state('');
   let activeTab = $state<LibraryTab>(LibraryTab.All);
-  let expandedIds = new SvelteSet<string>();
+  let expandedIds = new SvelteSet<UUID>();
   let addMenuOpen = $state(false);
 
   // --- Derived data from stores ---
@@ -112,20 +111,20 @@
 
   type AllItem =
     | {
-        type: typeof WorkoutDocumentType.Exercise;
-        id: string;
+        type: WorkoutDocumentType.Exercise;
+        id: UUID;
         name: string;
         data: WorkoutExercise;
       }
     | {
-        type: typeof WorkoutDocumentType.MuscleGroup;
-        id: string;
+        type: WorkoutDocumentType.MuscleGroup;
+        id: UUID;
         name: string;
         data: WorkoutMuscleGroup;
       }
     | {
-        type: typeof WorkoutDocumentType.Equipment;
-        id: string;
+        type: WorkoutDocumentType.Equipment;
+        id: UUID;
         name: string;
         data: WorkoutEquipmentType;
       };
@@ -133,20 +132,20 @@
   let allItems = $derived.by(() => {
     const items: AllItem[] = [
       ...filteredExercises.map((exercise) => ({
-        type: WorkoutDocumentType.Exercise,
-        id: `exercise-${exercise._id}`,
+        type: WorkoutDocumentType.Exercise as const,
+        id: exercise._id,
         name: exercise.exerciseName,
         data: exercise
       })),
       ...filteredMuscleGroups.map((muscleGroup) => ({
-        type: WorkoutDocumentType.MuscleGroup,
-        id: `muscle-${muscleGroup._id}`,
+        type: WorkoutDocumentType.MuscleGroup as const,
+        id: muscleGroup._id,
         name: muscleGroup.name,
         data: muscleGroup
       })),
       ...filteredEquipment.map((equipmentType) => ({
-        type: WorkoutDocumentType.Equipment,
-        id: `equipment-${equipmentType._id}`,
+        type: WorkoutDocumentType.Equipment as const,
+        id: equipmentType._id,
         name: equipmentType.title,
         data: equipmentType
       }))
@@ -156,11 +155,11 @@
 
   // --- Expand / collapse ---
 
-  function toggleCard(key: string) {
-    if (expandedIds.has(key)) {
-      expandedIds.delete(key);
+  function toggleCard(id: UUID) {
+    if (expandedIds.has(id)) {
+      expandedIds.delete(id);
     } else {
-      expandedIds.add(key);
+      expandedIds.add(id);
     }
   }
 
@@ -301,8 +300,8 @@
             <LibraryPageExerciseCard
               {exercise}
               showTypeLabel={false}
-              expanded={expandedIds.has(`exercise-${exercise._id}`)}
-              onToggle={() => toggleCard(`exercise-${exercise._id}`)}
+              expanded={expandedIds.has(exercise._id)}
+              onToggle={() => toggleCard(exercise._id)}
               onEdit={() => goto(`/exercise?exerciseId=${exercise._id}`)}
               onDelete={() =>
                 deleteDialog.open(
@@ -327,8 +326,8 @@
             <LibraryPageMuscleGroupCard
               {muscleGroup}
               showTypeLabel={false}
-              expanded={expandedIds.has(`muscle-${muscleGroup._id}`)}
-              onToggle={() => toggleCard(`muscle-${muscleGroup._id}`)}
+              expanded={expandedIds.has(muscleGroup._id)}
+              onToggle={() => toggleCard(muscleGroup._id)}
               onEdit={() => muscleGroupFormDialog.openEdit(muscleGroup)}
               onDelete={() =>
                 deleteDialog.open(
@@ -353,8 +352,8 @@
             <LibraryPageEquipmentCard
               {equipmentType}
               showTypeLabel={false}
-              expanded={expandedIds.has(`equipment-${equipmentType._id}`)}
-              onToggle={() => toggleCard(`equipment-${equipmentType._id}`)}
+              expanded={expandedIds.has(equipmentType._id)}
+              onToggle={() => toggleCard(equipmentType._id)}
               onEdit={() => equipmentFormDialog.openEdit(equipmentType)}
               onDelete={() =>
                 deleteDialog.open(

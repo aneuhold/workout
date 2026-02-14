@@ -14,7 +14,9 @@ export default [
       // Disabled due to false positives with Svelte components
       '@typescript-eslint/no-useless-default-assignment': 'off',
       // Disabled because it wasn't working correctly with Svelte snippets
-      '@typescript-eslint/no-confusing-void-expression': 'off'
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      // Disabled because it doesn't make sense IMO. This should be disabled globally.
+      '@typescript-eslint/prefer-literal-enum-member': 'off'
     }
   }
 ];

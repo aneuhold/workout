@@ -7,12 +7,12 @@
 <script lang="ts" module>
   import type { UUID } from 'crypto';
   import { writable } from 'svelte/store';
-  import { WorkoutDocumentType } from '$util/workoutDocumentType';
+  import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
 
   type ItemType =
-    | typeof WorkoutDocumentType.Exercise
-    | typeof WorkoutDocumentType.MuscleGroup
-    | typeof WorkoutDocumentType.Equipment;
+    | WorkoutDocumentType.Exercise
+    | WorkoutDocumentType.MuscleGroup
+    | WorkoutDocumentType.Equipment;
 
   const open = writable(false);
   const currentItem = writable<{ name: string; type: ItemType; id: UUID } | null>(null);

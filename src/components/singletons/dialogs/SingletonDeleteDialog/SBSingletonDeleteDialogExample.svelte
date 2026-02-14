@@ -3,7 +3,7 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
-  import { WorkoutDocumentType } from '$util/workoutDocumentType';
+  import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
   import { deleteDialog } from './SingletonDeleteDialog.svelte';
   import SingletonDeleteDialog from './SingletonDeleteDialog.svelte';
 
