@@ -11,10 +11,7 @@
   import MesocycleCalendarDayDetailDialog from './MesocycleCalendarDayDetailDialog.svelte';
   import MesocycleCalendarDayHeaders from './MesocycleCalendarDayHeaders.svelte';
   import MesocycleCalendarLabelRow from './MesocycleCalendarLabelRow.svelte';
-  import type {
-    MesocycleCalendarDayCell as DayCellType,
-    MesocycleCalendarMode
-  } from './mesocycleCalendarTypes';
+  import type { MesocycleCalendarDayCell as DayCellType } from './mesocycleCalendarTypes';
   import mesocycleCalendarUtils from './mesocycleCalendarUtils';
 
   let {
@@ -23,8 +20,7 @@
     sessions,
     sessionExercises,
     sets,
-    exercises,
-    mode
+    exercises
   }: {
     mesocycle: WorkoutMesocycle;
     microcycles: WorkoutMicrocycle[];
@@ -32,7 +28,6 @@
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
     exercises: WorkoutExercise[];
-    mode: MesocycleCalendarMode;
   } = $props();
 
   const calendarData = $derived(
@@ -46,9 +41,16 @@
     })
   );
 
-  const currentCycleNumber = $derived(
-    mesocycleCalendarUtils.getCurrentCycleNumber(microcycles, sessions)
-  );
+  const nextSessionDayIndex = $derived.by(() => {
+    for (const row of calendarData.weekRows) {
+      for (const day of row.days) {
+        if (day?.type === 'session' && day.sessions.some((s) => !s.completed)) {
+          return day.dayIndex;
+        }
+      }
+    }
+    return -1;
+  });
 
   let selectedDay: DayCellType | null = $state(null);
   let dialogOpen = $state(false);
@@ -68,12 +70,7 @@
       <div class="grid grid-cols-7 gap-1">
         {#each row.days as day, colIdx (colIdx)}
           {#if day}
-            <MesocycleCalendarDayCell
-              {day}
-              {mode}
-              {currentCycleNumber}
-              onDayClick={handleDayClick}
-            />
+            <MesocycleCalendarDayCell {day} {nextSessionDayIndex} onDayClick={handleDayClick} />
           {:else}
             <div class="min-h-12"></div>
           {/if}

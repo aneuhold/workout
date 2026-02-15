@@ -49,28 +49,6 @@ class MesocycleCalendarUtils {
     return isDeload ? 'Deload' : `Cycle ${cycleNumber}`;
   }
 
-  getCurrentCycleNumber(microcycles: WorkoutMicrocycle[], sessions: WorkoutSession[]): number {
-    if (microcycles.length === 0) return 1;
-
-    const sorted = [...microcycles].sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-
-    const sessionMap = new Map(sessions.map((s) => [s._id, s]));
-
-    for (let i = 0; i < sorted.length; i++) {
-      const micro = sorted[i];
-      const microSessions = micro.sessionOrder
-        .map((id) => sessionMap.get(id))
-        .filter((s): s is WorkoutSession => s !== undefined);
-
-      const hasIncomplete = microSessions.some((s) => !s.complete);
-      if (hasIncomplete) return i + 1;
-    }
-
-    return sorted.length;
-  }
-
   buildCalendarData(input: BuildCalendarDataInput): MesocycleCalendarData {
     const { mesocycle, microcycles, sessions, sessionExercises, sets, exercises } = input;
 

@@ -1,8 +1,5 @@
 import type { UUID } from 'crypto';
 
-/** Whether the calendar shows a live in-progress mesocycle or a static preview. */
-export type MesocycleCalendarMode = 'in-progress' | 'preview';
-
 /** Planned targets for a single set within a session exercise. */
 export type MesocycleCalendarSet = {
   /** 1-based set number within the exercise. */

@@ -11,20 +11,17 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import MesocycleCalendar from './MesocycleCalendar.svelte';
-  import type { MesocycleCalendarMode } from './mesocycleCalendarTypes';
 
   let {
     microcycleCount = 4,
     microcycleLengthDays = 7,
     restDays = '0,6',
-    mode = 'preview',
     startDate = '2026-02-16',
     completedSessionCount = 0
   }: {
     microcycleCount?: number;
     microcycleLengthDays?: number;
     restDays?: string;
-    mode?: MesocycleCalendarMode;
     startDate?: string;
     completedSessionCount?: number;
   } = $props();
@@ -41,7 +38,6 @@
     const _mcCount = microcycleCount;
     const _mcLength = microcycleLengthDays;
     const _restDays = restDays;
-    const _mode = mode;
     const _startDate = startDate;
     const _completedCount = completedSessionCount;
 
@@ -159,15 +155,7 @@
 
 {#if mesocycle}
   <div class="p-4">
-    <MesocycleCalendar
-      {mesocycle}
-      {microcycles}
-      {sessions}
-      {sessionExercises}
-      {sets}
-      {exercises}
-      {mode}
-    />
+    <MesocycleCalendar {mesocycle} {microcycles} {sessions} {sessionExercises} {sets} {exercises} />
   </div>
 {:else}
   <p class="text-muted-foreground p-4">Generating mesocycle data...</p>

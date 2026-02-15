@@ -137,49 +137,6 @@ describe('formatCycleLabel', () => {
   });
 });
 
-describe('getCurrentCycleNumber', () => {
-  it('returns 1 when no microcycles', () => {
-    expect(mesocycleCalendarUtils.getCurrentCycleNumber([], [])).toBe(1);
-  });
-
-  it('returns 1 when first cycle has incomplete sessions', () => {
-    const mesocycle = makeMesocycle();
-    const micro1 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 15), new Date(2026, 1, 21));
-    const session1 = makeSession(micro1._id, 'Session 1', new Date(2026, 1, 16), false);
-    micro1.sessionOrder = [session1._id];
-
-    expect(mesocycleCalendarUtils.getCurrentCycleNumber([micro1], [session1])).toBe(1);
-  });
-
-  it('returns 2 when first cycle is complete', () => {
-    const mesocycle = makeMesocycle();
-    const micro1 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 15), new Date(2026, 1, 21));
-    const micro2 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 22), new Date(2026, 1, 28));
-    const session1 = makeSession(micro1._id, 'Session 1', new Date(2026, 1, 16), true);
-    const session2 = makeSession(micro2._id, 'Session 2', new Date(2026, 1, 23), false);
-    micro1.sessionOrder = [session1._id];
-    micro2.sessionOrder = [session2._id];
-
-    expect(
-      mesocycleCalendarUtils.getCurrentCycleNumber([micro1, micro2], [session1, session2])
-    ).toBe(2);
-  });
-
-  it('returns last cycle number when all sessions complete', () => {
-    const mesocycle = makeMesocycle();
-    const micro1 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 15), new Date(2026, 1, 21));
-    const micro2 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 22), new Date(2026, 1, 28));
-    const session1 = makeSession(micro1._id, 'Session 1', new Date(2026, 1, 16), true);
-    const session2 = makeSession(micro2._id, 'Session 2', new Date(2026, 1, 23), true);
-    micro1.sessionOrder = [session1._id];
-    micro2.sessionOrder = [session2._id];
-
-    expect(
-      mesocycleCalendarUtils.getCurrentCycleNumber([micro1, micro2], [session1, session2])
-    ).toBe(2);
-  });
-});
-
 describe('buildCalendarData', () => {
   it('returns empty data for no microcycles', () => {
     const mesocycle = makeMesocycle();

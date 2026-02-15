@@ -5,11 +5,9 @@
     base: 'relative flex flex-col items-center rounded-md p-1 min-h-12 text-xs transition-colors',
     variants: {
       visual: {
-        past: 'bg-muted/50 text-muted-foreground',
-        current: 'bg-primary/10 ring-2 ring-primary',
-        future: 'bg-muted/30 ring-1 ring-border',
-        deload: 'bg-muted/20 ring-1 ring-dashed ring-border opacity-80',
-        'session-preview': 'bg-primary/10 ring-1 ring-primary',
+        completed: 'bg-muted/50 text-muted-foreground',
+        'session-next': 'bg-primary/10 ring-2 ring-primary',
+        session: 'bg-primary/10 ring-1 ring-primary/40',
         rest: 'bg-muted/40 text-muted-foreground',
         empty: 'bg-muted/20 text-muted-foreground'
       },
@@ -24,35 +22,25 @@
 
 <script lang="ts">
   import { IconCheck } from '@tabler/icons-svelte';
-  import type { MesocycleCalendarDayCell, MesocycleCalendarMode } from './mesocycleCalendarTypes';
+  import type { MesocycleCalendarDayCell } from './mesocycleCalendarTypes';
 
   let {
     day,
-    mode,
-    currentCycleNumber,
+    nextSessionDayIndex,
     onDayClick
   }: {
     day: MesocycleCalendarDayCell;
-    mode: MesocycleCalendarMode;
-    currentCycleNumber: number;
+    nextSessionDayIndex: number;
     onDayClick: (day: MesocycleCalendarDayCell) => void;
   } = $props();
 
   const visual: DayCellVisual = $derived.by(() => {
-    if (mode === 'preview') {
-      if (day.type === 'rest') return 'rest';
-      if (day.type === 'session') return 'session-preview';
-      if (day.isDeload) return 'deload';
-      return 'empty';
-    }
-    // in-progress mode
-    if (day.cycleNumber < currentCycleNumber) return 'past';
-    if (day.cycleNumber === currentCycleNumber) {
-      if (day.type === 'rest') return 'rest';
-      return 'current';
-    }
-    if (day.isDeload) return 'deload';
-    return 'future';
+    if (day.type === 'rest') return 'rest';
+    if (day.type === 'empty') return 'empty';
+    const allCompleted = day.sessions.every((s) => s.completed);
+    if (allCompleted) return 'completed';
+    if (day.dayIndex === nextSessionDayIndex) return 'session-next';
+    return 'session';
   });
 
   const isClickable = $derived(day.type === 'session');
