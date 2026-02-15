@@ -6,7 +6,7 @@
     "build": "vite build",
     "build:sb": "storybook build",
     "preview": "pnpm build && vite preview --port 5173",
-    "lint": "eslint",
+    "lint": "eslint --cache",
     "test": "vitest run",
     "check": "svelte-check && pnpm check:circular",
     "check:circular": "madge --circular --extensions ts,svelte src/",
@@ -28,8 +28,8 @@
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@aneuhold/core-ts-api-lib": "^3.0.12",
-    "@aneuhold/core-ts-db-lib": "^4.1.1",
+    "@aneuhold/core-ts-api-lib": "^3.0.13",
+    "@aneuhold/core-ts-db-lib": "^4.1.2",
     "@aneuhold/core-ts-lib": "^2.3.17",
     "@aneuhold/eslint-config": "^2.0.2",
     "@aneuhold/local-npm-registry": "^0.2.24",
