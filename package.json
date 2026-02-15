@@ -19,7 +19,8 @@
     "sub:core-ts-db-lib": "local-npm subscribe @aneuhold/core-ts-db-lib",
     "sub:eslint-config": "local-npm subscribe @aneuhold/eslint-config",
     "unsub:core-ts-api-lib": "local-npm unsubscribe @aneuhold/core-ts-api-lib",
-    "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config"
+    "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
+    "generate:icons": "ICON=docs/officialAssets/logo-icon.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
   "packageManager": "pnpm@10.28.0",
   "type": "module",
