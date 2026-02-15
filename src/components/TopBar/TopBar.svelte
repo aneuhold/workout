@@ -7,7 +7,7 @@
 <script lang="ts">
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
-  import { apiKey } from '$stores/local/apiKey';
+  import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
   import { timerStore } from '$stores/session/timerStore.svelte';
   import Avatar from '$ui/Avatar/Avatar.svelte';
@@ -38,7 +38,7 @@
   }
 
   function handleLogout() {
-    apiKey.set(null);
+    userConfig.clear();
     loginState.set(LoginState.LoggedOut);
   }
 </script>

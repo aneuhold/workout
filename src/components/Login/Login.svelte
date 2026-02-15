@@ -11,8 +11,8 @@
     type AuthValidateUserOutput
   } from '@aneuhold/core-ts-api-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
-  import { apiKey } from '$stores/local/apiKey';
   import { password } from '$stores/local/password';
+  import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -64,8 +64,12 @@
   function handleLoginResult(validationResponse: APIResponse<AuthValidateUserOutput>) {
     if (validationResponse.success && validationResponse.data.userInfo?.apiKey) {
       invalidCredentials = false;
-      const apiKeyValue = validationResponse.data.userInfo.apiKey.key;
-      apiKey.set(apiKeyValue);
+      const { user, apiKey: userApiKey } = validationResponse.data.userInfo;
+      userConfig.set({
+        userId: user._id,
+        username: user.userName,
+        apiKey: userApiKey.key
+      });
       WorkoutAPIService.getInitialDataForLogin();
       $loginState = LoginState.LoggedIn;
     } else if (!validationResponse.success) {

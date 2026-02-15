@@ -9,7 +9,7 @@ import TestUsers from './TestUsers';
  * Global mock data for tests.
  */
 export default class MockData {
-  static userSettingsMock = new UserConfigMock(TestUsers.currentUserCto._id);
+  static userConfigMock = new UserConfigMock(TestUsers.currentUserCto._id);
 
   static muscleGroupMapServiceMock = new MuscleGroupMapServiceMock();
   static equipmentTypeMapServiceMock = new EquipmentTypeMapServiceMock();

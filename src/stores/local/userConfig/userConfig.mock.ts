@@ -1,4 +1,4 @@
-import { DashboardUserConfigSchema } from '@aneuhold/core-ts-db-lib';
+import { DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { type UserConfig, userConfig } from './userConfig';
 
@@ -13,7 +13,9 @@ export default class UserConfigMock {
 
   reset(): void {
     const mockConfig: UserConfig = {
-      config: DashboardUserConfigSchema.parse({ userId: this.userId })
+      userId: this.userId,
+      username: 'Mock User',
+      apiKey: DocumentService.generateID()
     };
     userConfig.setWithoutPropagation(mockConfig);
   }

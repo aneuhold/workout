@@ -47,12 +47,22 @@
     <AlertDialogFooter>
       <AlertDialogCancel>Cancel</AlertDialogCancel>
       {#if missingMuscleGroups}
-        <AlertDialogAction onclick={() => muscleGroupFormDialog.openNew()}>
+        <AlertDialogAction
+          onclick={() => {
+            muscleGroupFormDialog.openNew();
+            open = false;
+          }}
+        >
           Add Muscle Group
         </AlertDialogAction>
       {/if}
       {#if missingEquipment}
-        <AlertDialogAction onclick={() => equipmentFormDialog.openNew()}>
+        <AlertDialogAction
+          onclick={() => {
+            equipmentFormDialog.openNew();
+            open = false;
+          }}
+        >
           Add Equipment
         </AlertDialogAction>
       {/if}

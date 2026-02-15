@@ -1,20 +1,19 @@
-import {
-  type DashboardUserConfig,
-  DashboardUserConfigSchema,
-  DocumentService
-} from '@aneuhold/core-ts-db-lib';
+import type { UUID } from 'crypto';
 import { type Updater, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import LocalData from '$util/LocalData/LocalData';
 
 export type UserConfig = {
-  config: DashboardUserConfig;
+  userId: UUID;
+  username: string;
+  apiKey: UUID | null;
 };
 
 function createUserConfigStore() {
   let currentConfig: UserConfig = {
-    // Just a dummy config to avoid null checks.
-    config: DashboardUserConfigSchema.parse({ userId: DocumentService.generateID() })
+    userId: '' as UUID,
+    username: '',
+    apiKey: null
   };
   const { subscribe, set } = writable<UserConfig>(currentConfig);
 
@@ -51,6 +50,12 @@ function createUserConfigStore() {
      */
     setWithoutPropagation: (newConfig: UserConfig) => {
       updateUserConfig(() => newConfig);
+    },
+    /**
+     * Clears the user config (e.g. on logout).
+     */
+    clear: () => {
+      updateUserConfig(() => ({ userId: '' as UUID, username: '', apiKey: null }));
     },
     /**
      * Simply gets the current config.

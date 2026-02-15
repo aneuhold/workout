@@ -5,7 +5,7 @@ import {
 } from '@aneuhold/core-ts-api-lib';
 import type { UUID } from 'crypto';
 import WebSocketService from '$services/WebSocketService';
-import { apiKey } from '$stores/local/apiKey';
+import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandlingService';
@@ -52,7 +52,7 @@ export default class WorkoutAPIService {
    * ago or it hasn't been fetched yet.
    */
   static getInitialDataIfNeeded() {
-    if (apiKey.get() && LocalData.apiRequestQueue.length === 0) {
+    if (userConfig.get().apiKey && LocalData.apiRequestQueue.length === 0) {
       if (!this.lastInitialDataFetchTime) {
         this.getInitialData();
       } else if (
@@ -101,7 +101,7 @@ export default class WorkoutAPIService {
   }
 
   static checkOrSetupWorkoutAPI(): UUID {
-    const apiKeyValue = apiKey.get();
+    const apiKeyValue = userConfig.get().apiKey;
     if (!apiKeyValue) {
       throw new Error('API Key not set!');
     }
