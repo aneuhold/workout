@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
+  import { goto } from '$app/navigation';
   import { apiKey } from '$stores/local/apiKey';
   import { LoginState, loginState } from '$stores/session/loginState';
   import { timerStore } from '$stores/session/timerStore.svelte';
@@ -75,7 +76,7 @@
       </button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
-      <DropdownMenuItem>
+      <DropdownMenuItem onclick={() => goto('/settings')}>
         <IconSettings size={16} />
         Settings
       </DropdownMenuItem>

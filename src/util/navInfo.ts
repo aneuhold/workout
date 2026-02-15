@@ -5,6 +5,7 @@ import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
 import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
 import { sessionPageInfo } from '$routes/session/pageInfo';
+import { settingsPageInfo } from '$routes/settings/pageInfo';
 import { timerPageInfo } from '$routes/timer/pageInfo';
 
 export interface PageInfo {
@@ -45,7 +46,8 @@ const navInfo = {
   analytics: analyticsPageInfo,
   mesocycles: mesocyclesPageInfo,
   mesocycleNew: mesocycleNewPageInfo,
-  timer: timerPageInfo
+  timer: timerPageInfo,
+  settings: settingsPageInfo
 } satisfies Record<string, PageInfo>;
 
 export default navInfo;
