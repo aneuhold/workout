@@ -7,7 +7,7 @@ const log = createLogger('localOverride.ts');
  * Overrides various things for local development if set to true.
  */
 export default function localOverride() {
-  const enableLocalOverride = true;
+  const enableLocalOverride = false;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (enableLocalOverride) {
     log.debug('Local override active: Using local API URL');
