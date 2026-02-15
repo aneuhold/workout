@@ -12,6 +12,7 @@ class TimerService {
   #totalSeconds = $state(0);
   #endTime: number = 0;
   #interval: ReturnType<typeof setInterval> | null = null;
+  #isPaused = $state(false);
   #initialized = false;
 
   get isActive() {
@@ -24,6 +25,10 @@ class TimerService {
 
   get totalSeconds() {
     return this.#totalSeconds;
+  }
+
+  get isPaused() {
+    return this.#isPaused;
   }
 
   /**
@@ -86,15 +91,32 @@ class TimerService {
     this.#clearTimer();
     this.#endTime = Date.now() + seconds * 1000;
     this.#isActive = true;
+    this.#isPaused = false;
     this.#remainingSeconds = seconds;
     this.#totalSeconds = seconds;
     this.#interval = setInterval(() => this.#tick(), 1000);
+  }
+
+  /** Pauses the timer, preserving remaining time. */
+  pause() {
+    if (!this.#isActive || this.#isPaused) return;
+    this.#clearTimer();
+    this.#isPaused = true;
+  }
+
+  /** Resumes a paused timer. */
+  resume() {
+    if (!this.#isActive || !this.#isPaused) return;
+    this.#endTime = Date.now() + this.#remainingSeconds * 1000;
+    this.#interval = setInterval(() => this.#tick(), 1000);
+    this.#isPaused = false;
   }
 
   /** Stops the timer and resets all state. */
   stop() {
     this.#clearTimer();
     this.#isActive = false;
+    this.#isPaused = false;
     this.#remainingSeconds = 0;
     this.#totalSeconds = 0;
   }
@@ -103,6 +125,7 @@ class TimerService {
   reset() {
     this.#clearTimer();
     this.#isActive = false;
+    this.#isPaused = false;
     this.#remainingSeconds = 0;
     this.#totalSeconds = 0;
   }

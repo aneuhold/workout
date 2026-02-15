@@ -1,4 +1,6 @@
 import {
+  type Fatigue,
+  type RSM,
   type WorkoutSessionExercise,
   WorkoutSessionExerciseSchema
 } from '@aneuhold/core-ts-db-lib';
@@ -10,6 +12,10 @@ export type AddMockSessionExerciseInfo = {
   workoutSessionId: UUID;
   workoutExerciseId: UUID;
   setOrder?: UUID[];
+  rsm?: RSM;
+  fatigue?: Fatigue;
+  sorenessScore?: number;
+  performanceScore?: number;
 };
 
 export default class SessionExerciseMapServiceMock {
@@ -22,7 +28,11 @@ export default class SessionExerciseMapServiceMock {
       userId: TestUsers.currentUserCto._id,
       workoutSessionId: config.workoutSessionId,
       workoutExerciseId: config.workoutExerciseId,
-      setOrder: config.setOrder ?? []
+      setOrder: config.setOrder ?? [],
+      rsm: config.rsm,
+      fatigue: config.fatigue,
+      sorenessScore: config.sorenessScore,
+      performanceScore: config.performanceScore
     });
     sessionExerciseMapService.addDocWithoutPersist(doc);
     return doc;
