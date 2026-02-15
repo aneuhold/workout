@@ -15,7 +15,7 @@ export default class EquipmentTypeMapServiceMock {
     equipmentTypeMapService.setMap({});
   }
 
-  addEquipmentType(title: string, weightOptions?: number[]): WorkoutEquipmentType {
+  addEquipmentType(title: string, weightOptions: number[]): WorkoutEquipmentType {
     const doc = WorkoutEquipmentTypeSchema.parse({
       userId: TestUsers.currentUserCto._id,
       title,
@@ -35,16 +35,23 @@ export default class EquipmentTypeMapServiceMock {
         ]
       ),
       [MockDefaultEquipmentType.Dumbbells]: this.addEquipmentType(
-        MockDefaultEquipmentType.Dumbbells
+        MockDefaultEquipmentType.Dumbbells,
+        [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
       ),
       [MockDefaultEquipmentType.CableMachine]: this.addEquipmentType(
-        MockDefaultEquipmentType.CableMachine
+        MockDefaultEquipmentType.CableMachine,
+        [
+          5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120,
+          130, 140, 150
+        ]
       ),
       [MockDefaultEquipmentType.Bodyweight]: this.addEquipmentType(
-        MockDefaultEquipmentType.Bodyweight
+        MockDefaultEquipmentType.Bodyweight,
+        [0]
       ),
       [MockDefaultEquipmentType.ResistanceBand]: this.addEquipmentType(
-        MockDefaultEquipmentType.ResistanceBand
+        MockDefaultEquipmentType.ResistanceBand,
+        [5, 10, 15, 20, 25, 30, 35, 40, 50, 60]
       )
     };
   }
