@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <circle cx="256" cy="256" r="256" fill="#098e1f"/>
 <!-- Dumbbell (light mint, recedes) -->
-<g transform="translate(256,256) scale(0.024,-0.024) translate(-10240,-9260)" fill="#e0efe2" stroke="none">
+<g transform="translate(256,256) scale(0.024,-0.024) translate(-10240,-9260)" fill="#b8d4bb" stroke="none">
 <path d="M5390 8165 c0 -3099 2 -3466 15 -3471 18 -7 194 47 275 85 278 128
 508 387 605 684 62 190 59 148 65 1047 l5 825 175 7 c273 10 8189 8 8216 -2
 l23 -9 3 -813 c4 -867 3 -843 56 -1013 89 -287 273 -530 505 -670 89 -53 328
