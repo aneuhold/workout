@@ -125,7 +125,10 @@ class MesocycleCalendarUtils {
             setNumber: idx + 1,
             plannedReps: s.plannedReps ?? undefined,
             plannedWeight: s.plannedWeight ?? undefined,
-            plannedRir: s.plannedRir ?? undefined
+            plannedRir: s.plannedRir ?? undefined,
+            actualReps: s.actualReps ?? undefined,
+            actualWeight: s.actualWeight ?? undefined,
+            actualRir: s.rir ?? undefined
           }));
           return {
             exerciseName: exercise?.exerciseName ?? 'Unknown',

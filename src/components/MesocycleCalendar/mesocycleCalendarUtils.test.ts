@@ -378,6 +378,55 @@ describe('buildCalendarData', () => {
     expect(sessionDay?.sessions[0].exercises[0].sets[0].plannedWeight).toBe(185);
   });
 
+  it('maps actual set data for completed sessions', () => {
+    const mesocycle = makeMesocycle({ plannedMicrocycleCount: 2 });
+    const micro1 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 15), new Date(2026, 1, 21));
+    const micro2 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 22), new Date(2026, 1, 28));
+    const session = makeSession(micro1._id, 'Push', new Date(2026, 1, 16), true);
+
+    const exerciseId = DocumentService.generateID();
+    const exercise = WorkoutExerciseSchema.parse({
+      userId,
+      _id: exerciseId,
+      exerciseName: 'Bench Press',
+      repRange: ExerciseRepRange.Heavy,
+      workoutEquipmentTypeId: DocumentService.generateID(),
+      initialFatigueGuess: {}
+    });
+
+    const sessionExercise = makeSessionExercise(session._id, exerciseId);
+    const set1 = makeSet(exerciseId, session._id, sessionExercise._id, 8, 185, 3);
+    set1.actualReps = 9;
+    set1.actualWeight = 185;
+    set1.rir = 2;
+    const set2 = makeSet(exerciseId, session._id, sessionExercise._id, 6, 185, 3);
+    set2.actualReps = 7;
+    set2.actualWeight = 190;
+    set2.rir = 1;
+
+    const result = mesocycleCalendarUtils.buildCalendarData({
+      mesocycle,
+      microcycles: [micro1, micro2],
+      sessions: [session],
+      sessionExercises: [sessionExercise],
+      sets: [set1, set2],
+      exercises: [exercise]
+    });
+
+    const allDays = result.weekRows.flatMap((r) => r.days).filter((d) => d !== null);
+    const sessionDay = allDays.find((d) => d.type === 'session');
+    expect(sessionDay).toBeDefined();
+    expect(sessionDay?.sessions[0].completed).toBe(true);
+
+    const sets = sessionDay?.sessions[0].exercises[0].sets ?? [];
+    expect(sets[0].actualReps).toBe(9);
+    expect(sets[0].actualWeight).toBe(185);
+    expect(sets[0].actualRir).toBe(2);
+    expect(sets[1].actualReps).toBe(7);
+    expect(sets[1].actualWeight).toBe(190);
+    expect(sets[1].actualRir).toBe(1);
+  });
+
   it('handles non-7-day microcycles', () => {
     const mesocycle = makeMesocycle({
       plannedMicrocycleCount: 2,

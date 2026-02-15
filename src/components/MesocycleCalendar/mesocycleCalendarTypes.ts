@@ -10,6 +10,12 @@ export type MesocycleCalendarSet = {
   plannedWeight?: number;
   /** Target reps-in-reserve projected by the generation algorithm. */
   plannedRir?: number;
+  /** Actual reps recorded during the session. */
+  actualReps?: number;
+  /** Actual weight (lb) recorded during the session. */
+  actualWeight?: number;
+  /** Actual reps-in-reserve recorded during the session. */
+  actualRir?: number;
 };
 
 /** An exercise and its planned sets for display in a day cell or detail dialog. */

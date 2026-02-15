@@ -61,7 +61,9 @@
   }
 </script>
 
-<div class="w-full max-w-md mx-auto">
+<!-- Overflow x is hidden in case the month / cycle text goes out of bounds and starts creating a
+ horizontal scrollbar -->
+<div class="w-full max-w-md mx-auto p-1 overflow-x-hidden">
   <MesocycleCalendarDayHeaders />
 
   {#each calendarData.weekRows as row, rowIdx (rowIdx)}

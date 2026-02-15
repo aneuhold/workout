@@ -130,6 +130,18 @@
         }
       }
 
+      // Populate actual data on sets belonging to completed sessions
+      const completedSessionIds = new Set(
+        genSessions.filter((s) => s.complete).map((s) => s._id as string)
+      );
+      for (const set of genSets) {
+        if (completedSessionIds.has(set.workoutSessionId as string)) {
+          set.actualReps = (set.plannedReps ?? 8) + Math.floor(Math.random() * 3) - 1;
+          set.actualWeight = set.plannedWeight ?? 135;
+          set.rir = Math.max(0, (set.plannedRir ?? 3) - 1);
+        }
+      }
+
       // Add generated docs to mock services
       MockData.microcycleMapServiceMock.addManyMicrocycles(genMicrocycles);
       MockData.sessionMapServiceMock.addManySessions(genSessions);
