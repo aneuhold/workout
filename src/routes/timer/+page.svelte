@@ -1,4 +1,5 @@
 <script lang="ts">
+  import TimerPage from '$pages/TimerPage/TimerPage.svelte';
   import { timerPageInfo } from './pageInfo';
 </script>
 
@@ -7,4 +8,4 @@
   <meta name="description" content={timerPageInfo.description} />
 </svelte:head>
 
-<h1>{timerPageInfo.title}</h1>
+<TimerPage />

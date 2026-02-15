@@ -22,7 +22,8 @@ Use `pnpm` for all package management:
 - `vite.config.ts` — Sentry integration, Tailwind, node polyfills for browser crypto, Vitest
 - `src/globalStyles/global.css` — Tailwind v4 imports, CSS variables for theming (base-nova style)
 - `src/components/ui` — shadcn-svelte UI components (installed via CLI)
-- `src/stores` and `src/services` — core state management patterns
+- `src/stores` — Svelte stores (`writable`/`readable`/`derived` from `svelte/store`)
+- `src/services` — singleton service classes (including rune-based reactive state)
 
 ## Architecture & Conventions
 
@@ -57,8 +58,8 @@ Use `pnpm` for all package management:
 ### State Management
 
 - **Simple state**: Use Svelte 5 runes (`$state()`, `$derived()`)
-- **Complex state**: Use stores (`src/stores`) and services (`src/services`)
-- **Store types**: `local/` (persisted), `session/` (session-only), `derived/` (computed)
+- **Stores** (`src/stores`): Only for modules that export a real Svelte store using `writable`, `readable`, or `derived` from `svelte/store`. Organized by `local/` (persisted), `session/` (session-only), `derived/` (computed).
+- **Services** (`src/services`): Singleton classes exported as default instances. Use services for rune-based reactive state (`$state`, `$derived`, `$effect`) and for non-reactive utilities (audio, wake lock, etc.). Name files as `<Name>Service.ts` or `<Name>Service.svelte.ts` if the file uses Svelte runes.
 
 ## Before Completing Tasks
 
@@ -92,6 +93,11 @@ Use `pnpm` for all package management:
 - Within same visibility, order doesn't matter
 
 ## File Organization
+
+### Barrel Files (`index.ts`)
+
+- Only use a barrel file when a folder has a **single public export** and all other files in the folder are internal implementation details consumed exclusively by that export. This keeps the import path clean (e.g., `$services/TimerService` instead of `$services/TimerService/TimerService.svelte`) without the tree-shaking and performance downsides of large barrel files that re-export many modules.
+- Do **not** create barrel files that aggregate exports from multiple unrelated modules. Every file in the folder should be reachable only through the one public export.
 
 ### Imports
 

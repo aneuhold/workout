@@ -12,10 +12,10 @@
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
+  import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
-  import { timerStore } from '$stores/session/timerStore.svelte';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -27,6 +27,7 @@
     // TODO: Initialize workout services from LocalData when needed
     // Without this, the layout fluctuates a lot when the page is starting up.
     mounted = true;
+    timerService.init();
   });
 
   const handleVisibilityChange = () => {
@@ -58,11 +59,15 @@ at some point.
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
     <Login />
   {:else}
-    <TopBar username={$userConfig.username} />
+    <TopBar username={$userConfig.username} currentPath={page.url.pathname} />
     <NavBar currentPath={page.url.pathname} />
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->
-    <main class="pb-16 md:pb-0 md:pl-48 {timerStore.isActive ? 'pt-12' : 'md:pt-12'}">
+    <main
+      class="pb-16 md:pb-0 md:pl-48 {timerService.isActive && page.url.pathname !== '/timer'
+        ? 'pt-12'
+        : 'md:pt-12'}"
+    >
       {@render children?.()}
     </main>
   {/if}

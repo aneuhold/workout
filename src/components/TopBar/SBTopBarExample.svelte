@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { timerStore } from '$stores/session/timerStore.svelte';
+  import timerService from '$services/TimerService';
   import TopBar from './TopBar.svelte';
 
   let {
@@ -15,14 +15,14 @@
 
   $effect(() => {
     if (timerActive) {
-      timerStore.start(timerSeconds);
+      timerService.start(timerSeconds);
     } else {
-      timerStore.stop();
+      timerService.stop();
     }
   });
 
   onDestroy(() => {
-    timerStore.stop();
+    timerService.stop();
   });
 </script>
 
