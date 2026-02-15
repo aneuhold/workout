@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocketService';
+import { userConfig } from '$stores/local/userConfig/userConfig';
 import WorkoutAPIResponseHandlingService from '$util/api/WorkoutAPIResponseHandlingService';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
-import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 
 const log = createLogger('loginState.ts');
@@ -31,7 +31,7 @@ function createLoginStateStore() {
     _loginState = newState;
     // Add the Sentry info for the user here
     if (newState === LoginState.LoggedIn) {
-      getSentry()?.setUser({ username: LocalData.username });
+      getSentry()?.setUser({ username: userConfig.get().username });
     }
 
     handleLoginStateChangeForWebSocket(newState);
@@ -39,8 +39,8 @@ function createLoginStateStore() {
     set(_loginState);
   }
 
-  // Determine initial login state based on persisted API key.
-  if (browser && LocalData.apiKey && LocalData.apiKey !== '') {
+  // Determine initial login state based on persisted API key in userConfig.
+  if (browser && userConfig.get().apiKey) {
     setLoginState(LoginState.LoggedIn);
     WorkoutAPIService.getInitialDataIfNeeded();
   } else {

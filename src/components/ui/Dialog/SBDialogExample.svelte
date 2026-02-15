@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from '../Button/Button.svelte';
+  import Button, { buttonVariants } from '../Button/Button.svelte';
   import Dialog from './Dialog.svelte';
   import DialogClose from './DialogClose.svelte';
   import DialogContent from './DialogContent.svelte';
@@ -38,9 +38,7 @@
     </div>
     {#if showFooter}
       <DialogFooter>
-        <DialogClose>
-          <Button variant="outline">Cancel</Button>
-        </DialogClose>
+        <DialogClose class={buttonVariants({ variant: 'outline' })}>Cancel</DialogClose>
         <Button>Continue</Button>
       </DialogFooter>
     {/if}

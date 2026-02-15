@@ -8,6 +8,7 @@
 
   const { Story } = defineMeta({
     title: 'Components/Login',
+    tags: ['!autodocs'],
     component: Login,
     parameters: {
       // To remove the padding, because this component is meant to be centered in the viewport

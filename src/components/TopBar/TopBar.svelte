@@ -6,9 +6,10 @@
 -->
 <script lang="ts">
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
-  import { apiKey } from '$stores/local/apiKey';
+  import { goto } from '$app/navigation';
+  import timerService from '$services/TimerService';
+  import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
-  import { timerStore } from '$stores/session/timerStore.svelte';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';
   import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
@@ -16,8 +17,11 @@
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
+  import { formatTime } from '$util/formatTime';
 
-  let { username = '' }: { username?: string } = $props();
+  let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
+
+  const showTimerHighlight = $derived(timerService.isActive && currentPath !== '/timer');
 
   const initials = $derived(
     username
@@ -30,21 +34,15 @@
       : ''
   );
 
-  function formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${String(s).padStart(2, '0')}`;
-  }
-
   function handleLogout() {
-    apiKey.set(null);
+    userConfig.clear();
     loginState.set(LoginState.LoggedOut);
   }
 </script>
 
 <header
   class="z-40 flex h-12 items-center justify-between px-4
-    {timerStore.isActive
+    {showTimerHighlight
     ? 'fixed inset-x-0 top-0 bg-primary text-primary-foreground animate-timer-pulse'
     : 'bg-sidebar text-sidebar-foreground md:fixed md:inset-x-0 md:top-0'}"
 >
@@ -52,10 +50,10 @@
   <span class="text-lg font-semibold">MesoPro</span>
 
   <!-- Center: Timer display (only when active) -->
-  {#if timerStore.isActive}
+  {#if showTimerHighlight}
     <div class="flex items-center gap-1.5">
       <IconStopwatch size={18} stroke={1.5} />
-      <span class="font-mono text-sm">{formatTime(timerStore.remainingSeconds)}</span>
+      <span class="font-mono text-sm">{formatTime(timerService.remainingSeconds)}</span>
     </div>
   {/if}
 
@@ -75,7 +73,7 @@
       </button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
-      <DropdownMenuItem>
+      <DropdownMenuItem onclick={() => goto('/settings')}>
         <IconSettings size={16} />
         Settings
       </DropdownMenuItem>

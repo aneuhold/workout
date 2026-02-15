@@ -87,6 +87,102 @@ export default class ExerciseCalibrationMapServiceMock {
       );
     }
 
+    const pullups = findExercise(MockDefaultExercise.Pullups);
+    if (pullups) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: pullups._id,
+          weight: 0,
+          reps: 8,
+          dateRecorded: new Date('2025-12-10')
+        })
+      );
+    }
+
+    const lateralRaise = findExercise(MockDefaultExercise.DumbbellLateralRaise);
+    if (lateralRaise) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: lateralRaise._id,
+          weight: 20,
+          reps: 12,
+          dateRecorded: new Date('2025-12-18')
+        })
+      );
+    }
+
+    const rdl = findExercise(MockDefaultExercise.RomanianDeadlift);
+    if (rdl) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: rdl._id,
+          weight: 225,
+          reps: 8,
+          dateRecorded: new Date('2025-12-22')
+        })
+      );
+    }
+
+    const barbellRow = findExercise(MockDefaultExercise.BarbellRow);
+    if (barbellRow) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: barbellRow._id,
+          weight: 165,
+          reps: 8,
+          dateRecorded: new Date('2025-12-12')
+        })
+      );
+    }
+
+    const bulgarianSplitSquat = findExercise(MockDefaultExercise.BulgarianSplitSquat);
+    if (bulgarianSplitSquat) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: bulgarianSplitSquat._id,
+          weight: 40,
+          reps: 10,
+          dateRecorded: new Date('2026-01-02')
+        })
+      );
+    }
+
+    const barbellCurl = findExercise(MockDefaultExercise.BarbellCurl);
+    if (barbellCurl) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: barbellCurl._id,
+          weight: 75,
+          reps: 10,
+          dateRecorded: new Date('2025-12-28')
+        })
+      );
+    }
+
+    const facePull = findExercise(MockDefaultExercise.CableFacePull);
+    if (facePull) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: facePull._id,
+          weight: 30,
+          reps: 15,
+          dateRecorded: new Date('2025-12-30')
+        })
+      );
+    }
+
+    const hipThrust = findExercise(MockDefaultExercise.HipThrust);
+    if (hipThrust) {
+      calibrations.push(
+        this.addCalibration({
+          workoutExerciseId: hipThrust._id,
+          weight: 225,
+          reps: 8,
+          dateRecorded: new Date('2026-01-08')
+        })
+      );
+    }
+
     return calibrations;
   }
 }

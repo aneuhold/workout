@@ -1,6 +1,7 @@
 import {
   ExerciseProgressionType,
   ExerciseRepRange,
+  type Fatigue,
   type WorkoutEquipmentType,
   type WorkoutExercise,
   WorkoutExerciseSchema,
@@ -19,7 +20,12 @@ export enum MockDefaultExercise {
   DumbbellLateralRaise = 'Dumbbell Lateral Raise',
   CableTricepPushdown = 'Cable Tricep Pushdown',
   RomanianDeadlift = 'Romanian Deadlift',
-  InclineDumbbellPress = 'Incline Dumbbell Press'
+  InclineDumbbellPress = 'Incline Dumbbell Press',
+  BarbellRow = 'Barbell Row',
+  BulgarianSplitSquat = 'Bulgarian Split Squat',
+  BarbellCurl = 'Barbell Curl',
+  CableFacePull = 'Cable Face Pull',
+  HipThrust = 'Hip Thrust'
 }
 
 export type AddMockExerciseInfo = {
@@ -31,6 +37,7 @@ export type AddMockExerciseInfo = {
   secondaryMuscleGroups?: UUID[];
   restSeconds?: number;
   notes?: string;
+  initialFatigueGuess?: Fatigue;
 };
 
 export default class ExerciseMapServiceMock {
@@ -49,7 +56,7 @@ export default class ExerciseMapServiceMock {
       secondaryMuscleGroups: options.secondaryMuscleGroups ?? [],
       restSeconds: options.restSeconds,
       notes: options.notes,
-      initialFatigueGuess: {}
+      initialFatigueGuess: options.initialFatigueGuess ?? {}
     });
     exerciseMapService.addDocWithoutPersist(doc);
     return doc;
@@ -70,7 +77,12 @@ export default class ExerciseMapServiceMock {
           muscleGroups[MockDefaultMuscleGroup.FrontDelts]._id,
           muscleGroups[MockDefaultMuscleGroup.Triceps]._id
         ],
-        restSeconds: 180
+        restSeconds: 180,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 1,
+          perceivedEffort: 2,
+          unusedMusclePerformance: 1
+        }
       }),
       this.addExercise({
         exerciseName: MockDefaultExercise.Pullups,
@@ -83,7 +95,12 @@ export default class ExerciseMapServiceMock {
           muscleGroups[MockDefaultMuscleGroup.RearDelts]._id
         ],
         restSeconds: 120,
-        notes: 'Use wide grip for more lat activation.'
+        notes: 'Use wide grip for more lat activation.',
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 0,
+          perceivedEffort: 1,
+          unusedMusclePerformance: 1
+        }
       }),
       this.addExercise({
         exerciseName: MockDefaultExercise.BarbellSquat,
@@ -95,8 +112,14 @@ export default class ExerciseMapServiceMock {
           muscleGroups[MockDefaultMuscleGroup.Glutes]._id
         ],
         secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Hamstrings]._id],
-        restSeconds: 180
+        restSeconds: 180,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 2,
+          perceivedEffort: 3,
+          unusedMusclePerformance: 2
+        }
       }),
+      // Dumbbell Lateral Raise intentionally has no fatigue guess
       this.addExercise({
         exerciseName: MockDefaultExercise.DumbbellLateralRaise,
         workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.Dumbbells]._id,
@@ -111,7 +134,12 @@ export default class ExerciseMapServiceMock {
         repRange: ExerciseRepRange.Medium,
         preferredProgressionType: ExerciseProgressionType.Load,
         primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Triceps]._id],
-        restSeconds: 90
+        restSeconds: 90,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 0,
+          perceivedEffort: 1,
+          unusedMusclePerformance: 0
+        }
       }),
       this.addExercise({
         exerciseName: MockDefaultExercise.RomanianDeadlift,
@@ -124,7 +152,12 @@ export default class ExerciseMapServiceMock {
         ],
         secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Lats]._id],
         restSeconds: 120,
-        notes: 'Focus on hip hinge; keep bar close to legs.'
+        notes: 'Focus on hip hinge; keep bar close to legs.',
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 1,
+          perceivedEffort: 2,
+          unusedMusclePerformance: 2
+        }
       }),
       this.addExercise({
         exerciseName: MockDefaultExercise.InclineDumbbellPress,
@@ -136,7 +169,84 @@ export default class ExerciseMapServiceMock {
           muscleGroups[MockDefaultMuscleGroup.FrontDelts]._id
         ],
         secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Triceps]._id],
-        restSeconds: 120
+        restSeconds: 120,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 1,
+          perceivedEffort: 1,
+          unusedMusclePerformance: 1
+        }
+      }),
+      this.addExercise({
+        exerciseName: MockDefaultExercise.BarbellRow,
+        workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.Barbell]._id,
+        repRange: ExerciseRepRange.Heavy,
+        preferredProgressionType: ExerciseProgressionType.Load,
+        primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Lats]._id],
+        secondaryMuscleGroups: [
+          muscleGroups[MockDefaultMuscleGroup.Biceps]._id,
+          muscleGroups[MockDefaultMuscleGroup.RearDelts]._id
+        ],
+        restSeconds: 150,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 1,
+          perceivedEffort: 2,
+          unusedMusclePerformance: 1
+        }
+      }),
+      this.addExercise({
+        exerciseName: MockDefaultExercise.BulgarianSplitSquat,
+        workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.Dumbbells]._id,
+        repRange: ExerciseRepRange.Medium,
+        preferredProgressionType: ExerciseProgressionType.Load,
+        primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Quadriceps]._id],
+        secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Glutes]._id],
+        restSeconds: 120,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 1,
+          perceivedEffort: 2,
+          unusedMusclePerformance: 1
+        }
+      }),
+      this.addExercise({
+        exerciseName: MockDefaultExercise.BarbellCurl,
+        workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.Barbell]._id,
+        repRange: ExerciseRepRange.Medium,
+        preferredProgressionType: ExerciseProgressionType.Load,
+        primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Biceps]._id],
+        restSeconds: 90,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 0,
+          perceivedEffort: 1,
+          unusedMusclePerformance: 0
+        }
+      }),
+      this.addExercise({
+        exerciseName: MockDefaultExercise.CableFacePull,
+        workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.CableMachine]._id,
+        repRange: ExerciseRepRange.Light,
+        preferredProgressionType: ExerciseProgressionType.Rep,
+        primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.RearDelts]._id],
+        secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.SideDelts]._id],
+        restSeconds: 60,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 0,
+          perceivedEffort: 1,
+          unusedMusclePerformance: 0
+        }
+      }),
+      this.addExercise({
+        exerciseName: MockDefaultExercise.HipThrust,
+        workoutEquipmentTypeId: equipment[MockDefaultEquipmentType.Barbell]._id,
+        repRange: ExerciseRepRange.Heavy,
+        preferredProgressionType: ExerciseProgressionType.Load,
+        primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Glutes]._id],
+        secondaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.Hamstrings]._id],
+        restSeconds: 150,
+        initialFatigueGuess: {
+          jointAndTissueDisruption: 0,
+          perceivedEffort: 2,
+          unusedMusclePerformance: 1
+        }
       })
     ];
   }

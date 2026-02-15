@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { sessionPageInfo } from './pageInfo';
 
-  let sessionId = $derived($page.url.searchParams.get('sessionId'));
+  let sessionId = $derived(page.url.searchParams.get('sessionId'));
 </script>
 
 <svelte:head>
