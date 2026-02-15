@@ -63,17 +63,22 @@
   <MesocycleCalendarDayHeaders />
 
   {#each calendarData.weekRows as row, rowIdx (rowIdx)}
-    {#if row.labelRow}
-      <MesocycleCalendarLabelRow labels={row.labelRow} />
-    {/if}
-    <div class="grid grid-cols-7 gap-1">
-      {#each row.days as day, colIdx (colIdx)}
-        {#if day}
-          <MesocycleCalendarDayCell {day} {mode} {currentCycleNumber} onDayClick={handleDayClick} />
-        {:else}
-          <div class="min-h-12"></div>
-        {/if}
-      {/each}
+    <div class="mt-1">
+      <MesocycleCalendarLabelRow labels={row.labelRow ?? []} />
+      <div class="grid grid-cols-7 gap-1">
+        {#each row.days as day, colIdx (colIdx)}
+          {#if day}
+            <MesocycleCalendarDayCell
+              {day}
+              {mode}
+              {currentCycleNumber}
+              onDayClick={handleDayClick}
+            />
+          {:else}
+            <div class="min-h-12"></div>
+          {/if}
+        {/each}
+      </div>
     </div>
   {/each}
 </div>

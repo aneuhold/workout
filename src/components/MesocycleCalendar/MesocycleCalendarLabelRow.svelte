@@ -13,16 +13,18 @@
   });
 </script>
 
-<div class="grid grid-cols-7 gap-1">
+<div class="grid grid-cols-7 gap-1 min-h-4">
   {#each labelsByColumn as entry, col (col)}
-    <div class="text-xs truncate px-0.5">
+    <div class="text-xs px-0.5">
       {#if entry}
-        {#if entry.cycleLabel}
-          <span class="font-semibold text-foreground">{entry.cycleLabel}</span>
-        {/if}
-        {#if entry.monthLabel}
-          <span class="text-muted-foreground">{entry.monthLabel}</span>
-        {/if}
+        <span class="whitespace-nowrap">
+          {#if entry.cycleLabel}
+            <span class="text-foreground">{entry.cycleLabel}</span>
+          {/if}
+          {#if entry.monthLabel}
+            <span class="text-muted-foreground">{entry.monthLabel}</span>
+          {/if}
+        </span>
       {/if}
     </div>
   {/each}

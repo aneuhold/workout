@@ -65,7 +65,7 @@
     class={dayCellVariants({ visual, cycleStart: day.isCycleStart })}
     onclick={() => onDayClick(day)}
   >
-    <span class="font-medium">{dateLabel}</span>
+    <span class="text-foreground">{dateLabel}</span>
     <div class="flex gap-0.5 mt-0.5">
       {#each day.sessions as session (session.sessionId)}
         {#if session.completed}
@@ -78,7 +78,7 @@
   </button>
 {:else}
   <div class={dayCellVariants({ visual, cycleStart: day.isCycleStart })}>
-    <span class="font-medium">{dateLabel}</span>
+    <span class="text-foreground">{dateLabel}</span>
     {#if day.type === 'rest'}
       <span class="text-[10px] text-muted-foreground mt-0.5">Rest</span>
     {/if}
