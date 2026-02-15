@@ -17,13 +17,15 @@
     microcycleLengthDays = 7,
     restDays = '0,6',
     startDate = '2026-02-16',
-    completedSessionCount = 0
+    completedSessionCount = 0,
+    plannedSessionCountPerMicrocycle = 5
   }: {
     microcycleCount?: number;
     microcycleLengthDays?: number;
     restDays?: string;
     startDate?: string;
     completedSessionCount?: number;
+    plannedSessionCountPerMicrocycle?: number;
   } = $props();
 
   let mesocycle = $state<WorkoutMesocycle | null>(null);
@@ -40,6 +42,7 @@
     const _restDays = restDays;
     const _startDate = startDate;
     const _completedCount = completedSessionCount;
+    const _plannedSessionCount = plannedSessionCountPerMicrocycle;
 
     untrack(() => {
       // Reset all mock services
@@ -68,15 +71,12 @@
         .map((s) => parseInt(s.trim(), 10))
         .filter((n) => !isNaN(n));
 
-      // Determine how many sessions per microcycle based on length and rest days
-      const sessionCount = _mcLength - parsedRestDays.length;
-
       // Create mesocycle document
       const mesoDoc = MockData.mesocycleMapServiceMock.addMesocycle({
         plannedMicrocycleCount: _mcCount,
         plannedMicrocycleLengthInDays: _mcLength,
         plannedMicrocycleRestDays: parsedRestDays,
-        plannedSessionCountPerMicrocycle: sessionCount > 0 ? sessionCount : 1,
+        plannedSessionCountPerMicrocycle: _plannedSessionCount > 0 ? _plannedSessionCount : 1,
         calibratedExercises: calibrations.map((c) => c._id)
       });
 
@@ -87,6 +87,14 @@
       const equipmentTypes = Object.values(equipment);
 
       // Generate the mesocycle plan
+      console.log('Generating mesocycle with params:', {
+        microcycleCount: _mcCount,
+        microcycleLengthDays: _mcLength,
+        restDays: parsedRestDays,
+        startDate: parsedStart,
+        completedSessionCount: _completedCount,
+        plannedSessionCountPerMicrocycle: _plannedSessionCount
+      });
       const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
         mesoDoc,
         calibrations,

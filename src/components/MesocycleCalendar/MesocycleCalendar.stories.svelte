@@ -15,7 +15,8 @@
       microcycleLengthDays: 8,
       restDays: '0,6',
       startDate: '2026-02-15',
-      completedSessionCount: 0
+      completedSessionCount: 0,
+      plannedSessionCountPerMicrocycle: 5
     }
   });
 </script>
