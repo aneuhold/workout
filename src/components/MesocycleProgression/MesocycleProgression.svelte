@@ -2,8 +2,8 @@
   @component
 
   Visualizes exercise progression across a mesocycle. Shows per-session tabs
-  with exercise tables displaying cycle-by-cycle RIR, sets, and target
-  weight/rep progression. Supports both planned-only and completed data.
+  with exercise tables displaying cycle-by-cycle per-set progression for
+  reps, weight, and RIR. Each set gets its own row for clarity.
 -->
 <script lang="ts">
   import type {
@@ -14,7 +14,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
-  import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+  import { SvelteMap } from 'svelte/reactivity';
   import Table from '$ui/Table/Table.svelte';
   import TableBody from '$ui/Table/TableBody.svelte';
   import TableCell from '$ui/Table/TableCell.svelte';
@@ -36,20 +36,31 @@
     hasActual: boolean;
   };
 
-  type CycleRow = {
+  type SetRow = {
     cycleLabel: string;
     isDeload: boolean;
-    rirRange: string;
-    setCount: number;
-    prevSetCount: number | null;
-    targets: SetTarget[];
-    prevTargets: SetTarget[] | null;
+    isFirstSetInCycle: boolean;
+    isNewSet: boolean;
+    isPlannedOnly: boolean;
+    setNumber: number;
+    displayReps: number | null;
+    displayWeight: number | null;
+    displayRir: number | null;
+    plannedReps: number | null;
+    plannedWeight: number | null;
+    plannedRir: number | null;
+    repsDifferFromPlan: boolean;
+    weightDiffersFromPlan: boolean;
+    rirDiffersFromPlan: boolean;
+    repsDelta: number | null;
+    weightDelta: number | null;
+    rirDelta: number | null;
   };
 
   type ExerciseProgression = {
     exerciseId: UUID;
     exerciseName: string;
-    rows: CycleRow[];
+    rows: SetRow[];
   };
 
   type SessionTab = {
@@ -119,19 +130,20 @@
     const lastCycleIndex = totalCycles - 1;
 
     return firstMicrocycleSessions.map((templateSession, sessionIndex) => {
-      // Collect all session exercises across all cycles for this session position
-      const exerciseProgressions = new SvelteMap<UUID, CycleRow[]>();
+      const exerciseRows = new SvelteMap<UUID, SetRow[]>();
       const exerciseOrder: UUID[] = [];
+      const prevTargetsMap = new SvelteMap<UUID, SetTarget[]>();
 
       for (let cycleIdx = 0; cycleIdx < totalCycles; cycleIdx++) {
         const microcycle = microcycles[cycleIdx];
         const microcycleSessions = sessionsByMicrocycle.get(microcycle._id) ?? [];
         const session = microcycleSessions[sessionIndex];
         const exercisesForSession = sessionExercisesBySession.get(session._id) ?? [];
+
         for (const sessionExercise of exercisesForSession) {
           const exerciseId = sessionExercise.workoutExerciseId;
-          if (!exerciseProgressions.has(exerciseId)) {
-            exerciseProgressions.set(exerciseId, []);
+          if (!exerciseRows.has(exerciseId)) {
+            exerciseRows.set(exerciseId, []);
             exerciseOrder.push(exerciseId);
           }
 
@@ -147,37 +159,85 @@
           }));
 
           const isDeload = cycleIdx === lastCycleIndex && totalCycles > 1;
+          const cycleLabel = isDeload ? 'DL' : `C${cycleIdx + 1}`;
+          const prevTargets = prevTargetsMap.get(exerciseId) ?? null;
+          const rows = exerciseRows.get(exerciseId) ?? [];
 
-          // Compute RIR range string
-          const rirValues = targets
-            .map((target) => (target.hasActual ? target.actualRir : target.plannedRir))
-            .filter((rir): rir is number => rir != null);
-          const rirRange =
-            rirValues.length > 0
-              ? rirValues.length === 1 || new SvelteSet(rirValues).size === 1
-                ? `${rirValues[0]}`
-                : `${Math.max(...rirValues)} \u2192 ${Math.min(...rirValues)}`
-              : '-';
+          for (let setIdx = 0; setIdx < targets.length; setIdx++) {
+            const target = targets[setIdx];
+            const prevTarget = prevTargets?.[setIdx];
+            const isNewSet = prevTargets != null && setIdx >= prevTargets.length;
+            const isPlannedOnly = !target.hasActual;
 
-          const prevRows = exerciseProgressions.get(exerciseId) ?? [];
-          const prevRow = prevRows.length > 0 ? prevRows[prevRows.length - 1] : null;
+            const displayReps =
+              target.hasActual && target.actualReps != null
+                ? target.actualReps
+                : target.plannedReps;
+            const displayWeight =
+              target.hasActual && target.actualWeight != null
+                ? target.actualWeight
+                : target.plannedWeight;
+            const displayRir =
+              target.hasActual && target.actualRir != null ? target.actualRir : target.plannedRir;
 
-          prevRows.push({
-            cycleLabel: isDeload ? 'DL' : `C${cycleIdx + 1}`,
-            isDeload,
-            rirRange,
-            setCount: exerciseSets.length,
-            prevSetCount: prevRow?.setCount ?? null,
-            targets,
-            prevTargets: prevRow?.targets ?? null
-          });
+            let repsDelta: number | null = null;
+            let weightDelta: number | null = null;
+            let rirDelta: number | null = null;
+
+            if (prevTarget) {
+              const prevReps = prevTarget.hasActual
+                ? prevTarget.actualReps
+                : prevTarget.plannedReps;
+              const prevWeight = prevTarget.hasActual
+                ? prevTarget.actualWeight
+                : prevTarget.plannedWeight;
+              const prevRir = prevTarget.hasActual ? prevTarget.actualRir : prevTarget.plannedRir;
+
+              if (displayReps != null && prevReps != null) repsDelta = displayReps - prevReps;
+              if (displayWeight != null && prevWeight != null)
+                weightDelta = displayWeight - prevWeight;
+              if (displayRir != null && prevRir != null) rirDelta = displayRir - prevRir;
+            }
+
+            rows.push({
+              cycleLabel,
+              isDeload,
+              isFirstSetInCycle: setIdx === 0,
+              isNewSet,
+              isPlannedOnly,
+              setNumber: setIdx + 1,
+              displayReps,
+              displayWeight,
+              displayRir,
+              plannedReps: target.plannedReps,
+              plannedWeight: target.plannedWeight,
+              plannedRir: target.plannedRir,
+              repsDifferFromPlan:
+                target.hasActual &&
+                target.actualReps != null &&
+                target.actualReps !== target.plannedReps,
+              weightDiffersFromPlan:
+                target.hasActual &&
+                target.actualWeight != null &&
+                target.actualWeight !== target.plannedWeight,
+              rirDiffersFromPlan:
+                target.hasActual &&
+                target.actualRir != null &&
+                target.actualRir !== target.plannedRir,
+              repsDelta,
+              weightDelta,
+              rirDelta
+            });
+          }
+
+          prevTargetsMap.set(exerciseId, targets);
         }
       }
 
       const exercisesForTab: ExerciseProgression[] = exerciseOrder.map((exerciseId) => ({
         exerciseId,
         exerciseName: exerciseMap.get(exerciseId)?.exerciseName ?? 'Unknown',
-        rows: exerciseProgressions.get(exerciseId) ?? []
+        rows: exerciseRows.get(exerciseId) ?? []
       }));
 
       return {
@@ -190,48 +250,24 @@
 
   const defaultTab = $derived(sessionTabs.length > 0 ? sessionTabs[0].tabValue : '');
 
-  function formatReps(target: SetTarget): string {
-    const reps =
-      target.hasActual && target.actualReps != null ? target.actualReps : target.plannedReps;
-    return reps != null ? `${reps}` : '?';
+  function deltaClass(delta: number | null): string {
+    if (delta == null || delta === 0) return '';
+    return delta > 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400';
   }
 
-  function formatWeight(target: SetTarget): string {
-    const weight =
-      target.hasActual && target.actualWeight != null ? target.actualWeight : target.plannedWeight;
-    return weight != null ? `${weight}` : '?';
+  function rirDeltaClass(delta: number | null): string {
+    if (delta == null || delta === 0) return '';
+    // Lower RIR = closer to failure = improvement = green
+    return delta < 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400';
   }
 
-  function getPlannedReps(target: SetTarget): string {
-    return target.plannedReps != null ? `${target.plannedReps}` : '?';
+  function deltaArrow(delta: number | null): string {
+    if (delta == null || delta === 0) return '';
+    return delta > 0 ? '\u2191' : '\u2193';
   }
 
-  function getPlannedWeight(target: SetTarget): string {
-    return target.plannedWeight != null ? `${target.plannedWeight}` : '?';
-  }
-
-  function actualDiffersFromPlanned(target: SetTarget): boolean {
-    if (!target.hasActual) return false;
-    return (
-      (target.actualReps != null && target.actualReps !== target.plannedReps) ||
-      (target.actualWeight != null && target.actualWeight !== target.plannedWeight)
-    );
-  }
-
-  function getRepsDelta(current: SetTarget, prev: SetTarget | undefined): number | null {
-    if (!prev) return null;
-    const currentReps = current.hasActual ? current.actualReps : current.plannedReps;
-    const previousReps = prev.hasActual ? prev.actualReps : prev.plannedReps;
-    if (currentReps == null || previousReps == null) return null;
-    return currentReps - previousReps;
-  }
-
-  function getWeightDelta(current: SetTarget, prev: SetTarget | undefined): number | null {
-    if (!prev) return null;
-    const currentWeight = current.hasActual ? current.actualWeight : current.plannedWeight;
-    const previousWeight = prev.hasActual ? prev.actualWeight : prev.plannedWeight;
-    if (currentWeight == null || previousWeight == null) return null;
-    return currentWeight - previousWeight;
+  function fmt(value: number | null): string {
+    return value != null ? `${value}` : '-';
   }
 </script>
 
@@ -255,66 +291,61 @@
                 <TableHeader>
                   <TableRow>
                     <TableHead class="w-12">Cycle</TableHead>
-                    <TableHead class="w-16">RIR</TableHead>
-                    <TableHead class="w-12">Sets</TableHead>
-                    <TableHead>Targets (reps x lb)</TableHead>
+                    <TableHead class="w-10">Set</TableHead>
+                    <TableHead class="w-16">Reps</TableHead>
+                    <TableHead class="w-20">Wt (lb)</TableHead>
+                    <TableHead class="w-12">RIR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {#each exercise.rows as row, rowIdx (rowIdx)}
-                    <TableRow class={row.isDeload ? 'bg-muted' : ''}>
-                      <TableCell class="font-medium">{row.cycleLabel}</TableCell>
-                      <TableCell>{row.rirRange}</TableCell>
+                    {@const rowClasses = [
+                      row.isFirstSetInCycle && rowIdx > 0
+                        ? 'border-t-2 border-muted-foreground/20'
+                        : '',
+                      row.isDeload ? 'bg-muted' : '',
+                      row.isNewSet
+                        ? 'text-green-600 dark:text-green-400'
+                        : row.isPlannedOnly
+                          ? 'text-muted-foreground'
+                          : ''
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    <TableRow class={rowClasses}>
+                      <TableCell class="font-medium">
+                        {row.isFirstSetInCycle ? row.cycleLabel : ''}
+                      </TableCell>
+                      <TableCell>{row.setNumber}</TableCell>
                       <TableCell>
-                        {row.setCount}
-                        {#if row.prevSetCount != null && row.setCount !== row.prevSetCount}
-                          <span
-                            class="text-xs {row.setCount > row.prevSetCount
-                              ? 'text-green-600 dark:text-green-400'
-                              : 'text-amber-600 dark:text-amber-400'}"
-                          >
-                            {row.setCount > row.prevSetCount ? '\u2191' : '\u2193'}
+                        <span class={deltaClass(row.repsDelta)}>
+                          {fmt(row.displayReps)}{deltaArrow(row.repsDelta)}
+                        </span>
+                        {#if row.repsDifferFromPlan}
+                          <span class="text-[0.6rem] text-muted-foreground block leading-tight">
+                            plan: {fmt(row.plannedReps)}
                           </span>
                         {/if}
                       </TableCell>
                       <TableCell>
-                        <div class="flex flex-wrap gap-1">
-                          {#each row.targets as target, targetIdx (targetIdx)}
-                            {@const weightDelta = getWeightDelta(
-                              target,
-                              row.prevTargets?.[targetIdx]
-                            )}
-                            {@const repsDelta = getRepsDelta(target, row.prevTargets?.[targetIdx])}
-                            {@const isNew =
-                              row.prevTargets != null && targetIdx >= row.prevTargets.length}
-                            <span
-                              class="text-xs {isNew
-                                ? 'text-green-600 dark:text-green-400'
-                                : ''} {!target.hasActual && !isNew ? 'text-muted-foreground' : ''}"
-                            >
-                              <span
-                                class={repsDelta != null && repsDelta > 0
-                                  ? 'text-green-600 dark:text-green-400'
-                                  : repsDelta != null && repsDelta < 0
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : ''}>{formatReps(target)}</span
-                              >x<span
-                                class={weightDelta != null && weightDelta > 0
-                                  ? 'text-green-600 dark:text-green-400'
-                                  : weightDelta != null && weightDelta < 0
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : ''}>{formatWeight(target)}</span
-                              >
-                              {#if actualDiffersFromPlanned(target)}
-                                <span
-                                  class="text-[0.6rem] text-muted-foreground block leading-tight"
-                                >
-                                  ({getPlannedReps(target)}x{getPlannedWeight(target)})
-                                </span>
-                              {/if}
-                            </span>
-                          {/each}
-                        </div>
+                        <span class={deltaClass(row.weightDelta)}>
+                          {fmt(row.displayWeight)}{deltaArrow(row.weightDelta)}
+                        </span>
+                        {#if row.weightDiffersFromPlan}
+                          <span class="text-[0.6rem] text-muted-foreground block leading-tight">
+                            plan: {fmt(row.plannedWeight)}
+                          </span>
+                        {/if}
+                      </TableCell>
+                      <TableCell>
+                        <span class={rirDeltaClass(row.rirDelta)}>
+                          {fmt(row.displayRir)}{deltaArrow(row.rirDelta)}
+                        </span>
+                        {#if row.rirDiffersFromPlan}
+                          <span class="text-[0.6rem] text-muted-foreground block leading-tight">
+                            plan: {fmt(row.plannedRir)}
+                          </span>
+                        {/if}
                       </TableCell>
                     </TableRow>
                   {/each}
