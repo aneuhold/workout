@@ -5,11 +5,10 @@
   Fetches session data, derives mode, manages card expansion, and orchestrates all sub-components.
 -->
 <script lang="ts">
-  import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
+  import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-  import setMapService from '$services/documentMapServices/setMapService.svelte';
   import SessionPageExerciseCard from './SessionPageExerciseCard.svelte';
   import SessionPageHeader from './SessionPageHeader.svelte';
   import SessionPageProgressBar from './SessionPageProgressBar.svelte';
@@ -26,20 +25,11 @@
 
   let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
 
-  let sessionExercises = $derived.by(() => {
-    if (!session) return [];
-    const allExercises = sessionExerciseMapService
-      .getDocs()
-      .filter((se) => se.workoutSessionId === session._id);
-    return session.sessionExerciseOrder
-      .map((id) => allExercises.find((se) => se._id === id))
-      .filter((se) => se != null);
-  });
+  let sessionExercises = $derived(
+    session ? sessionMapService.getOrderedSessionExercisesForSession(session) : []
+  );
 
-  let allSets = $derived.by(() => {
-    const setIds = sessionExercises.flatMap((se) => se.setOrder);
-    return setIds.map((id) => setMapService.getDoc(id)).filter((s): s is WorkoutSet => s != null);
-  });
+  let allSets = $derived(session ? sessionMapService.getOrderedSetsForSession(session) : []);
 
   let completedSets = $derived(
     allSets.filter(
@@ -52,6 +42,13 @@
   let completedCount = $derived(completedSets.length);
   let percent = $derived(totalSets > 0 ? Math.round((completedCount / totalSets) * 100) : 0);
 
+  // --- Deload detection ---
+
+  function isDeloadExercise(se: WorkoutSessionExercise): boolean {
+    const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+    return seSets.length > 0 && seSets.every((s) => s.plannedRir == null);
+  }
+
   // --- Mode derivation ---
 
   let dataMode: SessionPageMode = $derived.by(() => {
@@ -59,6 +56,7 @@
     if (!session.complete) return SessionPageMode.Active;
 
     const hasNullLateFields = sessionExercises.some((se) => {
+      if (isDeloadExercise(se)) return false;
       const disruptionNull = se.rsm?.disruption == null;
       const unusedMuscleNull = se.fatigue?.unusedMusclePerformance == null;
       const sorenessNull = se.sorenessScore == null;
@@ -90,9 +88,10 @@
     sessionExercises.length > 0 &&
       sessionExercises.every(
         (se) =>
-          se.rsm?.disruption != null &&
-          se.fatigue?.unusedMusclePerformance != null &&
-          se.sorenessScore != null
+          isDeloadExercise(se) ||
+          (se.rsm?.disruption != null &&
+            se.fatigue?.unusedMusclePerformance != null &&
+            se.sorenessScore != null)
       )
   );
 
@@ -100,10 +99,9 @@
 
   let currentExerciseIndex = $derived.by(() => {
     for (let i = 0; i < sessionExercises.length; i++) {
-      const se = sessionExercises[i];
-      const exerciseSets = se.setOrder
-        .map((id) => setMapService.getDoc(id))
-        .filter((s): s is WorkoutSet => s != null);
+      const exerciseSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(
+        sessionExercises[i]
+      );
       const allComplete = exerciseSets.every(
         (s) =>
           s.actualReps != null && s.actualWeight != null && (s.rir != null || s.plannedRir == null)
@@ -116,6 +114,7 @@
   // --- Card state ---
 
   function exerciseNeedsReview(se: (typeof sessionExercises)[number]): boolean {
+    if (isDeloadExercise(se)) return false;
     return (
       se.rsm?.disruption == null ||
       se.fatigue?.unusedMusclePerformance == null ||

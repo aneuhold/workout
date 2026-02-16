@@ -66,6 +66,8 @@
       .filter((s): s is WorkoutSet => s != null)
   );
 
+  let isDeload = $derived(sets.length > 0 && sets.every((s) => s.plannedRir == null));
+
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
   );
@@ -344,137 +346,139 @@
         </div>
       {/if}
 
-      <!-- Section 3: RSM Sliders -->
-      <Separator />
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <h3 class="text-sm font-medium">Raw Stimulus Magnitude</h3>
-          <InfoPopover>
-            RSM measures the amount of muscle growth stimulus from this exercise. It is the sum of
-            mind-muscle connection, pump, and disruption (0-9). Higher RSM means more growth
-            stimulus.
-          </InfoPopover>
-        </div>
+      {#if !isDeload}
+        <!-- Section 3: RSM Sliders -->
+        <Separator />
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-medium">Raw Stimulus Magnitude</h3>
+            <InfoPopover>
+              RSM measures the amount of muscle growth stimulus from this exercise. It is the sum of
+              mind-muscle connection, pump, and disruption (0-9). Higher RSM means more growth
+              stimulus.
+            </InfoPopover>
+          </div>
 
-        <SessionPageSliderField
-          label="Mind-Muscle Connection"
-          value={sessionExercise.rsm?.mindMuscleConnection ?? null}
-          descriptions={mindMuscleDescriptions}
-          colorMode={SessionPageSliderColorMode.Positive}
-          disabled={getImmediateFieldState().disabled}
-          highlight={getImmediateFieldState().highlight}
-          onValueChange={(v) => updateRsm('mindMuscleConnection', v)}
-        />
-
-        <SessionPageSliderField
-          label="Pump"
-          value={sessionExercise.rsm?.pump ?? null}
-          descriptions={pumpDescriptions}
-          colorMode={SessionPageSliderColorMode.Positive}
-          disabled={getImmediateFieldState().disabled}
-          highlight={getImmediateFieldState().highlight}
-          onValueChange={(v) => updateRsm('pump', v)}
-        />
-
-        {#if mode === SessionPageMode.Active}
-          <SessionPageDeferredField
-            label="Disruption"
-            reason="requires assessing soreness and recovery the following day"
-          />
-        {:else}
           <SessionPageSliderField
-            label="Disruption"
-            value={sessionExercise.rsm?.disruption ?? null}
-            descriptions={disruptionDescriptions}
+            label="Mind-Muscle Connection"
+            value={sessionExercise.rsm?.mindMuscleConnection ?? null}
+            descriptions={mindMuscleDescriptions}
             colorMode={SessionPageSliderColorMode.Positive}
-            disabled={getLateFieldState().disabled}
-            highlight={getLateFieldState().highlight}
-            onValueChange={(v) => updateRsm('disruption', v)}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={(v) => updateRsm('mindMuscleConnection', v)}
           />
-        {/if}
-      </div>
 
-      <!-- Section 4: Fatigue Sliders -->
-      <Separator />
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <h3 class="text-sm font-medium">Fatigue</h3>
-          <InfoPopover>
-            Fatigue measures the cost of the stimulus. The Stimulus to Fatigue Ratio (SFR) is
-            calculated as RSM / total fatigue. A higher SFR means more efficient stimulus.
-          </InfoPopover>
+          <SessionPageSliderField
+            label="Pump"
+            value={sessionExercise.rsm?.pump ?? null}
+            descriptions={pumpDescriptions}
+            colorMode={SessionPageSliderColorMode.Positive}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={(v) => updateRsm('pump', v)}
+          />
+
+          {#if mode === SessionPageMode.Active}
+            <SessionPageDeferredField
+              label="Disruption"
+              reason="requires assessing soreness and recovery the following day"
+            />
+          {:else}
+            <SessionPageSliderField
+              label="Disruption"
+              value={sessionExercise.rsm?.disruption ?? null}
+              descriptions={disruptionDescriptions}
+              colorMode={SessionPageSliderColorMode.Positive}
+              disabled={getLateFieldState().disabled}
+              highlight={getLateFieldState().highlight}
+              onValueChange={(v) => updateRsm('disruption', v)}
+            />
+          {/if}
         </div>
 
-        <SessionPageSliderField
-          label="Joint & Tissue Disruption"
-          value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
-          descriptions={jointDescriptions}
-          colorMode={SessionPageSliderColorMode.Negative}
-          disabled={getImmediateFieldState().disabled}
-          highlight={getImmediateFieldState().highlight}
-          onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
-        />
+        <!-- Section 4: Fatigue Sliders -->
+        <Separator />
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-medium">Fatigue</h3>
+            <InfoPopover>
+              Fatigue measures the cost of the stimulus. The Stimulus to Fatigue Ratio (SFR) is
+              calculated as RSM / total fatigue. A higher SFR means more efficient stimulus.
+            </InfoPopover>
+          </div>
 
-        <SessionPageSliderField
-          label="Perceived Effort"
-          value={sessionExercise.fatigue?.perceivedEffort ?? null}
-          descriptions={effortDescriptions}
-          colorMode={SessionPageSliderColorMode.Negative}
-          disabled={getImmediateFieldState().disabled}
-          highlight={getImmediateFieldState().highlight}
-          onValueChange={(v) => updateFatigue('perceivedEffort', v)}
-        />
-
-        {#if mode === SessionPageMode.Active}
-          <SessionPageDeferredField
-            label="Unused Muscle Performance"
-            reason="requires completing subsequent exercises targeting other muscles"
-          />
-        {:else}
           <SessionPageSliderField
-            label="Unused Muscle Performance"
-            value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
-            descriptions={unusedMuscleDescriptions}
+            label="Joint & Tissue Disruption"
+            value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
+            descriptions={jointDescriptions}
             colorMode={SessionPageSliderColorMode.Negative}
-            disabled={getLateFieldState().disabled}
-            highlight={getLateFieldState().highlight}
-            onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
           />
-        {/if}
-      </div>
 
-      <!-- Section 5: Recovery -->
-      <Separator />
-      <div class="flex flex-col gap-3">
-        <h3 class="text-sm font-medium">Recovery</h3>
-
-        <SessionPageSliderField
-          label="Performance Score"
-          value={sessionExercise.performanceScore ?? null}
-          descriptions={performanceDescriptions}
-          colorMode={SessionPageSliderColorMode.Performance}
-          disabled={getImmediateFieldState().disabled}
-          highlight={getImmediateFieldState().highlight}
-          onValueChange={updatePerformance}
-        />
-
-        {#if mode === SessionPageMode.Active}
-          <SessionPageDeferredField
-            label="Soreness"
-            reason="DOMS typically appears 24–48 hours after training"
-          />
-        {:else}
           <SessionPageSliderField
-            label="Soreness"
-            value={sessionExercise.sorenessScore ?? null}
-            descriptions={sorenessDescriptions}
+            label="Perceived Effort"
+            value={sessionExercise.fatigue?.perceivedEffort ?? null}
+            descriptions={effortDescriptions}
             colorMode={SessionPageSliderColorMode.Negative}
-            disabled={getLateFieldState().disabled}
-            highlight={getLateFieldState().highlight}
-            onValueChange={updateSoreness}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={(v) => updateFatigue('perceivedEffort', v)}
           />
-        {/if}
-      </div>
+
+          {#if mode === SessionPageMode.Active}
+            <SessionPageDeferredField
+              label="Unused Muscle Performance"
+              reason="requires completing subsequent exercises targeting other muscles"
+            />
+          {:else}
+            <SessionPageSliderField
+              label="Unused Muscle Performance"
+              value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
+              descriptions={unusedMuscleDescriptions}
+              colorMode={SessionPageSliderColorMode.Negative}
+              disabled={getLateFieldState().disabled}
+              highlight={getLateFieldState().highlight}
+              onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
+            />
+          {/if}
+        </div>
+
+        <!-- Section 5: Recovery -->
+        <Separator />
+        <div class="flex flex-col gap-3">
+          <h3 class="text-sm font-medium">Recovery</h3>
+
+          <SessionPageSliderField
+            label="Performance Score"
+            value={sessionExercise.performanceScore ?? null}
+            descriptions={performanceDescriptions}
+            colorMode={SessionPageSliderColorMode.Performance}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={updatePerformance}
+          />
+
+          {#if mode === SessionPageMode.Active}
+            <SessionPageDeferredField
+              label="Soreness"
+              reason="DOMS typically appears 24–48 hours after training"
+            />
+          {:else}
+            <SessionPageSliderField
+              label="Soreness"
+              value={sessionExercise.sorenessScore ?? null}
+              descriptions={sorenessDescriptions}
+              colorMode={SessionPageSliderColorMode.Negative}
+              disabled={getLateFieldState().disabled}
+              highlight={getLateFieldState().highlight}
+              onValueChange={updateSoreness}
+            />
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
