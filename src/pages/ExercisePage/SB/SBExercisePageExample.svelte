@@ -18,18 +18,9 @@
     const missing = notFound;
 
     untrack(() => {
-      MockData.muscleGroupMapServiceMock.reset();
-      MockData.equipmentTypeMapServiceMock.reset();
-      MockData.exerciseMapServiceMock.reset();
-      MockData.exerciseCalibrationMapServiceMock.reset();
+      MockData.resetAll();
 
-      const muscleGroups = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-      const equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-      const exercises = MockData.exerciseMapServiceMock.addDefaultExercises(
-        muscleGroups,
-        equipment
-      );
-      MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
+      const { exercises } = MockData.setupBaseData();
 
       if (missing) {
         exerciseId = 'non-existent-id';
@@ -40,10 +31,7 @@
 
     return () => {
       untrack(() => {
-        MockData.muscleGroupMapServiceMock.reset();
-        MockData.equipmentTypeMapServiceMock.reset();
-        MockData.exerciseMapServiceMock.reset();
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        MockData.resetAll();
       });
     };
   });

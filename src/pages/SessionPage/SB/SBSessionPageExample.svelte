@@ -18,21 +18,9 @@
     const currentMode = storyMode;
 
     untrack(() => {
-      // Reset all services
-      MockData.muscleGroupMapServiceMock.reset();
-      MockData.equipmentTypeMapServiceMock.reset();
-      MockData.exerciseMapServiceMock.reset();
-      MockData.sessionMapServiceMock.reset();
-      MockData.sessionExerciseMapServiceMock.reset();
-      MockData.setMapServiceMock.reset();
+      MockData.resetAll();
 
-      // Set up base data
-      const muscleGroups = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-      const equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-      const exercises = MockData.exerciseMapServiceMock.addDefaultExercises(
-        muscleGroups,
-        equipment
-      );
+      const { exercises } = MockData.setupBaseData();
 
       // Pick 3 exercises for the session
       const benchPress = exercises[0]; // Barbell Bench Press
@@ -194,12 +182,7 @@
 
     return () => {
       untrack(() => {
-        MockData.muscleGroupMapServiceMock.reset();
-        MockData.equipmentTypeMapServiceMock.reset();
-        MockData.exerciseMapServiceMock.reset();
-        MockData.sessionMapServiceMock.reset();
-        MockData.sessionExerciseMapServiceMock.reset();
-        MockData.setMapServiceMock.reset();
+        MockData.resetAll();
         timerService.stop();
       });
     };
