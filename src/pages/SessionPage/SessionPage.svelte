@@ -42,7 +42,10 @@
   });
 
   let completedSets = $derived(
-    allSets.filter((s) => s.actualReps != null && s.actualWeight != null && s.rir != null)
+    allSets.filter(
+      (s) =>
+        s.actualReps != null && s.actualWeight != null && (s.rir != null || s.plannedRir == null)
+    )
   );
 
   let totalSets = $derived(allSets.length);
@@ -102,7 +105,8 @@
         .map((id) => setMapService.getDoc(id))
         .filter((s): s is WorkoutSet => s != null);
       const allComplete = exerciseSets.every(
-        (s) => s.actualReps != null && s.actualWeight != null && s.rir != null
+        (s) =>
+          s.actualReps != null && s.actualWeight != null && (s.rir != null || s.plannedRir == null)
       );
       if (!allComplete) return i;
     }

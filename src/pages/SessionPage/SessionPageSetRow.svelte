@@ -30,7 +30,7 @@
     setNumber: number;
     setState: SessionPageSetState;
     mode: SessionPageMode;
-    onLog: (weight: number, reps: number, rir: number) => void;
+    onLog: (weight: number, reps: number, rir: number | null) => void;
   } = $props();
 
   let weight = $state<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
@@ -39,7 +39,7 @@
 
   let dialogOpen = $state(false);
 
-  let canLog = $derived(weight != null && reps != null && rir != null);
+  let canLog = $derived(weight != null && reps != null && (rir != null || set.plannedRir == null));
 
   function handleLogClick() {
     if (!canLog) return;
@@ -47,8 +47,8 @@
   }
 
   function handleConfirm() {
-    if (weight != null && reps != null && rir != null) {
-      onLog(weight, reps, rir);
+    if (weight != null && reps != null && (rir != null || set.plannedRir == null)) {
+      onLog(weight, reps, rir ?? null);
     }
     dialogOpen = false;
   }
@@ -118,7 +118,9 @@
 
   <!-- RIR -->
   <div class="col-span-2">
-    {#if isDisabled}
+    {#if set.plannedRir == null}
+      <span class="text-sm text-muted-foreground">&mdash;</span>
+    {:else if isDisabled}
       <span
         class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
       >
@@ -150,7 +152,8 @@
   <div class="grid grid-cols-12 gap-1.5 px-2 pb-0.5">
     <div class="col-span-1"></div>
     <div class="col-span-11 text-xs text-muted-foreground">
-      Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'} @ {set.plannedRir ?? '?'} RIR
+      Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'}{#if set.plannedRir != null}
+        @ {set.plannedRir} RIR{/if}
     </div>
   </div>
 {/if}
@@ -160,12 +163,14 @@
     <AlertDialogHeader>
       <AlertDialogTitle>Log Set</AlertDialogTitle>
       <AlertDialogDescription>
-        {weight}lb x {reps} reps @ {rir} RIR
+        {weight}lb x {reps} reps{#if rir != null}
+          @ {rir} RIR{/if}
         {#if hasTargets}
           <br />
           <span class="text-muted-foreground">
-            Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'} @ {set.plannedRir ??
-              '?'} RIR
+            Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ??
+              '?'}{#if set.plannedRir != null}
+              @ {set.plannedRir} RIR{/if}
           </span>
         {/if}
       </AlertDialogDescription>

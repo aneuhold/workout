@@ -129,7 +129,9 @@ export function generateFullMockMesocycle(
     if (completedSessionIds.has(set.workoutSessionId as string)) {
       set.actualReps = (set.plannedReps ?? 8) + Math.floor(Math.random() * 3) - 1;
       set.actualWeight = set.plannedWeight ?? 135;
-      set.rir = Math.max(0, (set.plannedRir ?? 3) - 1);
+      if (set.plannedRir != null) {
+        set.rir = Math.max(0, set.plannedRir - 1);
+      }
     }
   }
 

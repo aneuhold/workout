@@ -68,7 +68,7 @@
                 <Badge>Completed</Badge>
               {:else if session.exercises.length > 0 && session.exercises[0].sets.length > 0}
                 {@const firstRir = session.exercises[0].sets[0].plannedRir}
-                {#if firstRir !== undefined}
+                {#if firstRir != null}
                   <Badge variant="secondary">{firstRir} RIR</Badge>
                 {/if}
               {/if}

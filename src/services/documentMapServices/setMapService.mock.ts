@@ -9,7 +9,7 @@ export type AddMockSetInfo = {
   workoutSessionExerciseId: UUID;
   plannedReps?: number;
   plannedWeight?: number;
-  plannedRir?: number;
+  plannedRir?: number | null;
   actualReps?: number;
   actualWeight?: number;
   rir?: number;

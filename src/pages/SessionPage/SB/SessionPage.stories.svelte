@@ -6,6 +6,7 @@
   const storyModes = {
     activeEarly: 'activeEarly',
     activeMid: 'activeMid',
+    deload: 'deload',
     review: 'review',
     viewOnly: 'viewOnly'
   };
@@ -29,6 +30,8 @@
 <Story name="Active (Early)" args={{ storyMode: 'activeEarly' }} />
 
 <Story name="Active (Mid-Session)" args={{ storyMode: 'activeMid' }} />
+
+<Story name="Deload Session" args={{ storyMode: 'deload' }} />
 
 <Story name="Post-Session Review" args={{ storyMode: 'review' }} />
 

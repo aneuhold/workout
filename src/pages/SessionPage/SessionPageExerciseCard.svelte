@@ -87,18 +87,23 @@
   // --- Set states ---
 
   function getSetState(set: WorkoutSet, index: number): SessionPageSetState {
-    if (set.actualReps != null && set.actualWeight != null && set.rir != null) {
+    if (
+      set.actualReps != null &&
+      set.actualWeight != null &&
+      (set.rir != null || set.plannedRir == null)
+    ) {
       return SessionPageSetState.Completed;
     }
     const firstIncomplete = sets.findIndex(
-      (s) => s.actualReps == null || s.actualWeight == null || s.rir == null
+      (s) =>
+        s.actualReps == null || s.actualWeight == null || (s.rir == null && s.plannedRir != null)
     );
     return index === firstIncomplete ? SessionPageSetState.Current : SessionPageSetState.Future;
   }
 
   // --- Set logging ---
 
-  function handleLogSet(set: WorkoutSet, weight: number, reps: number, rir: number) {
+  function handleLogSet(set: WorkoutSet, weight: number, reps: number, rir: number | null) {
     setMapService.updateDoc(set._id, (doc) => {
       doc.actualWeight = weight;
       doc.actualReps = reps;
@@ -118,7 +123,12 @@
   let showRestTimer = $derived(
     mode === SessionPageMode.Active &&
       (cardState === SessionPageExerciseCardState.Current ||
-        sets.some((s) => s.actualReps == null || s.actualWeight == null || s.rir == null))
+        sets.some(
+          (s) =>
+            s.actualReps == null ||
+            s.actualWeight == null ||
+            (s.rir == null && s.plannedRir != null)
+        ))
   );
 
   // --- Slider descriptions (from shared constants) ---

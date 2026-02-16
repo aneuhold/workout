@@ -6,7 +6,7 @@
   import MockData from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
-  type StoryMode = 'activeEarly' | 'activeMid' | 'review' | 'viewOnly';
+  type StoryMode = 'activeEarly' | 'activeMid' | 'deload' | 'review' | 'viewOnly';
 
   let { storyMode = 'activeEarly' as StoryMode }: { storyMode?: StoryMode } = $props();
 
@@ -28,10 +28,11 @@
       const squats = exercises[2]; // Barbell Squat
 
       const isComplete = currentMode === 'review' || currentMode === 'viewOnly';
+      const isDeload = currentMode === 'deload';
 
       // Create session
       const session = MockData.sessionMapServiceMock.addSession({
-        title: 'Push Day A',
+        title: isDeload ? 'Deload - Session 1' : 'Push Day A',
         startTime: new Date(),
         complete: isComplete
       });
@@ -44,7 +45,7 @@
         completedSets: number,
         baseWeight: number,
         baseReps: number,
-        baseRir: number
+        baseRir: number | null
       ) {
         const setIds: UUID[] = [];
         for (let i = 0; i < numSets; i++) {
@@ -60,7 +61,7 @@
               ? {
                   actualWeight: baseWeight,
                   actualReps: baseReps + (i === 0 ? 1 : 0),
-                  rir: baseRir
+                  ...(baseRir != null ? { rir: baseRir } : {})
                 }
               : {})
           });
@@ -71,14 +72,17 @@
 
       // Determine how many sets are completed per exercise based on mode
       const benchCompletedSets =
-        currentMode === 'activeEarly' ? 0 : currentMode === 'activeMid' ? 3 : 3;
+        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 3 : 3;
       const pullupCompletedSets =
-        currentMode === 'activeEarly' ? 0 : currentMode === 'activeMid' ? 1 : 3;
+        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 1 : 3;
       const squatCompletedSets =
-        currentMode === 'activeEarly' ? 0 : currentMode === 'activeMid' ? 0 : 3;
+        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 0 : 3;
+
+      // Deload: halved reps, null RIR, 1 set per exercise
+      const deloadSetCount = isDeload ? 1 : 3;
+      const deloadRir: number | null = isDeload ? null : 0; // placeholder, overridden below
 
       // Create session exercises with sets
-      // We need a temporary ID first to create sets
       const benchSE = MockData.sessionExerciseMapServiceMock.addSessionExercise({
         workoutSessionId: session._id,
         workoutExerciseId: benchPress._id
@@ -86,13 +90,12 @@
       const benchSetIds = createSetsForExercise(
         benchPress,
         benchSE._id,
-        3,
+        deloadSetCount,
         benchCompletedSets,
-        135,
-        10,
-        2
+        isDeload ? 135 : 135,
+        isDeload ? 5 : 10,
+        isDeload ? deloadRir : 2
       );
-      // Update set order
       benchSE.setOrder = benchSetIds;
 
       const pullupSE = MockData.sessionExerciseMapServiceMock.addSessionExercise({
@@ -102,11 +105,11 @@
       const pullupSetIds = createSetsForExercise(
         pullups,
         pullupSE._id,
-        3,
+        deloadSetCount,
         pullupCompletedSets,
         0,
-        8,
-        3
+        isDeload ? 4 : 8,
+        isDeload ? deloadRir : 3
       );
       pullupSE.setOrder = pullupSetIds;
 
@@ -117,11 +120,11 @@
       const squatSetIds = createSetsForExercise(
         squats,
         squatSE._id,
-        3,
+        deloadSetCount,
         squatCompletedSets,
-        185,
-        8,
-        2
+        isDeload ? 92 : 185,
+        isDeload ? 4 : 8,
+        isDeload ? deloadRir : 2
       );
       squatSE.setOrder = squatSetIds;
 
