@@ -95,8 +95,12 @@
       )
   );
 
-  // --- Current exercise index ---
-
+  /**
+   * Current exercise index is the index of the first session exercise that has an incomplete set, or
+   * the length of the session exercises array if all are complete. In review mode, it is the
+   * index of the first session exercise that has null late fields.
+   * In view mode, all exercises are considered complete.
+   */
   let currentExerciseIndex = $derived.by(() => {
     for (let i = 0; i < sessionExercises.length; i++) {
       const exerciseSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(
@@ -108,7 +112,7 @@
       );
       if (!allComplete) return i;
     }
-    return sessionExercises.length - 1;
+    return sessionExercises.length;
   });
 
   // --- Card state ---
