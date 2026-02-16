@@ -25,6 +25,7 @@
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
   import { buildCalibratedExercisePairs, getDocsForCalibrationIds } from './mesocyclePageUtils';
+  import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
   import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
 
@@ -193,6 +194,14 @@
   {#if generationMesocycle && previewMicrocycles.length > 0}
     <MesocycleScheduleCard
       mesocycle={generationMesocycle}
+      microcycles={previewMicrocycles}
+      sessions={previewSessions}
+      sessionExercises={previewSessionExercises}
+      sets={previewSets}
+      exercises={previewExercises}
+    />
+
+    <MesocycleProgressionCard
       microcycles={previewMicrocycles}
       sessions={previewSessions}
       sessionExercises={previewSessionExercises}
