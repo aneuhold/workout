@@ -1,5 +1,5 @@
 <script lang="ts">
-  import NewMesocyclePage from '$pages/NewMesocyclePage/NewMesocyclePage.svelte';
+  import NewMesocyclePage from '$pages/MesocyclePage/NewMesocyclePage.svelte';
   import { mesocycleNewPageInfo } from './pageInfo';
 </script>
 

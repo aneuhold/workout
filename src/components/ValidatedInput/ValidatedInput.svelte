@@ -32,7 +32,9 @@
     /** Placeholder text. */
     placeholder,
     /** Additional CSS classes passed through to the Input. */
-    class: className
+    class: className,
+    /** Whether the input is disabled. */
+    disabled = false
   }: {
     value: string | number;
     type?: HTMLInputTypeAttribute;
@@ -45,6 +47,7 @@
     id?: string;
     placeholder?: string;
     class?: string;
+    disabled?: boolean;
   } = $props();
 
   /** What the user sees in the input field. */
@@ -140,6 +143,7 @@
     {required}
     {minlength}
     {maxlength}
+    {disabled}
   />
   {#if errorMessage}
     <p class="text-destructive text-xs">{errorMessage}</p>

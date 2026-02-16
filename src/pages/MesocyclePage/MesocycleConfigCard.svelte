@@ -1,8 +1,9 @@
 <!--
   @component
 
-  Configuration card for creating a new mesocycle.
+  Configuration card for a mesocycle.
   Handles title, cycle type, numeric config, and rest day selection.
+  Supports a `disabled` mode where only the title remains editable.
 -->
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
@@ -26,7 +27,9 @@
     weeks = $bindable(6),
     sessionsPerWeek = $bindable(5),
     daysPerCycle = $bindable(7),
-    restDays = $bindable<number[]>([0, 6])
+    restDays = $bindable<number[]>([0, 6]),
+    disabled = false,
+    onTitleBlur
   }: {
     title: string;
     cycleType: CycleType;
@@ -34,6 +37,8 @@
     sessionsPerWeek: number;
     daysPerCycle: number;
     restDays: number[];
+    disabled?: boolean;
+    onTitleBlur?: () => void;
   } = $props();
 
   // Trim rest days when daysPerCycle shrinks
@@ -61,7 +66,7 @@
     <CardTitle>Configuration</CardTitle>
   </CardHeader>
   <CardContent class="flex flex-col gap-4">
-    <div class="flex flex-col gap-1.5">
+    <div class="flex flex-col gap-1.5" onfocusout={onTitleBlur}>
       <Label for="meso-title">Title *</Label>
       <ValidatedInput
         id="meso-title"
@@ -87,7 +92,7 @@
           </p>
         </InfoPopover>
       </div>
-      <Select bind:value={cycleType} type="single">
+      <Select bind:value={cycleType} type="single" {disabled}>
         <SelectTrigger>{cycleTypeLabel}</SelectTrigger>
         <SelectContent>
           <SelectItem value={CycleType.MuscleGain}
@@ -104,7 +109,14 @@
     <div class="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
       <div class="flex flex-col gap-1.5">
         <Label for="meso-weeks">Weeks</Label>
-        <ValidatedInput id="meso-weeks" type="number" bind:value={weeks} min={2} max={8} />
+        <ValidatedInput
+          id="meso-weeks"
+          type="number"
+          bind:value={weeks}
+          min={2}
+          max={8}
+          {disabled}
+        />
       </div>
       <div class="flex flex-col gap-1.5">
         <Label for="meso-sessions">Sessions/Week</Label>
@@ -114,11 +126,19 @@
           bind:value={sessionsPerWeek}
           min={1}
           max={30}
+          {disabled}
         />
       </div>
       <div class="flex flex-col gap-1.5">
         <Label for="meso-days">Days/Cycle</Label>
-        <ValidatedInput id="meso-days" type="number" bind:value={daysPerCycle} min={2} max={30} />
+        <ValidatedInput
+          id="meso-days"
+          type="number"
+          bind:value={daysPerCycle}
+          min={2}
+          max={30}
+          {disabled}
+        />
       </div>
     </div>
 
@@ -131,6 +151,7 @@
             variant={restDays.includes(dayIndex) ? 'default' : 'outline'}
             class="w-14"
             onclick={() => toggleRestDay(dayIndex)}
+            {disabled}
           >
             Day {dayIndex + 1}
           </Button>

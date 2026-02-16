@@ -11,6 +11,7 @@
     WorkoutSession
   } from '@aneuhold/core-ts-db-lib';
   import { IconCalendar, IconChevronRight } from '@tabler/icons-svelte';
+  import { goto } from '$app/navigation';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import { formatCycleType } from './mesocyclesPageUtils';
@@ -42,7 +43,11 @@
   const totalCount = $derived(sessions.length);
 </script>
 
-<Card size="sm">
+<Card
+  size="sm"
+  class="cursor-pointer"
+  onclick={() => goto(`/mesocycle?mesocycleId=${mesocycle._id}`)}
+>
   <div class="flex items-center gap-3 px-3 py-1">
     <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
       <IconCalendar size={18} class="text-muted-foreground" />

@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Summary card showing stats grid and the Create Mesocycle button.
+  Summary card showing stats grid and an optional Create Mesocycle button.
 -->
 <script lang="ts">
   import Button from '$ui/Button/Button.svelte';
@@ -16,15 +16,15 @@
     totalSessions,
     uniqueExercises,
     cycleTypeLabel,
-    isValid,
+    isValid = false,
     onCreate
   }: {
     totalWeeks: number;
     totalSessions: number;
     uniqueExercises: number;
     cycleTypeLabel: string;
-    isValid: boolean;
-    onCreate: () => void;
+    isValid?: boolean;
+    onCreate?: () => void;
   } = $props();
 </script>
 
@@ -52,10 +52,12 @@
       </div>
     </div>
 
-    <Separator />
+    {#if onCreate}
+      <Separator />
 
-    <Button size="lg" class="w-full" disabled={!isValid} onclick={onCreate}>
-      Create Mesocycle
-    </Button>
+      <Button size="lg" class="w-full" disabled={!isValid} onclick={onCreate}>
+        Create Mesocycle
+      </Button>
+    {/if}
   </CardContent>
 </Card>

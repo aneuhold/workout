@@ -29,7 +29,8 @@
     firstMicrocycle,
     previewSessions = [],
     previewSessionExercises = [],
-    exercises = []
+    exercises = [],
+    disabled = false
   }: {
     calibratedExercisePairs: CalibrationExercisePair[];
     selectedCalibrationIds: UUID[];
@@ -37,6 +38,7 @@
     previewSessions: WorkoutSession[];
     previewSessionExercises: WorkoutSessionExercise[];
     exercises: WorkoutExercise[];
+    disabled?: boolean;
   } = $props();
 
   function toggleCalibration(calibrationId: UUID) {
@@ -123,7 +125,11 @@
   <CardHeader>
     <CardTitle>Exercises</CardTitle>
     <CardDescription>
-      Select calibrated exercises to include. The algorithm distributes them across sessions.
+      {#if disabled}
+        Exercises included in this mesocycle.
+      {:else}
+        Select calibrated exercises to include. The algorithm distributes them across sessions.
+      {/if}
     </CardDescription>
   </CardHeader>
   <CardContent class="flex flex-col gap-4">
@@ -134,7 +140,7 @@
     {:else}
       <div class="flex flex-wrap gap-1.5">
         {#each calibratedExercisePairs as pair (pair.calibration._id)}
-          <button type="button" onclick={() => toggleCalibration(pair.calibration._id)}>
+          {#if disabled}
             <Badge
               variant={selectedCalibrationIds.includes(pair.calibration._id)
                 ? 'default'
@@ -142,7 +148,17 @@
             >
               {pair.exercise.exerciseName}
             </Badge>
-          </button>
+          {:else}
+            <button type="button" onclick={() => toggleCalibration(pair.calibration._id)}>
+              <Badge
+                variant={selectedCalibrationIds.includes(pair.calibration._id)
+                  ? 'default'
+                  : 'outline'}
+              >
+                {pair.exercise.exerciseName}
+              </Badge>
+            </button>
+          {/if}
         {/each}
       </div>
 

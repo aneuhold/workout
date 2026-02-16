@@ -12,6 +12,7 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
+  import { goto } from '$app/navigation';
   import MesocycleCalendar from '$components/MesocycleCalendar/MesocycleCalendar.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -58,7 +59,10 @@
 </script>
 
 <Card>
-  <CardHeader>
+  <CardHeader
+    class="cursor-pointer"
+    onclick={() => goto(`/mesocycle?mesocycleId=${mesocycle._id}`)}
+  >
     <div class="flex items-center gap-2">
       <CardTitle>{title}</CardTitle>
       <Badge variant="secondary">{formatCycleType(mesocycle.cycleType)}</Badge>

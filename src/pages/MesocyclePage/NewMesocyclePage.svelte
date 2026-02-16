@@ -6,9 +6,7 @@
 -->
 <script lang="ts">
   import {
-    type CalibrationExercisePair,
     CycleType,
-    type WorkoutExerciseCalibration,
     WorkoutMesocycleSchema,
     WorkoutMesocycleService
   } from '@aneuhold/core-ts-db-lib';
@@ -24,10 +22,11 @@
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import setMapService from '$services/documentMapServices/setMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
-  import NewMesocycleConfigCard from './NewMesocycleConfigCard.svelte';
-  import NewMesocycleExercisesCard from './NewMesocycleExercisesCard.svelte';
-  import NewMesocycleScheduleCard from './NewMesocycleScheduleCard.svelte';
-  import NewMesocycleSummaryCard from './NewMesocycleSummaryCard.svelte';
+  import MesocycleConfigCard from './MesocycleConfigCard.svelte';
+  import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
+  import { buildCalibratedExercisePairs, getDocsForCalibrationIds } from './mesocyclePageUtils';
+  import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
+  import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
 
   // --- Form state ---
 
@@ -46,26 +45,9 @@
   const allEquipmentTypes = $derived(equipmentTypeMapService.getDocs());
 
   // Build calibration-exercise pairs (latest calibration per exercise)
-  const calibratedExercisePairs = $derived.by((): CalibrationExercisePair[] => {
-    const exerciseMap = new Map(allExercises.map((exercise) => [exercise._id, exercise]));
-    // Group calibrations by exercise, keep latest
-    // eslint-disable-next-line svelte/prefer-svelte-reactivity
-    const latestByExercise = new Map<UUID, WorkoutExerciseCalibration>();
-    for (const calibration of allCalibrations) {
-      const existing = latestByExercise.get(calibration.workoutExerciseId);
-      if (!existing || new Date(calibration.dateRecorded) > new Date(existing.dateRecorded)) {
-        latestByExercise.set(calibration.workoutExerciseId, calibration);
-      }
-    }
-    const pairs: CalibrationExercisePair[] = [];
-    for (const [exerciseId, calibration] of latestByExercise) {
-      const exercise = exerciseMap.get(exerciseId);
-      if (exercise) {
-        pairs.push({ calibration, exercise });
-      }
-    }
-    return pairs.sort((a, b) => a.exercise.exerciseName.localeCompare(b.exercise.exerciseName));
-  });
+  const calibratedExercisePairs = $derived(
+    buildCalibratedExercisePairs(allCalibrations, allExercises)
+  );
 
   // Prune selected calibration IDs that no longer exist in the available pairs
   $effect(() => {
@@ -77,20 +59,6 @@
   });
 
   // --- Helpers ---
-
-  /**
-   * Filters calibrations and exercises relevant to the selected calibration IDs.
-   *
-   * @param calibrationIds IDs of selected calibrations
-   */
-  function getRelevantDocs(calibrationIds: UUID[]) {
-    const calibrations = allCalibrations.filter((calibration) =>
-      calibrationIds.includes(calibration._id)
-    );
-    const exerciseIds = new Set(calibrations.map((c) => c.workoutExerciseId));
-    const exercises = allExercises.filter((exercise) => exerciseIds.has(exercise._id));
-    return { calibrations, exercises };
-  }
 
   function buildMesocycleInput() {
     return {
@@ -121,7 +89,11 @@
 
   const previewResult = $derived.by(() => {
     if (!generationMesocycle) return null;
-    const { calibrations, exercises } = getRelevantDocs(formSelectedCalibrationIds);
+    const { calibrations, exercises } = getDocsForCalibrationIds(
+      formSelectedCalibrationIds,
+      allCalibrations,
+      allExercises
+    );
     try {
       const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
         generationMesocycle,
@@ -170,7 +142,11 @@
     mesocycleMapService.addDoc(mesocycleDoc);
 
     // Generate fresh child documents
-    const { calibrations, exercises } = getRelevantDocs(formSelectedCalibrationIds);
+    const { calibrations, exercises } = getDocsForCalibrationIds(
+      formSelectedCalibrationIds,
+      allCalibrations,
+      allExercises
+    );
 
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesocycleDoc,
@@ -196,7 +172,7 @@
 <div class="flex flex-col gap-4 p-4">
   <h1 class="text-xl font-semibold">New Mesocycle</h1>
 
-  <NewMesocycleConfigCard
+  <MesocycleConfigCard
     bind:title={formTitle}
     bind:cycleType={formCycleType}
     bind:weeks={formWeeks}
@@ -205,7 +181,7 @@
     bind:restDays={formRestDays}
   />
 
-  <NewMesocycleExercisesCard
+  <MesocycleExercisesCard
     {calibratedExercisePairs}
     bind:selectedCalibrationIds={formSelectedCalibrationIds}
     firstMicrocycle={previewMicrocycles[0]}
@@ -215,7 +191,7 @@
   />
 
   {#if generationMesocycle && previewMicrocycles.length > 0}
-    <NewMesocycleScheduleCard
+    <MesocycleScheduleCard
       mesocycle={generationMesocycle}
       microcycles={previewMicrocycles}
       sessions={previewSessions}
@@ -224,7 +200,7 @@
       exercises={previewExercises}
     />
 
-    <NewMesocycleSummaryCard
+    <MesocycleSummaryCard
       totalWeeks={formWeeks}
       {totalSessions}
       {uniqueExercises}
