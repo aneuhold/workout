@@ -150,7 +150,7 @@
   <div class="grid grid-cols-12 gap-1.5 px-2 pb-0.5">
     <div class="col-span-1"></div>
     <div class="col-span-11 text-xs text-muted-foreground">
-      Target: {set.plannedWeight ?? '?'}lb × {set.plannedReps ?? '?'} @ {set.plannedRir ?? '?'} RIR
+      Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'} @ {set.plannedRir ?? '?'} RIR
     </div>
   </div>
 {/if}
@@ -160,11 +160,11 @@
     <AlertDialogHeader>
       <AlertDialogTitle>Log Set</AlertDialogTitle>
       <AlertDialogDescription>
-        {weight}lb × {reps} reps @ {rir} RIR
+        {weight}lb x {reps} reps @ {rir} RIR
         {#if hasTargets}
           <br />
           <span class="text-muted-foreground">
-            Target: {set.plannedWeight ?? '?'}lb × {set.plannedReps ?? '?'} @ {set.plannedRir ??
+            Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'} @ {set.plannedRir ??
               '?'} RIR
           </span>
         {/if}

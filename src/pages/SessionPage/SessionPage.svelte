@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
+  import type { UUID } from 'crypto';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import setMapService from '$services/documentMapServices/setMapService.svelte';
@@ -23,9 +24,7 @@
 
   // --- Data ---
 
-  let session = $derived(
-    sessionId ? sessionMapService.getDocs().find((s) => s._id === sessionId) : undefined
-  );
+  let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
 
   let sessionExercises = $derived.by(() => {
     if (!session) return [];
@@ -52,11 +51,10 @@
 
   // --- Mode derivation ---
 
-  let mode: SessionPageMode = $derived.by(() => {
+  let dataMode: SessionPageMode = $derived.by(() => {
     if (!session) return SessionPageMode.Active;
     if (!session.complete) return SessionPageMode.Active;
 
-    // Check if any late fields are still null
     const hasNullLateFields = sessionExercises.some((se) => {
       const disruptionNull = se.rsm?.disruption == null;
       const unusedMuscleNull = se.fatigue?.unusedMusclePerformance == null;
@@ -66,6 +64,34 @@
 
     return hasNullLateFields ? SessionPageMode.Review : SessionPageMode.View;
   });
+
+  // Keep the user in review mode until they explicitly confirm, even after
+  // all late fields are filled. This prevents the jarring instant lock, which can prevent them
+  // from filling the late fields correctly.
+  let wasInReviewMode = $state(false);
+  let reviewConfirmed = $state(false);
+
+  $effect(() => {
+    if (dataMode === SessionPageMode.Review) {
+      wasInReviewMode = true;
+    }
+  });
+
+  let mode: SessionPageMode = $derived.by(() => {
+    if (dataMode === SessionPageMode.Active) return SessionPageMode.Active;
+    if (wasInReviewMode && !reviewConfirmed) return SessionPageMode.Review;
+    return dataMode;
+  });
+
+  let allLateFieldsFilled = $derived(
+    sessionExercises.length > 0 &&
+      sessionExercises.every(
+        (se) =>
+          se.rsm?.disruption != null &&
+          se.fatigue?.unusedMusclePerformance != null &&
+          se.sorenessScore != null
+      )
+  );
 
   // --- Current exercise index ---
 
@@ -85,8 +111,21 @@
 
   // --- Card state ---
 
+  function exerciseNeedsReview(se: (typeof sessionExercises)[number]): boolean {
+    return (
+      se.rsm?.disruption == null ||
+      se.fatigue?.unusedMusclePerformance == null ||
+      se.sorenessScore == null
+    );
+  }
+
   function getCardState(index: number): SessionPageExerciseCardState {
-    if (mode !== SessionPageMode.Active) return SessionPageExerciseCardState.Completed;
+    if (mode === SessionPageMode.Review) {
+      return exerciseNeedsReview(sessionExercises[index])
+        ? SessionPageExerciseCardState.Current
+        : SessionPageExerciseCardState.Completed;
+    }
+    if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
     if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;
     if (index === currentExerciseIndex) return SessionPageExerciseCardState.Current;
     return SessionPageExerciseCardState.Future;
@@ -98,11 +137,19 @@
 
   $effect(() => {
     const exercises = sessionExercises;
-    const idx = currentExerciseIndex;
-    if (exercises.length > 0 && exercises[idx]) {
-      const currentId = exercises[idx]._id;
-      if (expandedMap[currentId] === undefined) {
-        expandedMap[currentId] = true;
+    if (mode === SessionPageMode.Review) {
+      for (const se of exercises) {
+        if (exerciseNeedsReview(se) && expandedMap[se._id] === undefined) {
+          expandedMap[se._id] = true;
+        }
+      }
+    } else {
+      const idx = currentExerciseIndex;
+      if (exercises.length > 0 && exercises[idx]) {
+        const currentId = exercises[idx]._id;
+        if (expandedMap[currentId] === undefined) {
+          expandedMap[currentId] = true;
+        }
       }
     }
   });
@@ -115,7 +162,7 @@
     expandedMap[id] = !isExpanded(id);
   }
 
-  // --- Complete session ---
+  // --- Complete session / review ---
 
   function handleCompleteSession() {
     if (!session) return;
@@ -124,6 +171,10 @@
       doc.lastUpdatedDate = new Date();
       return doc;
     });
+  }
+
+  function handleCompleteReview() {
+    reviewConfirmed = true;
   }
 </script>
 
@@ -151,7 +202,9 @@
       total={totalSets}
       {percent}
       {mode}
+      {allLateFieldsFilled}
       onComplete={handleCompleteSession}
+      onCompleteReview={handleCompleteReview}
     />
   {/if}
 </div>

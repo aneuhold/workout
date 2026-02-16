@@ -14,13 +14,17 @@
     total,
     percent,
     mode,
-    onComplete
+    allLateFieldsFilled = false,
+    onComplete,
+    onCompleteReview
   }: {
     completed: number;
     total: number;
     percent: number;
     mode: SessionPageMode;
+    allLateFieldsFilled?: boolean;
     onComplete: () => void;
+    onCompleteReview: () => void;
   } = $props();
 </script>
 
@@ -40,6 +44,10 @@
     {#if mode === SessionPageMode.Active}
       <Button class="w-full" disabled={completed < total} onclick={onComplete}>
         Complete Session
+      </Button>
+    {:else if mode === SessionPageMode.Review}
+      <Button class="w-full" disabled={!allLateFieldsFilled} onclick={onCompleteReview}>
+        Complete Review
       </Button>
     {/if}
   </CardContent>

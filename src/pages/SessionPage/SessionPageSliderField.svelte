@@ -22,7 +22,7 @@
   }: {
     label: string;
     value: number | null | undefined;
-    descriptions: string[];
+    descriptions: readonly string[];
     colorMode: SessionPageSliderColorMode;
     disabled?: boolean;
     highlight?: boolean;
