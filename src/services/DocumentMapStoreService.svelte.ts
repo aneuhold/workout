@@ -1,4 +1,4 @@
-import type { BaseDocument, DocumentMap } from '@aneuhold/core-ts-db-lib';
+import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
 import { createLogger } from '$util/logging/logger';
@@ -53,6 +53,17 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    */
   public getDoc(docId: UUID): T | undefined {
     return this.mapState[docId];
+  }
+
+  /**
+   * Gets a snapshot of the entire document map.
+   */
+  public getMap(): DocumentMap<T> {
+    // This has to be done because as of 2/16/2026 it seems that there is a bug in the Svelte
+    // TypeScript where it says that $state.snapshot returns a map of Snapshot<T> instead of T,
+    // even though the docs say it should return T. This is a workaround for now. An alternative
+    // is to setup an app.d.ts file, but the below seems shorter.
+    return DocumentService.deepCopy($state.snapshot(this.mapState) as unknown as DocumentMap<T>);
   }
 
   /**

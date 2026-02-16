@@ -140,6 +140,33 @@ describe('DocumentMapStoreService', () => {
     );
   });
 
+  it('should return an empty map initially from getMap', () => {
+    const map = service.getMap();
+    expect(map).toEqual({});
+  });
+
+  it('should return a map with all added documents from getMap', () => {
+    service.addDoc(doc1);
+    service.addDoc(doc2);
+
+    const map = service.getMap();
+    expect(map[doc1._id]).toEqual(doc1);
+    expect(map[doc2._id]).toEqual(doc2);
+  });
+
+  it('should return a deep copy from getMap so mutations do not affect the store', () => {
+    service.addDoc(doc1);
+
+    const map = service.getMap();
+    const docInMap = map[doc1._id];
+    expect(docInMap).toBeDefined();
+    if (docInMap) {
+      docInMap.value = 999;
+    }
+
+    expect(service.getDoc(doc1._id)?.value).toBe(10);
+  });
+
   it('should set map', () => {
     const newMap = { [doc1._id]: doc1, [doc2._id]: doc2 };
     service.setMap(newMap);
