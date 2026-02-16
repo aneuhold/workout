@@ -6,5 +6,5 @@ export const sessionPageInfo: PageInfo = {
   description: 'Log sets and reps during a workout session',
   url: '/session',
   iconName: 'IconBarbell',
-  nestingLevel: 0
+  nestingLevel: 1
 };

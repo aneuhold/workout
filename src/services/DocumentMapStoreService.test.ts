@@ -142,7 +142,7 @@ describe('DocumentMapStoreService', () => {
 
   it('should return an empty map initially from getMap', () => {
     const map = service.getMap();
-    expect(map).toEqual({});
+    expect(map.size).toBe(0);
   });
 
   it('should return a map with all added documents from getMap', () => {
@@ -150,15 +150,15 @@ describe('DocumentMapStoreService', () => {
     service.addDoc(doc2);
 
     const map = service.getMap();
-    expect(map[doc1._id]).toEqual(doc1);
-    expect(map[doc2._id]).toEqual(doc2);
+    expect(map.get(doc1._id)).toEqual(doc1);
+    expect(map.get(doc2._id)).toEqual(doc2);
   });
 
   it('should return a deep copy from getMap so mutations do not affect the store', () => {
     service.addDoc(doc1);
 
     const map = service.getMap();
-    const docInMap = map[doc1._id];
+    const docInMap = map.get(doc1._id);
     expect(docInMap).toBeDefined();
     if (docInMap) {
       docInMap.value = 999;

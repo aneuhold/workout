@@ -58,12 +58,20 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   /**
    * Gets a snapshot of the entire document map.
    */
-  public getMap(): DocumentMap<T> {
+  public getMap(): Map<UUID, T> {
     // This has to be done because as of 2/16/2026 it seems that there is a bug in the Svelte
     // TypeScript where it says that $state.snapshot returns a map of Snapshot<T> instead of T,
     // even though the docs say it should return T. This is a workaround for now. An alternative
     // is to setup an app.d.ts file, but the below seems shorter.
-    return DocumentService.deepCopy($state.snapshot(this.mapState) as unknown as DocumentMap<T>);
+    const snapshot = $state.snapshot(this.mapState) as unknown as DocumentMap<T>;
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const map = new Map<UUID, T>();
+    Object.values(snapshot).forEach((doc) => {
+      if (doc) {
+        map.set(doc._id, DocumentService.deepCopy(doc));
+      }
+    });
+    return map;
   }
 
   /**

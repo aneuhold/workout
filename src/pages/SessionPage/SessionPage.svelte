@@ -5,7 +5,7 @@
   Fetches session data, derives mode, manages card expansion, and orchestrates all sub-components.
 -->
 <script lang="ts">
-  import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
+  import { WorkoutSessionExerciseService, WorkoutSetService } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
@@ -31,23 +31,11 @@
 
   let allSets = $derived(session ? sessionMapService.getOrderedSetsForSession(session) : []);
 
-  let completedSets = $derived(
-    allSets.filter(
-      (s) =>
-        s.actualReps != null && s.actualWeight != null && (s.rir != null || s.plannedRir == null)
-    )
-  );
+  let completedSets = $derived(allSets.filter((s) => WorkoutSetService.isCompleted(s)));
 
   let totalSets = $derived(allSets.length);
   let completedCount = $derived(completedSets.length);
   let percent = $derived(totalSets > 0 ? Math.round((completedCount / totalSets) * 100) : 0);
-
-  // --- Deload detection ---
-
-  function isDeloadExercise(se: WorkoutSessionExercise): boolean {
-    const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-    return seSets.length > 0 && seSets.every((s) => s.plannedRir == null);
-  }
 
   // --- Mode derivation ---
 
@@ -56,11 +44,8 @@
     if (!session.complete) return SessionPageMode.Active;
 
     const hasNullLateFields = sessionExercises.some((se) => {
-      if (isDeloadExercise(se)) return false;
-      const disruptionNull = se.rsm?.disruption == null;
-      const unusedMuscleNull = se.fatigue?.unusedMusclePerformance == null;
-      const sorenessNull = se.sorenessScore == null;
-      return disruptionNull || unusedMuscleNull || sorenessNull;
+      const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+      return WorkoutSessionExerciseService.needsReview(se, seSets);
     });
 
     return hasNullLateFields ? SessionPageMode.Review : SessionPageMode.View;
@@ -85,14 +70,7 @@
   });
 
   let allLateFieldsFilled = $derived(
-    sessionExercises.length > 0 &&
-      sessionExercises.every(
-        (se) =>
-          isDeloadExercise(se) ||
-          (se.rsm?.disruption != null &&
-            se.fatigue?.unusedMusclePerformance != null &&
-            se.sorenessScore != null)
-      )
+    sessionExercises.length > 0 && sessionExercises.every((se) => !exerciseNeedsReview(se))
   );
 
   /**
@@ -106,10 +84,7 @@
       const exerciseSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(
         sessionExercises[i]
       );
-      const allComplete = exerciseSets.every(
-        (s) =>
-          s.actualReps != null && s.actualWeight != null && (s.rir != null || s.plannedRir == null)
-      );
+      const allComplete = exerciseSets.every((s) => WorkoutSetService.isCompleted(s));
       if (!allComplete) return i;
     }
     return sessionExercises.length;
@@ -118,12 +93,8 @@
   // --- Card state ---
 
   function exerciseNeedsReview(se: (typeof sessionExercises)[number]): boolean {
-    if (isDeloadExercise(se)) return false;
-    return (
-      se.rsm?.disruption == null ||
-      se.fatigue?.unusedMusclePerformance == null ||
-      se.sorenessScore == null
-    );
+    const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+    return WorkoutSessionExerciseService.needsReview(se, seSets);
   }
 
   function getCardState(index: number): SessionPageExerciseCardState {
