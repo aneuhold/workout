@@ -1,4 +1,5 @@
 <script lang="ts">
+  import NewMesocyclePage from '$pages/NewMesocyclePage/NewMesocyclePage.svelte';
   import { mesocycleNewPageInfo } from './pageInfo';
 </script>
 
@@ -7,4 +8,4 @@
   <meta name="description" content={mesocycleNewPageInfo.description} />
 </svelte:head>
 
-<h1>{mesocycleNewPageInfo.title}</h1>
+<NewMesocyclePage />

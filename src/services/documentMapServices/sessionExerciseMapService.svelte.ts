@@ -16,7 +16,7 @@ class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutS
    * Returns sets for a session exercise in `setOrder` sequence.
    * O(k) where k = setOrder.length, each lookup is O(1).
    *
-   * @param sessionExercise
+   * @param sessionExercise - The session exercise for which to retrieve ordered sets
    */
   getOrderedSetsForSessionExercise(sessionExercise: WorkoutSessionExercise): WorkoutSet[] {
     return sessionExercise.setOrder

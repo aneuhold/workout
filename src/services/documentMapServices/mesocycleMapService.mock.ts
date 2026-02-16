@@ -68,8 +68,8 @@ export default class MesocycleMapServiceMock {
  * Creates a fully-generated mock mesocycle with microcycles, sessions,
  * session exercises, and sets. Adds all documents to the mock services.
  *
- * @param baseData
- * @param config
+ * @param baseData - Base data containing calibrations, exercises, and equipment types to use for generation
+ * @param config - Configuration for how to generate the mesocycle and related data, including dates and completion status
  */
 export function generateFullMockMesocycle(
   baseData: MockBaseData,
