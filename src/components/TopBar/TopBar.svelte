@@ -18,6 +18,7 @@
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
   import { formatTime } from '$util/formatTime';
+  import SyncIndicator from './SyncIndicator.svelte';
 
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
 
@@ -64,31 +65,34 @@
     </div>
   {/if}
 
-  <!-- Right: Avatar dropdown -->
-  <DropdownMenu>
-    <DropdownMenuTrigger>
-      <button class="cursor-pointer rounded-full" aria-label="User menu">
-        <Avatar>
-          <AvatarFallback>
-            {#if initials}
-              {initials}
-            {:else}
-              <IconUser size={14} stroke={1.5} />
-            {/if}
-          </AvatarFallback>
-        </Avatar>
-      </button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem onclick={() => goto('/settings')}>
-        <IconSettings size={16} />
-        Settings
-      </DropdownMenuItem>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem variant="destructive" onclick={handleLogout}>
-        <IconLogout size={16} />
-        Logout
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <!-- Right: Sync indicator + Avatar dropdown -->
+  <div class="flex items-center gap-2">
+    <SyncIndicator timerHighlight={showTimerHighlight} />
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <button class="cursor-pointer rounded-full" aria-label="User menu">
+          <Avatar>
+            <AvatarFallback>
+              {#if initials}
+                {initials}
+              {:else}
+                <IconUser size={14} stroke={1.5} />
+              {/if}
+            </AvatarFallback>
+          </Avatar>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onclick={() => goto('/settings')}>
+          <IconSettings size={16} />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onclick={handleLogout}>
+          <IconLogout size={16} />
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </header>
