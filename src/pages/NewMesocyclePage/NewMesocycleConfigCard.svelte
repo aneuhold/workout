@@ -7,13 +7,13 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
+  import ValidatedInput from '$components/ValidatedInput/ValidatedInput.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
   import CardTitle from '$ui/Card/CardTitle.svelte';
-  import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
   import SelectContent from '$ui/Select/SelectContent.svelte';
@@ -62,8 +62,13 @@
   </CardHeader>
   <CardContent class="flex flex-col gap-4">
     <div class="flex flex-col gap-1.5">
-      <Label for="meso-title">Title</Label>
-      <Input id="meso-title" placeholder="e.g. Hypertrophy Block" bind:value={title} />
+      <Label for="meso-title">Title *</Label>
+      <ValidatedInput
+        id="meso-title"
+        required
+        placeholder="e.g. Hypertrophy Block"
+        bind:value={title}
+      />
     </div>
 
     <div class="flex flex-col gap-1.5">
@@ -99,15 +104,21 @@
     <div class="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
       <div class="flex flex-col gap-1.5">
         <Label for="meso-weeks">Weeks</Label>
-        <Input id="meso-weeks" type="number" bind:value={weeks} min={2} max={8} />
+        <ValidatedInput id="meso-weeks" type="number" bind:value={weeks} min={2} max={8} />
       </div>
       <div class="flex flex-col gap-1.5">
         <Label for="meso-sessions">Sessions/Week</Label>
-        <Input id="meso-sessions" type="number" bind:value={sessionsPerWeek} min={1} max={30} />
+        <ValidatedInput
+          id="meso-sessions"
+          type="number"
+          bind:value={sessionsPerWeek}
+          min={1}
+          max={30}
+        />
       </div>
       <div class="flex flex-col gap-1.5">
         <Label for="meso-days">Days/Cycle</Label>
-        <Input id="meso-days" type="number" bind:value={daysPerCycle} min={2} max={30} />
+        <ValidatedInput id="meso-days" type="number" bind:value={daysPerCycle} min={2} max={30} />
       </div>
     </div>
 

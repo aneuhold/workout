@@ -152,7 +152,9 @@
   const totalSessions = $derived(previewSessions.length);
   const uniqueExercises = $derived(formSelectedCalibrationIds.length);
   const cycleTypeLabel = $derived(formatCycleType(formCycleType));
-  const isValid = $derived(generationMesocycle !== null && previewMicrocycles.length > 0);
+  const isValid = $derived(
+    formTitle.trim() !== '' && generationMesocycle !== null && previewMicrocycles.length > 0
+  );
 
   // --- Submission ---
 
