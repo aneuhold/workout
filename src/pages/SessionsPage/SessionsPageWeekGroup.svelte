@@ -12,11 +12,11 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { IconChevronDown, IconChevronRight } from '@tabler/icons-svelte';
+  import SessionCard from '$components/SessionCard/SessionCard.svelte';
+  import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
+  import { getSessionStatus } from '$components/SessionCard/sessionCardUtils';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-  import SessionsPageSessionCard from './SessionsPageSessionCard.svelte';
-  import { SessionStatus } from './sessionsPageTypes';
-  import { getSessionStatus } from './sessionsPageUtils';
 
   let {
     microcycle,
@@ -91,7 +91,7 @@
   {#if expanded}
     <div class="flex flex-col gap-2 pl-6">
       {#each sessions as session (session._id)}
-        <SessionsPageSessionCard
+        <SessionCard
           {session}
           status={getStatus(session)}
           sessionExercises={getExercisesForSession(session)}

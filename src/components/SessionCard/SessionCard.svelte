@@ -14,8 +14,8 @@
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
-  import { SessionStatus } from './sessionsPageTypes';
-  import { computeSessionRsmTotal, countCompletedSets } from './sessionsPageUtils';
+  import { SessionStatus } from './sessionCardTypes';
+  import { computeSessionRsmTotal, countCompletedSets } from './sessionCardUtils';
 
   let {
     session,

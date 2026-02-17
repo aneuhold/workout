@@ -1,6 +1,6 @@
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import { WorkoutSessionExerciseService, WorkoutSetService } from '@aneuhold/core-ts-db-lib';
-import { SessionStatus } from './sessionsPageTypes';
+import { SessionStatus } from './sessionCardTypes';
 
 /**
  * Determines the display status of a session for the sessions page.
