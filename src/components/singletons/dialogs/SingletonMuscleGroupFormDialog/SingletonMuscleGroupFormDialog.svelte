@@ -80,7 +80,7 @@
 </script>
 
 <Dialog bind:open>
-  <DialogContent>
+  <DialogContent trapFocus={false}>
     <DialogHeader>
       <DialogTitle>{isEditMode ? 'Edit' : 'Add'} Muscle Group</DialogTitle>
     </DialogHeader>
