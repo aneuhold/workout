@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
+  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
@@ -13,27 +14,18 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.muscleGroupMapServiceMock.reset();
-      MockData.equipmentTypeMapServiceMock.reset();
-      MockData.exerciseMapServiceMock.reset();
-      MockData.exerciseCalibrationMapServiceMock.reset();
+      MockData.resetAll();
 
-      const mg = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-      const eq = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-      const ex = MockData.exerciseMapServiceMock.addDefaultExercises(mg, eq);
-      MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
+      const baseData = MockData.setupBaseData();
 
-      exercises = ex;
-      muscleGroups = Object.values(mg);
-      equipment = Object.values(eq);
+      exercises = baseData.exercises;
+      muscleGroups = muscleGroupMapService.getDocs();
+      equipment = baseData.equipmentTypes;
     });
 
     return () => {
       untrack(() => {
-        MockData.muscleGroupMapServiceMock.reset();
-        MockData.equipmentTypeMapServiceMock.reset();
-        MockData.exerciseMapServiceMock.reset();
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        MockData.resetAll();
       });
     };
   });

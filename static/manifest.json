@@ -1,11 +1,11 @@
 {
-  "name": "Personal Dashboard",
-  "short_name": "Dashboard",
-  "description": "Dashboard for a few things used on a daily basis",
+  "name": "MesoPro",
+  "short_name": "MesoPro",
+  "description": "A workout tracking app focused on accuracy and hypertrophy.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#000",
-  "theme_color": "#098e1f",
+  "theme_color": "#009869",
   "icons": [
     {
       "src": "icons/48.png",

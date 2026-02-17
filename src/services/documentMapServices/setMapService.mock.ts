@@ -9,7 +9,10 @@ export type AddMockSetInfo = {
   workoutSessionExerciseId: UUID;
   plannedReps?: number;
   plannedWeight?: number;
-  plannedRir?: number;
+  plannedRir?: number | null;
+  actualReps?: number;
+  actualWeight?: number;
+  rir?: number;
 };
 
 export default class SetMapServiceMock {
@@ -25,7 +28,10 @@ export default class SetMapServiceMock {
       workoutSessionExerciseId: config.workoutSessionExerciseId,
       plannedReps: config.plannedReps,
       plannedWeight: config.plannedWeight,
-      plannedRir: config.plannedRir
+      plannedRir: config.plannedRir,
+      actualReps: config.actualReps,
+      actualWeight: config.actualWeight,
+      rir: config.rir
     });
     setMapService.addDocWithoutPersist(doc);
     return doc;

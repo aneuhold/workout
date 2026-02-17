@@ -26,11 +26,8 @@ export default class TestSetup {
       logger.debug('Mocked WebSocketService.connect called');
     });
 
-    // Reset library mocks
-    MockData.muscleGroupMapServiceMock.reset();
-    MockData.equipmentTypeMapServiceMock.reset();
-    MockData.exerciseMapServiceMock.reset();
-    MockData.exerciseCalibrationMapServiceMock.reset();
+    // Reset all document map service mocks
+    MockData.resetAll();
 
     // Reset user config (includes apiKey)
     MockData.userConfigMock.reset();

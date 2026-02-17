@@ -18,6 +18,7 @@
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
   import { formatTime } from '$util/formatTime';
+  import SyncIndicator from './SyncIndicator.svelte';
 
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
 
@@ -46,8 +47,15 @@
     ? 'fixed inset-x-0 top-0 bg-primary text-primary-foreground animate-timer-pulse'
     : 'bg-sidebar text-sidebar-foreground md:fixed md:inset-x-0 md:top-0'}"
 >
-  <!-- Left: App title -->
-  <span class="text-lg font-semibold">MesoPro</span>
+  <!-- Left: Logo + App title -->
+  <div class="flex items-center gap-2">
+    <img
+      src="/logo.svg"
+      alt="MesoPro logo"
+      class="h-7 {showTimerHighlight ? 'brightness-0 invert dark:invert' : ''}"
+    />
+    <span class="text-lg font-semibold">MesoPro</span>
+  </div>
 
   <!-- Center: Timer display (only when active) -->
   {#if showTimerHighlight}
@@ -57,31 +65,34 @@
     </div>
   {/if}
 
-  <!-- Right: Avatar dropdown -->
-  <DropdownMenu>
-    <DropdownMenuTrigger>
-      <button class="cursor-pointer rounded-full" aria-label="User menu">
-        <Avatar>
-          <AvatarFallback>
-            {#if initials}
-              {initials}
-            {:else}
-              <IconUser size={14} stroke={1.5} />
-            {/if}
-          </AvatarFallback>
-        </Avatar>
-      </button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem onclick={() => goto('/settings')}>
-        <IconSettings size={16} />
-        Settings
-      </DropdownMenuItem>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem variant="destructive" onclick={handleLogout}>
-        <IconLogout size={16} />
-        Logout
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <!-- Right: Sync indicator + Avatar dropdown -->
+  <div class="flex items-center gap-2">
+    <SyncIndicator timerHighlight={showTimerHighlight} />
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <button class="cursor-pointer rounded-full" aria-label="User menu">
+          <Avatar>
+            <AvatarFallback>
+              {#if initials}
+                {initials}
+              {:else}
+                <IconUser size={14} stroke={1.5} />
+              {/if}
+            </AvatarFallback>
+          </Avatar>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onclick={() => goto('/settings')}>
+          <IconSettings size={16} />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onclick={handleLogout}>
+          <IconLogout size={16} />
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </header>

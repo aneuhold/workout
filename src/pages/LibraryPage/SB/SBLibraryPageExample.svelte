@@ -10,25 +10,16 @@
     const populate = populateDefaultData;
 
     untrack(() => {
-      MockData.muscleGroupMapServiceMock.reset();
-      MockData.equipmentTypeMapServiceMock.reset();
-      MockData.exerciseMapServiceMock.reset();
-      MockData.exerciseCalibrationMapServiceMock.reset();
+      MockData.resetAll();
 
       if (populate) {
-        const muscleGroups = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-        const equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-        MockData.exerciseMapServiceMock.addDefaultExercises(muscleGroups, equipment);
-        MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
+        MockData.setupBaseData();
       }
     });
 
     return () => {
       untrack(() => {
-        MockData.muscleGroupMapServiceMock.reset();
-        MockData.equipmentTypeMapServiceMock.reset();
-        MockData.exerciseMapServiceMock.reset();
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        MockData.resetAll();
       });
     };
   });

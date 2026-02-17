@@ -10,22 +10,15 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.muscleGroupMapServiceMock.reset();
-      MockData.equipmentTypeMapServiceMock.reset();
-      MockData.exerciseMapServiceMock.reset();
-      MockData.exerciseCalibrationMapServiceMock.reset();
+      MockData.resetAll();
 
-      const mg = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-      const eq = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-      exercises = MockData.exerciseMapServiceMock.addDefaultExercises(mg, eq);
+      const baseData = MockData.setupBaseData();
+      exercises = baseData.exercises;
     });
 
     return () => {
       untrack(() => {
-        MockData.muscleGroupMapServiceMock.reset();
-        MockData.equipmentTypeMapServiceMock.reset();
-        MockData.exerciseMapServiceMock.reset();
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        MockData.resetAll();
       });
     };
   });

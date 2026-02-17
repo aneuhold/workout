@@ -2,9 +2,11 @@ import { analyticsPageInfo } from '$routes/analytics/pageInfo';
 import { exercisePageInfo } from '$routes/exercise/pageInfo';
 import { libraryPageInfo } from '$routes/library/pageInfo';
 import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
+import { mesocyclePageInfo } from '$routes/mesocycle/pageInfo';
 import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
 import { sessionPageInfo } from '$routes/session/pageInfo';
+import { sessionsPageInfo } from '$routes/sessions/pageInfo';
 import { settingsPageInfo } from '$routes/settings/pageInfo';
 import { timerPageInfo } from '$routes/timer/pageInfo';
 
@@ -40,11 +42,13 @@ export interface PageInfo {
  */
 const navInfo = {
   home: homePageInfo,
+  sessions: sessionsPageInfo,
   session: sessionPageInfo,
   library: libraryPageInfo,
   exercise: exercisePageInfo,
   analytics: analyticsPageInfo,
   mesocycles: mesocyclesPageInfo,
+  mesocycle: mesocyclePageInfo,
   mesocycleNew: mesocycleNewPageInfo,
   timer: timerPageInfo,
   settings: settingsPageInfo

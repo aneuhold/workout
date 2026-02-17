@@ -32,3 +32,5 @@
 <Story name="In-Progress Near Deload" args={{ completedSessionCount: 15 }} />
 
 <Story name="In-Progress In Deload" args={{ completedSessionCount: 20 }} />
+
+<Story name="All Completed" args={{ completedSessionCount: 30 }} />

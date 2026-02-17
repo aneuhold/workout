@@ -31,6 +31,7 @@
   import Separator from '$ui/Separator/Separator.svelte';
   import Slider from '$ui/Slider/Slider.svelte';
   import Textarea from '$ui/Textarea/Textarea.svelte';
+  import sharedTextConstants from '$util/sharedTextConstants';
 
   let {
     exercise,
@@ -108,28 +109,7 @@
     return muscleGroupMapService.getDoc(id)?.name ?? 'Unknown';
   }
 
-  // --- Fatigue descriptions ---
-
-  const jointDescriptions = [
-    'You had minimal to no pain or perturbation in your joints or connective tissues',
-    'You had some pain or perturbation in your joints and connective tissues but recovered by the next day',
-    'You had some persistent pain or tightness in your connective tissues that lasted through the following day or several days',
-    'You develop chronic pain in the joints and connective tissues that persists across days to weeks or longer'
-  ];
-
-  const effortDescriptions = [
-    'Training felt very easy and hardly taxed you psychologically',
-    'You put effort into the training, but felt recovered by the end of the day',
-    'You put a large effort into the training and felt drained through the next day',
-    'You put an all-out effort into the training and felt drained for days'
-  ];
-
-  const unusedMuscleDescriptions = [
-    'Performance on subsequent exercises targeting unused muscles was better than expected',
-    'Performance on subsequent exercises targeting unused muscles was as expected',
-    'Performance on subsequent exercises targeting unused muscles was worse than expected',
-    'Your performance on subsequent exercises targeting unused muscles was hugely deteriorated'
-  ];
+  const { jointDescriptions, effortDescriptions, unusedMuscleDescriptions } = sharedTextConstants;
 
   // --- Muscle group toggle (cycles: unselected -> primary -> secondary -> unselected) ---
 

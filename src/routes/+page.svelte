@@ -1,4 +1,5 @@
 <script lang="ts">
+  import HomePage from '$pages/HomePage/HomePage.svelte';
   import { homePageInfo } from './pageInfo';
 </script>
 
@@ -7,4 +8,4 @@
   <meta name="description" content={homePageInfo.description} />
 </svelte:head>
 
-<h1>{homePageInfo.title}</h1>
+<HomePage />

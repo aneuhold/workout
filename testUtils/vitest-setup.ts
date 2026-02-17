@@ -16,13 +16,4 @@ afterEach(() => {
   cleanup();
 });
 
-// --- Global Mocks that have to be at Global Scope ---
-
-// SingletonConfirmationDialog
-vi.mock('$components/singletons/dialogs/SingletonConfirmationDialog.svelte', () => {
-  return {
-    confirmationDialog: {
-      open: vi.fn()
-    }
-  };
-});
+// --- Global Mocks that have to be at Global Scope should be put below ---

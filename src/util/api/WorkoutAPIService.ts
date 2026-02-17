@@ -4,6 +4,7 @@ import {
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
 import type { UUID } from 'crypto';
+import apiActivityService from '$services/ApiActivityService/ApiActivityService.svelte';
 import WebSocketService from '$services/WebSocketService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
@@ -114,7 +115,10 @@ export default class WorkoutAPIService {
    */
   private static async processApiRequests() {
     this.processingRequestQueue = true;
+    apiActivityService.setSyncing();
     let combinedOutput: ProjectWorkoutPrimaryOutput = {};
+    const combinedInput: ProjectWorkoutPrimaryEndpointOptions = {};
+    let hadError = false;
     while (LocalData.apiRequestQueue.length > 0) {
       const currentRequest = this.shiftApiRequestQueue();
       LocalData.currentApiRequest = currentRequest;
@@ -122,9 +126,14 @@ export default class WorkoutAPIService {
         log.error('No current API request to process, something went wrong!!');
         break;
       }
+      if (currentRequest.get) {
+        combinedInput.get = { ...combinedInput.get, ...currentRequest.get };
+      }
       const result = await this.callWorkoutAPI(currentRequest);
       if (result) {
         combinedOutput = { ...combinedOutput, ...result };
+      } else {
+        hadError = true;
       }
       if (result && LocalData.apiRequestQueue.length === 0) {
         // Only set the stores if there are no more requests to process. This
@@ -132,6 +141,7 @@ export default class WorkoutAPIService {
         // the user refreshes the page while the task queue is being processed.
         WorkoutAPIResponseHandlingService.processWorkoutApiOutput(
           combinedOutput,
+          combinedInput,
           this.processingFirstInitData
         );
         this.processingFirstInitData = false;
@@ -142,6 +152,11 @@ export default class WorkoutAPIService {
       }
     }
     this.processingRequestQueue = false;
+    if (hadError) {
+      apiActivityService.setError();
+    } else {
+      apiActivityService.setSuccess();
+    }
   }
 
   private static async callWorkoutAPI(

@@ -14,6 +14,7 @@
     IconList,
     IconStopwatch
   } from '@tabler/icons-svelte';
+  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import { navBarItems } from '$util/navInfo';
 
   let { currentPath }: { currentPath: string } = $props();
@@ -27,8 +28,16 @@
     IconStopwatch
   };
 
+  function getHref(itemUrl: string): string {
+    if (itemUrl === '/sessions' && mesocycleMapService.activeAndNextSessions.inProgressSession) {
+      return `/session?sessionId=${mesocycleMapService.activeAndNextSessions.inProgressSession._id}`;
+    }
+    return itemUrl;
+  }
+
   function isActive(itemUrl: string, path: string): boolean {
     if (itemUrl === '/') return path === '/';
+    if (itemUrl === '/sessions') return path.startsWith('/session');
     return path.startsWith(itemUrl);
   }
 </script>
@@ -38,7 +47,7 @@
 >
   {#each navBarItems as item (item.url)}
     <a
-      href={item.url}
+      href={getHref(item.url)}
       class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors
         md:flex-initial md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-md md:px-3 md:py-2.5
         {isActive(item.url, currentPath)
