@@ -2,7 +2,6 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocketService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
-import WorkoutAPIResponseHandlingService from '$util/api/WorkoutAPIResponseHandlingService';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
 import { createLogger } from '$util/logging/logger';
@@ -71,7 +70,9 @@ function createHandleLoginStateChangeForWebSocket(): (newLoginState: LoginState)
       if (!subscribedToWebSocket) {
         WebSocketService.subscribeToRootPostResult((payload) => {
           log.info('Received WebSocket payload:', payload);
-          WorkoutAPIResponseHandlingService.processWorkoutApiOutput(payload, false);
+          // TODO: Implement this part, probably so it is surgical about what gets added / updated
+          // in the associated document map services.
+          // WorkoutAPIResponseHandlingService.processWorkoutApiOutput(payload, input, false);
         });
         subscribedToWebSocket = true;
       } else {

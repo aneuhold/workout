@@ -117,6 +117,7 @@ export default class WorkoutAPIService {
     this.processingRequestQueue = true;
     apiActivityService.setSyncing();
     let combinedOutput: ProjectWorkoutPrimaryOutput = {};
+    const combinedInput: ProjectWorkoutPrimaryEndpointOptions = {};
     let hadError = false;
     while (LocalData.apiRequestQueue.length > 0) {
       const currentRequest = this.shiftApiRequestQueue();
@@ -124,6 +125,9 @@ export default class WorkoutAPIService {
       if (!currentRequest) {
         log.error('No current API request to process, something went wrong!!');
         break;
+      }
+      if (currentRequest.get) {
+        combinedInput.get = { ...combinedInput.get, ...currentRequest.get };
       }
       const result = await this.callWorkoutAPI(currentRequest);
       if (result) {
@@ -137,6 +141,7 @@ export default class WorkoutAPIService {
         // the user refreshes the page while the task queue is being processed.
         WorkoutAPIResponseHandlingService.processWorkoutApiOutput(
           combinedOutput,
+          combinedInput,
           this.processingFirstInitData
         );
         this.processingFirstInitData = false;
