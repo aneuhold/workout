@@ -32,6 +32,7 @@
   // --- Form state ---
 
   let formTitle = $state('');
+  let formStartDate = $state(new Date());
   let formCycleType = $state<CycleType>(CycleType.MuscleGain);
   let formWeeks = $state(6);
   let formSessionsPerWeek = $state(5);
@@ -100,7 +101,12 @@
         generationMesocycle,
         calibrations,
         exercises,
-        allEquipmentTypes
+        allEquipmentTypes,
+        [],
+        [],
+        [],
+        [],
+        formStartDate
       );
       return {
         microcycles: result.microcycles?.create ?? [],
@@ -153,7 +159,12 @@
       mesocycleDoc,
       calibrations,
       exercises,
-      allEquipmentTypes
+      allEquipmentTypes,
+      [],
+      [],
+      [],
+      [],
+      formStartDate
     );
 
     const microcycles = result.microcycles?.create ?? [];
@@ -175,6 +186,7 @@
 
   <MesocycleConfigCard
     bind:title={formTitle}
+    bind:startDate={formStartDate}
     bind:cycleType={formCycleType}
     bind:weeks={formWeeks}
     bind:sessionsPerWeek={formSessionsPerWeek}

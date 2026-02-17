@@ -84,6 +84,15 @@
       : []
   );
 
+  // Start date from the earliest microcycle
+  const mesocycleStartDate = $derived.by(() => {
+    if (microcycles.length === 0) return new Date();
+    const sorted = [...microcycles].sort(
+      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+    return new Date(sorted[0].startDate);
+  });
+
   // Summary stats
   const totalSessions = $derived(sessions.length);
   const uniqueExercises = $derived(selectedCalibrationIds.length);
@@ -106,6 +115,7 @@
   {:else}
     <MesocycleConfigCard
       bind:title={formTitle}
+      startDate={mesocycleStartDate}
       cycleType={mesocycle.cycleType}
       weeks={mesocycle.plannedMicrocycleCount ?? 0}
       sessionsPerWeek={mesocycle.plannedSessionCountPerMicrocycle}

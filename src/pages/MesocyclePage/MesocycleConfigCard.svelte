@@ -7,15 +7,21 @@
 -->
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { type DateValue, fromDate, getLocalTimeZone } from '@internationalized/date';
+  import { IconCalendar } from '@tabler/icons-svelte';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import ValidatedInput from '$components/ValidatedInput/ValidatedInput.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import Button from '$ui/Button/Button.svelte';
+  import Calendar from '$ui/Calendar/Calendar.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
   import CardTitle from '$ui/Card/CardTitle.svelte';
   import Label from '$ui/Label/Label.svelte';
+  import Popover from '$ui/Popover/Popover.svelte';
+  import PopoverContent from '$ui/Popover/PopoverContent.svelte';
+  import PopoverTrigger from '$ui/Popover/PopoverTrigger.svelte';
   import Select from '$ui/Select/Select.svelte';
   import SelectContent from '$ui/Select/SelectContent.svelte';
   import SelectItem from '$ui/Select/SelectItem.svelte';
@@ -23,6 +29,7 @@
 
   let {
     title = $bindable(''),
+    startDate = $bindable(new Date()),
     cycleType = $bindable<CycleType>(CycleType.MuscleGain),
     weeks = $bindable(6),
     sessionsPerWeek = $bindable(5),
@@ -32,6 +39,7 @@
     onTitleBlur
   }: {
     title: string;
+    startDate: Date;
     cycleType: CycleType;
     weeks: number;
     sessionsPerWeek: number;
@@ -40,6 +48,21 @@
     disabled?: boolean;
     onTitleBlur?: () => void;
   } = $props();
+
+  const tz = getLocalTimeZone();
+  let calendarValue = $state<DateValue | undefined>(fromDate(startDate, tz));
+  let popoverOpen = $state(false);
+
+  // Sync calendar value back to the Date prop
+  $effect(() => {
+    if (calendarValue) {
+      startDate = calendarValue.toDate(tz);
+    }
+  });
+
+  const formattedDate = $derived(
+    startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  );
 
   // Trim rest days when daysPerCycle shrinks
   $effect(() => {
@@ -74,6 +97,27 @@
         placeholder="e.g. Hypertrophy Block"
         bind:value={title}
       />
+    </div>
+
+    <div class="flex flex-col items-start gap-1.5">
+      <Label>Start Date</Label>
+      <Popover bind:open={popoverOpen}>
+        <PopoverTrigger>
+          <Button variant="outline" {disabled}>
+            <IconCalendar size={16} />
+            {formattedDate}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent class="p-0">
+          <Calendar
+            type="single"
+            bind:value={calendarValue}
+            onValueChange={() => {
+              popoverOpen = false;
+            }}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
 
     <div class="flex flex-col gap-1.5">
