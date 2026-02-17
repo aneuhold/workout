@@ -5,6 +5,7 @@ import type {
   WorkoutSessionExercise,
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
+import { WorkoutSessionService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
@@ -12,6 +13,7 @@ import LocalData from '$util/LocalData/LocalData';
 import microcycleMapService from './microcycleMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import sessionMapService from './sessionMapService.svelte';
+import setMapService from './setMapService.svelte';
 
 function hasCompletedDate(m: WorkoutMesocycle): m is WorkoutMesocycle & { completedDate: Date } {
   return m.completedDate != null;
@@ -42,6 +44,21 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       .filter(hasCompletedDate)
       .sort((a, b) => b.completedDate.getTime() - a.completedDate.getTime());
   }
+
+  /**
+   * Derives the in-progress and next-up sessions for the active mesocycle.
+   * Computed once and shared across all consumers.
+   */
+  readonly activeAndNextSessions = $derived.by(() => {
+    const activeMesocycle = this.getActiveMesocycle();
+    if (!activeMesocycle) return { inProgressSession: null, nextUpSession: null } as const;
+    const docs = this.getAssociatedDocsForMesocycle(activeMesocycle._id);
+    return WorkoutSessionService.getActiveAndNextSessions(
+      docs.sessions,
+      sessionExerciseMapService.getMap(),
+      setMapService.getMap()
+    );
+  });
 
   /**
    * Single entry point for all docs belonging to a mesocycle. Runs the O(n)

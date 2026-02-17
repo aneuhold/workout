@@ -5,7 +5,6 @@
 -->
 <script lang="ts">
   import { IconArrowLeft } from '@tabler/icons-svelte';
-  import { goto } from '$app/navigation';
   import Button from '$ui/Button/Button.svelte';
 
   let {
@@ -18,7 +17,7 @@
 </script>
 
 <div class="flex items-center gap-2">
-  <Button variant="ghost" size="sm" onclick={() => goto('/')}>
+  <Button variant="ghost" size="sm" onclick={() => history.back()}>
     <IconArrowLeft size={16} />
   </Button>
   <div class="flex flex-col">
