@@ -6,7 +6,6 @@
 -->
 <script lang="ts">
   import { IconArrowLeft } from '@tabler/icons-svelte';
-  import { goto } from '$app/navigation';
   import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -32,9 +31,13 @@
   let editOverride = $state<boolean | null>(null);
   let editMode = $derived(editOverride !== null ? editOverride : isNew);
 
+  function handleBack() {
+    history.back();
+  }
+
   function handleCancel() {
     if (isNew) {
-      goto('/library');
+      handleBack();
     } else {
       editOverride = false;
     }
@@ -44,7 +47,7 @@
 <div class="flex flex-col gap-4 p-4">
   <!-- Header -->
   <div class="flex items-center gap-2">
-    <Button variant="ghost" size="sm" onclick={() => goto('/library')}>
+    <Button variant="ghost" size="sm" onclick={handleBack}>
       <IconArrowLeft size={16} />
     </Button>
     {#if editMode}
@@ -60,7 +63,7 @@
     <ExercisePageViewMode {exercise} onEdit={() => (editOverride = true)} />
   {:else}
     <p class="text-sm text-muted-foreground">Exercise not found.</p>
-    <Button variant="outline" onclick={() => goto('/library')}>Back to Library</Button>
+    <Button variant="outline" onclick={handleBack}>Back to Library</Button>
   {/if}
 </div>
 

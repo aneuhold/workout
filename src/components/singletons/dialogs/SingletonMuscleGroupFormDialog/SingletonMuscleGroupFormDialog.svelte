@@ -25,6 +25,7 @@
 <script lang="ts">
   import { WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
+  import TipBox from '$components/TipBox/TipBox.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
@@ -84,6 +85,12 @@
     <DialogHeader>
       <DialogTitle>{isEditMode ? 'Edit' : 'Add'} Muscle Group</DialogTitle>
     </DialogHeader>
+    <TipBox>
+      Choose muscle groups you intend to specifically train for hypertrophy. For example, abs look
+      great when well-developed, but they aren't often "progressed" in the same way as, say, biceps,
+      quads, shoulders, etc. So abs might not work great in this application, but can still be
+      trained on the side!
+    </TipBox>
     <form
       class="flex flex-col gap-4"
       onsubmit={(e) => {

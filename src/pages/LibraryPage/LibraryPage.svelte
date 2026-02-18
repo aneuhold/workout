@@ -43,6 +43,12 @@
   import LibraryPageMuscleGroupCard from './LibraryPageMuscleGroupCard.svelte';
   import LibraryPageMuscleOrExerciseMissingDialog from './LibraryPageMuscleOrExerciseMissingDialog.svelte';
 
+  let {
+    initialTab = null
+  }: {
+    initialTab?: string | null;
+  } = $props();
+
   enum LibraryTab {
     All = 'all',
     Exercise = WorkoutDocumentType.Exercise,
@@ -50,8 +56,23 @@
     Equipment = WorkoutDocumentType.Equipment
   }
 
+  function parseLibraryTab(value: string | null): LibraryTab {
+    if (value && Object.values(LibraryTab).includes(value as LibraryTab)) {
+      return value as LibraryTab;
+    }
+    return LibraryTab.All;
+  }
+
   let searchQuery = $state('');
-  let activeTab = $state<LibraryTab>(LibraryTab.All);
+  let activeTab = $derived(parseLibraryTab(initialTab));
+
+  // Sync active tab with URL query parameter
+  $effect(() => {
+    const tab = activeTab;
+    const params = tab === LibraryTab.All ? '' : `?tab=${tab}`;
+    history.replaceState(history.state, '', `/library${params}`);
+  });
+
   let expandedIds = new SvelteSet<UUID>();
   let addMenuOpen = $state(false);
 

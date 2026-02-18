@@ -4,6 +4,14 @@
   Summary card showing stats grid and an optional Create Mesocycle button.
 -->
 <script lang="ts">
+  import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
+  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
+  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
+  import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
+  import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
+  import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
+  import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
+  import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -26,6 +34,8 @@
     isValid?: boolean;
     onCreate?: () => void;
   } = $props();
+
+  let confirmOpen = $state(false);
 </script>
 
 <Card>
@@ -55,9 +65,27 @@
     {#if onCreate}
       <Separator />
 
-      <Button size="lg" class="w-full" disabled={!isValid} onclick={onCreate}>
+      <Button size="lg" class="w-full" disabled={!isValid} onclick={() => (confirmOpen = true)}>
         Create Mesocycle
       </Button>
     {/if}
   </CardContent>
 </Card>
+
+{#if onCreate}
+  <AlertDialog bind:open={confirmOpen}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Create this mesocycle?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This will create a mesocycle with {totalSessions} sessions across {totalWeeks} weeks. Once created,
+          settings like microcycle count, rest days, and session frequency cannot be changed.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Go Back</AlertDialogCancel>
+        <AlertDialogAction onclick={onCreate}>Create</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+{/if}

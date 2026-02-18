@@ -5,7 +5,11 @@
   import MockData from '$testUtils/MockData';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
-  let { storyMode = 'default' }: { storyMode?: 'default' | 'empty' | 'noActive' } = $props();
+  let {
+    storyMode = 'default'
+  }: {
+    storyMode?: 'default' | 'empty' | 'emptyFewCalibrations' | 'emptyReady' | 'noActive';
+  } = $props();
 
   function daysAgo(n: number): Date {
     return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
@@ -18,7 +22,32 @@
       MockData.resetAll();
 
       if (mode === 'empty') {
-        // No data at all
+        // No data at all — shows "Getting started is easy!"
+        return;
+      }
+
+      if (mode === 'emptyFewCalibrations') {
+        // Base data with only 2 calibrations — shows "You're on your way!"
+        const baseData = MockData.setupBaseData();
+        // Reset calibrations, then add only 2
+        MockData.exerciseCalibrationMapServiceMock.reset();
+        const exercises = baseData.exercises;
+        MockData.exerciseCalibrationMapServiceMock.addCalibration({
+          workoutExerciseId: exercises[0]._id,
+          weight: 185,
+          reps: 5
+        });
+        MockData.exerciseCalibrationMapServiceMock.addCalibration({
+          workoutExerciseId: exercises[1]._id,
+          weight: 275,
+          reps: 5
+        });
+        return;
+      }
+
+      if (mode === 'emptyReady') {
+        // Base data with all calibrations but no mesocycles — shows "Tap New"
+        MockData.setupBaseData();
         return;
       }
 

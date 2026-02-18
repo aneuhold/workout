@@ -14,6 +14,7 @@
     total,
     percent,
     mode,
+    allImmediateSlidersFilled = false,
     allLateFieldsFilled = false,
     onComplete,
     onCompleteReview
@@ -22,10 +23,14 @@
     total: number;
     percent: number;
     mode: SessionPageMode;
+    allImmediateSlidersFilled?: boolean;
     allLateFieldsFilled?: boolean;
     onComplete: () => void;
     onCompleteReview: () => void;
   } = $props();
+
+  let setsComplete = $derived(completed >= total);
+  let canComplete = $derived(setsComplete && allImmediateSlidersFilled);
 </script>
 
 <Card>
@@ -42,9 +47,12 @@
     </div>
 
     {#if mode === SessionPageMode.Active}
-      <Button class="w-full" disabled={completed < total} onclick={onComplete}>
-        Complete Session
-      </Button>
+      <Button class="w-full" disabled={!canComplete} onclick={onComplete}>Complete Session</Button>
+      {#if setsComplete && !allImmediateSlidersFilled}
+        <p class="text-center text-xs text-muted-foreground">
+          Fill in all RSM, Fatigue, and Performance sliders to complete the session.
+        </p>
+      {/if}
     {:else if mode === SessionPageMode.Review}
       <Button class="w-full" disabled={!allLateFieldsFilled} onclick={onCompleteReview}>
         Complete Review

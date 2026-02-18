@@ -16,6 +16,7 @@
   import { SvelteSet } from 'svelte/reactivity';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
+  import TipBox from '$components/TipBox/TipBox.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -185,6 +186,11 @@
   <div class="flex flex-col gap-1.5">
     <Label for="ex-name">Exercise Name *</Label>
     <Input id="ex-name" placeholder="e.g. Barbell Bench Press" bind:value={formName} required />
+    <TipBox>
+      Be ultra-specific to more accurately track progression. Include tempo, angle, grip-type,
+      rep-type, etc. Example: "Barbell Curl - 3s Down, 1s Hold, Normal Up - Shoulder Width
+      Underhand"
+    </TipBox>
   </div>
 
   <div class="flex flex-col gap-1.5">
@@ -203,7 +209,28 @@
 
   <div class="grid grid-cols-2 gap-3">
     <div class="flex flex-col gap-1.5">
-      <Label>Rep Range</Label>
+      <div class="flex items-center gap-2">
+        <Label>Rep Range</Label>
+        <InfoPopover>
+          <p class="mb-2 font-medium">Rep Range Guide</p>
+          <ul class="flex flex-col gap-1.5 text-sm">
+            <li>
+              <strong>Heavy (5-15):</strong> Compound lifts like squats, bench press, deadlifts. Best
+              for lifts that aren't practical at higher reps.
+            </li>
+            <li>
+              <strong>Medium (10-20):</strong> Most exercises.
+            </li>
+            <li>
+              <strong>Light (15-30):</strong> Isolation and high-endurance exercises such as calf raises,
+              rear delt flyes, etc.
+            </li>
+          </ul>
+          <p class="mt-2 text-xs text-muted-foreground">
+            Rep range affects how sets are planned across your mesocycle.
+          </p>
+        </InfoPopover>
+      </div>
       <Select bind:value={formRepRange} type="single">
         <SelectTrigger>{formRepRange}</SelectTrigger>
         <SelectContent>

@@ -83,6 +83,10 @@
         For: <span class="font-medium text-foreground">{currentExercise.exerciseName}</span>
       </p>
     {/if}
+    <p class="text-xs text-muted-foreground">
+      The most weight you can safely do at the lowest reps you can safely do. The closer to 1 rep
+      the better the calculation, but please SAFETY FIRST.
+    </p>
     <form
       class="flex flex-col gap-4"
       onsubmit={(e) => {
