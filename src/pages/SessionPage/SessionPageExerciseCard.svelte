@@ -8,12 +8,14 @@
   import {
     WorkoutExerciseService,
     type WorkoutSessionExercise,
+    WorkoutSessionExerciseService,
     type WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import {
     IconCheck,
     IconChevronDown,
     IconChevronUp,
+    IconExternalLink,
     IconPlayerPause,
     IconPlayerPlay,
     IconPlayerStop,
@@ -66,7 +68,7 @@
       .filter((s): s is WorkoutSet => s != null)
   );
 
-  let isDeload = $derived(sets.length > 0 && sets.every((s) => s.plannedRir == null));
+  let isDeload = $derived(WorkoutSessionExerciseService.isDeloadExercise(sets));
 
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
@@ -245,7 +247,18 @@
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-1">
-      <span class="font-medium">{exercise?.exerciseName ?? 'Unknown Exercise'}</span>
+      <span class="flex items-center gap-1 font-medium">
+        {exercise?.exerciseName ?? 'Unknown Exercise'}
+        {#if exercise}
+          <a
+            href="/exercise?exerciseId={exercise._id}"
+            class="inline-flex shrink-0 text-muted-foreground hover:text-foreground"
+            onclick={(e) => e.stopPropagation()}
+          >
+            <IconExternalLink size={14} />
+          </a>
+        {/if}
+      </span>
       <div class="flex flex-wrap gap-1">
         {#if repRange && exercise}
           <Badge variant="outline">
