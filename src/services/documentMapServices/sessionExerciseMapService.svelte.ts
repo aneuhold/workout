@@ -1,14 +1,16 @@
 import type { WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
 import LocalData from '$util/LocalData/LocalData';
+import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
+import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import setMapService from './setMapService.svelte';
 
 class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutSessionExercise> {
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetSessionExerciseMap(map),
-      persistToDb: createWorkoutPersistToDb('sessionExercises')
+      persistToDb: createWorkoutPersistToDb('sessionExercises'),
+      prepareForSave: createWorkoutPrepareForSave('sessionExercises')
     });
   }
 

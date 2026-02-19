@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
@@ -20,6 +21,10 @@ export type UpsertManyInfo<T> = {
 export interface DocumentMapStoreConfig<T extends BaseDocument> {
   persistToLocalData: (map: DocumentMap<T>) => void;
   persistToDb: (updateInfo: DocumentInsertOrUpdateInfo<T>) => void;
+  prepareForSave: (
+    options: ProjectWorkoutPrimaryEndpointOptions,
+    info: DocumentInsertOrUpdateInfo<T>
+  ) => void;
 }
 
 /**
@@ -174,5 +179,29 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   public setMap(newMap: DocumentMap<T>): void {
     this.mapState = newMap;
     this.config.persistToLocalData(this.mapState);
+  }
+
+  /**
+   * Applies document operations to local state (without triggering API persistence)
+   * and returns the updated API options object with the corresponding
+   * insert/update/delete operations for this document type.
+   *
+   * @param info The insert/update/delete operations to apply
+   * @param apiOptions Optional existing options to extend. If omitted, starts fresh.
+   * @returns The updated API options object (same reference if provided, new object if not)
+   */
+  public prepareDocsForSave(
+    info: DocumentInsertOrUpdateInfo<T>,
+    apiOptions: ProjectWorkoutPrimaryEndpointOptions = {}
+  ): ProjectWorkoutPrimaryEndpointOptions {
+    if (info.insert) {
+      info.insert.forEach((doc) => this.addDocWithoutPersist(doc));
+    }
+    if (info.delete) {
+      info.delete.forEach((doc) => delete this.mapState[doc._id]);
+    }
+    this.config.persistToLocalData(this.mapState);
+    this.config.prepareForSave(apiOptions, info);
+    return apiOptions;
   }
 }

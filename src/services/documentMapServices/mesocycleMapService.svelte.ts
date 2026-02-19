@@ -8,8 +8,9 @@ import type {
 import { WorkoutSessionService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
 import LocalData from '$util/LocalData/LocalData';
+import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
+import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import microcycleMapService from './microcycleMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import sessionMapService from './sessionMapService.svelte';
@@ -23,7 +24,8 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetMesocycleMap(map),
-      persistToDb: createWorkoutPersistToDb('mesocycles')
+      persistToDb: createWorkoutPersistToDb('mesocycles'),
+      prepareForSave: createWorkoutPrepareForSave('mesocycles')
     });
   }
 

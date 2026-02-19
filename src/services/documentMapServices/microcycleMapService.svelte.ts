@@ -1,15 +1,17 @@
 import type { WorkoutMicrocycle, WorkoutSession } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
 import LocalData from '$util/LocalData/LocalData';
+import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
+import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import sessionMapService from './sessionMapService.svelte';
 
 class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicrocycle> {
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetMicrocycleMap(map),
-      persistToDb: createWorkoutPersistToDb('microcycles')
+      persistToDb: createWorkoutPersistToDb('microcycles'),
+      prepareForSave: createWorkoutPrepareForSave('microcycles')
     });
   }
 
