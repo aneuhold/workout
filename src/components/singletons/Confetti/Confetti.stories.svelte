@@ -4,7 +4,7 @@
   import SbConfettiExample from './SBConfettiExample.svelte';
 
   const { Story } = defineMeta({
-    title: 'Singleton Components/Confetti',
+    title: 'Singletons/Confetti',
     component: SbConfettiExample,
     argTypes: {
       ...createNumberArgTypes('numButtons')
