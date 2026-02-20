@@ -61,6 +61,16 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   }
 
   /**
+   * Returns documents matching the given IDs, preserving order and
+   * skipping any IDs not found in the map. O(k) where k = ids.length.
+   *
+   * @param ids The IDs of the documents to retrieve
+   */
+  public getDocsWithIds(ids: UUID[]): T[] {
+    return ids.map((id) => this.mapState[id]).filter((doc): doc is T => doc !== undefined);
+  }
+
+  /**
    * Gets a snapshot of the entire document map.
    */
   public getMap(): Map<UUID, T> {

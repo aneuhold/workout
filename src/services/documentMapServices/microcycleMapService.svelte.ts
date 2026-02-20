@@ -34,9 +34,7 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    * @param microcycle the microcycle to get sessions for
    */
   getOrderedSessionsForMicrocycle(microcycle: WorkoutMicrocycle): WorkoutSession[] {
-    return microcycle.sessionOrder
-      .map((id) => sessionMapService.getDoc(id))
-      .filter((s): s is WorkoutSession => s !== undefined);
+    return sessionMapService.getDocsWithIds(microcycle.sessionOrder);
   }
 
   /**

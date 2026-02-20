@@ -21,9 +21,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    * @param session the session to get session exercises for
    */
   getOrderedSessionExercisesForSession(session: WorkoutSession): WorkoutSessionExercise[] {
-    return session.sessionExerciseOrder
-      .map((id) => sessionExerciseMapService.getDoc(id))
-      .filter((se): se is WorkoutSessionExercise => se !== undefined);
+    return sessionExerciseMapService.getDocsWithIds(session.sessionExerciseOrder);
   }
 
   /**

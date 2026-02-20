@@ -21,9 +21,7 @@ class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutS
    * @param sessionExercise - The session exercise for which to retrieve ordered sets
    */
   getOrderedSetsForSessionExercise(sessionExercise: WorkoutSessionExercise): WorkoutSet[] {
-    return sessionExercise.setOrder
-      .map((id) => setMapService.getDoc(id))
-      .filter((s): s is WorkoutSet => s !== undefined);
+    return setMapService.getDocsWithIds(sessionExercise.setOrder);
   }
 }
 
