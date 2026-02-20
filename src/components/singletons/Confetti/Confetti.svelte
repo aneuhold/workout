@@ -1,6 +1,14 @@
 <script lang="ts" module>
   import { writable } from 'svelte/store';
 
+  /**
+   * Triggers a confetti animation at the specified coordinates. This is supposed to be triggered
+   * with the clickX and clickY from a mouse event.
+   *
+   * @param centerX the x coordinate of the center of the confetti explosion, relative to the viewport
+   * @param centerY the y coordinate of the center of the confetti explosion, relative to the viewport
+   * @param durationMs how long the confetti should last before disappearing, in milliseconds. Defaults to 3000 (3 seconds).
+   */
   export function triggerConfetti(centerX: number, centerY: number, durationMs?: number) {
     confettiSettings.set({ centerX, centerY, durationMs, show: true });
   }
