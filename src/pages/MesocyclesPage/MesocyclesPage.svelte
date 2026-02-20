@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { IconPlus } from '@tabler/icons-svelte';
+  import { goto } from '$app/navigation';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -28,7 +29,7 @@
   <!-- Header -->
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-semibold">Mesocycles</h1>
-    <Button size="sm">
+    <Button size="sm" onclick={() => goto('/mesocycle/new')}>
       <IconPlus size={14} />
       New
     </Button>
