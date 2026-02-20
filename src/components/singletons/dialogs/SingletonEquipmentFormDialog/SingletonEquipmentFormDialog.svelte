@@ -38,9 +38,11 @@
   import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
+  import Textarea from '$ui/Textarea/Textarea.svelte';
   import EquipmentFormDialogWeightGenerator from './EquipmentFormDialogWeightGenerator.svelte';
 
   let title = $state('');
+  let description = $state('');
 
   // Single source of truth for weight options
   let weightOptions = $state<number[]>([]);
@@ -55,6 +57,7 @@
     untrack(() => {
       if (opened) {
         title = current?.title ?? '';
+        description = current?.description ?? '';
         newWeight = '';
 
         if (current?.weightOptions && current.weightOptions.length > 0) {
@@ -96,6 +99,7 @@
     if (isEditMode && currentEquipment) {
       equipmentTypeMapService.updateDoc(currentEquipment._id, (doc) => {
         doc.title = title.trim();
+        doc.description = description.trim() || null;
         doc.weightOptions = finalWeights;
         doc.lastUpdatedDate = new Date();
         return doc;
@@ -104,6 +108,7 @@
       const doc = WorkoutEquipmentTypeSchema.parse({
         userId,
         title: title.trim(),
+        description: description.trim() || null,
         weightOptions: finalWeights
       });
       equipmentTypeMapService.addDoc(doc);
@@ -127,6 +132,15 @@
       <div class="flex flex-col gap-1.5">
         <Label for="eq-title">Title</Label>
         <Input id="eq-title" placeholder="e.g. Barbell" bind:value={title} required />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <Label for="eq-description">Description</Label>
+        <Textarea
+          id="eq-description"
+          placeholder="Optional description..."
+          bind:value={description}
+        />
       </div>
 
       <div class="flex flex-col gap-3 rounded-lg bg-muted/50 p-3">

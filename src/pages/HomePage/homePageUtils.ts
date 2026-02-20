@@ -124,9 +124,32 @@ export function getRecentCompletedSessions(
  * Uses the batch `prepareDocsForSave` pattern to send a single API call.
  *
  * @param activeMesocycle The mesocycle to regenerate
+ * @param options Optional state transitions to apply in the same batch
+ * @param options.startMesocycle If true, sets `startDate` on the mesocycle
+ * @param options.completedMicrocycleNumber 1-indexed microcycle to mark as
+ *   completed via `completedDate`
  */
-export function regenerateMesocycle(activeMesocycle: WorkoutMesocycle): void {
+export function regenerateMesocycle(
+  activeMesocycle: WorkoutMesocycle,
+  options?: {
+    startMesocycle?: boolean;
+    completedMicrocycleNumber?: number;
+  }
+): void {
   const docs = mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id);
+
+  // Apply state transitions before regeneration so the core library sees them
+  if (options?.startMesocycle) {
+    activeMesocycle.startDate = new Date();
+  }
+
+  if (options?.completedMicrocycleNumber != null) {
+    const index = options.completedMicrocycleNumber - 1;
+    if (index >= 0) {
+      const microcycle = docs.microcycles[index];
+      microcycle.completedDate = new Date();
+    }
+  }
 
   // Call the core library to regenerate
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
@@ -141,10 +164,17 @@ export function regenerateMesocycle(activeMesocycle: WorkoutMesocycle): void {
   );
 
   // Batch all operations into a single API call
-  const apiOptions = microcycleMapService.prepareDocsForSave({
-    delete: result.microcycles?.delete,
-    insert: result.microcycles?.create
+  const apiOptions = mesocycleMapService.prepareDocsForSave({
+    update: [activeMesocycle]
   });
+  microcycleMapService.prepareDocsForSave(
+    {
+      delete: result.microcycles?.delete,
+      insert: result.microcycles?.create,
+      update: docs.microcycles
+    },
+    apiOptions
+  );
   sessionMapService.prepareDocsForSave(
     { delete: result.sessions?.delete, insert: result.sessions?.create },
     apiOptions

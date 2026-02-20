@@ -10,7 +10,6 @@
     WorkoutExerciseService
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
-  import { goto } from '$app/navigation';
   import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
@@ -151,6 +150,6 @@
   <!-- Actions -->
   <div class="flex gap-2">
     <Button onclick={onEdit}>Edit</Button>
-    <Button variant="outline" onclick={() => goto('/library')}>Back</Button>
+    <Button variant="outline" onclick={() => history.back()}>Back</Button>
   </div>
 </div>

@@ -63,11 +63,7 @@ at some point.
     <NavBar currentPath={page.url.pathname} />
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->
-    <main
-      class="pb-16 md:pb-0 md:pl-48 {timerService.isActive && page.url.pathname !== '/timer'
-        ? 'pt-12'
-        : 'md:pt-12'}"
-    >
+    <main class="pb-(--bottom-nav-height) md:pb-0 md:pl-48">
       {@render children?.()}
     </main>
   {/if}

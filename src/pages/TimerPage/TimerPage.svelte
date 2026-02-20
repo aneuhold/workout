@@ -29,7 +29,7 @@
 {#if timerService.isActive}
   <!-- Active state -->
   <div
-    class="bg-primary text-primary-foreground animate-timer-pulse flex min-h-[calc(100vh-3rem)] flex-col items-center justify-center gap-8 px-4"
+    class="bg-primary text-primary-foreground animate-timer-pulse flex min-h-[calc(100vh-var(--top-nav-height)-var(--bottom-nav-height))] flex-col items-center justify-center gap-8 px-4 md:min-h-[calc(100svh-var(--top-nav-height))]"
   >
     <span class="font-mono text-8xl font-bold tabular-nums sm:text-9xl">
       {formatTime(timerService.remainingSeconds)}

@@ -9,13 +9,11 @@
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
-  import { buildCalibratedExercisePairs, getDocsForCalibrationIds } from './mesocyclePageUtils';
+  import { buildCalibratedExercisePairs } from './mesocyclePageUtils';
   import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
   import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
@@ -36,15 +34,12 @@
     mesocycleId ? mesocycleMapService.getAssociatedDocsForMesocycle(mesocycleId as UUID) : null
   );
 
-  const allCalibrations = $derived(exerciseCalibrationMapService.getDocs());
-  const allExercises = $derived(exerciseMapService.getDocs());
-
   // Build calibration-exercise pairs for the mesocycle's calibrated exercises
-  const filteredCalibrations = $derived(
-    mesocycle ? allCalibrations.filter((c) => mesocycle.calibratedExercises.includes(c._id)) : []
-  );
   const calibratedExercisePairs = $derived(
-    buildCalibratedExercisePairs(filteredCalibrations, allExercises)
+    buildCalibratedExercisePairs(
+      associatedDocs?.calibrations ?? [],
+      associatedDocs?.exercises ?? []
+    )
   );
 
   const selectedCalibrationIds = $derived(mesocycle?.calibratedExercises ?? []);
@@ -77,12 +72,7 @@
   const sessions = $derived(associatedDocs?.sessions ?? []);
   const sessionExercises = $derived(associatedDocs?.sessionExercises ?? []);
   const sets = $derived(associatedDocs?.sets ?? []);
-  const exercises = $derived(
-    mesocycle
-      ? getDocsForCalibrationIds(mesocycle.calibratedExercises, allCalibrations, allExercises)
-          .exercises
-      : []
-  );
+  const exercises = $derived(associatedDocs?.exercises ?? []);
 
   // Start date from the earliest microcycle
   const mesocycleStartDate = $derived.by(() => {

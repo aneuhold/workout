@@ -43,7 +43,7 @@
 </script>
 
 <nav
-  class="bg-sidebar border-sidebar-border fixed bottom-0 left-0 flex w-full border-t md:top-12 md:h-[calc(100vh-3rem)] md:w-48 md:flex-col md:border-t-0 md:border-r"
+  class="bg-sidebar border-sidebar-border fixed bottom-0 left-0 flex w-full border-t md:top-(--top-nav-height) md:h-[calc(100vh-var(--top-nav-height))] md:w-48 md:flex-col md:border-t-0 md:border-r"
 >
   {#each navBarItems as item (item.url)}
     <a

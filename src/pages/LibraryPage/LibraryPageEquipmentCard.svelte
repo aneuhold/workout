@@ -58,6 +58,9 @@
         <span class="text-xs text-muted-foreground">Equipment</span>
       {/if}
       <span class="font-medium">{equipmentType.title}</span>
+      {#if equipmentType.description}
+        <span class="text-xs text-muted-foreground">{equipmentType.description}</span>
+      {/if}
       <span class="text-xs text-muted-foreground">
         Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
       </span>

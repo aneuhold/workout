@@ -121,6 +121,22 @@ export function generateFullMockMesocycle(
     }
   }
 
+  // Set startDate on mesocycle when any sessions have been completed
+  if (completedCount > 0) {
+    mesoDoc.startDate = new Date(config.startDate);
+  }
+
+  // Set completedDate on microcycles whose sessions are all complete, except
+  // the last one — that represents the microcycle the user just finished but
+  // hasn't "advanced" from yet (triggering the CompleteMicrocycle hero card).
+  const completedMicrocycles = microcycles.filter((mc) => {
+    const mcSessions = sessions.filter((s) => s.workoutMicrocycleId === mc._id);
+    return mcSessions.length > 0 && mcSessions.every((s) => s.complete);
+  });
+  for (const mc of completedMicrocycles.slice(0, -1)) {
+    mc.completedDate = new Date();
+  }
+
   // Populate actual data on sets belonging to completed sessions
   const completedSessionIds = new Set(
     sessions.filter((s) => s.complete).map((s) => s._id as string)
