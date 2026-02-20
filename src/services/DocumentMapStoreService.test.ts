@@ -107,7 +107,7 @@ describe('DocumentMapStoreService', () => {
     expect(service.getDoc(doc1._id)).toBeUndefined();
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        delete: [doc1]
+        delete: [doc1._id]
       })
     );
   });

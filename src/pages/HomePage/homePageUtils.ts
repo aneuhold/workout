@@ -1,12 +1,17 @@
 import type {
+  WorkoutMesocycle,
   WorkoutMicrocycle,
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
-import { WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
+import { WorkoutMesocycleService, WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
+import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
 import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import setMapService from '$services/documentMapServices/setMapService.svelte';
+import WorkoutAPIService from '$util/api/WorkoutAPIService';
 
 export type HomePageMicrocycleInfo = {
   microcycle: WorkoutMicrocycle;
@@ -112,4 +117,46 @@ export function getRecentCompletedSessions(
       sessionExercises: sessionMapService.getOrderedSessionExercisesForSession(session),
       sets: sessionMapService.getOrderedSetsForSession(session)
     }));
+}
+
+/**
+ * Regenerates the mesocycle plan from the first incomplete microcycle onward.
+ * Uses the batch `prepareDocsForSave` pattern to send a single API call.
+ *
+ * @param activeMesocycle The mesocycle to regenerate
+ */
+export function regenerateMesocycle(activeMesocycle: WorkoutMesocycle): void {
+  const docs = mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id);
+
+  // Call the core library to regenerate
+  const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
+    activeMesocycle,
+    docs.calibrations,
+    docs.exercises,
+    docs.equipmentTypes,
+    docs.microcycles,
+    docs.sessions,
+    docs.sessionExercises,
+    docs.sets
+  );
+
+  // Batch all operations into a single API call
+  const apiOptions = microcycleMapService.prepareDocsForSave({
+    delete: result.microcycles?.delete,
+    insert: result.microcycles?.create
+  });
+  sessionMapService.prepareDocsForSave(
+    { delete: result.sessions?.delete, insert: result.sessions?.create },
+    apiOptions
+  );
+  sessionExerciseMapService.prepareDocsForSave(
+    { delete: result.sessionExercises?.delete, insert: result.sessionExercises?.create },
+    apiOptions
+  );
+  setMapService.prepareDocsForSave(
+    { delete: result.sets?.delete, insert: result.sets?.create },
+    apiOptions
+  );
+
+  WorkoutAPIService.queryApi(apiOptions);
 }

@@ -9,7 +9,7 @@ const log = createLogger('DocumentMapStoreService.ts');
 export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
   insert?: T[];
   update?: T[];
-  delete?: T[];
+  delete?: UUID[];
 };
 
 export type UpsertManyInfo<T> = {
@@ -153,18 +153,15 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   }
 
   public deleteManyDocs(docIds: UUID[]): void {
-    const docsToDelete: T[] = [];
     docIds.forEach((id) => {
-      const doc = this.mapState[id];
-      if (!doc) {
+      if (!this.mapState[id]) {
         log.error(`Document with ID ${id} does not exist in the map.`);
         return;
       }
-      docsToDelete.push(doc);
       delete this.mapState[id];
     });
     this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ delete: docsToDelete });
+    this.config.persistToDb({ delete: docIds });
   }
 
   public upsertManyDocs(upsertInfo: UpsertManyInfo<T>): void {
@@ -208,7 +205,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       info.insert.forEach((doc) => this.addDocWithoutPersist(doc));
     }
     if (info.delete) {
-      info.delete.forEach((doc) => delete this.mapState[doc._id]);
+      info.delete.forEach((id) => delete this.mapState[id]);
     }
     this.config.persistToLocalData(this.mapState);
     this.config.prepareForSave(apiOptions, info);

@@ -21,7 +21,7 @@ export function createWorkoutPrepareForSave<T extends BaseDocument>(key: Workout
       options.update = { ...options.update, [key]: info.update };
     }
     if (info.delete) {
-      options.delete = { ...options.delete, [key]: info.delete.map((d) => d._id) };
+      options.delete = { ...options.delete, [key]: info.delete };
     }
   };
 }
