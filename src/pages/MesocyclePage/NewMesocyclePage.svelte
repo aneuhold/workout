@@ -27,6 +27,7 @@
   import { buildCalibratedExercisePairs, getDocsForCalibrationIds } from './mesocyclePageUtils';
   import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
+  import MesocycleSessionLayoutCard from './MesocycleSessionLayoutCard.svelte';
   import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
 
   // --- Form state ---
@@ -197,6 +198,9 @@
   <MesocycleExercisesCard
     {calibratedExercisePairs}
     bind:selectedCalibrationIds={formSelectedCalibrationIds}
+  />
+
+  <MesocycleSessionLayoutCard
     firstMicrocycle={previewMicrocycles[0]}
     {previewSessions}
     {previewSessionExercises}

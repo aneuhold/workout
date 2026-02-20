@@ -16,6 +16,7 @@
   import { buildCalibratedExercisePairs } from './mesocyclePageUtils';
   import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
+  import MesocycleSessionLayoutCard from './MesocycleSessionLayoutCard.svelte';
   import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
 
   let {
@@ -115,14 +116,13 @@
       onTitleBlur={handleTitleBlur}
     />
 
-    <MesocycleExercisesCard
-      {calibratedExercisePairs}
-      {selectedCalibrationIds}
+    <MesocycleExercisesCard {calibratedExercisePairs} {selectedCalibrationIds} disabled />
+
+    <MesocycleSessionLayoutCard
       firstMicrocycle={microcycles[0]}
       previewSessions={sessions}
       previewSessionExercises={sessionExercises}
       {exercises}
-      disabled
     />
 
     {#if microcycles.length > 0}
