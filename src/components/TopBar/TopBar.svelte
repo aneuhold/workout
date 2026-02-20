@@ -42,7 +42,7 @@
 </script>
 
 <header
-  class="z-40 flex h-12 items-center justify-between px-4
+  class="z-40 flex h-(--top-nav-height) items-center justify-between px-4
     {showTimerHighlight
     ? 'fixed inset-x-0 top-0 bg-primary text-primary-foreground animate-timer-pulse'
     : 'bg-sidebar text-sidebar-foreground md:fixed md:inset-x-0 md:top-0'}"

@@ -7,16 +7,18 @@
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import { getHeroCardState, HeroCardAction } from './heroCardUtils';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
+  import HomePageHeroCard from './HomePageHeroCard.svelte';
   import HomePageMesocycleOverview from './HomePageMesocycleOverview.svelte';
-  import HomePageNextUpCard from './HomePageNextUpCard.svelte';
   import HomePagePendingLogs from './HomePagePendingLogs.svelte';
   import HomePageQuickLinks from './HomePageQuickLinks.svelte';
   import HomePageRecentSessions from './HomePageRecentSessions.svelte';
   import {
     getCurrentMicrocycle,
     getPendingReviewSessions,
-    getRecentCompletedSessions
+    getRecentCompletedSessions,
+    regenerateMesocycle
   } from './homePageUtils';
   import HomePageWeekSessions from './HomePageWeekSessions.svelte';
 
@@ -46,11 +48,36 @@
 
   const pendingLogs = $derived(docs ? getPendingReviewSessions(docs.sessions) : []);
 
+  const heroCardState = $derived(
+    getHeroCardState(
+      activeMesocycle,
+      microcycles,
+      docs?.sessions ?? [],
+      inProgressSession,
+      nextUpSession,
+      pendingLogs,
+      heroSessionExercises,
+      heroSessionSets
+    )
+  );
+
   const currentMicrocycleInfo = $derived(
     getCurrentMicrocycle(microcycles, docs?.sessions ?? [], inProgressSession, nextUpSession)
   );
 
   const recentSessions = $derived(docs ? getRecentCompletedSessions(docs.sessions) : []);
+
+  function handleCompleteMicrocycle() {
+    if (!activeMesocycle || heroCardState?.action !== HeroCardAction.CompleteMicrocycle) return;
+    regenerateMesocycle(activeMesocycle, {
+      completedMicrocycleNumber: heroCardState.completedMicrocycleNumber
+    });
+  }
+
+  function handleStartMesocycle() {
+    if (!activeMesocycle) return;
+    regenerateMesocycle(activeMesocycle, { startMesocycle: true });
+  }
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -60,12 +87,11 @@
       sortedMicrocycles={microcycles}
       sessions={docs.sessions}
     />
-    {#if heroSession}
-      <HomePageNextUpCard
-        session={heroSession}
-        isInProgress={inProgressSession != null}
-        sessionExercises={heroSessionExercises}
-        sets={heroSessionSets}
+    {#if heroCardState}
+      <HomePageHeroCard
+        state={heroCardState}
+        onCompleteMicrocycle={handleCompleteMicrocycle}
+        onStartMesocycle={handleStartMesocycle}
       />
     {/if}
     {#if pendingLogs.length}

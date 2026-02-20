@@ -25,6 +25,17 @@ Use `pnpm` for all package management:
 - `src/stores` — Svelte stores (`writable`/`readable`/`derived` from `svelte/store`)
 - `src/services` — singleton service classes (including rune-based reactive state)
 
+## Shared Library: `@aneuhold/core-ts-db-lib`
+
+The workout app depends on `@aneuhold/core-ts-db-lib`, a schema-first data modeling and service library located on disk at `~/Development/GithubRepos/ts-libs/packages/core-ts-db-lib`. Key folders:
+
+- `src/documents/workout/` — Zod-validated document types (WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutMesocycle, WorkoutMicrocycle, WorkoutEquipmentType, WorkoutExerciseCalibration, WorkoutMuscleGroup, WorkoutSessionExercise)
+- `src/embedded-types/workout/` — Nested value types used within documents (RSM, Fatigue, etc.)
+- `src/services/workout/` — Domain logic services (WorkoutSessionService, WorkoutExerciseService, WorkoutSetService, WorkoutMesocycleService, WorkoutMicrocycleService, WorkoutEquipmentTypeService, WorkoutExerciseCalibrationService, WorkoutSFRService, etc.)
+- `src/documents/common/` — Shared documents (User, ApiKey)
+
+**Making changes**: You are encouraged to modify this library when the change involves document types, embedded types, or core domain logic that doesn't involve frontend state. If you make changes there, follow the instructions at `~/Development/GithubRepos/ts-libs/.github/copilot-instructions.md`. Run appropriate tests and add new tests for any changes. Once all changes in the library are complete, **wait 6 seconds** before expecting them to reflect in the workout app — changes propagate automatically.
+
 ## Architecture & Conventions
 
 ### UI Components & Styling

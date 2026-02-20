@@ -11,11 +11,13 @@ interface TestDoc extends BaseDocument {
 
 const persistToLocalDataMock = vi.fn<(map: DocumentMap<TestDoc>) => void>();
 const persistToDbMock = vi.fn<(updateInfo: DocumentInsertOrUpdateInfo<TestDoc>) => void>();
+const prepareForSaveMock = vi.fn();
 
 function createTestService() {
   return new DocumentMapStoreService<TestDoc>({
     persistToLocalData: persistToLocalDataMock,
-    persistToDb: persistToDbMock
+    persistToDb: persistToDbMock,
+    prepareForSave: prepareForSaveMock
   });
 }
 
@@ -105,7 +107,7 @@ describe('DocumentMapStoreService', () => {
     expect(service.getDoc(doc1._id)).toBeUndefined();
     expect(persistToDbMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        delete: [doc1]
+        delete: [doc1._id]
       })
     );
   });

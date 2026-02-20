@@ -1,14 +1,16 @@
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
 import LocalData from '$util/LocalData/LocalData';
+import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
+import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetSessionMap(map),
-      persistToDb: createWorkoutPersistToDb('sessions')
+      persistToDb: createWorkoutPersistToDb('sessions'),
+      prepareForSave: createWorkoutPrepareForSave('sessions')
     });
   }
 
@@ -19,9 +21,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    * @param session the session to get session exercises for
    */
   getOrderedSessionExercisesForSession(session: WorkoutSession): WorkoutSessionExercise[] {
-    return session.sessionExerciseOrder
-      .map((id) => sessionExerciseMapService.getDoc(id))
-      .filter((se): se is WorkoutSessionExercise => se !== undefined);
+    return sessionExerciseMapService.getDocsWithIds(session.sessionExerciseOrder);
   }
 
   /**

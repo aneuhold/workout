@@ -1,4 +1,7 @@
 import type {
+  WorkoutEquipmentType,
+  WorkoutExercise,
+  WorkoutExerciseCalibration,
   WorkoutMesocycle,
   WorkoutMicrocycle,
   WorkoutSession,
@@ -8,8 +11,12 @@ import type {
 import { WorkoutSessionService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import createWorkoutPersistToDb from '$util/createWorkoutPersistToDb';
 import LocalData from '$util/LocalData/LocalData';
+import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
+import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import equipmentTypeMapService from './equipmentTypeMapService.svelte';
+import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
+import exerciseMapService from './exerciseMapService.svelte';
 import microcycleMapService from './microcycleMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import sessionMapService from './sessionMapService.svelte';
@@ -23,7 +30,8 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetMesocycleMap(map),
-      persistToDb: createWorkoutPersistToDb('mesocycles')
+      persistToDb: createWorkoutPersistToDb('mesocycles'),
+      prepareForSave: createWorkoutPrepareForSave('mesocycles')
     });
   }
 
@@ -75,14 +83,32 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     sessions: WorkoutSession[];
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
+    calibrations: WorkoutExerciseCalibration[];
+    exercises: WorkoutExercise[];
+    equipmentTypes: WorkoutEquipmentType[];
   } {
+    const mesocycle = this.getDoc(mesocycleId);
     const microcycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycleId);
     const sessions = microcycleMapService.getOrderedSessionsForMicrocycles(microcycles);
     const sessionExercises = sessionMapService.getOrderedSessionExercisesForSessions(sessions);
     const sets = sessionExercises.flatMap((sessionExercise) =>
       sessionExerciseMapService.getOrderedSetsForSessionExercise(sessionExercise)
     );
-    return { microcycles, sessions, sessionExercises, sets };
+    const calibrations = exerciseCalibrationMapService.getDocsWithIds(
+      mesocycle?.calibratedExercises ?? []
+    );
+    const exercises = exerciseMapService.getExercisesForCalibrations(calibrations);
+    const equipmentTypes = equipmentTypeMapService.getEquipmentTypesForExercises(exercises);
+
+    return {
+      microcycles,
+      sessions,
+      sessionExercises,
+      sets,
+      calibrations,
+      exercises,
+      equipmentTypes
+    };
   }
 }
 

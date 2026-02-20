@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
@@ -8,7 +9,7 @@ const log = createLogger('DocumentMapStoreService.ts');
 export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
   insert?: T[];
   update?: T[];
-  delete?: T[];
+  delete?: UUID[];
 };
 
 export type UpsertManyInfo<T> = {
@@ -20,6 +21,10 @@ export type UpsertManyInfo<T> = {
 export interface DocumentMapStoreConfig<T extends BaseDocument> {
   persistToLocalData: (map: DocumentMap<T>) => void;
   persistToDb: (updateInfo: DocumentInsertOrUpdateInfo<T>) => void;
+  prepareForSave: (
+    options: ProjectWorkoutPrimaryEndpointOptions,
+    info: DocumentInsertOrUpdateInfo<T>
+  ) => void;
 }
 
 /**
@@ -53,6 +58,16 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    */
   public getDoc(docId: UUID): T | undefined {
     return this.mapState[docId];
+  }
+
+  /**
+   * Returns documents matching the given IDs, preserving order and
+   * skipping any IDs not found in the map. O(k) where k = ids.length.
+   *
+   * @param ids The IDs of the documents to retrieve
+   */
+  public getDocsWithIds(ids: UUID[]): T[] {
+    return ids.map((id) => this.mapState[id]).filter((doc): doc is T => doc !== undefined);
   }
 
   /**
@@ -138,18 +153,15 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   }
 
   public deleteManyDocs(docIds: UUID[]): void {
-    const docsToDelete: T[] = [];
     docIds.forEach((id) => {
-      const doc = this.mapState[id];
-      if (!doc) {
+      if (!this.mapState[id]) {
         log.error(`Document with ID ${id} does not exist in the map.`);
         return;
       }
-      docsToDelete.push(doc);
       delete this.mapState[id];
     });
     this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ delete: docsToDelete });
+    this.config.persistToDb({ delete: docIds });
   }
 
   public upsertManyDocs(upsertInfo: UpsertManyInfo<T>): void {
@@ -174,5 +186,29 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   public setMap(newMap: DocumentMap<T>): void {
     this.mapState = newMap;
     this.config.persistToLocalData(this.mapState);
+  }
+
+  /**
+   * Applies document operations to local state (without triggering API persistence)
+   * and returns the updated API options object with the corresponding
+   * insert/update/delete operations for this document type.
+   *
+   * @param info The insert/update/delete operations to apply
+   * @param apiOptions Optional existing options to extend. If omitted, starts fresh.
+   * @returns The updated API options object (same reference if provided, new object if not)
+   */
+  public prepareDocsForSave(
+    info: DocumentInsertOrUpdateInfo<T>,
+    apiOptions: ProjectWorkoutPrimaryEndpointOptions = {}
+  ): ProjectWorkoutPrimaryEndpointOptions {
+    if (info.insert) {
+      info.insert.forEach((doc) => this.addDocWithoutPersist(doc));
+    }
+    if (info.delete) {
+      info.delete.forEach((id) => delete this.mapState[id]);
+    }
+    this.config.persistToLocalData(this.mapState);
+    this.config.prepareForSave(apiOptions, info);
+    return apiOptions;
   }
 }
