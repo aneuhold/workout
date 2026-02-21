@@ -57,8 +57,7 @@
   <OnboardingEmptyState
     readyTitle="No active mesocycle"
     readyMessage="Create a mesocycle to start planning sessions."
-    readyButtonLabel="View Mesocycles"
-    readyButtonHref="/mesocycles"
+    readyButton={{ label: 'View Mesocycles', href: '/mesocycles' }}
   >
     {#snippet icon()}
       <IconBarbell size={48} class="mb-3 opacity-40" />

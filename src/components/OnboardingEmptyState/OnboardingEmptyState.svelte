@@ -15,14 +15,12 @@
     icon,
     readyTitle,
     readyMessage,
-    readyButtonLabel,
-    readyButtonHref
+    readyButton
   }: {
     icon: Snippet;
     readyTitle: string;
     readyMessage: string;
-    readyButtonLabel?: string;
-    readyButtonHref?: string;
+    readyButton?: { label: string; href: string };
   } = $props();
 
   let calibratedExerciseCount = $derived(
@@ -54,10 +52,10 @@
     </Button>
   {:else}
     <p class="font-medium">{readyTitle}</p>
-    {#if readyButtonLabel && readyButtonHref}
+    {#if readyButton}
       <p class="mb-4 text-xs">{readyMessage}</p>
-      <Button variant="outline" size="sm" href={readyButtonHref}>
-        {readyButtonLabel}
+      <Button variant="outline" size="sm" href={readyButton.href}>
+        {readyButton.label}
         <IconChevronRight size={14} />
       </Button>
     {:else}
