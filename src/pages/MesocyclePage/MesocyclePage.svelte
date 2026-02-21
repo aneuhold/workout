@@ -82,6 +82,7 @@
 
     untrack(() => {
       if (formInitialized || !currentMesocycle) return;
+      formTitle = currentMesocycle.title ?? '';
       if (currentMode === MesocyclePageMode.Edit) {
         formCycleType = currentMesocycle.cycleType;
         formWeeks = currentMesocycle.plannedMicrocycleCount ?? 6;
@@ -97,7 +98,6 @@
       } else if (currentMode === MesocyclePageMode.Static) {
         formInitialized = true;
       }
-      formTitle = currentMesocycle.title ?? '';
     });
   });
 

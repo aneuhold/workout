@@ -8,7 +8,7 @@
   import MockData from '$testUtils/MockData';
   import SessionsPage from '../SessionsPage.svelte';
 
-  type StoryMode = 'default' | 'empty' | 'allComplete' | 'review';
+  type StoryMode = 'default' | 'allComplete' | 'review';
 
   let { storyMode = 'default' }: { storyMode?: StoryMode } = $props();
 
@@ -63,8 +63,6 @@
 
     untrack(() => {
       MockData.resetAll();
-
-      if (mode === 'empty') return;
 
       const baseData = MockData.setupBaseData();
 

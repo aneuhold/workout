@@ -4,8 +4,9 @@
   import SBMesocyclePageExample from './SBMesocyclePageExample.svelte';
 
   const storyModeEnum = {
-    default: 'default',
-    noId: 'noId',
+    new: 'new',
+    edit: 'edit',
+    static: 'static',
     notFound: 'notFound'
   } as const;
 
@@ -20,13 +21,15 @@
       storyMode: createEnumArgType(storyModeEnum)
     },
     args: {
-      storyMode: 'default'
+      storyMode: 'new'
     }
   });
 </script>
 
-<Story name="Default" />
+<Story name="New" />
 
-<Story name="No ID" args={{ storyMode: 'noId' }} />
+<Story name="Edit (Not Started)" args={{ storyMode: 'edit' }} />
+
+<Story name="View (Started)" args={{ storyMode: 'static' }} />
 
 <Story name="Not Found" args={{ storyMode: 'notFound' }} />

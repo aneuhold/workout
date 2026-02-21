@@ -6,7 +6,6 @@
 
   const storyModeEnum = {
     default: 'default',
-    empty: 'empty',
     allComplete: 'allComplete',
     review: 'review',
     inProgress: 'inProgress',
@@ -34,8 +33,6 @@
 </script>
 
 <Story name="Default" />
-
-<Story name="Empty" args={{ storyMode: 'empty' }} />
 
 <Story name="All Complete" args={{ storyMode: 'allComplete' }} />
 

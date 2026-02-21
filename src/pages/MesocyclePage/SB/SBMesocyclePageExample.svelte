@@ -5,7 +5,7 @@
   import MockData from '$testUtils/MockData';
   import MesocyclePage from '../MesocyclePage.svelte';
 
-  let { storyMode = 'default' }: { storyMode?: 'default' | 'noId' | 'notFound' } = $props();
+  let { storyMode = 'new' }: { storyMode?: 'new' | 'edit' | 'static' | 'notFound' } = $props();
 
   function daysAgo(n: number): Date {
     return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
@@ -19,7 +19,8 @@
     untrack(() => {
       MockData.resetAll();
 
-      if (mode === 'noId') {
+      if (mode === 'new') {
+        MockData.setupBaseData();
         mesocycleId = null;
         return;
       }
@@ -31,6 +32,20 @@
 
       const baseData = MockData.setupBaseData();
 
+      if (mode === 'edit') {
+        const { mesocycle } = generateFullMockMesocycle(baseData, {
+          title: 'Strength Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: new Date(),
+          completedSessionCount: 0
+        });
+
+        mesocycleId = mesocycle._id;
+        return;
+      }
+
+      // static mode
       const { mesocycle } = generateFullMockMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
