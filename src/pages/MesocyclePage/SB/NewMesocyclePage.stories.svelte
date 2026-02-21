@@ -1,12 +1,12 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import MockData from '$testUtils/MockData';
-  import NewMesocyclePage from '../NewMesocyclePage.svelte';
+  import MesocyclePage from '../MesocyclePage.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/NewMesocyclePage',
     tags: ['!autodocs'],
-    component: NewMesocyclePage,
+    component: MesocyclePage,
     parameters: {
       layout: 'fullscreen'
     },

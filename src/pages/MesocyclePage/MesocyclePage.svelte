@@ -1,19 +1,36 @@
 <!--
   @component
 
-  View page for an existing mesocycle. Displays all details in disabled cards,
-  with only the title remaining editable (auto-saved on blur).
+  Unified mesocycle page that handles three modes:
+  - "new": Full form for creating a new mesocycle
+  - "edit": Full form initialized from existing mesocycle (before it's started)
+  - "static": Read-only view of a started mesocycle (only title is editable)
 -->
 <script lang="ts">
+  import { CycleType, WorkoutMesocycleSchema } from '@aneuhold/core-ts-db-lib';
   import { IconArrowLeft } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
+  import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import mesocycleMapService, {
+    type MesocycleChildDocs
+  } from '$services/documentMapServices/mesocycleMapService.svelte';
+  import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
-  import { buildCalibratedExercisePairs } from './mesocyclePageUtils';
+  import {
+    buildCalibratedExercisePairs,
+    generateMesocycleChildren,
+    getEarliestStartDate,
+    MesocyclePageMode,
+    persistMesocycleEdits,
+    persistNewMesocycle
+  } from './mesocyclePageUtils';
   import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
   import MesocycleSessionLayoutCard from './MesocycleSessionLayoutCard.svelte';
@@ -22,7 +39,7 @@
   let {
     mesocycleId
   }: {
-    mesocycleId: string | null;
+    mesocycleId?: string | null;
   } = $props();
 
   // --- Data ---
@@ -35,27 +52,159 @@
     mesocycleId ? mesocycleMapService.getAssociatedDocsForMesocycle(mesocycleId as UUID) : null
   );
 
-  // Build calibration-exercise pairs for the mesocycle's calibrated exercises
-  const calibratedExercisePairs = $derived(
-    buildCalibratedExercisePairs(
-      associatedDocs?.calibrations ?? [],
-      associatedDocs?.exercises ?? []
-    )
-  );
+  // --- Mode ---
 
-  const selectedCalibrationIds = $derived(mesocycle?.calibratedExercises ?? []);
+  const mode = $derived.by(() => {
+    if (!mesocycleId) return MesocyclePageMode.New;
+    if (!mesocycle) return null;
+    return mesocycle.startDate ? MesocyclePageMode.Static : MesocyclePageMode.Edit;
+  });
+  const isFormMode = $derived(mode === MesocyclePageMode.New || mode === MesocyclePageMode.Edit);
 
-  // --- Title editing ---
+  // --- Form state ---
 
   let formTitle = $state('');
-  let titleInitialized = $state(false);
+  let formStartDate = $state(new Date());
+  let formCycleType = $state<CycleType>(CycleType.MuscleGain);
+  let formWeeks = $state(6);
+  let formSessionsPerWeek = $state(5);
+  let formDaysPerCycle = $state(7);
+  let formRestDays = $state<number[]>([0, 6]);
+  let formSelectedCalibrationIds = $state<UUID[]>([]);
+
+  // Initialize form from existing mesocycle (edit and static modes)
+  let formInitialized = $state(false);
 
   $effect(() => {
-    if (mesocycle && !titleInitialized) {
-      formTitle = mesocycle.title ?? '';
-      titleInitialized = true;
+    const currentMode = mode;
+    const currentMesocycle = mesocycle;
+    const currentDocs = associatedDocs;
+
+    untrack(() => {
+      if (formInitialized || !currentMesocycle) return;
+      if (currentMode === MesocyclePageMode.Edit) {
+        formCycleType = currentMesocycle.cycleType;
+        formWeeks = currentMesocycle.plannedMicrocycleCount ?? 6;
+        formSessionsPerWeek = currentMesocycle.plannedSessionCountPerMicrocycle;
+        formDaysPerCycle = currentMesocycle.plannedMicrocycleLengthInDays;
+        formRestDays = [...currentMesocycle.plannedMicrocycleRestDays];
+        formSelectedCalibrationIds = [...currentMesocycle.calibratedExercises];
+        const mcs = currentDocs?.microcycles ?? [];
+        if (mcs.length > 0) {
+          formStartDate = getEarliestStartDate(mcs);
+        }
+        formInitialized = true;
+      } else if (currentMode === MesocyclePageMode.Static) {
+        formInitialized = true;
+      }
+      formTitle = currentMesocycle.title ?? '';
+    });
+  });
+
+  // --- Data sources (for form mode) ---
+
+  const dataSources = $derived({
+    calibrations: exerciseCalibrationMapService.getDocs(),
+    exercises: exerciseMapService.getDocs(),
+    equipmentTypes: equipmentTypeMapService.getDocs()
+  });
+
+  // --- Calibration-exercise pairs ---
+
+  const calibratedExercisePairs = $derived(
+    isFormMode
+      ? buildCalibratedExercisePairs(dataSources.calibrations, dataSources.exercises)
+      : buildCalibratedExercisePairs(
+          associatedDocs?.calibrations ?? [],
+          associatedDocs?.exercises ?? []
+        )
+  );
+
+  // Prune selected calibration IDs that no longer exist (form mode only)
+  $effect(() => {
+    if (!isFormMode) return;
+    const validIds = new Set(calibratedExercisePairs.map((p) => p.calibration._id));
+
+    untrack(() => {
+      const pruned = formSelectedCalibrationIds.filter((id) => validIds.has(id));
+      if (pruned.length !== formSelectedCalibrationIds.length) {
+        formSelectedCalibrationIds = pruned;
+      }
+    });
+  });
+
+  // --- Reactive preview (form mode) ---
+
+  function buildMesocycleInput() {
+    return {
+      userId: $currentUserId,
+      cycleType: formCycleType,
+      plannedSessionCountPerMicrocycle: formSessionsPerWeek,
+      plannedMicrocycleLengthInDays: formDaysPerCycle,
+      plannedMicrocycleRestDays: formRestDays,
+      plannedMicrocycleCount: formWeeks,
+      calibratedExercises: formSelectedCalibrationIds
+    };
+  }
+
+  const generationMesocycle = $derived.by(() => {
+    if (!isFormMode || formSelectedCalibrationIds.length === 0) return null;
+    try {
+      return WorkoutMesocycleSchema.parse(buildMesocycleInput());
+    } catch {
+      return null;
     }
   });
+
+  const previewResult = $derived.by(() => {
+    if (!generationMesocycle) return null;
+    return generateMesocycleChildren(
+      generationMesocycle,
+      formSelectedCalibrationIds,
+      dataSources,
+      formStartDate
+    );
+  });
+
+  // --- Display data (unified across modes) ---
+
+  const emptyDocs: MesocycleChildDocs = {
+    microcycles: [],
+    sessions: [],
+    sessionExercises: [],
+    sets: [],
+    exercises: []
+  };
+  const displayDocs = $derived(
+    isFormMode ? (previewResult ?? emptyDocs) : (associatedDocs ?? emptyDocs)
+  );
+
+  /**
+   * Static mode start date (from earliest microcycle)
+   */
+  const staticStartDate = $derived(getEarliestStartDate(associatedDocs?.microcycles ?? []));
+
+  const totalSessions = $derived(displayDocs.sessions.length);
+  const uniqueExercises = $derived(
+    isFormMode ? formSelectedCalibrationIds.length : (mesocycle?.calibratedExercises ?? []).length
+  );
+  const cycleTypeLabel = $derived(
+    isFormMode
+      ? formatCycleType(formCycleType)
+      : mesocycle
+        ? formatCycleType(mesocycle.cycleType)
+        : ''
+  );
+
+  // --- Validation (form mode) ---
+
+  const isValid = $derived(
+    formTitle.trim() !== '' &&
+      generationMesocycle !== null &&
+      (previewResult?.microcycles ?? []).length > 0
+  );
+
+  // --- Title editing (static mode) ---
 
   function handleTitleBlur() {
     if (!mesocycle) return;
@@ -67,46 +216,100 @@
     });
   }
 
-  // --- Derived values for cards ---
+  // --- Submission ---
 
-  const microcycles = $derived(associatedDocs?.microcycles ?? []);
-  const sessions = $derived(associatedDocs?.sessions ?? []);
-  const sessionExercises = $derived(associatedDocs?.sessionExercises ?? []);
-  const sets = $derived(associatedDocs?.sets ?? []);
-  const exercises = $derived(associatedDocs?.exercises ?? []);
-
-  // Start date from the earliest microcycle
-  const mesocycleStartDate = $derived.by(() => {
-    if (microcycles.length === 0) return new Date();
-    const sorted = [...microcycles].sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  function handleCreate() {
+    if (!isValid) return;
+    persistNewMesocycle(
+      { ...buildMesocycleInput(), title: formTitle || null },
+      dataSources,
+      formStartDate
     );
-    return new Date(sorted[0].startDate);
-  });
+    goto('/mesocycles');
+  }
 
-  // Summary stats
-  const totalSessions = $derived(sessions.length);
-  const uniqueExercises = $derived(selectedCalibrationIds.length);
-  const cycleTypeLabel = $derived(mesocycle ? formatCycleType(mesocycle.cycleType) : '');
+  function handleSave() {
+    if (!isValid || !mesocycle) return;
+    persistMesocycleEdits(
+      mesocycle,
+      { ...buildMesocycleInput(), title: formTitle || null },
+      dataSources,
+      formStartDate
+    );
+    goto('/mesocycles');
+  }
 </script>
 
 <div class="flex flex-col gap-4 p-4">
   <!-- Header -->
-  <div class="flex items-center gap-2">
-    <Button variant="ghost" size="sm" onclick={() => goto('/mesocycles')}>
-      <IconArrowLeft size={16} />
-    </Button>
-    <h1 class="text-xl font-semibold">Mesocycle</h1>
-  </div>
-
-  {#if !mesocycleId}
-    <p class="text-sm text-muted-foreground">No mesocycle ID provided.</p>
-  {:else if !mesocycle}
-    <p class="text-sm text-muted-foreground">Mesocycle not found.</p>
+  {#if mode === MesocyclePageMode.New}
+    <h1 class="text-xl font-semibold">New Mesocycle</h1>
   {:else}
+    <div class="flex items-center gap-2">
+      <Button variant="ghost" size="sm" onclick={() => goto('/mesocycles')}>
+        <IconArrowLeft size={16} />
+      </Button>
+      <h1 class="text-xl font-semibold">Mesocycle</h1>
+    </div>
+  {/if}
+
+  {#if mesocycleId && !mesocycle}
+    <p class="text-sm text-muted-foreground">Mesocycle not found.</p>
+  {:else if isFormMode}
     <MesocycleConfigCard
       bind:title={formTitle}
-      startDate={mesocycleStartDate}
+      bind:startDate={formStartDate}
+      bind:cycleType={formCycleType}
+      bind:weeks={formWeeks}
+      bind:sessionsPerWeek={formSessionsPerWeek}
+      bind:daysPerCycle={formDaysPerCycle}
+      bind:restDays={formRestDays}
+    />
+
+    <MesocycleExercisesCard
+      {calibratedExercisePairs}
+      bind:selectedCalibrationIds={formSelectedCalibrationIds}
+    />
+
+    <MesocycleSessionLayoutCard
+      firstMicrocycle={displayDocs.microcycles[0]}
+      previewSessions={displayDocs.sessions}
+      previewSessionExercises={displayDocs.sessionExercises}
+      exercises={displayDocs.exercises}
+    />
+
+    {#if generationMesocycle && displayDocs.microcycles.length > 0}
+      <MesocycleScheduleCard
+        mesocycle={generationMesocycle}
+        microcycles={displayDocs.microcycles}
+        sessions={displayDocs.sessions}
+        sessionExercises={displayDocs.sessionExercises}
+        sets={displayDocs.sets}
+        exercises={displayDocs.exercises}
+      />
+
+      <MesocycleProgressionCard
+        microcycles={displayDocs.microcycles}
+        sessions={displayDocs.sessions}
+        sessionExercises={displayDocs.sessionExercises}
+        sets={displayDocs.sets}
+        exercises={displayDocs.exercises}
+      />
+
+      <MesocycleSummaryCard
+        totalWeeks={formWeeks}
+        {totalSessions}
+        {uniqueExercises}
+        {cycleTypeLabel}
+        {isValid}
+        onCreate={mode === MesocyclePageMode.New ? handleCreate : undefined}
+        onSave={mode === MesocyclePageMode.Edit ? handleSave : undefined}
+      />
+    {/if}
+  {:else if mesocycle}
+    <MesocycleConfigCard
+      bind:title={formTitle}
+      startDate={staticStartDate}
       cycleType={mesocycle.cycleType}
       weeks={mesocycle.plannedMicrocycleCount ?? 0}
       sessionsPerWeek={mesocycle.plannedSessionCountPerMicrocycle}
@@ -116,26 +319,36 @@
       onTitleBlur={handleTitleBlur}
     />
 
-    <MesocycleExercisesCard {calibratedExercisePairs} {selectedCalibrationIds} disabled />
-
-    <MesocycleSessionLayoutCard
-      firstMicrocycle={microcycles[0]}
-      previewSessions={sessions}
-      previewSessionExercises={sessionExercises}
-      {exercises}
+    <MesocycleExercisesCard
+      {calibratedExercisePairs}
+      selectedCalibrationIds={mesocycle.calibratedExercises}
+      disabled
     />
 
-    {#if microcycles.length > 0}
+    <MesocycleSessionLayoutCard
+      firstMicrocycle={displayDocs.microcycles[0]}
+      previewSessions={displayDocs.sessions}
+      previewSessionExercises={displayDocs.sessionExercises}
+      exercises={displayDocs.exercises}
+    />
+
+    {#if displayDocs.microcycles.length > 0}
       <MesocycleScheduleCard
         {mesocycle}
-        {microcycles}
-        {sessions}
-        {sessionExercises}
-        {sets}
-        {exercises}
+        microcycles={displayDocs.microcycles}
+        sessions={displayDocs.sessions}
+        sessionExercises={displayDocs.sessionExercises}
+        sets={displayDocs.sets}
+        exercises={displayDocs.exercises}
       />
 
-      <MesocycleProgressionCard {microcycles} {sessions} {sessionExercises} {sets} {exercises} />
+      <MesocycleProgressionCard
+        microcycles={displayDocs.microcycles}
+        sessions={displayDocs.sessions}
+        sessionExercises={displayDocs.sessionExercises}
+        sets={displayDocs.sets}
+        exercises={displayDocs.exercises}
+      />
 
       <MesocycleSummaryCard
         totalWeeks={mesocycle.plannedMicrocycleCount ?? 0}
