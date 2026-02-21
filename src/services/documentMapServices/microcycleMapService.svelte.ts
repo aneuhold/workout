@@ -55,7 +55,7 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    * @param b Second microcycle
    */
   compareMicrocyclesByStartDate(a: WorkoutMicrocycle, b: WorkoutMicrocycle): number {
-    return Date.parse(a.startDate) - Date.parse(b.startDate);
+    return a.startDate.getTime() - b.startDate.getTime();
   }
 }
 
