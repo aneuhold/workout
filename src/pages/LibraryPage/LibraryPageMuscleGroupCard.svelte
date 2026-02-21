@@ -83,12 +83,13 @@
           <ul class="mt-1 flex flex-col gap-0.5">
             {#each linkedExercises.primary as exercise (exercise._id)}
               <li>
-                <button
-                  class="text-left text-primary hover:underline"
+                <Button
+                  variant="link"
+                  class="h-auto p-0"
                   onclick={() => onExerciseClick(exercise._id)}
                 >
                   {exercise.exerciseName}
-                </button>
+                </Button>
               </li>
             {/each}
           </ul>
@@ -100,12 +101,13 @@
           <ul class="mt-1 flex flex-col gap-0.5">
             {#each linkedExercises.secondary as exercise (exercise._id)}
               <li>
-                <button
-                  class="text-left text-primary hover:underline"
+                <Button
+                  variant="link"
+                  class="h-auto p-0"
                   onclick={() => onExerciseClick(exercise._id)}
                 >
                   {exercise.exerciseName}
-                </button>
+                </Button>
               </li>
             {/each}
           </ul>

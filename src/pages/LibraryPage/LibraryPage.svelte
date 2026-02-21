@@ -235,12 +235,12 @@
     {#if activeTab === LibraryTab.All}
       <DropdownMenu bind:open={addMenuOpen}>
         <DropdownMenuTrigger>
-          <button
-            class="inline-flex h-7 items-center gap-1 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground"
-          >
-            <IconPlus size={14} />
-            Add
-          </button>
+          {#snippet child({ props })}
+            <Button {...props} size="sm">
+              <IconPlus size={14} />
+              Add
+            </Button>
+          {/snippet}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onclick={handleAddExercise}>Exercise</DropdownMenuItem>
