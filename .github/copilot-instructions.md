@@ -72,9 +72,9 @@ The workout app depends on `@aneuhold/core-ts-db-lib`, a schema-first data model
 - **Stores** (`src/stores`): Only for modules that export a real Svelte store using `writable`, `readable`, or `derived` from `svelte/store`. Organized by `local/` (persisted), `session/` (session-only), `derived/` (computed).
 - **Services** (`src/services`): Singleton classes exported as default instances. Use services for rune-based reactive state (`$state`, `$derived`, `$effect`) and for non-reactive utilities (audio, wake lock, etc.). Name files as `<Name>Service.ts` or `<Name>Service.svelte.ts` if the file uses Svelte runes.
 
-## Before Completing Tasks
+## Before Considering a Task Complete
 
-1. Run: `pnpm test`, `pnpm lint`, and `pnpm check`
+1. Run + fix any issues that come up: `pnpm lint --fix`, `pnpm check`, and `pnpm test`
 
 ## Tool Information
 

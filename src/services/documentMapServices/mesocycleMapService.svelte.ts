@@ -26,6 +26,22 @@ function hasCompletedDate(m: WorkoutMesocycle): m is WorkoutMesocycle & { comple
   return m.completedDate != null;
 }
 
+export type MesocycleDataSources = {
+  calibrations: WorkoutExerciseCalibration[];
+  exercises: WorkoutExercise[];
+  equipmentTypes: WorkoutEquipmentType[];
+};
+
+export type MesocycleChildDocs = {
+  microcycles: WorkoutMicrocycle[];
+  sessions: WorkoutSession[];
+  sessionExercises: WorkoutSessionExercise[];
+  sets: WorkoutSet[];
+  exercises: WorkoutExercise[];
+};
+
+export type MesocycleAssociatedDocs = MesocycleDataSources & MesocycleChildDocs;
+
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
   constructor() {
     super({
@@ -78,15 +94,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
    *
    * @param mesocycleId ID of the mesocycle to get associated docs for.
    */
-  getAssociatedDocsForMesocycle(mesocycleId: UUID): {
-    microcycles: WorkoutMicrocycle[];
-    sessions: WorkoutSession[];
-    sessionExercises: WorkoutSessionExercise[];
-    sets: WorkoutSet[];
-    calibrations: WorkoutExerciseCalibration[];
-    exercises: WorkoutExercise[];
-    equipmentTypes: WorkoutEquipmentType[];
-  } {
+  getAssociatedDocsForMesocycle(mesocycleId: UUID): MesocycleAssociatedDocs {
     const mesocycle = this.getDoc(mesocycleId);
     const microcycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycleId);
     const sessions = microcycleMapService.getOrderedSessionsForMicrocycles(microcycles);

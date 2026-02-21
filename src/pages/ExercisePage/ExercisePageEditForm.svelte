@@ -106,10 +106,6 @@
 
   // --- Helpers ---
 
-  function getMuscleGroupName(id: UUID): string {
-    return muscleGroupMapService.getDoc(id)?.name ?? 'Unknown';
-  }
-
   const { jointDescriptions, effortDescriptions, unusedMuscleDescriptions } = sharedTextConstants;
 
   // --- Muscle group toggle (cycles: unselected -> primary -> secondary -> unselected) ---
@@ -264,7 +260,7 @@
 
     <div class="flex flex-wrap gap-1.5">
       {#each allMuscleGroups as mg (mg._id)}
-        <button type="button" onclick={() => toggleMuscleGroup(mg._id)}>
+        <Button variant="ghost" class="h-auto p-0" onclick={() => toggleMuscleGroup(mg._id)}>
           <Badge
             variant={formPrimary.has(mg._id)
               ? 'default'
@@ -279,7 +275,7 @@
               <span class="ml-0.5 text-[10px] opacity-70">2°</span>
             {/if}
           </Badge>
-        </button>
+        </Button>
       {/each}
     </div>
 
@@ -288,14 +284,14 @@
         {#if formPrimary.size > 0}
           <span
             >Primary: {[...formPrimary]
-              .map((id) => getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
               .join(', ')}</span
           >
         {/if}
         {#if formSecondary.size > 0}
           <span
             >Secondary: {[...formSecondary]
-              .map((id) => getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
               .join(', ')}</span
           >
         {/if}

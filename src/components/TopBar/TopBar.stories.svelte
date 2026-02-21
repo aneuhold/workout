@@ -13,6 +13,9 @@
     title: 'Components/TopBar',
     tags: ['!autodocs'],
     component: SBTopBarExample,
+    parameters: {
+      layout: 'fullscreen'
+    },
     argTypes: {
       ...createTextArgTypes('username'),
       ...createBoolArgTypes('timerActive'),

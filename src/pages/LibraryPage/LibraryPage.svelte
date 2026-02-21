@@ -31,7 +31,9 @@
   import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
-  import Input from '$ui/Input/Input.svelte';
+  import InputGroupAddon from '$ui/InputGroup/InputGroupAddon.svelte';
+  import InputGroupInput from '$ui/InputGroup/InputGroupInput.svelte';
+  import InputGroupRoot from '$ui/InputGroup/InputGroupRoot.svelte';
   import Tabs from '$ui/Tabs/Tabs.svelte';
   import TabsContent from '$ui/Tabs/TabsContent.svelte';
   import TabsList from '$ui/Tabs/TabsList.svelte';
@@ -84,11 +86,6 @@
 
   // --- Lookup helpers ---
 
-  function getMuscleGroupName(id: UUID): string {
-    const muscleGroup = muscleGroupMapService.getDoc(id);
-    return muscleGroup?.name ?? 'Unknown';
-  }
-
   function getEquipmentName(id: UUID): string {
     const equipmentType = equipmentTypeMapService.getDoc(id);
     return equipmentType?.title ?? 'Unknown';
@@ -102,10 +99,10 @@
     if (!normalizedQuery) return true;
     const equipmentName = getEquipmentName(exercise.workoutEquipmentTypeId).toLowerCase();
     const primaryNames = exercise.primaryMuscleGroups.map((id) =>
-      getMuscleGroupName(id).toLowerCase()
+      muscleGroupMapService.getMuscleGroupName(id).toLowerCase()
     );
     const secondaryNames = exercise.secondaryMuscleGroups.map((id) =>
-      getMuscleGroupName(id).toLowerCase()
+      muscleGroupMapService.getMuscleGroupName(id).toLowerCase()
     );
     return (
       exercise.exerciseName.toLowerCase().includes(normalizedQuery) ||
@@ -233,12 +230,12 @@
     {#if activeTab === LibraryTab.All}
       <DropdownMenu bind:open={addMenuOpen}>
         <DropdownMenuTrigger>
-          <button
-            class="inline-flex h-7 items-center gap-1 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground"
-          >
-            <IconPlus size={14} />
-            Add
-          </button>
+          {#snippet child({ props })}
+            <Button {...props} size="sm">
+              <IconPlus size={14} />
+              Add
+            </Button>
+          {/snippet}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onclick={handleAddExercise}>Exercise</DropdownMenuItem>
@@ -259,13 +256,12 @@
   </div>
 
   <!-- Search -->
-  <div class="relative">
-    <IconSearch
-      size={16}
-      class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-    />
-    <Input class="pl-8" placeholder="Search library..." bind:value={searchQuery} />
-  </div>
+  <InputGroupRoot>
+    <InputGroupAddon>
+      <IconSearch size={16} />
+    </InputGroupAddon>
+    <InputGroupInput placeholder="Search library..." bind:value={searchQuery} />
+  </InputGroupRoot>
 
   <!-- Tabs -->
   <Tabs bind:value={activeTab}>
