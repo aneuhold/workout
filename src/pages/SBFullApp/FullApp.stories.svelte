@@ -7,15 +7,13 @@
   import { FullAppScenario } from './sbFullAppScenarios';
 
   const { Story } = defineMeta({
-    title: 'Pages/Full App',
+    title: 'Full App',
     tags: ['!autodocs'],
     component: SBFullAppExample,
     decorators: [confettiDecoratorFunction],
     parameters: {
       layout: 'fullscreen',
-      // cspell:disable-next-line
       sveltekit_experimental: {
-        // cspell:disable-next-line
         hrefs: {
           '/.*': {
             callback: (url: string) => {
