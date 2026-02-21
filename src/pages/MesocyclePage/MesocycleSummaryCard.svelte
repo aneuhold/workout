@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Summary card showing stats grid and an optional Create Mesocycle button.
+  Summary card showing stats grid and optional Create / Save buttons.
 -->
 <script lang="ts">
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -25,7 +25,8 @@
     uniqueExercises,
     cycleTypeLabel,
     isValid = false,
-    onCreate
+    onCreate,
+    onSave
   }: {
     totalWeeks: number;
     totalSessions: number;
@@ -33,7 +34,11 @@
     cycleTypeLabel: string;
     isValid?: boolean;
     onCreate?: () => void;
+    onSave?: () => void;
   } = $props();
+
+  const action = $derived(onCreate ?? onSave);
+  const isCreateMode = $derived(!!onCreate);
 
   let confirmOpen = $state(false);
 </script>
@@ -62,29 +67,37 @@
       </div>
     </div>
 
-    {#if onCreate}
+    {#if action}
       <Separator />
-
       <Button size="lg" class="w-full" disabled={!isValid} onclick={() => (confirmOpen = true)}>
-        Create Mesocycle
+        {isCreateMode ? 'Create Mesocycle' : 'Save Changes'}
       </Button>
     {/if}
   </CardContent>
 </Card>
 
-{#if onCreate}
+{#if action}
   <AlertDialog bind:open={confirmOpen}>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Create this mesocycle?</AlertDialogTitle>
+        <AlertDialogTitle>
+          {isCreateMode ? 'Create this mesocycle?' : 'Save changes?'}
+        </AlertDialogTitle>
         <AlertDialogDescription>
-          This will create a mesocycle with {totalSessions} sessions across {totalWeeks} weeks. Once created,
-          settings like microcycle count, rest days, and session frequency cannot be changed.
+          {#if isCreateMode}
+            This will create a mesocycle with {totalSessions} sessions across {totalWeeks} weeks. Settings
+            can be edited until you start the mesocycle.
+          {:else}
+            This will regenerate the mesocycle with {totalSessions} sessions across {totalWeeks}
+            weeks. All existing session data will be replaced.
+          {/if}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Go Back</AlertDialogCancel>
-        <AlertDialogAction onclick={onCreate}>Create</AlertDialogAction>
+        <AlertDialogAction onclick={action}>
+          {isCreateMode ? 'Create' : 'Save Changes'}
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
