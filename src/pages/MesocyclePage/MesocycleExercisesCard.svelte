@@ -1,19 +1,11 @@
 <!--
   @component
 
-  Card for selecting calibrated exercises and previewing their distribution
-  across sessions within a single cycle.
+  Card for selecting calibrated exercises to include in a mesocycle.
 -->
 <script lang="ts">
-  import {
-    type CalibrationExercisePair,
-    ExerciseRepRange,
-    type WorkoutExercise,
-    WorkoutExerciseService,
-    type WorkoutMicrocycle,
-    type WorkoutSession,
-    type WorkoutSessionExercise
-  } from '@aneuhold/core-ts-db-lib';
+  import { type CalibrationExercisePair } from '@aneuhold/core-ts-db-lib';
+  import { IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
@@ -22,22 +14,28 @@
   import CardDescription from '$ui/Card/CardDescription.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
   import CardTitle from '$ui/Card/CardTitle.svelte';
+  import InputGroupAddon from '$ui/InputGroup/InputGroupAddon.svelte';
+  import InputGroupInput from '$ui/InputGroup/InputGroupInput.svelte';
+  import InputGroupRoot from '$ui/InputGroup/InputGroupRoot.svelte';
+  import Pagination from '$ui/Pagination/Pagination.svelte';
+  import PaginationContent from '$ui/Pagination/PaginationContent.svelte';
+  import PaginationEllipsis from '$ui/Pagination/PaginationEllipsis.svelte';
+  import PaginationItem from '$ui/Pagination/PaginationItem.svelte';
+  import PaginationLink from '$ui/Pagination/PaginationLink.svelte';
+  import PaginationNext from '$ui/Pagination/PaginationNext.svelte';
+  import PaginationPrevious from '$ui/Pagination/PaginationPrevious.svelte';
+  import Separator from '$ui/Separator/Separator.svelte';
+  import Switch from '$ui/Switch/Switch.svelte';
+
+  const PAGE_SIZE = 5;
 
   let {
     calibratedExercisePairs,
     selectedCalibrationIds = $bindable<UUID[]>([]),
-    firstMicrocycle,
-    previewSessions = [],
-    previewSessionExercises = [],
-    exercises = [],
     disabled = false
   }: {
     calibratedExercisePairs: CalibrationExercisePair[];
     selectedCalibrationIds: UUID[];
-    firstMicrocycle?: WorkoutMicrocycle;
-    previewSessions: WorkoutSession[];
-    previewSessionExercises: WorkoutSessionExercise[];
-    exercises: WorkoutExercise[];
     disabled?: boolean;
   } = $props();
 
@@ -51,74 +49,44 @@
     }
   }
 
-  /**
-   * The sessions belonging to the first microcycle only, in sessionOrder.
-   */
-  const firstCycleSessions = $derived.by(() => {
-    if (!firstMicrocycle || previewSessions.length === 0) return [];
-    const sessionIndexMap = new Map<UUID, number>(
-      firstMicrocycle.sessionOrder.map((sessionId, index) => [sessionId, index])
-    );
-    return previewSessions
-      .filter((session) => sessionIndexMap.has(session._id))
-      .sort(
-        (sessionA, sessionB) =>
-          (sessionIndexMap.get(sessionA._id) ?? 0) - (sessionIndexMap.get(sessionB._id) ?? 0)
-      );
-  });
+  let searchQuery = $state('');
+  let normalizedQuery = $derived(searchQuery.trim().toLowerCase());
+  let currentPage = $state(1);
 
-  /**
-   * Preview data for the sessions in the first microcycle, showing only exercises
-   * that are relevant to the selected calibrations.
-   */
-  const sessionPreviewData: {
-    title: string;
-    dayOfCycle: number;
-    exerciseDetails: {
-      name: string;
-      repRange: ExerciseRepRange;
-      muscleGroups: string[];
-    }[];
-    sessionId: UUID;
-  }[] = $derived.by(() => {
-    if (firstCycleSessions.length === 0 || !firstMicrocycle) return [];
-    const exerciseMap = new Map(exercises.map((exercise) => [exercise._id, exercise]));
-    const mcStart = new Date(firstMicrocycle.startDate).getTime();
+  function getMuscleGroupNames(pair: CalibrationExercisePair): string[] {
+    return pair.exercise.primaryMuscleGroups
+      .map((id) => muscleGroupMapService.getDoc(id)?.name)
+      .filter((name): name is string => name != null);
+  }
 
-    return firstCycleSessions.map((session, sessionIndex) => {
-      const sessionExercisesForSession = previewSessionExercises.filter(
-        (sessionExercise) => sessionExercise.workoutSessionId === session._id
-      );
-
-      const exerciseDetails = sessionExercisesForSession.map((sessionExercise) => {
-        const exercise = exerciseMap.get(sessionExercise.workoutExerciseId);
-        const primaryNames = (exercise?.primaryMuscleGroups ?? [])
-          .map((muscleGroupId) => muscleGroupMapService.getDoc(muscleGroupId)?.name)
-          .filter((name): name is string => name != null);
-        return {
-          name: exercise?.exerciseName ?? 'Unknown',
-          repRange: exercise?.repRange ?? ExerciseRepRange.Medium,
-          muscleGroups: primaryNames
-        };
-      });
-
-      // Compute day-of-cycle (1-indexed)
-      const sessionStart = new Date(session.startTime).getTime();
-      const dayOfCycle = Math.floor((sessionStart - mcStart) / (24 * 60 * 60 * 1000)) + 1;
-
-      return {
-        title: `Session ${sessionIndex + 1}`,
-        dayOfCycle,
-        exerciseDetails,
-        sessionId: session._id
-      };
+  const filteredPairs = $derived.by(() => {
+    if (!normalizedQuery) return calibratedExercisePairs;
+    return calibratedExercisePairs.filter((pair) => {
+      if (pair.exercise.exerciseName.toLowerCase().includes(normalizedQuery)) return true;
+      return getMuscleGroupNames(pair).some((name) => name.toLowerCase().includes(normalizedQuery));
     });
   });
 
-  function getRepRangeLabel(repRange: ExerciseRepRange): string {
-    const { min, max } = WorkoutExerciseService.getRepRangeValues(repRange);
-    return `${min}-${max} Reps`;
-  }
+  const displayPairs = $derived(
+    disabled
+      ? calibratedExercisePairs.filter((pair) =>
+          selectedCalibrationIds.includes(pair.calibration._id)
+        )
+      : filteredPairs
+  );
+
+  // Reset to page 1 when search changes the result set
+  $effect(() => {
+    void normalizedQuery;
+    currentPage = 1;
+  });
+
+  const totalPages = $derived(Math.ceil(displayPairs.length / PAGE_SIZE));
+  const showPagination = $derived(totalPages > 1);
+
+  const paginatedPairs = $derived(
+    displayPairs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  );
 </script>
 
 <Card>
@@ -138,66 +106,82 @@
         No calibrated exercises found. Calibrate exercises first to include them in a mesocycle.
       </p>
     {:else}
-      <div class="flex flex-wrap gap-1.5">
-        {#each calibratedExercisePairs as pair (pair.calibration._id)}
-          {#if disabled}
-            <Badge
-              variant={selectedCalibrationIds.includes(pair.calibration._id)
-                ? 'default'
-                : 'outline'}
-            >
-              {pair.exercise.exerciseName}
-            </Badge>
-          {:else}
-            <button type="button" onclick={() => toggleCalibration(pair.calibration._id)}>
-              <Badge
-                variant={selectedCalibrationIds.includes(pair.calibration._id)
-                  ? 'default'
-                  : 'outline'}
-              >
-                {pair.exercise.exerciseName}
-              </Badge>
-            </button>
+      {#if !disabled && calibratedExercisePairs.length > 5}
+        <InputGroupRoot>
+          <InputGroupAddon>
+            <IconSearch size={16} />
+          </InputGroupAddon>
+          <InputGroupInput placeholder="Search exercises..." bind:value={searchQuery} />
+        </InputGroupRoot>
+      {/if}
+
+      <div class="flex flex-col">
+        {#each paginatedPairs as pair, i (pair.calibration._id)}
+          {@const isSelected = selectedCalibrationIds.includes(pair.calibration._id)}
+          {@const muscleGroups = getMuscleGroupNames(pair)}
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 py-2 text-left {disabled
+              ? 'cursor-default opacity-70'
+              : ''}"
+            {disabled}
+            onclick={() => toggleCalibration(pair.calibration._id)}
+          >
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+              <span class="text-sm leading-snug">{pair.exercise.exerciseName}</span>
+              {#if muscleGroups.length > 0}
+                <div class="flex flex-wrap gap-1">
+                  {#each muscleGroups as group (group)}
+                    <Badge variant="secondary" class="px-1.5 py-0 text-[10px]">{group}</Badge>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+            <div class="pointer-events-none shrink-0">
+              <Switch checked={isSelected} {disabled} />
+            </div>
+          </button>
+          {#if i < paginatedPairs.length - 1}
+            <Separator />
           {/if}
         {/each}
       </div>
+
+      {#if showPagination}
+        <Pagination bind:page={currentPage} count={displayPairs.length} perPage={PAGE_SIZE}>
+          {#snippet children({ pages })}
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious />
+              </PaginationItem>
+              {#each pages as p (p.key)}
+                {#if p.type === 'page'}
+                  <PaginationItem>
+                    <PaginationLink page={p} isActive={currentPage === p.value} />
+                  </PaginationItem>
+                {:else}
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                {/if}
+              {/each}
+              <PaginationItem>
+                <PaginationNext />
+              </PaginationItem>
+            </PaginationContent>
+          {/snippet}
+        </Pagination>
+      {/if}
+
+      {#if !disabled && normalizedQuery && displayPairs.length === 0}
+        <p class="text-sm text-muted-foreground">No exercises match "{searchQuery.trim()}".</p>
+      {/if}
 
       {#if selectedCalibrationIds.length > 0}
         <p class="text-xs text-muted-foreground">
           {selectedCalibrationIds.length} exercise{selectedCalibrationIds.length !== 1 ? 's' : ''} selected
         </p>
       {/if}
-    {/if}
-
-    {#if sessionPreviewData.length > 0}
-      <div class="flex flex-col gap-3">
-        <p class="text-sm font-medium">Session Layout</p>
-        {#each sessionPreviewData as session (session.sessionId)}
-          <div class="rounded-md border border-border p-2.5">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium">{session.title}</span>
-              <span class="text-xs text-muted-foreground">Day {session.dayOfCycle}</span>
-            </div>
-            <div class="mt-2 flex flex-col gap-1.5">
-              {#each session.exerciseDetails as exerciseDetail, exerciseIndex (exerciseIndex)}
-                <div class="flex items-start justify-between gap-2">
-                  <span class="text-xs">{exerciseIndex + 1}. {exerciseDetail.name}</span>
-                  <div class="flex shrink-0 items-center gap-1">
-                    {#if exerciseDetail.muscleGroups.length > 0}
-                      <span class="text-[10px] text-muted-foreground">
-                        {exerciseDetail.muscleGroups.join(', ')}
-                      </span>
-                    {/if}
-                    <Badge variant="outline" class="text-[10px] px-1 py-0">
-                      {getRepRangeLabel(exerciseDetail.repRange)}
-                    </Badge>
-                  </div>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/each}
-      </div>
     {/if}
   </CardContent>
 </Card>

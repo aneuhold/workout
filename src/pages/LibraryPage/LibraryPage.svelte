@@ -31,7 +31,9 @@
   import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
-  import Input from '$ui/Input/Input.svelte';
+  import InputGroupAddon from '$ui/InputGroup/InputGroupAddon.svelte';
+  import InputGroupInput from '$ui/InputGroup/InputGroupInput.svelte';
+  import InputGroupRoot from '$ui/InputGroup/InputGroupRoot.svelte';
   import Tabs from '$ui/Tabs/Tabs.svelte';
   import TabsContent from '$ui/Tabs/TabsContent.svelte';
   import TabsList from '$ui/Tabs/TabsList.svelte';
@@ -259,13 +261,12 @@
   </div>
 
   <!-- Search -->
-  <div class="relative">
-    <IconSearch
-      size={16}
-      class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-    />
-    <Input class="pl-8" placeholder="Search library..." bind:value={searchQuery} />
-  </div>
+  <InputGroupRoot>
+    <InputGroupAddon>
+      <IconSearch size={16} />
+    </InputGroupAddon>
+    <InputGroupInput placeholder="Search library..." bind:value={searchQuery} />
+  </InputGroupRoot>
 
   <!-- Tabs -->
   <Tabs bind:value={activeTab}>
