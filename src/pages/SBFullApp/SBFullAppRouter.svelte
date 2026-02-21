@@ -3,6 +3,12 @@
 
   Maps the current route state path to the corresponding page component
   with the correct props. Used inside the Full App Storybook shell.
+
+  When adding a new route to the app, add a matching branch here.
+
+  This is nasty, but it seems like the cleanest approach at the moment to have full simulated data
+  that can be swapped out incredibly easy. This helps testing quite a bit, and the instruction was
+  added to copilot-instructions.md.
 -->
 <script lang="ts">
   import ExercisePage from '$pages/ExercisePage/ExercisePage.svelte';

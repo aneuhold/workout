@@ -65,6 +65,7 @@ The workout app depends on `@aneuhold/core-ts-db-lib`, a schema-first data model
 
 - Copy an existing route folder and adapt when creating new routes
 - `pageInfo.ts` files are kept outside module context because they must be importable before Svelte component load
+- When adding a new route, also add a matching branch in `src/pages/SBFullApp/SBFullAppRouter.svelte` so the Full App Storybook story can navigate to it
 
 ### State Management
 
