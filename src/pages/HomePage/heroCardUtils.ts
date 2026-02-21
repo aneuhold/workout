@@ -13,6 +13,7 @@ export enum HeroCardAction {
   StartSession = 'StartSession',
   CompleteMicrocycle = 'CompleteMicrocycle',
   StartMesocycle = 'StartMesocycle',
+  EditMesocycle = 'EditMesocycle',
   CompleteMesocycle = 'CompleteMesocycle'
 }
 
@@ -37,6 +38,12 @@ export type HeroCardState =
   | {
       action: HeroCardAction.StartMesocycle;
       mesocycleTitle: string;
+    }
+  | {
+      action: HeroCardAction.EditMesocycle;
+      mesocycleId: string;
+      mesocycleTitle: string;
+      startDate: Date;
     }
   | {
       action: HeroCardAction.CompleteMesocycle;
@@ -90,8 +97,25 @@ export function getHeroCardState(
     return null;
   }
 
-  // 4. If no microcycles exist or mesocycle hasn't been explicitly started → StartMesocycle
+  // 4. If no microcycles exist or mesocycle hasn't been explicitly started
   if (microcycles.length === 0 || !activeMesocycle.startDate) {
+    // If microcycles exist, check if the first one's start date is in the future
+    if (microcycles.length > 0) {
+      const firstMicrocycleStart = new Date(microcycles[0].startDate);
+      firstMicrocycleStart.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (firstMicrocycleStart > today) {
+        return {
+          action: HeroCardAction.EditMesocycle,
+          mesocycleId: activeMesocycle._id,
+          mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
+          startDate: microcycles[0].startDate
+        };
+      }
+    }
+
     return {
       action: HeroCardAction.StartMesocycle,
       mesocycleTitle: activeMesocycle.title ?? 'Mesocycle'

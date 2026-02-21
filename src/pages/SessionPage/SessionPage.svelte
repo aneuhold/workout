@@ -5,9 +5,16 @@
   Fetches session data, derives mode, manages card expansion, and orchestrates all sub-components.
 -->
 <script lang="ts">
-  import { WorkoutSessionExerciseService, WorkoutSetService } from '@aneuhold/core-ts-db-lib';
+  import {
+    WorkoutSessionExerciseService,
+    WorkoutSessionLockReason,
+    WorkoutSessionService,
+    WorkoutSetService
+  } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
+  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import SessionPageExerciseCard from './SessionPageExerciseCard.svelte';
@@ -45,10 +52,50 @@
     })
   );
 
+  // --- Lock derivation ---
+
+  let microcycle = $derived(
+    session?.workoutMicrocycleId
+      ? microcycleMapService.getDoc(session.workoutMicrocycleId)
+      : undefined
+  );
+
+  let mesocycle = $derived(
+    microcycle?.workoutMesocycleId
+      ? mesocycleMapService.getDoc(microcycle.workoutMesocycleId)
+      : undefined
+  );
+
+  let previousMicrocycle = $derived.by(() => {
+    if (!microcycle || !mesocycle) return undefined;
+    const orderedMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(
+      mesocycle._id
+    );
+    const currentIndex = orderedMicrocycles.findIndex((mc) => mc._id === microcycle._id);
+    return currentIndex > 0 ? orderedMicrocycles[currentIndex - 1] : undefined;
+  });
+
+  let previousSessionInMicrocycle = $derived.by(() => {
+    if (!microcycle || !session) return undefined;
+    const sessionIndex = microcycle.sessionOrder.indexOf(session._id);
+    if (sessionIndex <= 0) return undefined;
+    return sessionMapService.getDoc(microcycle.sessionOrder[sessionIndex - 1]);
+  });
+
+  let lockReason = $derived(
+    WorkoutSessionService.getSessionLockReason(
+      microcycle,
+      mesocycle,
+      previousMicrocycle,
+      previousSessionInMicrocycle
+    )
+  );
+
   // --- Mode derivation ---
 
   let dataMode: SessionPageMode = $derived.by(() => {
     if (!session) return SessionPageMode.Active;
+    if (lockReason != null) return SessionPageMode.Locked;
     if (!session.complete) return SessionPageMode.Active;
 
     const hasUnfilledMetrics = sessionExercises.some((se) => {
@@ -72,6 +119,7 @@
   });
 
   let mode: SessionPageMode = $derived.by(() => {
+    if (dataMode === SessionPageMode.Locked) return SessionPageMode.Locked;
     if (dataMode === SessionPageMode.Active) return SessionPageMode.Active;
     if (wasInReviewMode && !reviewConfirmed) return SessionPageMode.Review;
     return dataMode;
@@ -112,7 +160,9 @@
         ? SessionPageExerciseCardState.Completed
         : SessionPageExerciseCardState.Current;
     }
-    if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
+    if (mode === SessionPageMode.View || mode === SessionPageMode.Locked) {
+      return SessionPageExerciseCardState.Completed;
+    }
     if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;
     if (index === currentExerciseIndex) return SessionPageExerciseCardState.Current;
     return SessionPageExerciseCardState.Future;
@@ -164,6 +214,15 @@
   function handleCompleteReview() {
     reviewConfirmed = true;
   }
+
+  const lockMessages: Record<WorkoutSessionLockReason, string> = {
+    [WorkoutSessionLockReason.MesocycleNotStarted]:
+      'Start the mesocycle from the home page to begin logging.',
+    [WorkoutSessionLockReason.PreviousMicrocycleNotCompleted]:
+      'Advance to the next microcycle from the home page to unlock this session.',
+    [WorkoutSessionLockReason.PreviousSessionNotCompleted]:
+      'Complete the previous session to unlock this one.'
+  };
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -173,7 +232,15 @@
   {:else}
     <SessionPageHeader title={session.title} description={session.description} />
 
-    <SessionPageProgressBar completed={completedCount} total={totalSets} />
+    {#if mode !== SessionPageMode.Locked}
+      <SessionPageProgressBar completed={completedCount} total={totalSets} />
+    {/if}
+
+    {#if lockReason != null}
+      <div class="rounded-lg border border-muted bg-muted/30 px-4 py-3">
+        <p class="text-sm text-muted-foreground">{lockMessages[lockReason]}</p>
+      </div>
+    {/if}
 
     {#each sessionExercises as se, i (se._id)}
       <SessionPageExerciseCard
@@ -185,15 +252,17 @@
       />
     {/each}
 
-    <SessionPageSummaryCard
-      completed={completedCount}
-      total={totalSets}
-      {percent}
-      {mode}
-      {allImmediateSlidersFilled}
-      {allLateFieldsFilled}
-      onComplete={handleCompleteSession}
-      onCompleteReview={handleCompleteReview}
-    />
+    {#if mode !== SessionPageMode.Locked}
+      <SessionPageSummaryCard
+        completed={completedCount}
+        total={totalSets}
+        {percent}
+        {mode}
+        {allImmediateSlidersFilled}
+        {allLateFieldsFilled}
+        onComplete={handleCompleteSession}
+        onCompleteReview={handleCompleteReview}
+      />
+    {/if}
   {/if}
 </div>

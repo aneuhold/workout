@@ -4,11 +4,13 @@
  * - `Active`: Session is in progress (complete === false)
  * - `Review`: Session is complete but some late fields are still null
  * - `View`: Session is complete and all fields are filled
+ * - `Locked`: Session cannot be interacted with (prerequisite not met)
  */
 export enum SessionPageMode {
   Active = 'active',
   Review = 'review',
-  View = 'view'
+  View = 'view',
+  Locked = 'locked'
 }
 
 /**

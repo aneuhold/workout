@@ -7,4 +7,4 @@
   <meta name="description" content={analyticsPageInfo.description} />
 </svelte:head>
 
-<h1>{analyticsPageInfo.title}</h1>
+<h1>Analytics page coming soon...</h1>

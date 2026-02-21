@@ -70,9 +70,7 @@
   );
 
   let isDisabled = $derived(
-    setState === SessionPageSetState.Completed ||
-      mode === SessionPageMode.Review ||
-      mode === SessionPageMode.View
+    setState === SessionPageSetState.Completed || mode !== SessionPageMode.Active
   );
 
   let hasTargets = $derived(
