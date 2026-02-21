@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CycleType, DocumentService } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import { generateFullMockMesocycle } from '$services/documentMapServices/mesocycleMapService.mock';
+  import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
   import MockData from '$testUtils/MockData';
   import MesocyclePage from '../MesocyclePage.svelte';
 
@@ -33,7 +33,7 @@
       const baseData = MockData.setupBaseData();
 
       if (mode === 'edit') {
-        const { mesocycle } = generateFullMockMesocycle(baseData, {
+        const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -46,7 +46,7 @@
       }
 
       // static mode
-      const { mesocycle } = generateFullMockMesocycle(baseData, {
+      const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
