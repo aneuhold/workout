@@ -33,9 +33,9 @@
     onLog: (weight: number, reps: number, rir: number | null) => void;
   } = $props();
 
-  let weight = $state<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
-  let reps = $state<number | undefined>(set.actualReps ?? set.plannedReps ?? undefined);
-  let rir = $state<number | undefined>(set.rir ?? set.plannedRir ?? undefined);
+  let weight = $derived<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
+  let reps = $derived<number | undefined>(set.actualReps ?? set.plannedReps ?? undefined);
+  let rir = $derived<number | undefined>(set.rir ?? set.plannedRir ?? undefined);
 
   let dialogOpen = $state(false);
 
