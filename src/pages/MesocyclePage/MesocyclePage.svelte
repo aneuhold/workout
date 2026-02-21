@@ -300,6 +300,7 @@
         totalWeeks={formWeeks}
         {totalSessions}
         {uniqueExercises}
+        sessionsPerCycle={formSessionsPerWeek}
         {cycleTypeLabel}
         {isValid}
         onCreate={mode === MesocyclePageMode.New ? handleCreate : undefined}

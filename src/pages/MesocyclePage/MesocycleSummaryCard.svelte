@@ -23,6 +23,7 @@
     totalWeeks,
     totalSessions,
     uniqueExercises,
+    sessionsPerCycle,
     cycleTypeLabel,
     isValid = false,
     onCreate,
@@ -31,6 +32,7 @@
     totalWeeks: number;
     totalSessions: number;
     uniqueExercises: number;
+    sessionsPerCycle?: number;
     cycleTypeLabel: string;
     isValid?: boolean;
     onCreate?: () => void;
@@ -39,6 +41,9 @@
 
   const action = $derived(onCreate ?? onSave);
   const isCreateMode = $derived(!!onCreate);
+  const needsMoreExercises = $derived(
+    sessionsPerCycle !== undefined && uniqueExercises > 0 && uniqueExercises < sessionsPerCycle
+  );
 
   let confirmOpen = $state(false);
 </script>
@@ -69,7 +74,18 @@
 
     {#if action}
       <Separator />
-      <Button size="lg" class="w-full" disabled={!isValid} onclick={() => (confirmOpen = true)}>
+      {#if needsMoreExercises}
+        <p class="text-sm text-destructive">
+          Select at least {sessionsPerCycle} exercise{sessionsPerCycle !== 1 ? 's' : ''} to match the
+          number of sessions per cycle. Add a variation of an existing exercise if needed.
+        </p>
+      {/if}
+      <Button
+        size="lg"
+        class="w-full"
+        disabled={!isValid || needsMoreExercises}
+        onclick={() => (confirmOpen = true)}
+      >
         {isCreateMode ? 'Create Mesocycle' : 'Save Changes'}
       </Button>
     {/if}
