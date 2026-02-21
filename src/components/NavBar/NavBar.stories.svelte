@@ -13,9 +13,7 @@
     tags: ['!autodocs'],
     component: NavBar,
     parameters: {
-      // cspell:disable-next-line
       sveltekit_experimental: {
-        // cspell:disable-next-line
         hrefs: {
           '/.*': {
             callback: (url: string) => {
