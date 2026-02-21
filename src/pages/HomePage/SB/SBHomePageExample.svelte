@@ -10,7 +10,6 @@
 
   type StoryMode =
     | 'default'
-    | 'empty'
     | 'allComplete'
     | 'review'
     | 'inProgress'
@@ -71,8 +70,6 @@
 
     untrack(() => {
       MockData.resetAll();
-
-      if (mode === 'empty') return;
 
       const baseData = MockData.setupBaseData();
 
