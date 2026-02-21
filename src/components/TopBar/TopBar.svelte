@@ -12,6 +12,7 @@
   import { LoginState, loginState } from '$stores/session/loginState';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';
+  import Button from '$ui/Button/Button.svelte';
   import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
   import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
@@ -70,17 +71,25 @@
     <SyncIndicator timerHighlight={showTimerHighlight} />
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <button class="cursor-pointer rounded-full" aria-label="User menu">
-          <Avatar>
-            <AvatarFallback>
-              {#if initials}
-                {initials}
-              {:else}
-                <IconUser size={14} stroke={1.5} />
-              {/if}
-            </AvatarFallback>
-          </Avatar>
-        </button>
+        {#snippet child({ props })}
+          <Button
+            {...props}
+            variant="ghost"
+            size="icon"
+            class="rounded-full"
+            aria-label="User menu"
+          >
+            <Avatar>
+              <AvatarFallback>
+                {#if initials}
+                  {initials}
+                {:else}
+                  <IconUser size={14} stroke={1.5} />
+                {/if}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        {/snippet}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onclick={() => goto('/settings')}>

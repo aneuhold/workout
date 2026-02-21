@@ -200,13 +200,14 @@
             {#each weightOptions as weight (weight)}
               <Badge variant="secondary" class="gap-0.5 pr-1">
                 {weight}
-                <button
-                  type="button"
-                  class="ml-0.5 rounded-full hover:bg-muted-foreground/20"
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  class="ml-0.5 size-4 rounded-full"
                   onclick={() => removeWeight(weight)}
                 >
                   <IconX class="size-3" />
-                </button>
+                </Button>
               </Badge>
             {/each}
           </div>
