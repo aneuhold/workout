@@ -94,6 +94,7 @@
   // --- Set states ---
 
   function getSetState(set: WorkoutSet, index: number): SessionPageSetState {
+    if (mode === SessionPageMode.Locked) return SessionPageSetState.Future;
     if (
       set.actualReps != null &&
       set.actualWeight != null &&

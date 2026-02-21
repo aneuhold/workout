@@ -39,7 +39,7 @@
     status === SessionStatus.Review
       ? sessionExercises.filter((se) => {
           const seSets = sets.filter((s) => s.workoutSessionExerciseId === se._id);
-          return WorkoutSessionExerciseService.needsReview(se, seSets);
+          return !WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
         }).length
       : 0
   );

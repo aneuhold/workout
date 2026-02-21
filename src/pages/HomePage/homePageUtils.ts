@@ -71,13 +71,12 @@ export function getCurrentMicrocycle(
   return null;
 }
 
-function sessionNeedsReview(session: WorkoutSession): boolean {
+function sessionHasAllMetricsFilled(session: WorkoutSession): boolean {
   const exercises = sessionMapService.getOrderedSessionExercisesForSession(session);
-  for (const se of exercises) {
+  return exercises.every((se) => {
     const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-    if (WorkoutSessionExerciseService.needsReview(se, seSets)) return true;
-  }
-  return false;
+    return WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
+  });
 }
 
 /**
@@ -88,7 +87,7 @@ function sessionNeedsReview(session: WorkoutSession): boolean {
  */
 export function getPendingReviewSessions(sessions: WorkoutSession[]): HomePageSessionBundle[] {
   return sessions
-    .filter((s) => s.complete && sessionNeedsReview(s))
+    .filter((s) => s.complete && !sessionHasAllMetricsFilled(s))
     .map((session) => ({
       session,
       sessionExercises: sessionMapService.getOrderedSessionExercisesForSession(session),
@@ -107,7 +106,7 @@ export function getRecentCompletedSessions(
   sessions: WorkoutSession[],
   limit = 3
 ): HomePageSessionBundle[] {
-  const completed = sessions.filter((s) => s.complete && !sessionNeedsReview(s));
+  const completed = sessions.filter((s) => s.complete && sessionHasAllMetricsFilled(s));
 
   return completed
     .slice(-limit)

@@ -6,7 +6,7 @@
   complete mesocycle.
 -->
 <script lang="ts">
-  import { IconChevronRight, IconSparkles, IconTrophy } from '@tabler/icons-svelte';
+  import { IconChevronRight, IconEdit, IconSparkles, IconTrophy } from '@tabler/icons-svelte';
   import { countCompletedSets } from '$components/SessionCard/sessionCardUtils';
   import { triggerConfetti } from '$components/singletons/Confetti/Confetti.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -111,6 +111,24 @@
           <IconChevronRight size={14} />
         </Button>
       {/if}
+    </CardContent>
+  </Card>
+{:else if state.action === HeroCardAction.EditMesocycle}
+  <Card class="ring-primary/30 ring-2">
+    <CardHeader>
+      <div class="flex items-center gap-2">
+        <IconEdit size={18} class="text-primary" />
+        <span class="text-sm font-semibold">{state.mesocycleTitle}</span>
+      </div>
+    </CardHeader>
+    <CardContent class="flex flex-col gap-3">
+      <p class="text-xs text-muted-foreground">
+        Scheduled to start {state.startDate.toLocaleDateString()}
+      </p>
+      <Button size="sm" href="/mesocycle?mesocycleId={state.mesocycleId}">
+        Edit Mesocycle
+        <IconChevronRight size={14} />
+      </Button>
     </CardContent>
   </Card>
 {:else if state.action === HeroCardAction.StartMesocycle}

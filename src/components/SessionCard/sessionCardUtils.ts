@@ -22,11 +22,11 @@ export function getSessionStatus(
   if (!session.complete && isNextUp) return SessionStatus.NextUp;
   if (!session.complete) return SessionStatus.Upcoming;
 
-  const needsReview = sessionExercises.some((se) => {
+  const hasUnfilledMetrics = sessionExercises.some((se) => {
     const seSets = sets.filter((s) => s.workoutSessionExerciseId === se._id);
-    return WorkoutSessionExerciseService.needsReview(se, seSets);
+    return !WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
   });
-  return needsReview ? SessionStatus.Review : SessionStatus.Completed;
+  return hasUnfilledMetrics ? SessionStatus.Review : SessionStatus.Completed;
 }
 
 /**
