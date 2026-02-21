@@ -38,22 +38,10 @@
   let completedCount = $derived(completedSets.length);
   let percent = $derived(totalSets > 0 ? Math.round((completedCount / totalSets) * 100) : 0);
 
-  /**
-   * Immediate sliders are RSM and fatigue sliders that are filled out immediately after each set.
-   *
-   * This logic should be moved to WorkoutSessionExerciseService.
-   */
   let allImmediateSlidersFilled = $derived(
     sessionExercises.every((se) => {
       const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-      if (WorkoutSessionExerciseService.isDeloadExercise(seSets)) return true;
-      return (
-        se.rsm?.mindMuscleConnection != null &&
-        se.rsm.pump != null &&
-        se.fatigue?.jointAndTissueDisruption != null &&
-        se.fatigue.perceivedEffort != null &&
-        se.performanceScore != null
-      );
+      return WorkoutSessionExerciseService.hasMidSessionMetricsFilled(se, seSets);
     })
   );
 
@@ -63,12 +51,12 @@
     if (!session) return SessionPageMode.Active;
     if (!session.complete) return SessionPageMode.Active;
 
-    const hasNullLateFields = sessionExercises.some((se) => {
+    const hasUnfilledMetrics = sessionExercises.some((se) => {
       const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-      return WorkoutSessionExerciseService.needsReview(se, seSets);
+      return !WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
     });
 
-    return hasNullLateFields ? SessionPageMode.Review : SessionPageMode.View;
+    return hasUnfilledMetrics ? SessionPageMode.Review : SessionPageMode.View;
   });
 
   // Keep the user in review mode until they explicitly confirm, even after
@@ -90,7 +78,8 @@
   });
 
   let allLateFieldsFilled = $derived(
-    sessionExercises.length > 0 && sessionExercises.every((se) => !exerciseNeedsReview(se))
+    sessionExercises.length > 0 &&
+      sessionExercises.every((se) => exerciseHasAllSessionMetricsFilled(se))
   );
 
   /**
@@ -112,16 +101,16 @@
 
   // --- Card state ---
 
-  function exerciseNeedsReview(se: (typeof sessionExercises)[number]): boolean {
+  function exerciseHasAllSessionMetricsFilled(se: (typeof sessionExercises)[number]): boolean {
     const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-    return WorkoutSessionExerciseService.needsReview(se, seSets);
+    return WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
   }
 
   function getCardState(index: number): SessionPageExerciseCardState {
     if (mode === SessionPageMode.Review) {
-      return exerciseNeedsReview(sessionExercises[index])
-        ? SessionPageExerciseCardState.Current
-        : SessionPageExerciseCardState.Completed;
+      return exerciseHasAllSessionMetricsFilled(sessionExercises[index])
+        ? SessionPageExerciseCardState.Completed
+        : SessionPageExerciseCardState.Current;
     }
     if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
     if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;
@@ -137,7 +126,7 @@
     const exercises = sessionExercises;
     if (mode === SessionPageMode.Review) {
       for (const se of exercises) {
-        if (exerciseNeedsReview(se) && expandedMap[se._id] === undefined) {
+        if (!exerciseHasAllSessionMetricsFilled(se) && expandedMap[se._id] === undefined) {
           expandedMap[se._id] = true;
         }
       }

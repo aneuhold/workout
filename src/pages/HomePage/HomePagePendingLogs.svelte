@@ -22,7 +22,7 @@
   function reviewCount(bundle: HomePageSessionBundle): number {
     return bundle.sessionExercises.filter((se) => {
       const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
-      return WorkoutSessionExerciseService.needsReview(se, seSets);
+      return !WorkoutSessionExerciseService.hasAllSessionMetricsFilled(se, seSets);
     }).length;
   }
 </script>
