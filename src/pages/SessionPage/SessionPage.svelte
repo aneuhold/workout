@@ -160,9 +160,8 @@
         ? SessionPageExerciseCardState.Completed
         : SessionPageExerciseCardState.Current;
     }
-    if (mode === SessionPageMode.View || mode === SessionPageMode.Locked) {
-      return SessionPageExerciseCardState.Completed;
-    }
+    if (mode === SessionPageMode.Locked) return SessionPageExerciseCardState.Future;
+    if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
     if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;
     if (index === currentExerciseIndex) return SessionPageExerciseCardState.Current;
     return SessionPageExerciseCardState.Future;

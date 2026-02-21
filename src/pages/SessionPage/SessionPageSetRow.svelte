@@ -146,7 +146,7 @@
   </div>
 </div>
 
-{#if hasTargets}
+{#if hasTargets && mode !== SessionPageMode.Locked}
   <div class="grid grid-cols-12 gap-1.5 px-2 pb-0.5">
     <div class="col-span-1"></div>
     <div class="col-span-11 text-xs text-muted-foreground">
