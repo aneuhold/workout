@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
   CalibrationExercisePair,
   WorkoutExercise,
@@ -133,7 +134,7 @@ export function generateMesocycleChildren(
 
 /**
  * Creates a new mesocycle document and persists it along with its generated
- * child documents (microcycles, sessions, session exercises, sets).
+ * child documents in a single batched API call.
  *
  * @param mesocycleInput Raw object to parse via WorkoutMesocycleSchema (from
  *   `buildMesocycleInput` in the component, with title added)
@@ -147,8 +148,6 @@ export function persistNewMesocycle(
 ): void {
   const mesocycleDoc = WorkoutMesocycleSchema.parse(mesocycleInput);
 
-  mesocycleMapService.addDoc(mesocycleDoc);
-
   const children = generateMesocycleChildren(
     mesocycleDoc,
     mesocycleDoc.calibratedExercises,
@@ -157,11 +156,9 @@ export function persistNewMesocycle(
   );
   if (!children) return;
 
-  if (children.microcycles.length > 0) microcycleMapService.addManyDocs(children.microcycles);
-  if (children.sessions.length > 0) sessionMapService.addManyDocs(children.sessions);
-  if (children.sessionExercises.length > 0)
-    sessionExerciseMapService.addManyDocs(children.sessionExercises);
-  if (children.sets.length > 0) setMapService.addManyDocs(children.sets);
+  const apiOptions = mesocycleMapService.prepareDocsForSave({ insert: [mesocycleDoc] });
+  batchChildDocs(children, apiOptions);
+  WorkoutAPIService.queryApi(apiOptions);
 }
 
 /**
@@ -179,16 +176,9 @@ export function persistMesocycleEdits(
   dataSources: MesocycleDataSources,
   startDate: Date
 ): void {
-  // Gather existing child doc IDs for deletion before mutations
   const existingDocs = mesocycleMapService.getAssociatedDocsForMesocycle(mesocycle._id);
-  const oldMicrocycleIds = existingDocs.microcycles.map((d) => d._id);
-  const oldSessionIds = existingDocs.sessions.map((d) => d._id);
-  const oldSessionExerciseIds = existingDocs.sessionExercises.map((d) => d._id);
-  const oldSetIds = existingDocs.sets.map((d) => d._id);
-
   Object.assign(mesocycle, updates);
 
-  // Generate fresh child docs
   const children = generateMesocycleChildren(
     mesocycle,
     mesocycle.calibratedExercises,
@@ -197,21 +187,38 @@ export function persistMesocycleEdits(
   );
   if (!children) return;
 
-  // Batch all operations into a single API call
   const apiOptions = mesocycleMapService.prepareDocsForSave({ update: [mesocycle] });
+  batchChildDocs(children, apiOptions, existingDocs);
+  WorkoutAPIService.queryApi(apiOptions);
+}
+
+/**
+ * Batches child document insert (and optionally delete) operations into
+ * the given API options object, updating local state in the process.
+ *
+ * @param children Generated child documents to insert
+ * @param apiOptions The API options object to accumulate operations into
+ * @param oldChildren Optional existing child documents whose IDs will be deleted
+ */
+function batchChildDocs(
+  children: MesocycleChildDocs,
+  apiOptions: ProjectWorkoutPrimaryEndpointOptions,
+  oldChildren?: MesocycleChildDocs
+): void {
   microcycleMapService.prepareDocsForSave(
-    { delete: oldMicrocycleIds, insert: children.microcycles },
+    { delete: oldChildren?.microcycles.map((d) => d._id), insert: children.microcycles },
     apiOptions
   );
   sessionMapService.prepareDocsForSave(
-    { delete: oldSessionIds, insert: children.sessions },
+    { delete: oldChildren?.sessions.map((d) => d._id), insert: children.sessions },
     apiOptions
   );
   sessionExerciseMapService.prepareDocsForSave(
-    { delete: oldSessionExerciseIds, insert: children.sessionExercises },
+    { delete: oldChildren?.sessionExercises.map((d) => d._id), insert: children.sessionExercises },
     apiOptions
   );
-  setMapService.prepareDocsForSave({ delete: oldSetIds, insert: children.sets }, apiOptions);
-
-  WorkoutAPIService.queryApi(apiOptions);
+  setMapService.prepareDocsForSave(
+    { delete: oldChildren?.sets.map((d) => d._id), insert: children.sets },
+    apiOptions
+  );
 }
