@@ -24,7 +24,7 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
   getOrderedMicrocyclesForMesocycle(mesocycleId: UUID): WorkoutMicrocycle[] {
     return this.getDocs()
       .filter((mc) => mc.workoutMesocycleId === mesocycleId)
-      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      .sort((a, b) => this.compareMicrocyclesByStartDate(a, b));
   }
 
   /**
@@ -46,6 +46,16 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    */
   getOrderedSessionsForMicrocycles(microcycles: WorkoutMicrocycle[]): WorkoutSession[] {
     return microcycles.flatMap((mc) => this.getOrderedSessionsForMicrocycle(mc));
+  }
+
+  /**
+   * Comparator that sorts microcycles by `startDate` ascending.
+   *
+   * @param a First microcycle
+   * @param b Second microcycle
+   */
+  compareMicrocyclesByStartDate(a: WorkoutMicrocycle, b: WorkoutMicrocycle): number {
+    return Date.parse(a.startDate) - Date.parse(b.startDate);
   }
 }
 

@@ -47,11 +47,6 @@
     onAddCalibration: () => void;
   } = $props();
 
-  function getMuscleGroupName(id: UUID): string {
-    const muscleGroup = muscleGroupMapService.getDoc(id);
-    return muscleGroup?.name ?? 'Unknown';
-  }
-
   function getEquipmentName(id: UUID): string {
     const equipmentType = equipmentTypeMapService.getDoc(id);
     return equipmentType?.title ?? 'Unknown';
@@ -96,7 +91,9 @@
           {repRange.min}-{repRange.max} reps ({exercise.repRange})
         </Badge>
         {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
-          <Badge variant="secondary">{getMuscleGroupName(muscleGroupId)}</Badge>
+          <Badge variant="secondary"
+            >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge
+          >
         {/each}
       </div>
     </div>
@@ -135,10 +132,12 @@
         <span class="text-xs text-muted-foreground">Muscle Groups</span>
         <div class="mt-1 flex flex-wrap gap-1">
           {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
-            <Badge>{getMuscleGroupName(muscleGroupId)}</Badge>
+            <Badge>{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge>
           {/each}
           {#each exercise.secondaryMuscleGroups as muscleGroupId (muscleGroupId)}
-            <Badge variant="outline">{getMuscleGroupName(muscleGroupId)}</Badge>
+            <Badge variant="outline"
+              >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge
+            >
           {/each}
         </div>
       </div>

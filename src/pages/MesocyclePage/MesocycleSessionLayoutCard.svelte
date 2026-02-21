@@ -67,9 +67,9 @@
 
       const exerciseDetails = sessionExercisesForSession.map((sessionExercise) => {
         const exercise = exerciseMap.get(sessionExercise.workoutExerciseId);
-        const primaryNames = (exercise?.primaryMuscleGroups ?? [])
-          .map((muscleGroupId) => muscleGroupMapService.getDoc(muscleGroupId)?.name)
-          .filter((name): name is string => name != null);
+        const primaryNames = muscleGroupMapService.getMuscleGroupNames(
+          exercise?.primaryMuscleGroups ?? []
+        );
         return {
           name: exercise?.exerciseName ?? 'Unknown',
           repRange: exercise?.repRange ?? ExerciseRepRange.Medium,

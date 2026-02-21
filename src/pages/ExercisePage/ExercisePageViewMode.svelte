@@ -35,10 +35,6 @@
 
   // --- Helpers ---
 
-  function getMuscleGroupName(id: UUID): string {
-    return muscleGroupMapService.getDoc(id)?.name ?? 'Unknown';
-  }
-
   function getEquipmentName(id: UUID): string {
     return equipmentTypeMapService.getDoc(id)?.title ?? 'Unknown';
   }
@@ -73,10 +69,10 @@
     <span class="text-xs text-muted-foreground">Muscle Groups</span>
     <div class="mt-1 flex flex-wrap gap-1">
       {#each exercise.primaryMuscleGroups as mgId (mgId)}
-        <Badge>{getMuscleGroupName(mgId)}</Badge>
+        <Badge>{muscleGroupMapService.getMuscleGroupName(mgId)}</Badge>
       {/each}
       {#each exercise.secondaryMuscleGroups as mgId (mgId)}
-        <Badge variant="outline">{getMuscleGroupName(mgId)}</Badge>
+        <Badge variant="outline">{muscleGroupMapService.getMuscleGroupName(mgId)}</Badge>
       {/each}
       {#if exercise.primaryMuscleGroups.length === 0 && exercise.secondaryMuscleGroups.length === 0}
         <span class="text-xs text-muted-foreground">None assigned</span>

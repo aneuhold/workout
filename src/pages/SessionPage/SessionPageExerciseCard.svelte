@@ -21,7 +21,6 @@
     IconPlayerStop,
     IconStopwatch
   } from '@tabler/icons-svelte';
-  import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -76,16 +75,20 @@
 
   // --- Muscle group names ---
 
-  function getMuscleGroupName(id: UUID): string {
-    return muscleGroupMapService.getDoc(id)?.name ?? 'Unknown';
-  }
-
   let primaryMuscleNames = $derived(
-    exercise ? exercise.primaryMuscleGroups.map(getMuscleGroupName).join(', ') : ''
+    exercise
+      ? exercise.primaryMuscleGroups
+          .map((id) => muscleGroupMapService.getMuscleGroupName(id))
+          .join(', ')
+      : ''
   );
 
   let secondaryMuscleNames = $derived(
-    exercise ? exercise.secondaryMuscleGroups.map(getMuscleGroupName).join(', ') : ''
+    exercise
+      ? exercise.secondaryMuscleGroups
+          .map((id) => muscleGroupMapService.getMuscleGroupName(id))
+          .join(', ')
+      : ''
   );
 
   // --- Set states ---
@@ -267,7 +270,9 @@
         {/if}
         {#if exercise}
           {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
-            <Badge variant="secondary">{getMuscleGroupName(muscleGroupId)}</Badge>
+            <Badge variant="secondary"
+              >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge
+            >
           {/each}
         {/if}
       </div>

@@ -106,10 +106,6 @@
 
   // --- Helpers ---
 
-  function getMuscleGroupName(id: UUID): string {
-    return muscleGroupMapService.getDoc(id)?.name ?? 'Unknown';
-  }
-
   const { jointDescriptions, effortDescriptions, unusedMuscleDescriptions } = sharedTextConstants;
 
   // --- Muscle group toggle (cycles: unselected -> primary -> secondary -> unselected) ---
@@ -288,14 +284,14 @@
         {#if formPrimary.size > 0}
           <span
             >Primary: {[...formPrimary]
-              .map((id) => getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
               .join(', ')}</span
           >
         {/if}
         {#if formSecondary.size > 0}
           <span
             >Secondary: {[...formSecondary]
-              .map((id) => getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
               .join(', ')}</span
           >
         {/if}

@@ -80,8 +80,8 @@ export function getDocsForCalibrationIds(
  */
 export function getEarliestStartDate(microcycles: WorkoutMicrocycle[]): Date {
   if (microcycles.length === 0) return new Date();
-  const sorted = [...microcycles].sort(
-    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  const sorted = [...microcycles].sort((a, b) =>
+    microcycleMapService.compareMicrocyclesByStartDate(a, b)
   );
   return new Date(sorted[0].startDate);
 }

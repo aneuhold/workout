@@ -86,11 +86,6 @@
 
   // --- Lookup helpers ---
 
-  function getMuscleGroupName(id: UUID): string {
-    const muscleGroup = muscleGroupMapService.getDoc(id);
-    return muscleGroup?.name ?? 'Unknown';
-  }
-
   function getEquipmentName(id: UUID): string {
     const equipmentType = equipmentTypeMapService.getDoc(id);
     return equipmentType?.title ?? 'Unknown';
@@ -104,10 +99,10 @@
     if (!normalizedQuery) return true;
     const equipmentName = getEquipmentName(exercise.workoutEquipmentTypeId).toLowerCase();
     const primaryNames = exercise.primaryMuscleGroups.map((id) =>
-      getMuscleGroupName(id).toLowerCase()
+      muscleGroupMapService.getMuscleGroupName(id).toLowerCase()
     );
     const secondaryNames = exercise.secondaryMuscleGroups.map((id) =>
-      getMuscleGroupName(id).toLowerCase()
+      muscleGroupMapService.getMuscleGroupName(id).toLowerCase()
     );
     return (
       exercise.exerciseName.toLowerCase().includes(normalizedQuery) ||

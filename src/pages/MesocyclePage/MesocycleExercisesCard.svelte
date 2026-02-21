@@ -54,9 +54,7 @@
   let currentPage = $state(1);
 
   function getMuscleGroupNames(pair: CalibrationExercisePair): string[] {
-    return pair.exercise.primaryMuscleGroups
-      .map((id) => muscleGroupMapService.getDoc(id)?.name)
-      .filter((name): name is string => name != null);
+    return muscleGroupMapService.getMuscleGroupNames(pair.exercise.primaryMuscleGroups);
   }
 
   const filteredPairs = $derived.by(() => {
