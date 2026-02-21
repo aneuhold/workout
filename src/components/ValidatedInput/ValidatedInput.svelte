@@ -50,8 +50,11 @@
     disabled?: boolean;
   } = $props();
 
-  /** What the user sees in the input field. */
-  let displayValue = $state(String(value));
+  /**
+   * What the user sees in the input field. This is derived to allow for the parent to change the
+   * input value programatically after initially setting it.
+   */
+  let displayValue = $derived(String(value));
 
   /** Error message shown below the input when non-empty. */
   let errorMessage = $state('');

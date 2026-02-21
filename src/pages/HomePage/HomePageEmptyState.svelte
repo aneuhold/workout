@@ -4,16 +4,16 @@
   Empty state shown when there is no active mesocycle on the home page.
 -->
 <script lang="ts">
-  import { IconBarbell, IconChevronRight } from '@tabler/icons-svelte';
-  import Button from '$ui/Button/Button.svelte';
+  import { IconBarbell } from '@tabler/icons-svelte';
+  import OnboardingEmptyState from '$components/OnboardingEmptyState/OnboardingEmptyState.svelte';
 </script>
 
-<div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
-  <IconBarbell size={48} class="mb-3 opacity-40" />
-  <p class="font-medium">No active mesocycle</p>
-  <p class="mb-4 text-xs">Create a mesocycle to start planning sessions.</p>
-  <Button variant="outline" size="sm" href="/mesocycles">
-    View Mesocycles
-    <IconChevronRight size={14} />
-  </Button>
-</div>
+<OnboardingEmptyState
+  readyTitle="No active mesocycle"
+  readyMessage="Create a mesocycle to start planning sessions."
+  readyButton={{ label: 'View Mesocycles', href: '/mesocycles' }}
+>
+  {#snippet icon()}
+    <IconBarbell size={48} class="mb-3 opacity-40" />
+  {/snippet}
+</OnboardingEmptyState>
