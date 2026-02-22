@@ -46,8 +46,8 @@
 
   // --- Data sources ---
 
-  let allEquipment = $derived(equipmentTypeMapService.getDocs());
-  let allMuscleGroups = $derived(muscleGroupMapService.getDocs());
+  let allEquipment = $derived(equipmentTypeMapService.allDocs);
+  let allMuscleGroups = $derived(muscleGroupMapService.allDocs);
 
   // --- Form state ---
 

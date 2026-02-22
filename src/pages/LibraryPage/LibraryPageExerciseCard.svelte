@@ -54,7 +54,7 @@
 
   let calibrationsByExerciseId = $derived.by(() => {
     const map = new SvelteMap<UUID, WorkoutExerciseCalibration[]>();
-    for (const c of exerciseCalibrationMapService.getDocs()) {
+    for (const c of exerciseCalibrationMapService.allDocs) {
       const existing = map.get(c.workoutExerciseId);
       if (existing) {
         existing.push(c);

@@ -45,7 +45,7 @@ describe('DocumentMapStoreService', () => {
   });
 
   it('should initialize with empty values', () => {
-    expect(service.getDocs()).toEqual([]);
+    expect(service.allDocs).toEqual([]);
   });
 
   it('should add a document', () => {
@@ -176,7 +176,7 @@ describe('DocumentMapStoreService', () => {
 
     expect(service.getDoc(doc1._id)).toEqual(doc1);
     expect(service.getDoc(doc2._id)).toEqual(doc2);
-    expect(service.getDocs()).toHaveLength(2);
+    expect(service.allDocs).toHaveLength(2);
     expect(persistToLocalDataMock).toHaveBeenCalled();
     // setMap does NOT persist to DB
     expect(persistToDbMock).not.toHaveBeenCalled();

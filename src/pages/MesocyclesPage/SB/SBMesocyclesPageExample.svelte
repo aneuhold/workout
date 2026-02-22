@@ -1,5 +1,6 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
   import MockData from '$testUtils/MockData';
@@ -12,7 +13,7 @@
   } = $props();
 
   function daysAgo(n: number): Date {
-    return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+    return DateService.addDays(new Date(), -n);
   }
 
   $effect(() => {

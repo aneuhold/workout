@@ -30,7 +30,7 @@
     onExerciseClick: (exerciseId: UUID) => void;
   } = $props();
 
-  let exercises = $derived(exerciseMapService.getDocs());
+  let exercises = $derived(exerciseMapService.allDocs);
 
   let linkedExercises = $derived.by(() => {
     const primary: WorkoutExercise[] = [];

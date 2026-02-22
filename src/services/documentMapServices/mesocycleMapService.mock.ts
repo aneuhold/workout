@@ -145,7 +145,7 @@ export default class MesocycleMapServiceMock {
     if (config.completedDate) {
       mesoDoc.completedDate = config.completedDate;
       mesocycleMapService.setMap({
-        ...Object.fromEntries(mesocycleMapService.getDocs().map((d) => [d._id, d])),
+        ...Object.fromEntries(mesocycleMapService.allDocs.map((d) => [d._id, d])),
         [mesoDoc._id as string]: mesoDoc
       });
     }

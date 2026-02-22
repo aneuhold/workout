@@ -53,13 +53,6 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   }
 
   /**
-   * Returns all documents in the map as an array.
-   */
-  public getDocs(): T[] {
-    return this.allDocs;
-  }
-
-  /**
    * Returns a single document by ID, or undefined if not found.
    *
    * @param docId The ID of the document to retrieve
@@ -150,7 +143,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       });
     } else {
       const filter = filterOrDocIds as (currentDoc: T) => boolean;
-      docsToUpdate = this.getDocs().filter(filter);
+      docsToUpdate = this.allDocs.filter(filter);
       docsToUpdate.forEach(mutator);
     }
     return docsToUpdate;

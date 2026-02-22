@@ -34,7 +34,7 @@ export default class ExerciseCalibrationMapServiceMock {
 
   addDefaultCalibrations(): WorkoutExerciseCalibration[] {
     const calibrations: WorkoutExerciseCalibration[] = [];
-    const exercises = exerciseMapService.getDocs();
+    const exercises = exerciseMapService.allDocs;
 
     const findExercise = (name: MockDefaultExercise) =>
       exercises.find((exercise) => exercise.exerciseName === (name as string));
