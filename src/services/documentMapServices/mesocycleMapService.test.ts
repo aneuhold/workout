@@ -256,5 +256,49 @@ describe('Unit Tests', () => {
 
       expect(queryApiSpy).toHaveBeenCalledOnce();
     });
+
+    it('should handle partially-complete microcycle by setting completedDate and pruning sessionOrder', () => {
+      const baseData = MockData.setupBaseData();
+      const sessionsPerMicrocycle = 5;
+      // 8 completed = microcycle 1 fully complete (5) + microcycle 2 partially complete (3/5)
+      const completedSessionCount = sessionsPerMicrocycle + 3;
+      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        completedSessionCount,
+        sessionsPerMicrocycle,
+        microcycleCount: 4
+      });
+
+      // Verify precondition: microcycle 2 has a mix of complete and incomplete sessions
+      const mc2Sessions = data.sessions.filter(
+        (s) => s.workoutMicrocycleId === data.microcycles[1]._id
+      );
+      const mc2Complete = mc2Sessions.filter((s) => s.complete);
+      const mc2Incomplete = mc2Sessions.filter((s) => !s.complete);
+      expect(mc2Complete.length).toBe(3);
+      expect(mc2Incomplete.length).toBe(2);
+
+      const deloadStartDate = new Date(data.microcycles[2].startDate);
+
+      // Should not throw — previously this would crash with
+      // "Microcycle has started but is not complete"
+      expect(() => {
+        mesocycleMapService.initiateEarlyDeload(data.mesocycle._id, deloadStartDate);
+      }).not.toThrow();
+
+      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+
+      // Microcycle 2 should still exist with completedDate set
+      const updatedMc2 = updatedDocs.microcycles.find((mc) => mc._id === data.microcycles[1]._id);
+      expect(updatedMc2).toBeDefined();
+      expect(updatedMc2?.completedDate).toBeDefined();
+
+      // Its sessionOrder should only contain the 3 completed session IDs
+      const completedMc2SessionIds = mc2Complete.map((s) => s._id);
+      expect(updatedMc2?.sessionOrder).toHaveLength(3);
+      for (const id of updatedMc2?.sessionOrder ?? []) {
+        expect(completedMc2SessionIds).toContain(id);
+      }
+    });
   });
 });

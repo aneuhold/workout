@@ -145,44 +145,53 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   }
 
   /**
-   * Batches child document saves (insert and/or delete) for microcycles,
+   * Batches child document saves (insert, update, and/or delete) for microcycles,
    * sessions, sessionExercises, and sets into the given API options.
    * Skips exercises as they are reference data, not children.
    *
    * @param apiOptions The API options object to accumulate operations into
-   * @param options Child documents to insert and/or delete
+   * @param options Child documents to insert, update, and/or delete
    * @param options.insert Child documents to insert into their respective stores
+   * @param options.update Child documents to update in their respective stores
    * @param options.delete Child documents whose IDs will be removed from their respective stores
    */
   batchChildDocSaves(
     apiOptions: ProjectWorkoutPrimaryEndpointOptions,
-    options: { insert?: MesocycleChildDocs; delete?: MesocycleChildDocs }
+    options: {
+      insert?: MesocycleChildDocs;
+      update?: Partial<MesocycleChildDocs>;
+      delete?: MesocycleChildDocs;
+    }
   ): void {
     microcycleMapService.prepareDocsForSave(
       {
         delete: options.delete?.microcycles.map((d) => d._id),
-        insert: options.insert?.microcycles
+        insert: options.insert?.microcycles,
+        update: options.update?.microcycles
       },
       apiOptions
     );
     sessionMapService.prepareDocsForSave(
       {
         delete: options.delete?.sessions.map((d) => d._id),
-        insert: options.insert?.sessions
+        insert: options.insert?.sessions,
+        update: options.update?.sessions
       },
       apiOptions
     );
     sessionExerciseMapService.prepareDocsForSave(
       {
         delete: options.delete?.sessionExercises.map((d) => d._id),
-        insert: options.insert?.sessionExercises
+        insert: options.insert?.sessionExercises,
+        update: options.update?.sessionExercises
       },
       apiOptions
     );
     setMapService.prepareDocsForSave(
       {
         delete: options.delete?.sets.map((d) => d._id),
-        insert: options.insert?.sets
+        insert: options.insert?.sets,
+        update: options.update?.sets
       },
       apiOptions
     );
@@ -261,11 +270,13 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     // Partition sessions in a single pass, building lookup structures inline
     const incompleteSessions: WorkoutSession[] = [];
     const remainingSessions: WorkoutSession[] = [];
+    const remainingSessionIds = new SvelteSet<UUID>();
     const incompleteSessionIds = new SvelteSet<UUID>();
     const sessionsByMicrocycle = new SvelteMap<UUID, WorkoutSession[]>();
     for (const session of docs.sessions) {
       if (session.complete) {
         remainingSessions.push(session);
+        remainingSessionIds.add(session._id);
       } else {
         incompleteSessions.push(session);
         incompleteSessionIds.add(session._id);
@@ -301,14 +312,27 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       ).push(s);
     }
 
-    // A microcycle is deleted only if ALL its sessions are incomplete
+    // A microcycle is deleted only if ALL its sessions are incomplete.
+    // Remaining microcycles that had incomplete sessions removed get their
+    // sessionOrder pruned and completedDate set.
     const microcyclesToDelete: WorkoutMicrocycle[] = [];
     const remainingMicrocycles: WorkoutMicrocycle[] = [];
     for (const mc of docs.microcycles) {
       const mcSessions = sessionsByMicrocycle.get(mc._id) ?? [];
       const allIncomplete =
         mcSessions.length > 0 && mcSessions.every((s) => incompleteSessionIds.has(s._id));
-      (allIncomplete ? microcyclesToDelete : remainingMicrocycles).push(mc);
+      if (allIncomplete) {
+        microcyclesToDelete.push(mc);
+        continue;
+      }
+      const updatedOrder = mc.sessionOrder.filter((id) => remainingSessionIds.has(id));
+      if (updatedOrder.length < mc.sessionOrder.length) {
+        mc.sessionOrder = updatedOrder;
+        if (!mc.completedDate) {
+          mc.completedDate = new Date();
+        }
+      }
+      remainingMicrocycles.push(mc);
     }
 
     // Generate deload with plannedMicrocycleCount = remaining + 1
@@ -329,7 +353,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       deloadStartDate
     );
 
-    // Batch delete (incomplete) + create (deload)
+    // Batch delete (incomplete) + create (deload) + update modified microcycles
     const apiOptions = this.prepareDocsForSave({});
     this.batchChildDocSaves(apiOptions, {
       delete: {
@@ -345,7 +369,8 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
         sessionExercises: generateResult.sessionExercises?.create ?? [],
         sets: generateResult.sets?.create ?? [],
         exercises: []
-      }
+      },
+      update: { microcycles: remainingMicrocycles }
     });
 
     WorkoutAPIService.queryApi(apiOptions);
