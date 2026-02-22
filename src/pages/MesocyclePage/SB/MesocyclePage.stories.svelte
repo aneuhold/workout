@@ -30,6 +30,6 @@
 
 <Story name="Edit (Not Started)" args={{ storyMode: 'edit' }} />
 
-<Story name="View (Started)" args={{ storyMode: 'static' }} />
+<Story name="View (Active)" args={{ storyMode: 'static' }} />
 
 <Story name="Not Found" args={{ storyMode: 'notFound' }} />

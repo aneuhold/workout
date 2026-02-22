@@ -14,7 +14,9 @@
     | 'inProgressReview'
     | 'microcycleComplete'
     | 'microcycleCompleteBlocked'
-    | 'mesocycleStart';
+    | 'mesocycleStart'
+    | 'lateSession'
+    | 'severelyLateSession';
 
   let { storyMode = 'default' }: { storyMode?: StoryMode } = $props();
 
@@ -122,6 +124,32 @@
           startDate: daysAgo(0),
           completedSessionCount: 0
         });
+        return;
+      }
+
+      if (mode === 'lateSession') {
+        // Next session is 1 day late
+        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(12),
+          completedSessionCount: 8
+        });
+        MesocycleMapServiceMock.fillLateFields(data);
+        return;
+      }
+
+      if (mode === 'severelyLateSession') {
+        // Next session is 4+ days late (started 25 days ago, 8 completed)
+        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(25),
+          completedSessionCount: 8
+        });
+        MesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 

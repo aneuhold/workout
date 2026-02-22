@@ -203,17 +203,13 @@ export function getDefaultNewMesocycleStartDate(
   existingMesocycles: WorkoutMesocycle[],
   getMicrocycles: (mesocycleId: UUID) => WorkoutMicrocycle[]
 ): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   const mesocycleToMicrocyclesMap = new Map<UUID, WorkoutMicrocycle[]>();
   for (const m of existingMesocycles) {
     mesocycleToMicrocyclesMap.set(m._id, getMicrocycles(m._id));
   }
   return WorkoutMesocycleService.getEarliestAllowedStartDate(
     existingMesocycles,
-    mesocycleToMicrocyclesMap,
-    today
+    mesocycleToMicrocyclesMap
   );
 }
 

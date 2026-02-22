@@ -12,7 +12,9 @@
     inProgressReview: 'inProgressReview',
     microcycleComplete: 'microcycleComplete',
     microcycleCompleteBlocked: 'microcycleCompleteBlocked',
-    mesocycleStart: 'mesocycleStart'
+    mesocycleStart: 'mesocycleStart',
+    lateSession: 'lateSession',
+    severelyLateSession: 'severelyLateSession'
   } as const;
 
   const { Story } = defineMeta({
@@ -47,3 +49,7 @@
 <Story name="Microcycle Complete (Blocked)" args={{ storyMode: 'microcycleCompleteBlocked' }} />
 
 <Story name="Mesocycle Start" args={{ storyMode: 'mesocycleStart' }} />
+
+<Story name="Late Session (1-2 Days)" args={{ storyMode: 'lateSession' }} />
+
+<Story name="Severely Late Session (3+ Days)" args={{ storyMode: 'severelyLateSession' }} />

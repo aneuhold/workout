@@ -6,6 +6,7 @@ import type {
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import { CycleType } from '@aneuhold/core-ts-db-lib';
+import { DateService } from '@aneuhold/core-ts-lib';
 import type { HomePageSessionBundle } from './homePageUtils';
 
 export enum HeroCardAction {
@@ -29,6 +30,8 @@ export type HeroCardState =
       session: WorkoutSession;
       sessionExercises: WorkoutSessionExercise[];
       sets: WorkoutSet[];
+      daysLate: number;
+      scheduledDate: Date | null;
     }
   | {
       action: HeroCardAction.CompleteMicrocycle;
@@ -91,7 +94,9 @@ export function getHeroCardState(
         action: HeroCardAction.StartSession,
         session: nextUpSession,
         sessionExercises: heroSessionExercises,
-        sets: heroSessionSets
+        sets: heroSessionSets,
+        daysLate: 0,
+        scheduledDate: null
       };
     }
     return null;
@@ -166,11 +171,19 @@ export function getHeroCardState(
 
   // 7. If nextUpSession exists → StartSession
   if (nextUpSession) {
+    const isPastSchedule = nextUpSession.startTime.getTime() < Date.now();
+    const daysLate = isPastSchedule
+      ? DateService.getCalendarDaysBetween(nextUpSession.startTime, new Date())
+      : 0;
+    const scheduledDate = daysLate > 0 ? nextUpSession.startTime : null;
+
     return {
       action: HeroCardAction.StartSession,
       session: nextUpSession,
       sessionExercises: heroSessionExercises,
-      sets: heroSessionSets
+      sets: heroSessionSets,
+      daysLate,
+      scheduledDate
     };
   }
 

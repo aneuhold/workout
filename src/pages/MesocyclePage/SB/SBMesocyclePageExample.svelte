@@ -1,5 +1,6 @@
 <script lang="ts">
   import { CycleType, DocumentService } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
   import MockData from '$testUtils/MockData';
@@ -8,7 +9,7 @@
   let { storyMode = 'new' }: { storyMode?: 'new' | 'edit' | 'static' | 'notFound' } = $props();
 
   function daysAgo(n: number): Date {
-    return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+    return DateService.addDays(new Date(), -n);
   }
 
   let mesocycleId = $state<string | null>(null);
@@ -45,7 +46,7 @@
         return;
       }
 
-      // static mode
+      // static mode — active mesocycle with dropdown showing Deload / End
       const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
