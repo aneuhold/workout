@@ -128,11 +128,9 @@ export default class MesocycleMapServiceMock {
     }
 
     // Populate actual data on sets belonging to completed sessions
-    const completedSessionIds = new Set(
-      sessions.filter((s) => s.complete).map((s) => s._id as string)
-    );
+    const completedSessionIds = new Set(sessions.filter((s) => s.complete).map((s) => s._id));
     for (const set of sets) {
-      if (completedSessionIds.has(set.workoutSessionId as string)) {
+      if (completedSessionIds.has(set.workoutSessionId)) {
         set.actualReps = (set.plannedReps ?? 8) + Math.floor(Math.random() * 3) - 1;
         set.actualWeight = set.plannedWeight ?? 135;
         if (set.plannedRir != null) {
@@ -141,12 +139,22 @@ export default class MesocycleMapServiceMock {
       }
     }
 
+    // Fill mid-session metrics for completed session exercises
+    const data: MockGeneratedMesocycleData = {
+      mesocycle: mesoDoc,
+      microcycles,
+      sessions,
+      sessionExercises,
+      sets
+    };
+    MesocycleMapServiceMock.fillMidSessionFields(data);
+
     // Mark mesocycle as completed if needed
     if (config.completedDate) {
       mesoDoc.completedDate = config.completedDate;
       mesocycleMapService.setMap({
         ...Object.fromEntries(mesocycleMapService.allDocs.map((d) => [d._id, d])),
-        [mesoDoc._id as string]: mesoDoc
+        [mesoDoc._id]: mesoDoc
       });
     }
 
@@ -155,12 +163,32 @@ export default class MesocycleMapServiceMock {
     MockData.sessionExerciseMapServiceMock.addManySessionExercises(sessionExercises);
     MockData.setMapServiceMock.addManySets(sets);
 
-    return { mesocycle: mesoDoc, microcycles, sessions, sessionExercises, sets };
+    return data;
   }
 
   /**
-   * Fills in RSM, fatigue, and sorenessScore on session exercises belonging
-   * to completed sessions so they show as fully "Completed" rather than "Review".
+   * Fills in mid-session metrics on session exercises belonging to completed
+   * sessions. Mid-session metrics are filled during the workout:
+   * mindMuscleConnection, pump, perceivedEffort, unusedMusclePerformance,
+   * and performanceScore.
+   *
+   * @param data The mock mesocycle data to modify in-place
+   */
+  static fillMidSessionFields(data: MockGeneratedMesocycleData): void {
+    const completedSessionIds = new Set(data.sessions.filter((s) => s.complete).map((s) => s._id));
+    for (const se of data.sessionExercises) {
+      if (completedSessionIds.has(se.workoutSessionId)) {
+        se.rsm = { ...se.rsm, mindMuscleConnection: 2, pump: 2 };
+        se.fatigue = { ...se.fatigue, perceivedEffort: 2, unusedMusclePerformance: 1 };
+        se.performanceScore = 1;
+      }
+    }
+  }
+
+  /**
+   * Fills in post-session (late) metrics on session exercises belonging to
+   * completed sessions so they show as fully "Completed" rather than "Review".
+   * Late metrics are: disruption, jointAndTissueDisruption, and sorenessScore.
    *
    * @param data The mock mesocycle data to modify in-place
    */
@@ -168,12 +196,8 @@ export default class MesocycleMapServiceMock {
     const completedSessionIds = new Set(data.sessions.filter((s) => s.complete).map((s) => s._id));
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
-        se.rsm = { mindMuscleConnection: 2, pump: 2, disruption: 1 };
-        se.fatigue = {
-          jointAndTissueDisruption: 1,
-          perceivedEffort: 2,
-          unusedMusclePerformance: 1
-        };
+        se.rsm = { ...se.rsm, disruption: 1 };
+        se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1 };
         se.sorenessScore = 1;
       }
     }

@@ -45,7 +45,8 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          // Line up so that a review is needed, but it isn't late
+          startDate: daysAgo(11),
           completedSessionCount: 8
         });
         return;
@@ -77,12 +78,8 @@
         const filledIds = new Set(completedSessions.slice(0, 5).map((s) => s._id));
         for (const se of data.sessionExercises) {
           if (filledIds.has(se.workoutSessionId)) {
-            se.rsm = { mindMuscleConnection: 2, pump: 2, disruption: 1 };
-            se.fatigue = {
-              jointAndTissueDisruption: 1,
-              perceivedEffort: 2,
-              unusedMusclePerformance: 1
-            };
+            se.rsm = { ...se.rsm, disruption: 1 };
+            se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1 };
             se.sorenessScore = 1;
           }
         }

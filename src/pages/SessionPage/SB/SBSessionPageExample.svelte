@@ -131,51 +131,38 @@
       // Update session exercise order
       session.sessionExerciseOrder = [benchSE._id, pullupSE._id, squatSE._id];
 
-      // Add RSM/fatigue metrics for completed exercises in review/view modes
+      // Add mid-session metrics for completed exercises in review/view modes
       if (currentMode === 'review' || currentMode === 'viewOnly') {
-        const immediateRsm = { mindMuscleConnection: 2, pump: 2, disruption: null };
-        const immediateFatigue = {
-          jointAndTissueDisruption: 1,
+        const midSessionRsm = { mindMuscleConnection: 2, pump: 2 };
+        const midSessionFatigue = {
           perceivedEffort: 2,
-          unusedMusclePerformance: null
+          unusedMusclePerformance: 1
         };
 
-        benchSE.rsm = immediateRsm;
-        benchSE.fatigue = immediateFatigue;
+        benchSE.rsm = midSessionRsm;
+        benchSE.fatigue = midSessionFatigue;
         benchSE.performanceScore = 2;
 
-        pullupSE.rsm = immediateRsm;
-        pullupSE.fatigue = immediateFatigue;
+        pullupSE.rsm = midSessionRsm;
+        pullupSE.fatigue = midSessionFatigue;
         pullupSE.performanceScore = 1;
 
-        squatSE.rsm = immediateRsm;
-        squatSE.fatigue = immediateFatigue;
+        squatSE.rsm = midSessionRsm;
+        squatSE.fatigue = midSessionFatigue;
         squatSE.performanceScore = 2;
 
         if (currentMode === 'viewOnly') {
-          // Fill in late fields
-          benchSE.rsm = { mindMuscleConnection: 2, pump: 2, disruption: 1 };
-          benchSE.fatigue = {
-            jointAndTissueDisruption: 1,
-            perceivedEffort: 2,
-            unusedMusclePerformance: 1
-          };
+          // Fill in late (post-session) fields
+          benchSE.rsm = { ...benchSE.rsm, disruption: 1 };
+          benchSE.fatigue = { ...benchSE.fatigue, jointAndTissueDisruption: 1 };
           benchSE.sorenessScore = 1;
 
-          pullupSE.rsm = { mindMuscleConnection: 2, pump: 2, disruption: 0 };
-          pullupSE.fatigue = {
-            jointAndTissueDisruption: 0,
-            perceivedEffort: 1,
-            unusedMusclePerformance: 1
-          };
+          pullupSE.rsm = { ...pullupSE.rsm, disruption: 0 };
+          pullupSE.fatigue = { ...pullupSE.fatigue, jointAndTissueDisruption: 0 };
           pullupSE.sorenessScore = 0;
 
-          squatSE.rsm = { mindMuscleConnection: 2, pump: 2, disruption: 2 };
-          squatSE.fatigue = {
-            jointAndTissueDisruption: 2,
-            perceivedEffort: 3,
-            unusedMusclePerformance: 2
-          };
+          squatSE.rsm = { ...squatSE.rsm, disruption: 2 };
+          squatSE.fatigue = { ...squatSE.fatigue, jointAndTissueDisruption: 2 };
           squatSE.sorenessScore = 2;
         }
       }
