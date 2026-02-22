@@ -30,6 +30,10 @@ export type MockGenerateFullMesocycleConfig = {
   microcycleLengthInDays?: number;
   restDays?: number[];
   sessionsPerMicrocycle?: number;
+  /**
+   * Determines what the first microcycle will start at. Does not actually set the real startDate
+   * on the Mesocycle, because that indicates the user has started the cycle.
+   */
   startDate: Date;
   completedSessionCount?: number;
   completedDate?: Date | null;

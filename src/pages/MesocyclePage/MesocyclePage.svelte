@@ -5,6 +5,9 @@
   - "new": Full form for creating a new mesocycle
   - "edit": Full form initialized from existing mesocycle (before it's started)
   - "static": Read-only view of a started mesocycle (only title is editable)
+
+  In static mode, management actions (deload, end, delete) are handled by
+  MesocyclePageActions.
 -->
 <script lang="ts">
   import { CycleType, WorkoutMesocycleSchema } from '@aneuhold/core-ts-db-lib';
@@ -12,6 +15,7 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
+  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
@@ -19,13 +23,16 @@
   import mesocycleMapService, {
     type MesocycleChildDocs
   } from '$services/documentMapServices/mesocycleMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
+  import MesocyclePageActions from './MesocyclePageActions.svelte';
   import {
     buildCalibratedExercisePairs,
     generateMesocycleChildren,
+    getDefaultNewMesocycleStartDate,
     getEarliestStartDate,
     MesocyclePageMode,
     persistMesocycleEdits,
@@ -61,52 +68,36 @@
   });
   const isFormMode = $derived(mode === MesocyclePageMode.New || mode === MesocyclePageMode.Edit);
 
-  // --- Form state ---
+  // --- Form state (derived from mesocycle, locally writable by form inputs) ---
 
-  let formTitle = $state('');
-  let formStartDate = $state(new Date());
-  let formCycleType = $state<CycleType>(CycleType.MuscleGain);
-  let formWeeks = $state(6);
-  let formSessionsPerWeek = $state(5);
-  let formDaysPerCycle = $state(7);
-  let formRestDays = $state<number[]>([0, 6]);
-  let formSelectedCalibrationIds = $state<UUID[]>([]);
+  let formTitle = $derived(mesocycle?.title ?? '');
 
-  // Initialize form from existing mesocycle (edit and static modes)
-  let formInitialized = $state(false);
-
-  $effect(() => {
-    const currentMode = mode;
-    const currentMesocycle = mesocycle;
-    const currentDocs = associatedDocs;
-
-    untrack(() => {
-      if (formInitialized || !currentMesocycle) return;
-      formTitle = currentMesocycle.title ?? '';
-      if (currentMode === MesocyclePageMode.Edit) {
-        formCycleType = currentMesocycle.cycleType;
-        formWeeks = currentMesocycle.plannedMicrocycleCount ?? 6;
-        formSessionsPerWeek = currentMesocycle.plannedSessionCountPerMicrocycle;
-        formDaysPerCycle = currentMesocycle.plannedMicrocycleLengthInDays;
-        formRestDays = [...currentMesocycle.plannedMicrocycleRestDays];
-        formSelectedCalibrationIds = [...currentMesocycle.calibratedExercises];
-        const mcs = currentDocs?.microcycles ?? [];
-        if (mcs.length > 0) {
-          formStartDate = getEarliestStartDate(mcs);
-        }
-        formInitialized = true;
-      } else if (currentMode === MesocyclePageMode.Static) {
-        formInitialized = true;
-      }
-    });
+  let formStartDate = $derived.by(() => {
+    if (mode === MesocyclePageMode.New) {
+      return getDefaultNewMesocycleStartDate(mesocycleMapService.allDocs, (mId) =>
+        microcycleMapService.getOrderedMicrocyclesForMesocycle(mId)
+      );
+    }
+    if (mode === MesocyclePageMode.Edit) {
+      const mcs = associatedDocs?.microcycles ?? [];
+      return mcs.length > 0 ? getEarliestStartDate(mcs) : new Date();
+    }
+    return new Date();
   });
+
+  let formCycleType = $derived<CycleType>(mesocycle?.cycleType ?? CycleType.MuscleGain);
+  let formWeeks = $derived(mesocycle?.plannedMicrocycleCount ?? 6);
+  let formSessionsPerWeek = $derived(mesocycle?.plannedSessionCountPerMicrocycle ?? 5);
+  let formDaysPerCycle = $derived(mesocycle?.plannedMicrocycleLengthInDays ?? 7);
+  let formRestDays = $derived<number[]>([...(mesocycle?.plannedMicrocycleRestDays ?? [0, 6])]);
+  let formSelectedCalibrationIds = $derived<UUID[]>([...(mesocycle?.calibratedExercises ?? [])]);
 
   // --- Data sources (for form mode) ---
 
   const dataSources = $derived({
-    calibrations: exerciseCalibrationMapService.getDocs(),
-    exercises: exerciseMapService.getDocs(),
-    equipmentTypes: equipmentTypeMapService.getDocs()
+    calibrations: exerciseCalibrationMapService.allDocs,
+    exercises: exerciseMapService.allDocs,
+    equipmentTypes: equipmentTypeMapService.allDocs
   });
 
   // --- Calibration-exercise pairs ---
@@ -147,7 +138,7 @@
     };
   }
 
-  const generationMesocycle = $derived.by(() => {
+  const generatedMesocycle = $derived.by(() => {
     if (!isFormMode || formSelectedCalibrationIds.length === 0) return null;
     try {
       return WorkoutMesocycleSchema.parse(buildMesocycleInput());
@@ -157,9 +148,9 @@
   });
 
   const previewResult = $derived.by(() => {
-    if (!generationMesocycle) return null;
+    if (!generatedMesocycle) return null;
     return generateMesocycleChildren(
-      generationMesocycle,
+      generatedMesocycle,
       formSelectedCalibrationIds,
       dataSources,
       formStartDate
@@ -196,12 +187,16 @@
         : ''
   );
 
+  // Overlap warning is computed by MesocycleConfigCard and synced back via bind
+  let overlapWarning = $state<string | null>(null);
+
   // --- Validation (form mode) ---
 
   const isValid = $derived(
     formTitle.trim() !== '' &&
-      generationMesocycle !== null &&
-      (previewResult?.microcycles ?? []).length > 0
+      generatedMesocycle !== null &&
+      (previewResult?.microcycles ?? []).length > 0 &&
+      overlapWarning == null
   );
 
   // --- Title editing (static mode) ---
@@ -250,6 +245,11 @@
         <IconArrowLeft size={16} />
       </Button>
       <h1 class="text-xl font-semibold">Mesocycle</h1>
+      {#if mesocycle}
+        <div class="ml-auto">
+          <MesocyclePageActions {mesocycle} microcycles={associatedDocs?.microcycles ?? []} />
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -264,6 +264,8 @@
       bind:sessionsPerWeek={formSessionsPerWeek}
       bind:daysPerCycle={formDaysPerCycle}
       bind:restDays={formRestDays}
+      bind:overlapWarning
+      editingMesocycleId={mesocycle ? mesocycle._id : undefined}
     />
 
     <MesocycleExercisesCard
@@ -278,9 +280,9 @@
       exercises={displayDocs.exercises}
     />
 
-    {#if generationMesocycle && displayDocs.microcycles.length > 0}
+    {#if generatedMesocycle && displayDocs.microcycles.length > 0}
       <MesocycleScheduleCard
-        mesocycle={generationMesocycle}
+        mesocycle={generatedMesocycle}
         microcycles={displayDocs.microcycles}
         sessions={displayDocs.sessions}
         sessionExercises={displayDocs.sessionExercises}
@@ -360,3 +362,5 @@
     {/if}
   {/if}
 </div>
+
+<SingletonDeloadDialog />

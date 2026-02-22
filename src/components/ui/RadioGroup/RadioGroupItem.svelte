@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CircleIcon from '@lucide/svelte/icons/circle';
+  import { IconCircleFilled } from '@tabler/icons-svelte';
   import { RadioGroup as RadioGroupPrimitive } from 'bits-ui';
   import { cn, type WithoutChildrenOrChild } from '$util/svelte-shadcn-util.js';
 
@@ -22,7 +22,7 @@
   {#snippet children({ checked })}
     <div data-slot="radio-group-indicator" class="relative flex items-center justify-center">
       {#if checked}
-        <CircleIcon
+        <IconCircleFilled
           class="fill-primary absolute start-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
         />
       {/if}

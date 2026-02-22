@@ -9,11 +9,22 @@
   let {
     storyMode = 'new'
   }: {
-    storyMode?: 'new' | 'newWithExisting' | 'edit' | 'static' | 'completed' | 'notFound';
+    storyMode?:
+      | 'new'
+      | 'newWithExisting'
+      | 'newOverlapping'
+      | 'edit'
+      | 'static'
+      | 'completed'
+      | 'notFound';
   } = $props();
 
   function daysAgo(n: number): Date {
     return DateService.addDays(new Date(), -n);
+  }
+
+  function daysFromNow(n: number): Date {
+    return DateService.addDays(new Date(), n);
   }
 
   let mesocycleId = $state<string | null>(null);
@@ -39,6 +50,32 @@
           startDate: daysAgo(14),
           completedSessionCount: 6
         });
+        mesocycleId = null;
+        return;
+      }
+
+      if (mode === 'newOverlapping') {
+        const baseData = MockData.setupBaseData();
+
+        // Active mesocycle ending in ~7 days
+        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Current Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 2,
+          startDate: daysAgo(7),
+          completedSessionCount: 4
+        });
+
+        // Future mesocycle starting 14 days from now (not yet started, 2 microcycles
+        // so its end date stays close to the gap for calendar visibility)
+        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Upcoming Strength Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 2,
+          startDate: daysFromNow(14),
+          completedSessionCount: 0
+        });
+
         mesocycleId = null;
         return;
       }

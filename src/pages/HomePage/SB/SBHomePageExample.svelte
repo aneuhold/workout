@@ -155,7 +155,7 @@
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(21),
+        startDate: daysAgo(11),
         completedSessionCount: 8
       });
       MesocycleMapServiceMock.fillLateFields(data);

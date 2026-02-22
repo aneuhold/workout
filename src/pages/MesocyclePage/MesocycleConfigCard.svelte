@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
   import { CycleType, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { type DateValue, fromDate, getLocalTimeZone } from '@internationalized/date';
   import { IconAlertTriangle } from '@tabler/icons-svelte';
   import { IconCalendar } from '@tabler/icons-svelte';
@@ -42,9 +43,9 @@
     sessionsPerWeek = $bindable(5),
     daysPerCycle = $bindable(7),
     restDays = $bindable<number[]>([0, 6]),
+    overlapWarning = $bindable<string | null>(null),
     disabled = false,
     editingMesocycleId,
-    overlapWarning,
     onTitleBlur
   }: {
     title: string;
@@ -54,9 +55,9 @@
     sessionsPerWeek: number;
     daysPerCycle: number;
     restDays: number[];
+    overlapWarning?: string | null;
     disabled?: boolean;
     editingMesocycleId?: UUID;
-    overlapWarning?: string | null;
     onTitleBlur?: () => void;
   } = $props();
 
@@ -113,8 +114,9 @@
       if (m.completedDate != null) continue;
       const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
       const endDate = WorkoutMesocycleService.calculateProjectedEndDate(m, mesoMicrocycles);
-      if (m.startDate == null || endDate == null) continue;
-      if (date.getTime() >= m.startDate.getTime() && date.getTime() < endDate.getTime()) {
+      const mesoStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
+      if (mesoStart == null || endDate == null) continue;
+      if (date.getTime() >= mesoStart.getTime() && date.getTime() < endDate.getTime()) {
         return true;
       }
     }
@@ -165,6 +167,39 @@
           return disabledDateMatcher(jsDate);
         }
   );
+
+  const computedOverlapWarning = $derived.by<string | null>(() => {
+    if (disabled) return null;
+
+    const candidates = allMesocycles.filter(
+      (m) => m._id !== editingMesocycleId && m.completedDate == null
+    );
+    if (candidates.length === 0) return null;
+
+    const previewEnd = DateService.addDays(startDate, weeks * daysPerCycle);
+
+    for (const m of candidates) {
+      const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
+      const mStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
+      const mEnd = WorkoutMesocycleService.calculateProjectedEndDate(m, mesoMicrocycles);
+      if (!mStart || !mEnd) continue;
+
+      // Two date ranges overlap when each starts before the other ends
+      if (startDate.getTime() < mEnd.getTime() && previewEnd.getTime() > mStart.getTime()) {
+        const startStr = mStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const endStr = mEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${startStr} \u2013 ${endStr})`;
+      }
+    }
+    return null;
+  });
+
+  $effect(() => {
+    // So that we can tell the parent form about overlaps without needing to house the logic there.
+    // This is probably a code-smell though, and should be refactored so there is a unified service
+    // somewhere that houses the overlap state.
+    overlapWarning = computedOverlapWarning;
+  });
 </script>
 
 <Card>
@@ -186,7 +221,7 @@
       <Label>Start Date</Label>
       <Popover bind:open={popoverOpen}>
         <PopoverTrigger>
-          <Button variant="outline" {disabled}>
+          <Button variant="outline" {disabled} data-testid="start-date-trigger">
             <IconCalendar size={16} />
             {formattedDate}
           </Button>

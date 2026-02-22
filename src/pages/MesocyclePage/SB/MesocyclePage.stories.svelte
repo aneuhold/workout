@@ -6,6 +6,7 @@
   const storyModeEnum = {
     new: 'new',
     newWithExisting: 'newWithExisting',
+    newOverlapping: 'newOverlapping',
     edit: 'edit',
     static: 'static',
     completed: 'completed',
@@ -31,6 +32,8 @@
 <Story name="New" />
 
 <Story name="New (After Existing Mesocycle)" args={{ storyMode: 'newWithExisting' }} />
+
+<Story name="New (Overlapping with Future Mesocycle)" args={{ storyMode: 'newOverlapping' }} />
 
 <Story name="Edit (Not Started)" args={{ storyMode: 'edit' }} />
 
