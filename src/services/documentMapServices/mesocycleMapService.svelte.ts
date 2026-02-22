@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
   WorkoutEquipmentType,
   WorkoutExercise,
@@ -144,6 +145,50 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   }
 
   /**
+   * Batches child document saves (insert and/or delete) for microcycles,
+   * sessions, sessionExercises, and sets into the given API options.
+   * Skips exercises as they are reference data, not children.
+   *
+   * @param apiOptions The API options object to accumulate operations into
+   * @param options Child documents to insert and/or delete
+   * @param options.insert Child documents to insert into their respective stores
+   * @param options.delete Child documents whose IDs will be removed from their respective stores
+   */
+  batchChildDocSaves(
+    apiOptions: ProjectWorkoutPrimaryEndpointOptions,
+    options: { insert?: MesocycleChildDocs; delete?: MesocycleChildDocs }
+  ): void {
+    microcycleMapService.prepareDocsForSave(
+      {
+        delete: options.delete?.microcycles.map((d) => d._id),
+        insert: options.insert?.microcycles
+      },
+      apiOptions
+    );
+    sessionMapService.prepareDocsForSave(
+      {
+        delete: options.delete?.sessions.map((d) => d._id),
+        insert: options.insert?.sessions
+      },
+      apiOptions
+    );
+    sessionExerciseMapService.prepareDocsForSave(
+      {
+        delete: options.delete?.sessionExercises.map((d) => d._id),
+        insert: options.insert?.sessionExercises
+      },
+      apiOptions
+    );
+    setMapService.prepareDocsForSave(
+      {
+        delete: options.delete?.sets.map((d) => d._id),
+        insert: options.insert?.sets
+      },
+      apiOptions
+    );
+  }
+
+  /**
    * Ends a mesocycle immediately, removing all incomplete sessions and their
    * children. Sets the mesocycle's completedDate to the current date.
    *
@@ -187,19 +232,15 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     // Mutate the mesocycle in the store directly, then send the full doc as an update
     mesocycle.completedDate = new Date();
     const apiOptions = this.prepareDocsForSave({ update: [mesocycle] });
-    microcycleMapService.prepareDocsForSave(
-      { delete: microcyclesToDelete.map((mc) => mc._id) },
-      apiOptions
-    );
-    sessionMapService.prepareDocsForSave(
-      { delete: incompleteSessions.map((s) => s._id) },
-      apiOptions
-    );
-    sessionExerciseMapService.prepareDocsForSave(
-      { delete: incompleteSessionExercises.map((se) => se._id) },
-      apiOptions
-    );
-    setMapService.prepareDocsForSave({ delete: incompleteSets.map((s) => s._id) }, apiOptions);
+    this.batchChildDocSaves(apiOptions, {
+      delete: {
+        microcycles: microcyclesToDelete,
+        sessions: incompleteSessions,
+        sessionExercises: incompleteSessionExercises,
+        sets: incompleteSets,
+        exercises: []
+      }
+    });
 
     WorkoutAPIService.queryApi(apiOptions);
   }
@@ -290,34 +331,22 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
 
     // Batch delete (incomplete) + create (deload)
     const apiOptions = this.prepareDocsForSave({});
-    microcycleMapService.prepareDocsForSave(
-      {
-        delete: microcyclesToDelete.map((mc) => mc._id),
-        insert: generateResult.microcycles?.create
+    this.batchChildDocSaves(apiOptions, {
+      delete: {
+        microcycles: microcyclesToDelete,
+        sessions: incompleteSessions,
+        sessionExercises: incompleteSessionExercises,
+        sets: incompleteSets,
+        exercises: []
       },
-      apiOptions
-    );
-    sessionMapService.prepareDocsForSave(
-      {
-        delete: incompleteSessions.map((s) => s._id),
-        insert: generateResult.sessions?.create
-      },
-      apiOptions
-    );
-    sessionExerciseMapService.prepareDocsForSave(
-      {
-        delete: incompleteSessionExercises.map((se) => se._id),
-        insert: generateResult.sessionExercises?.create
-      },
-      apiOptions
-    );
-    setMapService.prepareDocsForSave(
-      {
-        delete: incompleteSets.map((s) => s._id),
-        insert: generateResult.sets?.create
-      },
-      apiOptions
-    );
+      insert: {
+        microcycles: generateResult.microcycles?.create ?? [],
+        sessions: generateResult.sessions?.create ?? [],
+        sessionExercises: generateResult.sessionExercises?.create ?? [],
+        sets: generateResult.sets?.create ?? [],
+        exercises: []
+      }
+    });
 
     WorkoutAPIService.queryApi(apiOptions);
   }
@@ -388,16 +417,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const docs = this.getAssociatedDocsForMesocycle(mesocycleId);
 
     const apiOptions = this.prepareDocsForSave({ delete: [mesocycleId] });
-    microcycleMapService.prepareDocsForSave(
-      { delete: docs.microcycles.map((d) => d._id) },
-      apiOptions
-    );
-    sessionMapService.prepareDocsForSave({ delete: docs.sessions.map((d) => d._id) }, apiOptions);
-    sessionExerciseMapService.prepareDocsForSave(
-      { delete: docs.sessionExercises.map((d) => d._id) },
-      apiOptions
-    );
-    setMapService.prepareDocsForSave({ delete: docs.sets.map((d) => d._id) }, apiOptions);
+    this.batchChildDocSaves(apiOptions, { delete: docs });
 
     WorkoutAPIService.queryApi(apiOptions);
   }

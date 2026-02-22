@@ -5,8 +5,10 @@
 
   const storyModeEnum = {
     new: 'new',
+    newWithExisting: 'newWithExisting',
     edit: 'edit',
     static: 'static',
+    completed: 'completed',
     notFound: 'notFound'
   } as const;
 
@@ -28,8 +30,12 @@
 
 <Story name="New" />
 
+<Story name="New (After Existing Mesocycle)" args={{ storyMode: 'newWithExisting' }} />
+
 <Story name="Edit (Not Started)" args={{ storyMode: 'edit' }} />
 
 <Story name="View (Active)" args={{ storyMode: 'static' }} />
+
+<Story name="View (Completed)" args={{ storyMode: 'completed' }} />
 
 <Story name="Not Found" args={{ storyMode: 'notFound' }} />

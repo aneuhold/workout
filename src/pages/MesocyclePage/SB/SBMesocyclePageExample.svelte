@@ -6,7 +6,11 @@
   import MockData from '$testUtils/MockData';
   import MesocyclePage from '../MesocyclePage.svelte';
 
-  let { storyMode = 'new' }: { storyMode?: 'new' | 'edit' | 'static' | 'notFound' } = $props();
+  let {
+    storyMode = 'new'
+  }: {
+    storyMode?: 'new' | 'newWithExisting' | 'edit' | 'static' | 'completed' | 'notFound';
+  } = $props();
 
   function daysAgo(n: number): Date {
     return DateService.addDays(new Date(), -n);
@@ -26,6 +30,19 @@
         return;
       }
 
+      if (mode === 'newWithExisting') {
+        const baseData = MockData.setupBaseData();
+        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Current Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(14),
+          completedSessionCount: 6
+        });
+        mesocycleId = null;
+        return;
+      }
+
       if (mode === 'notFound') {
         mesocycleId = DocumentService.generateID();
         return;
@@ -40,6 +57,20 @@
           microcycleCount: 4,
           startDate: new Date(),
           completedSessionCount: 0
+        });
+
+        mesocycleId = mesocycle._id;
+        return;
+      }
+
+      if (mode === 'completed') {
+        const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Completed Strength Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(35),
+          completedSessionCount: 20,
+          completedDate: daysAgo(7)
         });
 
         mesocycleId = mesocycle._id;
