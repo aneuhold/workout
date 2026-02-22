@@ -8,7 +8,7 @@
     component: SBRadioGroupExample,
     argTypes: {
       ...createInvisibleArgTypes('ref'),
-      ...createBoolArgTypes('disabled'),
+      ...createBoolArgTypes('disabled', 'complex'),
       orientation: {
         control: { type: 'select' },
         options: ['vertical', 'horizontal']
@@ -21,7 +21,8 @@
     args: {
       value: 'option-1',
       disabled: false,
-      orientation: 'vertical'
+      orientation: 'vertical',
+      complex: false
     }
   });
 </script>
@@ -40,3 +41,9 @@
 
 <!-- Disabled with Selection -->
 <Story name="Disabled with Selection" args={{ disabled: true, value: 'option-2' }} />
+
+<!-- Complex Content -->
+<Story name="Complex Content" args={{ complex: true }} />
+
+<!-- Complex Content Horizontal -->
+<Story name="Complex Content Horizontal" args={{ complex: true, orientation: 'horizontal' }} />
