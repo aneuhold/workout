@@ -193,6 +193,31 @@ export function persistMesocycleEdits(
 }
 
 /**
+ * Calculates the default start date for a new mesocycle. Returns the later
+ * of the projected end date of the last non-completed mesocycle and today.
+ *
+ * @param existingMesocycles All existing mesocycles
+ * @param getMicrocycles Function that returns ordered microcycles for a mesocycle ID
+ */
+export function getDefaultNewMesocycleStartDate(
+  existingMesocycles: WorkoutMesocycle[],
+  getMicrocycles: (mesocycleId: UUID) => WorkoutMicrocycle[]
+): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const mesocycleToMicrocyclesMap = new Map<UUID, WorkoutMicrocycle[]>();
+  for (const m of existingMesocycles) {
+    mesocycleToMicrocyclesMap.set(m._id, getMicrocycles(m._id));
+  }
+  return WorkoutMesocycleService.getEarliestAllowedStartDate(
+    existingMesocycles,
+    mesocycleToMicrocyclesMap,
+    today
+  );
+}
+
+/**
  * Batches child document insert (and optionally delete) operations into
  * the given API options object, updating local state in the process.
  *
