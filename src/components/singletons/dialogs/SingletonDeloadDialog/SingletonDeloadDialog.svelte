@@ -37,10 +37,10 @@
 </script>
 
 <script lang="ts">
+  import AlertDialogAction from '$components/ui/AlertDialog/AlertDialogAction.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
-  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
   import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
   import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
@@ -71,7 +71,8 @@
     try {
       await params.onConfirm(selected);
       dialogOpen = false;
-    } catch {
+    } catch (error) {
+      console.error('Deload confirmation failed:', error);
       errorMessage = 'Something went wrong. Please try again.';
       confirming = false;
     }

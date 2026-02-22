@@ -151,7 +151,7 @@
 
     const { daysLate: late, scheduledDate: scheduled, session } = state;
 
-    const currentEndDate = WorkoutMesocycleService.calculateProjectedEndDate(
+    const currentEndDate = WorkoutMesocycleService.getProjectedEndDate(
       activeMesocycle,
       microcycles
     );

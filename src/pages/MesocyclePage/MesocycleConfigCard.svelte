@@ -113,7 +113,7 @@
       if (m._id === editingMesocycleId) continue;
       if (m.completedDate != null) continue;
       const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
-      const endDate = WorkoutMesocycleService.calculateProjectedEndDate(m, mesoMicrocycles);
+      const endDate = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
       const mesoStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
       if (mesoStart == null || endDate == null) continue;
       if (date.getTime() >= mesoStart.getTime() && date.getTime() < endDate.getTime()) {
@@ -133,14 +133,14 @@
     if (otherMesocycles.length === 0) return null;
 
     let latestMesocycle = otherMesocycles[0];
-    let latestEnd = WorkoutMesocycleService.calculateProjectedEndDate(
+    let latestEnd = WorkoutMesocycleService.getProjectedEndDate(
       latestMesocycle,
       microcycleMapService.getOrderedMicrocyclesForMesocycle(latestMesocycle._id)
     );
 
     for (const m of otherMesocycles) {
       const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
-      const end = WorkoutMesocycleService.calculateProjectedEndDate(m, mesoMicrocycles);
+      const end = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
       if (end != null && (latestEnd == null || end.getTime() > latestEnd.getTime())) {
         latestEnd = end;
         latestMesocycle = m;
@@ -181,7 +181,7 @@
     for (const m of candidates) {
       const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
       const mStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
-      const mEnd = WorkoutMesocycleService.calculateProjectedEndDate(m, mesoMicrocycles);
+      const mEnd = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
       if (!mStart || !mEnd) continue;
 
       // Two date ranges overlap when each starts before the other ends

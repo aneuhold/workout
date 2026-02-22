@@ -136,8 +136,10 @@ export function getHeroCardState(
     return { action: HeroCardAction.CompleteMesocycle };
   }
 
-  // 6. If nextUpSession is the first session in a microcycle whose
-  //    PREVIOUS microcycle is fully complete → CompleteMicrocycle
+  // 6. If the PREVIOUS microcycle is fully complete but not yet marked →
+  //    CompleteMicrocycle. Show this when the user hasn't started the next
+  //    microcycle yet, OR when there are pending reviews that block advancement even if the user
+  //    is late to a future session.
   if (nextUpSession?.workoutMicrocycleId) {
     const nextUpMicrocycleIndex = microcycles.findIndex(
       (mc) => mc._id === nextUpSession.workoutMicrocycleId
@@ -150,18 +152,18 @@ export function getHeroCardState(
         const prevComplete = prevSessions.length > 0 && prevSessions.every((s) => s.complete);
 
         if (prevComplete) {
-          // Check if nextUpSession is the first session in its microcycle
           const currentMcSessions = sessions.filter(
             (s) => s.workoutMicrocycleId === nextUpSession.workoutMicrocycleId
           );
           const isFirstInMicrocycle =
             currentMcSessions.length > 0 && currentMcSessions.every((s) => !s.complete);
+          const hasPendingReviews = pendingReviewBundles.length > 0;
 
-          if (isFirstInMicrocycle) {
+          if (isFirstInMicrocycle || hasPendingReviews) {
             return {
               action: HeroCardAction.CompleteMicrocycle,
               completedMicrocycleNumber: nextUpMicrocycleIndex, // previous microcycle number (1-indexed)
-              blockedByPendingReviews: pendingReviewBundles.length > 0
+              blockedByPendingReviews: hasPendingReviews
             };
           }
         }
