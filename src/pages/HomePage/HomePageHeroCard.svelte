@@ -247,7 +247,7 @@
           </div>
           <div class="flex flex-wrap gap-1">
             {#each exerciseBadges as { id, name } (id)}
-              <Badge variant="outline" class="text-xs">{name}</Badge>
+              <Badge variant="outline" class="h-auto whitespace-normal text-xs">{name}</Badge>
             {/each}
           </div>
         {/if}

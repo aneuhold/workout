@@ -14,7 +14,7 @@
   import { IconPlus, IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import { SvelteSet } from 'svelte/reactivity';
-  import { goto } from '$app/navigation';
+  import { goto, replaceState } from '$app/navigation';
   import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import { deleteDialog } from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
@@ -23,6 +23,7 @@
   import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import { muscleGroupFormDialog } from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
+  import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -72,7 +73,7 @@
   $effect(() => {
     const tab = activeTab;
     const params = tab === LibraryTab.All ? '' : `?tab=${tab}`;
-    history.replaceState(history.state, '', `/library${params}`);
+    replaceState(`/library${params}`, {});
   });
 
   let expandedIds = new SvelteSet<UUID>();
@@ -278,45 +279,55 @@
     <TabsContent value={LibraryTab.All}>
       {#if allItems.length > 0}
         <div class="flex flex-col gap-2">
-          {#each allItems as item (item.id)}
-            {#if item.type === WorkoutDocumentType.Exercise}
-              <LibraryPageExerciseCard
-                exercise={item.data}
-                showTypeLabel={true}
-                expanded={expandedIds.has(item.id)}
-                onToggle={() => toggleCard(item.id)}
-                onEdit={() => goto(`/exercise?exerciseId=${item.data._id}`)}
-                onDelete={() =>
-                  deleteDialog.open(
-                    item.data.exerciseName,
-                    WorkoutDocumentType.Exercise,
-                    item.data._id
-                  )}
-                onAddCalibration={() => calibrationFormDialog.open(item.data)}
-              />
-            {:else if item.type === WorkoutDocumentType.MuscleGroup}
-              <LibraryPageMuscleGroupCard
-                muscleGroup={item.data}
-                showTypeLabel={true}
-                expanded={expandedIds.has(item.id)}
-                onToggle={() => toggleCard(item.id)}
-                onEdit={() => muscleGroupFormDialog.openEdit(item.data)}
-                onDelete={() =>
-                  deleteDialog.open(item.data.name, WorkoutDocumentType.MuscleGroup, item.data._id)}
-                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
-              />
-            {:else}
-              <LibraryPageEquipmentCard
-                equipmentType={item.data}
-                showTypeLabel={true}
-                expanded={expandedIds.has(item.id)}
-                onToggle={() => toggleCard(item.id)}
-                onEdit={() => equipmentFormDialog.openEdit(item.data)}
-                onDelete={() =>
-                  deleteDialog.open(item.data.title, WorkoutDocumentType.Equipment, item.data._id)}
-                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
-              />
-            {/if}
+          {#each allItems as item, i (item.id)}
+            <StaggerItem index={i}>
+              {#if item.type === WorkoutDocumentType.Exercise}
+                <LibraryPageExerciseCard
+                  exercise={item.data}
+                  showTypeLabel={true}
+                  expanded={expandedIds.has(item.id)}
+                  onToggle={() => toggleCard(item.id)}
+                  onEdit={() => goto(`/exercise?exerciseId=${item.data._id}`)}
+                  onDelete={() =>
+                    deleteDialog.open(
+                      item.data.exerciseName,
+                      WorkoutDocumentType.Exercise,
+                      item.data._id
+                    )}
+                  onAddCalibration={() => calibrationFormDialog.open(item.data)}
+                />
+              {:else if item.type === WorkoutDocumentType.MuscleGroup}
+                <LibraryPageMuscleGroupCard
+                  muscleGroup={item.data}
+                  showTypeLabel={true}
+                  expanded={expandedIds.has(item.id)}
+                  onToggle={() => toggleCard(item.id)}
+                  onEdit={() => muscleGroupFormDialog.openEdit(item.data)}
+                  onDelete={() =>
+                    deleteDialog.open(
+                      item.data.name,
+                      WorkoutDocumentType.MuscleGroup,
+                      item.data._id
+                    )}
+                  onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
+                />
+              {:else}
+                <LibraryPageEquipmentCard
+                  equipmentType={item.data}
+                  showTypeLabel={true}
+                  expanded={expandedIds.has(item.id)}
+                  onToggle={() => toggleCard(item.id)}
+                  onEdit={() => equipmentFormDialog.openEdit(item.data)}
+                  onDelete={() =>
+                    deleteDialog.open(
+                      item.data.title,
+                      WorkoutDocumentType.Equipment,
+                      item.data._id
+                    )}
+                  onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
+                />
+              {/if}
+            </StaggerItem>
           {/each}
         </div>
       {:else}
@@ -328,21 +339,23 @@
     <TabsContent value={LibraryTab.Exercise}>
       {#if filteredExercises.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredExercises as exercise (exercise._id)}
-            <LibraryPageExerciseCard
-              {exercise}
-              showTypeLabel={false}
-              expanded={expandedIds.has(exercise._id)}
-              onToggle={() => toggleCard(exercise._id)}
-              onEdit={() => goto(`/exercise?exerciseId=${exercise._id}`)}
-              onDelete={() =>
-                deleteDialog.open(
-                  exercise.exerciseName,
-                  WorkoutDocumentType.Exercise,
-                  exercise._id
-                )}
-              onAddCalibration={() => calibrationFormDialog.open(exercise)}
-            />
+          {#each filteredExercises as exercise, i (exercise._id)}
+            <StaggerItem index={i}>
+              <LibraryPageExerciseCard
+                {exercise}
+                showTypeLabel={false}
+                expanded={expandedIds.has(exercise._id)}
+                onToggle={() => toggleCard(exercise._id)}
+                onEdit={() => goto(`/exercise?exerciseId=${exercise._id}`)}
+                onDelete={() =>
+                  deleteDialog.open(
+                    exercise.exerciseName,
+                    WorkoutDocumentType.Exercise,
+                    exercise._id
+                  )}
+                onAddCalibration={() => calibrationFormDialog.open(exercise)}
+              />
+            </StaggerItem>
           {/each}
         </div>
       {:else}
@@ -354,21 +367,23 @@
     <TabsContent value={LibraryTab.MuscleGroup}>
       {#if filteredMuscleGroups.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredMuscleGroups as muscleGroup (muscleGroup._id)}
-            <LibraryPageMuscleGroupCard
-              {muscleGroup}
-              showTypeLabel={false}
-              expanded={expandedIds.has(muscleGroup._id)}
-              onToggle={() => toggleCard(muscleGroup._id)}
-              onEdit={() => muscleGroupFormDialog.openEdit(muscleGroup)}
-              onDelete={() =>
-                deleteDialog.open(
-                  muscleGroup.name,
-                  WorkoutDocumentType.MuscleGroup,
-                  muscleGroup._id
-                )}
-              onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
-            />
+          {#each filteredMuscleGroups as muscleGroup, i (muscleGroup._id)}
+            <StaggerItem index={i}>
+              <LibraryPageMuscleGroupCard
+                {muscleGroup}
+                showTypeLabel={false}
+                expanded={expandedIds.has(muscleGroup._id)}
+                onToggle={() => toggleCard(muscleGroup._id)}
+                onEdit={() => muscleGroupFormDialog.openEdit(muscleGroup)}
+                onDelete={() =>
+                  deleteDialog.open(
+                    muscleGroup.name,
+                    WorkoutDocumentType.MuscleGroup,
+                    muscleGroup._id
+                  )}
+                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
+              />
+            </StaggerItem>
           {/each}
         </div>
       {:else}
@@ -380,21 +395,23 @@
     <TabsContent value={LibraryTab.Equipment}>
       {#if filteredEquipment.length > 0}
         <div class="flex flex-col gap-2">
-          {#each filteredEquipment as equipmentType (equipmentType._id)}
-            <LibraryPageEquipmentCard
-              {equipmentType}
-              showTypeLabel={false}
-              expanded={expandedIds.has(equipmentType._id)}
-              onToggle={() => toggleCard(equipmentType._id)}
-              onEdit={() => equipmentFormDialog.openEdit(equipmentType)}
-              onDelete={() =>
-                deleteDialog.open(
-                  equipmentType.title,
-                  WorkoutDocumentType.Equipment,
-                  equipmentType._id
-                )}
-              onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
-            />
+          {#each filteredEquipment as equipmentType, i (equipmentType._id)}
+            <StaggerItem index={i}>
+              <LibraryPageEquipmentCard
+                {equipmentType}
+                showTypeLabel={false}
+                expanded={expandedIds.has(equipmentType._id)}
+                onToggle={() => toggleCard(equipmentType._id)}
+                onEdit={() => equipmentFormDialog.openEdit(equipmentType)}
+                onDelete={() =>
+                  deleteDialog.open(
+                    equipmentType.title,
+                    WorkoutDocumentType.Equipment,
+                    equipmentType._id
+                  )}
+                onExerciseClick={(id) => goto(`/exercise?exerciseId=${id}`)}
+              />
+            </StaggerItem>
           {/each}
         </div>
       {:else}

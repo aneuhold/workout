@@ -285,7 +285,7 @@
         />
       </div>
       <div class="flex flex-col gap-1.5">
-        <Label for="meso-sessions">Sessions/Week</Label>
+        <Label for="meso-sessions">Sessions/Microcycle</Label>
         <ValidatedInput
           id="meso-sessions"
           type="number"

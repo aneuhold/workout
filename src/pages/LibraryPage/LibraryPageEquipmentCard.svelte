@@ -6,8 +6,9 @@
 -->
 <script lang="ts">
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
-  import { IconChevronDown, IconChevronUp, IconPencil, IconTrash } from '@tabler/icons-svelte';
+  import { IconChevronDown, IconPencil, IconTrash } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
+  import { slide } from 'svelte/transition';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
@@ -65,59 +66,61 @@
         Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
       </span>
     </div>
-    {#if expanded}
-      <IconChevronUp size={16} class="shrink-0 text-muted-foreground" />
-    {:else}
-      <IconChevronDown size={16} class="shrink-0 text-muted-foreground" />
-    {/if}
+    <IconChevronDown
+      size={16}
+      class="shrink-0 text-muted-foreground transition-transform duration-200
+        {expanded ? 'rotate-180' : ''}"
+    />
   </button>
 
   {#if expanded}
-    <Separator />
-    <div class="flex flex-col gap-3 px-3 py-3">
-      {#if linkedExercises.length > 0}
-        <div>
-          <span class="text-xs text-muted-foreground">Used by</span>
-          <ul class="mt-1 flex flex-col gap-0.5">
-            {#each linkedExercises as exercise (exercise._id)}
-              <li>
-                <Button
-                  variant="link"
-                  class="h-auto p-0"
-                  onclick={() => onExerciseClick(exercise._id)}
-                >
-                  {exercise.exerciseName}
-                </Button>
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {:else}
-        <p class="text-xs text-muted-foreground">No exercises use this equipment yet.</p>
-      {/if}
+    <div transition:slide={{ duration: 200 }}>
+      <Separator />
+      <div class="flex flex-col gap-3 px-3 py-3">
+        {#if linkedExercises.length > 0}
+          <div>
+            <span class="text-xs text-muted-foreground">Used by</span>
+            <ul class="mt-1 flex flex-col gap-0.5">
+              {#each linkedExercises as exercise (exercise._id)}
+                <li>
+                  <Button
+                    variant="link"
+                    class="h-auto p-0"
+                    onclick={() => onExerciseClick(exercise._id)}
+                  >
+                    {exercise.exerciseName}
+                  </Button>
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {:else}
+          <p class="text-xs text-muted-foreground">No exercises use this equipment yet.</p>
+        {/if}
 
-      {#if weightSummary}
-        <div>
-          <span class="text-xs text-muted-foreground">Weight Options</span>
-          <p class="mt-0.5">{weightSummary}</p>
-        </div>
-      {/if}
+        {#if weightSummary}
+          <div>
+            <span class="text-xs text-muted-foreground">Weight Options</span>
+            <p class="mt-0.5">{weightSummary}</p>
+          </div>
+        {/if}
 
-      <div class="flex gap-2">
-        <Button variant="outline" size="sm" onclick={onEdit}>
-          <IconPencil size={14} />
-          Edit
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          disabled={linkedExercises.length > 0}
-          title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
-          onclick={onDelete}
-        >
-          <IconTrash size={14} />
-          Delete
-        </Button>
+        <div class="flex gap-2">
+          <Button variant="outline" size="sm" onclick={onEdit}>
+            <IconPencil size={14} />
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={linkedExercises.length > 0}
+            title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
+            onclick={onDelete}
+          >
+            <IconTrash size={14} />
+            Delete
+          </Button>
+        </div>
       </div>
     </div>
   {/if}
