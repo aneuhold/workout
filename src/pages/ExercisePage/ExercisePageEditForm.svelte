@@ -329,7 +329,16 @@
 
   <!-- Joint & Tissue Disruption -->
   <div class="flex flex-col gap-2">
-    <Label>Joint & Tissue Disruption</Label>
+    <div class="flex items-center gap-1.5">
+      <Label>Joint & Tissue Disruption</Label>
+      <InfoPopover>
+        <ul class="flex flex-col gap-1.5 text-sm">
+          {#each jointDescriptions as desc, i (i)}
+            <li><strong>{i}:</strong> {desc}</li>
+          {/each}
+        </ul>
+      </InfoPopover>
+    </div>
     <Slider type="multiple" bind:value={formJointFatigue} min={0} max={3} step={1} />
     <div class="flex items-center justify-between">
       <span class="text-sm font-medium">{formJointFatigue[0]}</span>
@@ -339,7 +348,16 @@
 
   <!-- Perceived Effort -->
   <div class="flex flex-col gap-2">
-    <Label>Perceived Effort</Label>
+    <div class="flex items-center gap-1.5">
+      <Label>Perceived Effort</Label>
+      <InfoPopover>
+        <ul class="flex flex-col gap-1.5 text-sm">
+          {#each effortDescriptions as desc, i (i)}
+            <li><strong>{i}:</strong> {desc}</li>
+          {/each}
+        </ul>
+      </InfoPopover>
+    </div>
     <Slider type="multiple" bind:value={formPerceivedEffort} min={0} max={3} step={1} />
     <div class="flex items-center justify-between">
       <span class="text-sm font-medium">{formPerceivedEffort[0]}</span>
@@ -349,7 +367,16 @@
 
   <!-- Unused Muscle Performance -->
   <div class="flex flex-col gap-2">
-    <Label>Unused Muscle Performance</Label>
+    <div class="flex items-center gap-1.5">
+      <Label>Unused Muscle Performance</Label>
+      <InfoPopover>
+        <ul class="flex flex-col gap-1.5 text-sm">
+          {#each unusedMuscleDescriptions as desc, i (i)}
+            <li><strong>{i}:</strong> {desc}</li>
+          {/each}
+        </ul>
+      </InfoPopover>
+    </div>
     <Slider type="multiple" bind:value={formUnusedMuscle} min={0} max={3} step={1} />
     <div class="flex items-center justify-between">
       <span class="text-sm font-medium">{formUnusedMuscle[0]}</span>

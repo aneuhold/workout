@@ -30,6 +30,7 @@
   import timerService from '$services/TimerService';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
+  import Label from '$ui/Label/Label.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import { formatTime } from '$util/formatTime';
   import sharedTextConstants from '$util/sharedTextConstants';
@@ -68,6 +69,17 @@
   );
 
   let isDeload = $derived(WorkoutSessionExerciseService.isDeloadExercise(sets));
+
+  let computedPerformanceScore = $derived(WorkoutSessionExerciseService.getPerformanceScore(sets));
+  let displayPerformanceScore = $derived(
+    computedPerformanceScore ?? sessionExercise.performanceScore ?? null
+  );
+  $effect(() => {
+    const score = computedPerformanceScore;
+    if (score !== null && score !== sessionExercise.performanceScore) {
+      updatePerformance(score);
+    }
+  });
 
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
@@ -116,7 +128,6 @@
       doc.actualWeight = weight;
       doc.actualReps = reps;
       doc.rir = rir;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
   }
@@ -176,7 +187,6 @@
         doc.rsm = { mindMuscleConnection: null, pump: null, disruption: null };
       }
       doc.rsm[field] = value;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
   }
@@ -194,7 +204,6 @@
         };
       }
       doc.fatigue[field] = value;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
   }
@@ -202,7 +211,6 @@
   function updatePerformance(value: number | null) {
     sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
       doc.performanceScore = value;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
   }
@@ -210,7 +218,6 @@
   function updateSoreness(value: number | null) {
     sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
       doc.sorenessScore = value;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
   }
@@ -470,15 +477,34 @@
         <div class="flex flex-col gap-3">
           <h3 class="text-sm font-medium">Recovery</h3>
 
-          <SessionPageSliderField
-            label="Performance Score"
-            value={sessionExercise.performanceScore ?? null}
-            descriptions={performanceDescriptions}
-            colorMode={SessionPageSliderColorMode.Performance}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={updatePerformance}
-          />
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-1.5">
+              <Label>Performance Score</Label>
+              <InfoPopover>
+                <p class="mb-2 text-sm">
+                  Auto-calculated from your logged sets by comparing actual reps and RIR to planned
+                  targets.
+                </p>
+                <ul class="flex flex-col gap-1.5 text-sm">
+                  {#each performanceDescriptions as desc, i (i)}
+                    <li><strong>{i}:</strong> {desc}</li>
+                  {/each}
+                </ul>
+              </InfoPopover>
+            </div>
+            {#if displayPerformanceScore !== null}
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-foreground">
+                  {displayPerformanceScore}
+                </span>
+                <span class="text-xs text-muted-foreground">
+                  {performanceDescriptions[displayPerformanceScore]}
+                </span>
+              </div>
+            {:else}
+              <p class="text-xs text-muted-foreground">Calculated automatically as you log sets</p>
+            {/if}
+          </div>
 
           {#if mode === SessionPageMode.Active}
             <SessionPageDeferredField

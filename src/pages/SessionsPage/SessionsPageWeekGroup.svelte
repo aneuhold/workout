@@ -40,7 +40,13 @@
     allComplete && sessions.some((s) => getStatus(s) === SessionStatus.Review)
   );
 
-  let expanded = $derived(!allComplete || hasReview);
+  const containsActiveSession = $derived(
+    sessions.some((s) => s._id === inProgressSessionId || s._id === nextUpSessionId)
+  );
+
+  let expanded = $derived(
+    hasReview || containsActiveSession || (completedCount > 0 && !allComplete)
+  );
 
   const weekLabel = $derived(isDeload ? 'Deload' : `Week ${weekNumber}`);
 
