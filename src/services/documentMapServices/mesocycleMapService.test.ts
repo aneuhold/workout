@@ -176,7 +176,7 @@ describe('Unit Tests', () => {
       }
     });
 
-    it('should generate a deload microcycle with new sessions and sets', () => {
+    it('should generate a deload microcycle with reduced sets and reps', () => {
       const baseData = MockData.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
@@ -187,7 +187,28 @@ describe('Unit Tests', () => {
         microcycleCount: 4
       });
 
-      const originalMicrocycleIds = new Set(data.microcycles.map((mc) => mc._id));
+      // Snapshot the last completed microcycle's session exercises and sets
+      const lastCompletedMc = data.microcycles[1];
+      const lastMcSessionIds = new Set(
+        data.sessions.filter((s) => s.workoutMicrocycleId === lastCompletedMc._id).map((s) => s._id)
+      );
+      const lastMcSessionExercises = data.sessionExercises.filter((se) =>
+        lastMcSessionIds.has(se.workoutSessionId)
+      );
+      const lastMcSets = data.sets.filter((s) => lastMcSessionIds.has(s.workoutSessionId));
+
+      // Build a map of exerciseId → { setCount, firstSetReps } for the last microcycle
+      const prevExerciseStats = new Map<string, { setCount: number; firstSetReps: number }>();
+      for (const se of lastMcSessionExercises) {
+        const seSets = lastMcSets.filter((s) => s.workoutSessionExerciseId === se._id);
+        if (seSets.length > 0 && !prevExerciseStats.has(se.workoutExerciseId)) {
+          prevExerciseStats.set(se.workoutExerciseId, {
+            setCount: seSets.length,
+            firstSetReps: seSets[0].plannedReps ?? 0
+          });
+        }
+      }
+
       const originalSessionIds = new Set(data.sessions.map((s) => s._id));
 
       const deloadStartDate = new Date(data.microcycles[2].startDate);
@@ -195,23 +216,39 @@ describe('Unit Tests', () => {
 
       const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
 
-      // Should have new microcycles that didn't exist before (the deload)
-      const newMicrocycles = updatedDocs.microcycles.filter(
-        (mc) => !originalMicrocycleIds.has(mc._id)
-      );
-      expect(newMicrocycles.length).toBe(1);
+      // Deload sessions and sets
+      const deloadSessions = updatedDocs.sessions.filter((s) => !originalSessionIds.has(s._id));
+      expect(deloadSessions.length).toBeGreaterThan(0);
 
-      // Should have new sessions for the deload
-      const newSessions = updatedDocs.sessions.filter((s) => !originalSessionIds.has(s._id));
-      expect(newSessions.length).toBeGreaterThan(0);
+      const deloadSessionIds = new Set(deloadSessions.map((s) => s._id));
+      const deloadSessionExercises = updatedDocs.sessionExercises.filter((se) =>
+        deloadSessionIds.has(se.workoutSessionId)
+      );
+      const deloadSets = updatedDocs.sets.filter((s) => deloadSessionIds.has(s.workoutSessionId));
 
       // Deload sets should have null plannedRir
-      const newSessionIds = new Set(newSessions.map((s) => s._id));
-      const deloadSets = updatedDocs.sets.filter((s) => newSessionIds.has(s.workoutSessionId));
       expect(deloadSets.length).toBeGreaterThan(0);
       for (const set of deloadSets) {
         expect(set.plannedRir).toBeNull();
       }
+
+      // Each deload exercise should have fewer sets and fewer first-set reps
+      // than the same exercise in the previous microcycle
+      let comparisons = 0;
+      for (const se of deloadSessionExercises) {
+        const prev = prevExerciseStats.get(se.workoutExerciseId);
+        if (!prev) continue;
+
+        const seSets = deloadSets.filter((s) => s.workoutSessionExerciseId === se._id);
+        if (seSets.length === 0) continue;
+
+        expect(seSets.length).toBeLessThan(prev.setCount);
+        expect(seSets[0].plannedReps).toBeLessThan(prev.firstSetReps);
+        comparisons++;
+      }
+
+      // Ensure we actually compared at least one exercise
+      expect(comparisons).toBeGreaterThan(0);
     });
 
     it('should preserve completed data', () => {
