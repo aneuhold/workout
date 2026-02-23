@@ -23,7 +23,7 @@
   // --- Data ---
 
   let exercise = $derived(
-    exerciseId ? exerciseMapService.getDocs().find((e) => e._id === exerciseId) : undefined
+    exerciseId ? exerciseMapService.allDocs.find((e) => e._id === exerciseId) : undefined
   );
 
   // --- Mode ---

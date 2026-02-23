@@ -24,7 +24,7 @@
   } = $props();
 
   let calibratedExerciseCount = $derived(
-    new Set(exerciseCalibrationMapService.getDocs().map((c) => c.workoutExerciseId)).size
+    new Set(exerciseCalibrationMapService.allDocs.map((c) => c.workoutExerciseId)).size
   );
 </script>
 

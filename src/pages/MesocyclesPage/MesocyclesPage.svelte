@@ -16,7 +16,7 @@
 
   const currentMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
   const pastMesocycles = $derived(mesocycleMapService.getPastMesocycles());
-  const allExercises = $derived(exerciseMapService.getDocs());
+  const allExercises = $derived(exerciseMapService.allDocs);
 
   const currentDocs = $derived(
     currentMesocycle

@@ -48,3 +48,5 @@
 <Story name="Review Pending" args={{ scenario: FullAppScenario.ReviewPending }} />
 
 <Story name="Mesocycle Start" args={{ scenario: FullAppScenario.MesocycleStart }} />
+
+<Story name="Very Late Session" args={{ scenario: FullAppScenario.VeryLateSession }} />

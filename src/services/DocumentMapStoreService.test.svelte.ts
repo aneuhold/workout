@@ -1,4 +1,5 @@
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
+import { flushSync } from 'svelte';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DocumentMapStoreService, {
   type DocumentInsertOrUpdateInfo
@@ -44,7 +45,7 @@ describe('DocumentMapStoreService', () => {
   });
 
   it('should initialize with empty values', () => {
-    expect(service.getDocs()).toEqual([]);
+    expect(service.allDocs).toEqual([]);
   });
 
   it('should add a document', () => {
@@ -175,9 +176,126 @@ describe('DocumentMapStoreService', () => {
 
     expect(service.getDoc(doc1._id)).toEqual(doc1);
     expect(service.getDoc(doc2._id)).toEqual(doc2);
-    expect(service.getDocs()).toHaveLength(2);
+    expect(service.allDocs).toHaveLength(2);
     expect(persistToLocalDataMock).toHaveBeenCalled();
     // setMap does NOT persist to DB
     expect(persistToDbMock).not.toHaveBeenCalled();
+  });
+
+  describe('allDocs $derived reactivity', () => {
+    it('should compute once on initial subscription', () => {
+      const cleanup = $effect.root(() => {
+        service.addDocWithoutPersist(doc1);
+        let computeCount = 0;
+        let docs: TestDoc[] = [];
+
+        $effect(() => {
+          docs = service.allDocs;
+          computeCount++;
+        });
+
+        flushSync();
+        expect(computeCount).toBe(1);
+        expect(docs).toHaveLength(1);
+      });
+      cleanup();
+    });
+
+    it('should NOT recompute when a property within a document changes', () => {
+      const cleanup = $effect.root(() => {
+        service.addDocWithoutPersist(doc1);
+        let computeCount = 0;
+
+        $effect(() => {
+          const docs = service.allDocs;
+          expect(docs).toBeDefined();
+          computeCount++;
+        });
+
+        flushSync();
+        expect(computeCount).toBe(1);
+
+        service.updateDoc(doc1._id, (d) => {
+          d.value = 999;
+          return d;
+        });
+        flushSync();
+
+        expect(service.getDoc(doc1._id)?.value).toBe(999);
+        expect(computeCount).toBe(1);
+      });
+      cleanup();
+    });
+
+    it('should recompute when a document is added', () => {
+      const cleanup = $effect.root(() => {
+        service.addDocWithoutPersist(doc1);
+        let computeCount = 0;
+        let docs: TestDoc[] = [];
+
+        $effect(() => {
+          docs = service.allDocs;
+          computeCount++;
+        });
+
+        flushSync();
+        expect(computeCount).toBe(1);
+
+        service.addDocWithoutPersist(doc2);
+        flushSync();
+
+        expect(computeCount).toBe(2);
+        expect(docs).toHaveLength(2);
+      });
+      cleanup();
+    });
+
+    it('should recompute when a document is removed', () => {
+      const cleanup = $effect.root(() => {
+        service.addDocWithoutPersist(doc1);
+        service.addDocWithoutPersist(doc2);
+        let computeCount = 0;
+        let docs: TestDoc[] = [];
+
+        $effect(() => {
+          docs = service.allDocs;
+          computeCount++;
+        });
+
+        flushSync();
+        expect(computeCount).toBe(1);
+
+        service.deleteDoc(doc1._id);
+        flushSync();
+
+        expect(computeCount).toBe(2);
+        expect(docs).toHaveLength(1);
+      });
+      cleanup();
+    });
+
+    it('should recompute when the entire map is replaced via setMap', () => {
+      const cleanup = $effect.root(() => {
+        service.addDocWithoutPersist(doc1);
+        let computeCount = 0;
+        let docs: TestDoc[] = [];
+
+        $effect(() => {
+          docs = service.allDocs;
+          computeCount++;
+        });
+
+        flushSync();
+        expect(computeCount).toBe(1);
+
+        service.setMap({ [doc2._id]: doc2 });
+        flushSync();
+
+        expect(computeCount).toBe(2);
+        expect(docs).toHaveLength(1);
+        expect(docs[0]._id).toBe(doc2._id);
+      });
+      cleanup();
+    });
   });
 });

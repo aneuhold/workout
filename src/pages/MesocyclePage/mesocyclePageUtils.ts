@@ -1,4 +1,3 @@
-import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
   CalibrationExercisePair,
   WorkoutExercise,
@@ -13,9 +12,6 @@ import mesocycleMapService, {
   type MesocycleDataSources
 } from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-import setMapService from '$services/documentMapServices/setMapService.svelte';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
 
 export enum MesocyclePageMode {
@@ -157,7 +153,7 @@ export function persistNewMesocycle(
   if (!children) return;
 
   const apiOptions = mesocycleMapService.prepareDocsForSave({ insert: [mesocycleDoc] });
-  batchChildDocs(children, apiOptions);
+  mesocycleMapService.batchChildDocSaves(apiOptions, { insert: children });
   WorkoutAPIService.queryApi(apiOptions);
 }
 
@@ -188,37 +184,27 @@ export function persistMesocycleEdits(
   if (!children) return;
 
   const apiOptions = mesocycleMapService.prepareDocsForSave({ update: [mesocycle] });
-  batchChildDocs(children, apiOptions, existingDocs);
+  mesocycleMapService.batchChildDocSaves(apiOptions, { insert: children, delete: existingDocs });
   WorkoutAPIService.queryApi(apiOptions);
 }
 
 /**
- * Batches child document insert (and optionally delete) operations into
- * the given API options object, updating local state in the process.
+ * Calculates the default start date for a new mesocycle. Returns the later
+ * of the projected end date of the last non-completed mesocycle and today.
  *
- * @param children Generated child documents to insert
- * @param apiOptions The API options object to accumulate operations into
- * @param oldChildren Optional existing child documents whose IDs will be deleted
+ * @param existingMesocycles All existing mesocycles
+ * @param getMicrocycles Function that returns ordered microcycles for a mesocycle ID
  */
-function batchChildDocs(
-  children: MesocycleChildDocs,
-  apiOptions: ProjectWorkoutPrimaryEndpointOptions,
-  oldChildren?: MesocycleChildDocs
-): void {
-  microcycleMapService.prepareDocsForSave(
-    { delete: oldChildren?.microcycles.map((d) => d._id), insert: children.microcycles },
-    apiOptions
-  );
-  sessionMapService.prepareDocsForSave(
-    { delete: oldChildren?.sessions.map((d) => d._id), insert: children.sessions },
-    apiOptions
-  );
-  sessionExerciseMapService.prepareDocsForSave(
-    { delete: oldChildren?.sessionExercises.map((d) => d._id), insert: children.sessionExercises },
-    apiOptions
-  );
-  setMapService.prepareDocsForSave(
-    { delete: oldChildren?.sets.map((d) => d._id), insert: children.sets },
-    apiOptions
+export function getDefaultNewMesocycleStartDate(
+  existingMesocycles: WorkoutMesocycle[],
+  getMicrocycles: (mesocycleId: UUID) => WorkoutMicrocycle[]
+): Date {
+  const mesocycleToMicrocyclesMap = new Map<UUID, WorkoutMicrocycle[]>();
+  for (const m of existingMesocycles) {
+    mesocycleToMicrocyclesMap.set(m._id, getMicrocycles(m._id));
+  }
+  return WorkoutMesocycleService.getEarliestAllowedStartDate(
+    existingMesocycles,
+    mesocycleToMicrocyclesMap
   );
 }

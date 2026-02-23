@@ -13,6 +13,7 @@
     type WorkoutSession,
     type WorkoutSessionExercise
   } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import type { UUID } from 'crypto';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
@@ -58,7 +59,6 @@
   }[] = $derived.by(() => {
     if (firstCycleSessions.length === 0 || !firstMicrocycle) return [];
     const exerciseMap = new Map(exercises.map((exercise) => [exercise._id, exercise]));
-    const mcStart = new Date(firstMicrocycle.startDate).getTime();
 
     return firstCycleSessions.map((session, sessionIndex) => {
       const sessionExercisesForSession = previewSessionExercises.filter(
@@ -77,8 +77,8 @@
         };
       });
 
-      const sessionStart = new Date(session.startTime).getTime();
-      const dayOfCycle = Math.floor((sessionStart - mcStart) / (24 * 60 * 60 * 1000)) + 1;
+      const dayOfCycle =
+        DateService.getCalendarDaysBetween(firstMicrocycle.startDate, session.startTime) + 1;
 
       return {
         title: `Session ${sessionIndex + 1}`,

@@ -4,10 +4,10 @@
   Root component for the home page. Orchestrates data and renders dashboard sections.
 -->
 <script lang="ts">
+  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
+  import SingletonMoveSessionsDialog from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-  import { getHeroCardState, HeroCardAction } from './heroCardUtils';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
   import HomePageHeroCard from './HomePageHeroCard.svelte';
   import HomePageMesocycleOverview from './HomePageMesocycleOverview.svelte';
@@ -17,8 +17,7 @@
   import {
     getCurrentMicrocycle,
     getPendingReviewSessions,
-    getRecentCompletedSessions,
-    regenerateMesocycle
+    getRecentCompletedSessions
   } from './homePageUtils';
   import HomePageWeekSessions from './HomePageWeekSessions.svelte';
 
@@ -37,47 +36,13 @@
   const inProgressSession = $derived(mesocycleMapService.activeAndNextSessions.inProgressSession);
   const nextUpSession = $derived(mesocycleMapService.activeAndNextSessions.nextUpSession);
 
-  const heroSession = $derived(inProgressSession ?? nextUpSession);
-
-  const heroSessionExercises = $derived(
-    heroSession ? sessionMapService.getOrderedSessionExercisesForSession(heroSession) : []
-  );
-  const heroSessionSets = $derived(
-    heroSession ? sessionMapService.getOrderedSetsForSession(heroSession) : []
-  );
-
   const pendingLogs = $derived(docs ? getPendingReviewSessions(docs.sessions) : []);
-
-  const heroCardState = $derived(
-    getHeroCardState(
-      activeMesocycle,
-      microcycles,
-      docs?.sessions ?? [],
-      inProgressSession,
-      nextUpSession,
-      pendingLogs,
-      heroSessionExercises,
-      heroSessionSets
-    )
-  );
 
   const currentMicrocycleInfo = $derived(
     getCurrentMicrocycle(microcycles, docs?.sessions ?? [], inProgressSession, nextUpSession)
   );
 
   const recentSessions = $derived(docs ? getRecentCompletedSessions(docs.sessions) : []);
-
-  function handleCompleteMicrocycle() {
-    if (!activeMesocycle || heroCardState?.action !== HeroCardAction.CompleteMicrocycle) return;
-    regenerateMesocycle(activeMesocycle, {
-      completedMicrocycleNumber: heroCardState.completedMicrocycleNumber
-    });
-  }
-
-  function handleStartMesocycle() {
-    if (!activeMesocycle) return;
-    regenerateMesocycle(activeMesocycle, { startMesocycle: true });
-  }
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -87,13 +52,14 @@
       sortedMicrocycles={microcycles}
       sessions={docs.sessions}
     />
-    {#if heroCardState}
-      <HomePageHeroCard
-        state={heroCardState}
-        onCompleteMicrocycle={handleCompleteMicrocycle}
-        onStartMesocycle={handleStartMesocycle}
-      />
-    {/if}
+    <HomePageHeroCard
+      {activeMesocycle}
+      {microcycles}
+      sessions={docs.sessions}
+      {inProgressSession}
+      {nextUpSession}
+      {pendingLogs}
+    />
     {#if pendingLogs.length}
       <HomePagePendingLogs {pendingLogs} />
     {/if}
@@ -114,3 +80,6 @@
     <HomePageEmptyState />
   {/if}
 </div>
+
+<SingletonMoveSessionsDialog />
+<SingletonDeloadDialog />

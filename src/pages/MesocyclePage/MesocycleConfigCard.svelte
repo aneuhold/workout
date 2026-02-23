@@ -2,16 +2,24 @@
   @component
 
   Configuration card for a mesocycle.
-  Handles title, cycle type, numeric config, and rest day selection.
-  Supports a `disabled` mode where only the title remains editable.
+  Handles title, cycle type, numeric config, rest day selection, and start date
+  overlap prevention. Supports a `disabled` mode where only the title remains
+  editable (date logic is skipped).
 -->
 <script lang="ts">
-  import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { CycleType, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { type DateValue, fromDate, getLocalTimeZone } from '@internationalized/date';
+  import { IconAlertTriangle } from '@tabler/icons-svelte';
   import { IconCalendar } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import ValidatedInput from '$components/ValidatedInput/ValidatedInput.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
+  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import Alert from '$ui/Alert/Alert.svelte';
+  import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Calendar from '$ui/Calendar/Calendar.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -35,7 +43,9 @@
     sessionsPerWeek = $bindable(5),
     daysPerCycle = $bindable(7),
     restDays = $bindable<number[]>([0, 6]),
+    overlapWarning = $bindable<string | null>(null),
     disabled = false,
+    editingMesocycleId,
     onTitleBlur
   }: {
     title: string;
@@ -45,7 +55,9 @@
     sessionsPerWeek: number;
     daysPerCycle: number;
     restDays: number[];
+    overlapWarning?: string | null;
     disabled?: boolean;
+    editingMesocycleId?: UUID;
     onTitleBlur?: () => void;
   } = $props();
 
@@ -82,6 +94,112 @@
   }
 
   const cycleTypeLabel = $derived(formatCycleType(cycleType));
+
+  // --- Date overlap logic (form mode only) ---
+
+  const allMesocycles = $derived(disabled ? [] : mesocycleMapService.allDocs);
+
+  /**
+   * Returns true if the given date falls within an existing mesocycle's date range,
+   * or if the date is before today. Used to disable overlapping dates in the Calendar.
+   *
+   * @param date The calendar date to check for disabling.
+   */
+  function disabledDateMatcher(date: Date): boolean {
+    const todayStart = new Date(new Date().toDateString());
+    if (date.getTime() < todayStart.getTime()) return true;
+
+    for (const m of allMesocycles) {
+      if (m._id === editingMesocycleId) continue;
+      if (m.completedDate != null) continue;
+      const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
+      const endDate = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
+      const mesoStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
+      if (mesoStart == null || endDate == null) continue;
+      if (date.getTime() >= mesoStart.getTime() && date.getTime() < endDate.getTime()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Helper text below date picker when start date follows another mesocycle.
+   * Only shown for new mesocycles (editingMesocycleId is undefined).
+   */
+  const startDateHelperText = $derived.by(() => {
+    if (disabled || editingMesocycleId) return null;
+    const otherMesocycles = allMesocycles.filter((m) => m.completedDate == null);
+    if (otherMesocycles.length === 0) return null;
+
+    let latestMesocycle = otherMesocycles[0];
+    let latestEnd = WorkoutMesocycleService.getProjectedEndDate(
+      latestMesocycle,
+      microcycleMapService.getOrderedMicrocyclesForMesocycle(latestMesocycle._id)
+    );
+
+    for (const m of otherMesocycles) {
+      const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
+      const end = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
+      if (end != null && (latestEnd == null || end.getTime() > latestEnd.getTime())) {
+        latestEnd = end;
+        latestMesocycle = m;
+      }
+    }
+
+    if (latestEnd != null && startDate.getTime() >= latestEnd.getTime()) {
+      return `Starts after ${latestMesocycle.title ?? 'previous mesocycle'} ends`;
+    }
+    return null;
+  });
+
+  /**
+   * Converts the disabledDateMatcher to a DateValue-based function for the
+   * bits-ui Calendar isDateDisabled prop.
+   *
+   * @param dateValue The calendar date value to check for disabling.
+   */
+  const isDateDisabled = $derived(
+    disabled
+      ? undefined
+      : (dateValue: DateValue) => {
+          const jsDate = dateValue.toDate(tz);
+          return disabledDateMatcher(jsDate);
+        }
+  );
+
+  const computedOverlapWarning = $derived.by<string | null>(() => {
+    if (disabled) return null;
+
+    const candidates = allMesocycles.filter(
+      (m) => m._id !== editingMesocycleId && m.completedDate == null
+    );
+    if (candidates.length === 0) return null;
+
+    const previewEnd = DateService.addDays(startDate, weeks * daysPerCycle);
+
+    for (const m of candidates) {
+      const mesoMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(m._id);
+      const mStart = WorkoutMesocycleService.getProjectedStartDate(m, mesoMicrocycles);
+      const mEnd = WorkoutMesocycleService.getProjectedEndDate(m, mesoMicrocycles);
+      if (!mStart || !mEnd) continue;
+
+      // Two date ranges overlap when each starts before the other ends
+      if (startDate.getTime() < mEnd.getTime() && previewEnd.getTime() > mStart.getTime()) {
+        const startStr = mStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const endStr = mEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${startStr} \u2013 ${endStr})`;
+      }
+    }
+    return null;
+  });
+
+  $effect(() => {
+    // So that we can tell the parent form about overlaps without needing to house the logic there.
+    // This is probably a code-smell though, and should be refactored so there is a unified service
+    // somewhere that houses the overlap state.
+    overlapWarning = computedOverlapWarning;
+  });
 </script>
 
 <Card>
@@ -103,7 +221,7 @@
       <Label>Start Date</Label>
       <Popover bind:open={popoverOpen}>
         <PopoverTrigger>
-          <Button variant="outline" {disabled}>
+          <Button variant="outline" {disabled} data-testid="start-date-trigger">
             <IconCalendar size={16} />
             {formattedDate}
           </Button>
@@ -112,12 +230,16 @@
           <Calendar
             type="single"
             bind:value={calendarValue}
+            {isDateDisabled}
             onValueChange={() => {
               popoverOpen = false;
             }}
           />
         </PopoverContent>
       </Popover>
+      {#if startDateHelperText}
+        <span class="text-xs text-muted-foreground">{startDateHelperText}</span>
+      {/if}
     </div>
 
     <div class="flex flex-col gap-1.5">
@@ -202,5 +324,12 @@
         {/each}
       </div>
     </div>
+
+    {#if overlapWarning}
+      <Alert variant="warn">
+        <IconAlertTriangle size={16} />
+        <AlertDescription>{overlapWarning}</AlertDescription>
+      </Alert>
+    {/if}
   </CardContent>
 </Card>

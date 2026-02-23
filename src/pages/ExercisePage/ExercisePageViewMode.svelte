@@ -29,7 +29,7 @@
   // --- Data ---
 
   let calibrations = $derived(
-    exerciseCalibrationMapService.getDocs().filter((c) => c.workoutExerciseId === exercise._id)
+    exerciseCalibrationMapService.allDocs.filter((c) => c.workoutExerciseId === exercise._id)
   );
   let latestCalibration = $derived(calibrations[calibrations.length - 1]);
 

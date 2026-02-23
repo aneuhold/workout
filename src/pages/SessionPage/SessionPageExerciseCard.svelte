@@ -428,16 +428,6 @@
           </div>
 
           <SessionPageSliderField
-            label="Joint & Tissue Disruption"
-            value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
-            descriptions={jointDescriptions}
-            colorMode={SessionPageSliderColorMode.Negative}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
-          />
-
-          <SessionPageSliderField
             label="Perceived Effort"
             value={sessionExercise.fatigue?.perceivedEffort ?? null}
             descriptions={effortDescriptions}
@@ -447,20 +437,30 @@
             onValueChange={(v) => updateFatigue('perceivedEffort', v)}
           />
 
+          <SessionPageSliderField
+            label="Unused Muscle Performance"
+            value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
+            descriptions={unusedMuscleDescriptions}
+            colorMode={SessionPageSliderColorMode.Negative}
+            disabled={getImmediateFieldState().disabled}
+            highlight={getImmediateFieldState().highlight}
+            onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
+          />
+
           {#if mode === SessionPageMode.Active}
             <SessionPageDeferredField
-              label="Unused Muscle Performance"
-              reason="requires completing subsequent exercises targeting other muscles"
+              label="Joint & Tissue Disruption"
+              reason="requires assessing joint stress and connective tissue response after the session"
             />
           {:else}
             <SessionPageSliderField
-              label="Unused Muscle Performance"
-              value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
-              descriptions={unusedMuscleDescriptions}
+              label="Joint & Tissue Disruption"
+              value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
+              descriptions={jointDescriptions}
               colorMode={SessionPageSliderColorMode.Negative}
               disabled={getLateFieldState().disabled}
               highlight={getLateFieldState().highlight}
-              onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
+              onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
             />
           {/if}
         </div>

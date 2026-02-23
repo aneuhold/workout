@@ -30,7 +30,7 @@
     onExerciseClick: (exerciseId: UUID) => void;
   } = $props();
 
-  let exercises = $derived(exerciseMapService.getDocs());
+  let exercises = $derived(exerciseMapService.allDocs);
 
   function exercisesForEquipment(equipmentTypeId: UUID) {
     return exercises.filter((exercise) => exercise.workoutEquipmentTypeId === equipmentTypeId);

@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import { IconAlertCircle, IconInfoCircle } from '@tabler/icons-svelte';
+  import { IconAlertCircle, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-svelte';
   import { createInvisibleArgTypes } from '$storybook/storybookUtil';
   import Alert from './Alert.svelte';
   import AlertDescription from './AlertDescription.svelte';
@@ -13,7 +13,7 @@
       ...createInvisibleArgTypes('ref', 'children'),
       variant: {
         control: { type: 'select' },
-        options: ['default', 'destructive']
+        options: ['default', 'destructive', 'warn']
       }
     },
     args: {
@@ -45,6 +45,13 @@
 <!-- Simple Alert (Title Only) -->
 <Story name="Title Only">
   <AlertTitle>Simple notification</AlertTitle>
+</Story>
+
+<!-- Warning Alert -->
+<Story name="Warning" args={{ variant: 'warn' }}>
+  <IconAlertTriangle />
+  <AlertTitle>Warning</AlertTitle>
+  <AlertDescription>You are approaching the limit. Consider taking a deload.</AlertDescription>
 </Story>
 
 <!-- Alert with Description Only -->

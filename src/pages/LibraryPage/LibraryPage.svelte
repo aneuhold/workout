@@ -80,9 +80,9 @@
 
   // --- Derived data from stores ---
 
-  let exercises = $derived(exerciseMapService.getDocs());
-  let muscleGroups = $derived(muscleGroupMapService.getDocs());
-  let equipmentTypes = $derived(equipmentTypeMapService.getDocs());
+  let exercises = $derived(exerciseMapService.allDocs);
+  let muscleGroups = $derived(muscleGroupMapService.allDocs);
+  let equipmentTypes = $derived(equipmentTypeMapService.allDocs);
 
   // --- Lookup helpers ---
 

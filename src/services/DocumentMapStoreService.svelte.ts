@@ -37,18 +37,19 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
  */
 export default class DocumentMapStoreService<T extends BaseDocument> {
   private mapState: DocumentMap<T> = $state({});
-
   private config: DocumentMapStoreConfig<T>;
+
+  /**
+   * A derived array of all documents in the map. Only recomputes when
+   * documents are added, removed, or the entire map is replaced — not
+   * when individual document properties change.
+   */
+  readonly allDocs: T[] = $derived(
+    Object.values(this.mapState).filter((doc): doc is T => doc !== undefined)
+  );
 
   constructor(config: DocumentMapStoreConfig<T>) {
     this.config = config;
-  }
-
-  /**
-   * Returns all documents in the map as an array.
-   */
-  public getDocs(): T[] {
-    return Object.values(this.mapState).filter((doc): doc is T => doc !== undefined);
   }
 
   /**
@@ -142,7 +143,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       });
     } else {
       const filter = filterOrDocIds as (currentDoc: T) => boolean;
-      docsToUpdate = this.getDocs().filter(filter);
+      docsToUpdate = this.allDocs.filter(filter);
       docsToUpdate.forEach(mutator);
     }
     return docsToUpdate;

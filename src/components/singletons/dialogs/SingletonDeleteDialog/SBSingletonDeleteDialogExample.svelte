@@ -19,7 +19,7 @@
       const baseData = MockData.setupBaseData();
 
       exercises = baseData.exercises;
-      muscleGroups = muscleGroupMapService.getDocs();
+      muscleGroups = muscleGroupMapService.allDocs;
       equipment = baseData.equipmentTypes;
     });
 

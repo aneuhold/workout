@@ -22,7 +22,7 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    * @param mesocycleId ID of the mesocycle to get microcycles for
    */
   getOrderedMicrocyclesForMesocycle(mesocycleId: UUID): WorkoutMicrocycle[] {
-    return this.getDocs()
+    return this.allDocs
       .filter((mc) => mc.workoutMesocycleId === mesocycleId)
       .sort((a, b) => this.compareMicrocyclesByStartDate(a, b));
   }

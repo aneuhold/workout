@@ -6,6 +6,7 @@ import type {
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import { CycleType } from '@aneuhold/core-ts-db-lib';
+import { DateService } from '@aneuhold/core-ts-lib';
 import type { HomePageSessionBundle } from './homePageUtils';
 
 export enum HeroCardAction {
@@ -29,6 +30,8 @@ export type HeroCardState =
       session: WorkoutSession;
       sessionExercises: WorkoutSessionExercise[];
       sets: WorkoutSet[];
+      daysLate: number;
+      scheduledDate: Date | null;
     }
   | {
       action: HeroCardAction.CompleteMicrocycle;
@@ -91,7 +94,9 @@ export function getHeroCardState(
         action: HeroCardAction.StartSession,
         session: nextUpSession,
         sessionExercises: heroSessionExercises,
-        sets: heroSessionSets
+        sets: heroSessionSets,
+        daysLate: 0,
+        scheduledDate: null
       };
     }
     return null;
@@ -131,8 +136,10 @@ export function getHeroCardState(
     return { action: HeroCardAction.CompleteMesocycle };
   }
 
-  // 6. If nextUpSession is the first session in a microcycle whose
-  //    PREVIOUS microcycle is fully complete → CompleteMicrocycle
+  // 6. If the PREVIOUS microcycle is fully complete but not yet marked →
+  //    CompleteMicrocycle. Show this when the user hasn't started the next
+  //    microcycle yet, OR when there are pending reviews that block advancement even if the user
+  //    is late to a future session.
   if (nextUpSession?.workoutMicrocycleId) {
     const nextUpMicrocycleIndex = microcycles.findIndex(
       (mc) => mc._id === nextUpSession.workoutMicrocycleId
@@ -145,18 +152,18 @@ export function getHeroCardState(
         const prevComplete = prevSessions.length > 0 && prevSessions.every((s) => s.complete);
 
         if (prevComplete) {
-          // Check if nextUpSession is the first session in its microcycle
           const currentMcSessions = sessions.filter(
             (s) => s.workoutMicrocycleId === nextUpSession.workoutMicrocycleId
           );
           const isFirstInMicrocycle =
             currentMcSessions.length > 0 && currentMcSessions.every((s) => !s.complete);
+          const hasPendingReviews = pendingReviewBundles.length > 0;
 
-          if (isFirstInMicrocycle) {
+          if (isFirstInMicrocycle || hasPendingReviews) {
             return {
               action: HeroCardAction.CompleteMicrocycle,
               completedMicrocycleNumber: nextUpMicrocycleIndex, // previous microcycle number (1-indexed)
-              blockedByPendingReviews: pendingReviewBundles.length > 0
+              blockedByPendingReviews: hasPendingReviews
             };
           }
         }
@@ -166,11 +173,19 @@ export function getHeroCardState(
 
   // 7. If nextUpSession exists → StartSession
   if (nextUpSession) {
+    const isPastSchedule = nextUpSession.startTime.getTime() < Date.now();
+    const daysLate = isPastSchedule
+      ? DateService.getCalendarDaysBetween(nextUpSession.startTime, new Date())
+      : 0;
+    const scheduledDate = daysLate > 0 ? nextUpSession.startTime : null;
+
     return {
       action: HeroCardAction.StartSession,
       session: nextUpSession,
       sessionExercises: heroSessionExercises,
-      sets: heroSessionSets
+      sets: heroSessionSets,
+      daysLate,
+      scheduledDate
     };
   }
 

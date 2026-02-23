@@ -54,8 +54,7 @@
     const itemId = currentItem.id;
     switch (currentItem.type) {
       case WorkoutDocumentType.Exercise: {
-        const calibrationIds = exerciseCalibrationMapService
-          .getDocs()
+        const calibrationIds = exerciseCalibrationMapService.allDocs
           .filter((c) => c.workoutExerciseId === itemId)
           .map((c) => c._id);
         if (calibrationIds.length > 0) {

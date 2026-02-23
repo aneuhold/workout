@@ -8,7 +8,8 @@ export enum FullAppScenario {
   FreshStart = 'freshStart',
   AllComplete = 'allComplete',
   ReviewPending = 'reviewPending',
-  MesocycleStart = 'mesocycleStart'
+  MesocycleStart = 'mesocycleStart',
+  VeryLateSession = 'veryLateSession'
 }
 
 /**
@@ -72,5 +73,18 @@ export function setupScenario(scenario: FullAppScenario): void {
         completedSessionCount: 0
       });
       break;
+
+    case FullAppScenario.VeryLateSession: {
+      // 2 full microcycles complete with all reviews done, next session ~14 days late
+      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Hypertrophy Block',
+        cycleType: CycleType.MuscleGain,
+        microcycleCount: 4,
+        startDate: daysAgo(28),
+        completedSessionCount: 10
+      });
+      MesocycleMapServiceMock.fillLateFields(data);
+      break;
+    }
   }
 }
