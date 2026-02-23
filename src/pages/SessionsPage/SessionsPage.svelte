@@ -5,6 +5,7 @@
   Shows all sessions in the active mesocycle grouped by microcycle (week).
 -->
 <script lang="ts">
+  import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import SessionsPageEmptyState from './SessionsPageEmptyState.svelte';
@@ -43,13 +44,15 @@
     <SessionsPageHeader {mesocycleTitle} />
 
     {#each microcycles as mc, i (mc._id)}
-      <SessionsPageWeekGroup
-        microcycle={mc}
-        weekNumber={i + 1}
-        isDeload={isDeloadMicrocycle(i)}
-        {inProgressSessionId}
-        {nextUpSessionId}
-      />
+      <StaggerItem index={i}>
+        <SessionsPageWeekGroup
+          microcycle={mc}
+          weekNumber={i + 1}
+          isDeload={isDeloadMicrocycle(i)}
+          {inProgressSessionId}
+          {nextUpSessionId}
+        />
+      </StaggerItem>
     {/each}
   {:else}
     <SessionsPageEmptyState />

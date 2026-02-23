@@ -14,13 +14,13 @@
   import {
     IconCheck,
     IconChevronDown,
-    IconChevronUp,
     IconExternalLink,
     IconPlayerPause,
     IconPlayerPlay,
     IconPlayerStop,
     IconStopwatch
   } from '@tabler/icons-svelte';
+  import { slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -286,244 +286,248 @@
       </div>
     </div>
 
-    {#if expanded}
-      <IconChevronUp size={16} class="shrink-0 text-muted-foreground" />
-    {:else}
-      <IconChevronDown size={16} class="shrink-0 text-muted-foreground" />
-    {/if}
+    <IconChevronDown
+      size={16}
+      class="shrink-0 text-muted-foreground transition-transform duration-200
+        {expanded ? 'rotate-180' : ''}"
+    />
   </button>
 
   {#if expanded}
-    <Separator />
-    <div class="flex flex-col gap-4 px-3 py-3">
-      <!-- Section 1: Set Table -->
-      <div class="flex flex-col gap-1">
-        <div class="grid grid-cols-12 items-center gap-1.5 px-2 text-xs text-muted-foreground">
-          <div class="col-span-1">#</div>
-          <div class="col-span-3">Weight</div>
-          <div class="col-span-3">Reps</div>
-          <div class="col-span-2">RIR</div>
-          <div class="col-span-3"></div>
+    <div transition:slide={{ duration: 200 }}>
+      <Separator />
+      <div class="flex flex-col gap-4 px-3 py-3">
+        <!-- Section 1: Set Table -->
+        <div class="flex flex-col gap-1">
+          <div class="grid grid-cols-12 items-center gap-1.5 px-2 text-xs text-muted-foreground">
+            <div class="col-span-1">#</div>
+            <div class="col-span-3">Weight</div>
+            <div class="col-span-3">Reps</div>
+            <div class="col-span-2">RIR</div>
+            <div class="col-span-3"></div>
+          </div>
+          {#each sets as set, i (set._id)}
+            <SessionPageSetRow
+              {set}
+              setNumber={i + 1}
+              setState={getSetState(set, i)}
+              {mode}
+              onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
+            />
+          {/each}
         </div>
-        {#each sets as set, i (set._id)}
-          <SessionPageSetRow
-            {set}
-            setNumber={i + 1}
-            setState={getSetState(set, i)}
-            {mode}
-            onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
-          />
-        {/each}
-      </div>
 
-      <!-- Section 2: Rest Timer -->
-      {#if showRestTimer}
-        <Separator />
-        <div class="flex items-center gap-2">
-          {#if timerService.isActive}
-            <Button
-              size="sm"
-              class={timerService.isPaused ? '' : 'animate-timer-pulse'}
-              onclick={() => goto('/timer')}
-            >
-              <IconStopwatch size={14} />
-              {formatTime(timerService.remainingSeconds)}
-            </Button>
-            {#if timerService.isPaused}
-              <Button variant="outline" size="icon-sm" onclick={() => timerService.resume()}>
-                <IconPlayerPlay size={14} />
+        <!-- Section 2: Rest Timer -->
+        {#if showRestTimer}
+          <Separator />
+          <div class="flex items-center gap-2">
+            {#if timerService.isActive}
+              <Button
+                size="sm"
+                class={timerService.isPaused ? '' : 'animate-timer-pulse'}
+                onclick={() => goto('/timer')}
+              >
+                <IconStopwatch size={14} />
+                {formatTime(timerService.remainingSeconds)}
+              </Button>
+              {#if timerService.isPaused}
+                <Button variant="outline" size="icon-sm" onclick={() => timerService.resume()}>
+                  <IconPlayerPlay size={14} />
+                </Button>
+              {:else}
+                <Button variant="outline" size="icon-sm" onclick={() => timerService.pause()}>
+                  <IconPlayerPause size={14} />
+                </Button>
+              {/if}
+              <Button variant="outline" size="icon-sm" onclick={() => timerService.stop()}>
+                <IconPlayerStop size={14} />
               </Button>
             {:else}
-              <Button variant="outline" size="icon-sm" onclick={() => timerService.pause()}>
-                <IconPlayerPause size={14} />
+              <Button variant="outline" size="sm" onclick={handleStartTimer}>
+                <IconStopwatch size={14} />
+                Start Rest Timer
               </Button>
             {/if}
-            <Button variant="outline" size="icon-sm" onclick={() => timerService.stop()}>
-              <IconPlayerStop size={14} />
-            </Button>
-          {:else}
-            <Button variant="outline" size="sm" onclick={handleStartTimer}>
-              <IconStopwatch size={14} />
-              Start Rest Timer
-            </Button>
-          {/if}
-          <InfoPopover>
-            <p class="mb-2 font-medium">Rest Readiness Guidelines</p>
-            <ul class="flex flex-col gap-1.5 text-sm">
-              <li>
-                Are my <strong>{primaryMuscleNames}</strong> still burning from the last set?
-              </li>
-              {#if secondaryMuscleNames}
+            <InfoPopover>
+              <p class="mb-2 font-medium">Rest Readiness Guidelines</p>
+              <ul class="flex flex-col gap-1.5 text-sm">
                 <li>
-                  Are my <strong>{secondaryMuscleNames}</strong> ready to support my
-                  <strong>{primaryMuscleNames}</strong> in another set?
+                  Are my <strong>{primaryMuscleNames}</strong> still burning from the last set?
                 </li>
-              {/if}
-              <li>
-                Do I feel mentally and physically like I can push hard with my
-                <strong>{primaryMuscleNames}</strong> again?
-              </li>
-              <li>Is my breathing more or less back to normal?</li>
-            </ul>
-            <p class="mt-2 text-xs text-muted-foreground">
-              If you can answer yes to all of these, you are ready for the next set.
-            </p>
-          </InfoPopover>
-        </div>
-      {/if}
-
-      {#if !isDeload}
-        <!-- Section 3: RSM Sliders -->
-        <Separator />
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-2">
-            <h3 class="text-sm font-medium">Raw Stimulus Magnitude</h3>
-            <InfoPopover>
-              RSM measures the amount of muscle growth stimulus from this exercise. It is the sum of
-              mind-muscle connection, pump, and disruption (0-9). Higher RSM means more growth
-              stimulus.
+                {#if secondaryMuscleNames}
+                  <li>
+                    Are my <strong>{secondaryMuscleNames}</strong> ready to support my
+                    <strong>{primaryMuscleNames}</strong> in another set?
+                  </li>
+                {/if}
+                <li>
+                  Do I feel mentally and physically like I can push hard with my
+                  <strong>{primaryMuscleNames}</strong> again?
+                </li>
+                <li>Is my breathing more or less back to normal?</li>
+              </ul>
+              <p class="mt-2 text-xs text-muted-foreground">
+                If you can answer yes to all of these, you are ready for the next set.
+              </p>
             </InfoPopover>
           </div>
+        {/if}
 
-          <SessionPageSliderField
-            label="Mind-Muscle Connection"
-            value={sessionExercise.rsm?.mindMuscleConnection ?? null}
-            descriptions={mindMuscleDescriptions}
-            colorMode={SessionPageSliderColorMode.Positive}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={(v) => updateRsm('mindMuscleConnection', v)}
-          />
-
-          <SessionPageSliderField
-            label="Pump"
-            value={sessionExercise.rsm?.pump ?? null}
-            descriptions={pumpDescriptions}
-            colorMode={SessionPageSliderColorMode.Positive}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={(v) => updateRsm('pump', v)}
-          />
-
-          {#if mode === SessionPageMode.Active}
-            <SessionPageDeferredField
-              label="Disruption"
-              reason="requires assessing soreness and recovery the following day"
-            />
-          {:else}
-            <SessionPageSliderField
-              label="Disruption"
-              value={sessionExercise.rsm?.disruption ?? null}
-              descriptions={disruptionDescriptions}
-              colorMode={SessionPageSliderColorMode.Positive}
-              disabled={getLateFieldState().disabled}
-              highlight={getLateFieldState().highlight}
-              onValueChange={(v) => updateRsm('disruption', v)}
-            />
-          {/if}
-        </div>
-
-        <!-- Section 4: Fatigue Sliders -->
-        <Separator />
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-2">
-            <h3 class="text-sm font-medium">Fatigue</h3>
-            <InfoPopover>
-              Fatigue measures the cost of the stimulus. The Stimulus to Fatigue Ratio (SFR) is
-              calculated as RSM / total fatigue. A higher SFR means more efficient stimulus.
-            </InfoPopover>
-          </div>
-
-          <SessionPageSliderField
-            label="Perceived Effort"
-            value={sessionExercise.fatigue?.perceivedEffort ?? null}
-            descriptions={effortDescriptions}
-            colorMode={SessionPageSliderColorMode.Negative}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={(v) => updateFatigue('perceivedEffort', v)}
-          />
-
-          <SessionPageSliderField
-            label="Unused Muscle Performance"
-            value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
-            descriptions={unusedMuscleDescriptions}
-            colorMode={SessionPageSliderColorMode.Negative}
-            disabled={getImmediateFieldState().disabled}
-            highlight={getImmediateFieldState().highlight}
-            onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
-          />
-
-          {#if mode === SessionPageMode.Active}
-            <SessionPageDeferredField
-              label="Joint & Tissue Disruption"
-              reason="requires assessing joint stress and connective tissue response after the session"
-            />
-          {:else}
-            <SessionPageSliderField
-              label="Joint & Tissue Disruption"
-              value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
-              descriptions={jointDescriptions}
-              colorMode={SessionPageSliderColorMode.Negative}
-              disabled={getLateFieldState().disabled}
-              highlight={getLateFieldState().highlight}
-              onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
-            />
-          {/if}
-        </div>
-
-        <!-- Section 5: Recovery -->
-        <Separator />
-        <div class="flex flex-col gap-3">
-          <h3 class="text-sm font-medium">Recovery</h3>
-
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center gap-1.5">
-              <Label>Performance Score</Label>
+        {#if !isDeload}
+          <!-- Section 3: RSM Sliders -->
+          <Separator />
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-medium">Raw Stimulus Magnitude</h3>
               <InfoPopover>
-                <p class="mb-2 text-sm">
-                  Auto-calculated from your logged sets by comparing actual reps and RIR to planned
-                  targets.
-                </p>
-                <ul class="flex flex-col gap-1.5 text-sm">
-                  {#each performanceDescriptions as desc, i (i)}
-                    <li><strong>{i}:</strong> {desc}</li>
-                  {/each}
-                </ul>
+                RSM measures the amount of muscle growth stimulus from this exercise. It is the sum
+                of mind-muscle connection, pump, and disruption (0-9). Higher RSM means more growth
+                stimulus.
               </InfoPopover>
             </div>
-            {#if displayPerformanceScore !== null}
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-foreground">
-                  {displayPerformanceScore}
-                </span>
-                <span class="text-xs text-muted-foreground">
-                  {performanceDescriptions[displayPerformanceScore]}
-                </span>
-              </div>
+
+            <SessionPageSliderField
+              label="Mind-Muscle Connection"
+              value={sessionExercise.rsm?.mindMuscleConnection ?? null}
+              descriptions={mindMuscleDescriptions}
+              colorMode={SessionPageSliderColorMode.Positive}
+              disabled={getImmediateFieldState().disabled}
+              highlight={getImmediateFieldState().highlight}
+              onValueChange={(v) => updateRsm('mindMuscleConnection', v)}
+            />
+
+            <SessionPageSliderField
+              label="Pump"
+              value={sessionExercise.rsm?.pump ?? null}
+              descriptions={pumpDescriptions}
+              colorMode={SessionPageSliderColorMode.Positive}
+              disabled={getImmediateFieldState().disabled}
+              highlight={getImmediateFieldState().highlight}
+              onValueChange={(v) => updateRsm('pump', v)}
+            />
+
+            {#if mode === SessionPageMode.Active}
+              <SessionPageDeferredField
+                label="Disruption"
+                reason="requires assessing soreness and recovery the following day"
+              />
             {:else}
-              <p class="text-xs text-muted-foreground">Calculated automatically as you log sets</p>
+              <SessionPageSliderField
+                label="Disruption"
+                value={sessionExercise.rsm?.disruption ?? null}
+                descriptions={disruptionDescriptions}
+                colorMode={SessionPageSliderColorMode.Positive}
+                disabled={getLateFieldState().disabled}
+                highlight={getLateFieldState().highlight}
+                onValueChange={(v) => updateRsm('disruption', v)}
+              />
             {/if}
           </div>
 
-          {#if mode === SessionPageMode.Active}
-            <SessionPageDeferredField
-              label="Soreness"
-              reason="DOMS typically appears 24–48 hours after training"
-            />
-          {:else}
+          <!-- Section 4: Fatigue Sliders -->
+          <Separator />
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-medium">Fatigue</h3>
+              <InfoPopover>
+                Fatigue measures the cost of the stimulus. The Stimulus to Fatigue Ratio (SFR) is
+                calculated as RSM / total fatigue. A higher SFR means more efficient stimulus.
+              </InfoPopover>
+            </div>
+
             <SessionPageSliderField
-              label="Soreness"
-              value={sessionExercise.sorenessScore ?? null}
-              descriptions={sorenessDescriptions}
+              label="Perceived Effort"
+              value={sessionExercise.fatigue?.perceivedEffort ?? null}
+              descriptions={effortDescriptions}
               colorMode={SessionPageSliderColorMode.Negative}
-              disabled={getLateFieldState().disabled}
-              highlight={getLateFieldState().highlight}
-              onValueChange={updateSoreness}
+              disabled={getImmediateFieldState().disabled}
+              highlight={getImmediateFieldState().highlight}
+              onValueChange={(v) => updateFatigue('perceivedEffort', v)}
             />
-          {/if}
-        </div>
-      {/if}
+
+            <SessionPageSliderField
+              label="Unused Muscle Performance"
+              value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
+              descriptions={unusedMuscleDescriptions}
+              colorMode={SessionPageSliderColorMode.Negative}
+              disabled={getImmediateFieldState().disabled}
+              highlight={getImmediateFieldState().highlight}
+              onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
+            />
+
+            {#if mode === SessionPageMode.Active}
+              <SessionPageDeferredField
+                label="Joint & Tissue Disruption"
+                reason="requires assessing joint stress and connective tissue response after the session"
+              />
+            {:else}
+              <SessionPageSliderField
+                label="Joint & Tissue Disruption"
+                value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
+                descriptions={jointDescriptions}
+                colorMode={SessionPageSliderColorMode.Negative}
+                disabled={getLateFieldState().disabled}
+                highlight={getLateFieldState().highlight}
+                onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
+              />
+            {/if}
+          </div>
+
+          <!-- Section 5: Recovery -->
+          <Separator />
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-medium">Recovery</h3>
+
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-1.5">
+                <Label>Performance Score</Label>
+                <InfoPopover>
+                  <p class="mb-2 text-sm">
+                    Auto-calculated from your logged sets by comparing actual reps and RIR to
+                    planned targets.
+                  </p>
+                  <ul class="flex flex-col gap-1.5 text-sm">
+                    {#each performanceDescriptions as desc, i (i)}
+                      <li><strong>{i}:</strong> {desc}</li>
+                    {/each}
+                  </ul>
+                </InfoPopover>
+              </div>
+              {#if displayPerformanceScore !== null}
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground">
+                    {displayPerformanceScore}
+                  </span>
+                  <span class="text-xs text-muted-foreground">
+                    {performanceDescriptions[displayPerformanceScore]}
+                  </span>
+                </div>
+              {:else}
+                <p class="text-xs text-muted-foreground">
+                  Calculated automatically as you log sets
+                </p>
+              {/if}
+            </div>
+
+            {#if mode === SessionPageMode.Active}
+              <SessionPageDeferredField
+                label="Soreness"
+                reason="DOMS typically appears 24–48 hours after training"
+              />
+            {:else}
+              <SessionPageSliderField
+                label="Soreness"
+                value={sessionExercise.sorenessScore ?? null}
+                descriptions={sorenessDescriptions}
+                colorMode={SessionPageSliderColorMode.Negative}
+                disabled={getLateFieldState().disabled}
+                highlight={getLateFieldState().highlight}
+                onValueChange={updateSoreness}
+              />
+            {/if}
+          </div>
+        {/if}
+      </div>
     </div>
   {/if}
 </div>

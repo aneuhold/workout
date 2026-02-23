@@ -16,12 +16,12 @@
     IconBarbell,
     IconCheck,
     IconChevronDown,
-    IconChevronUp,
     IconPencil,
     IconTrash
   } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import { SvelteMap } from 'svelte/reactivity';
+  import { slide } from 'svelte/transition';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -97,112 +97,114 @@
         {/each}
       </div>
     </div>
-    {#if expanded}
-      <IconChevronUp size={16} class="shrink-0 text-muted-foreground" />
-    {:else}
-      <IconChevronDown size={16} class="shrink-0 text-muted-foreground" />
-    {/if}
+    <IconChevronDown
+      size={16}
+      class="shrink-0 text-muted-foreground transition-transform duration-200
+        {expanded ? 'rotate-180' : ''}"
+    />
   </button>
 
   {#if expanded}
-    <Separator />
-    <div class="flex flex-col gap-3 px-3 py-3">
-      <!-- Properties grid -->
-      <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
-        <div>
-          <span class="text-xs text-muted-foreground">Equipment</span>
-          <p>{getEquipmentName(exercise.workoutEquipmentTypeId)}</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Progression</span>
-          <p>{exercise.preferredProgressionType}</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Rest Time</span>
-          <p>{exercise.restSeconds ?? '—'}s</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Rep Range</span>
-          <p>{repRange.min}-{repRange.max} ({exercise.repRange})</p>
-        </div>
-      </div>
-
-      <!-- Muscle groups -->
-      <div>
-        <span class="text-xs text-muted-foreground">Muscle Groups</span>
-        <div class="mt-1 flex flex-wrap gap-1">
-          {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
-            <Badge>{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge>
-          {/each}
-          {#each exercise.secondaryMuscleGroups as muscleGroupId (muscleGroupId)}
-            <Badge variant="outline"
-              >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge
-            >
-          {/each}
-        </div>
-      </div>
-
-      <!-- Notes -->
-      {#if exercise.notes}
-        <div>
-          <span class="text-xs text-muted-foreground">Notes</span>
-          <p class="mt-0.5">{exercise.notes}</p>
-        </div>
-      {/if}
-
-      <!-- Calibration -->
+    <div transition:slide={{ duration: 200 }}>
       <Separator />
-      {#if latestCalibration}
-        <div class="rounded-lg bg-muted/50 p-3">
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <IconCheck size={14} class="text-green-600" />
-            Calibrated on {latestCalibration.dateRecorded.toLocaleDateString()}
+      <div class="flex flex-col gap-3 px-3 py-3">
+        <!-- Properties grid -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+          <div>
+            <span class="text-xs text-muted-foreground">Equipment</span>
+            <p>{getEquipmentName(exercise.workoutEquipmentTypeId)}</p>
           </div>
-          <div class="mt-2 grid grid-cols-3 text-center">
-            <div>
-              <span class="text-xs text-muted-foreground">Weight</span>
-              <p class="font-medium">{latestCalibration.weight} lb</p>
-            </div>
-            <div>
-              <span class="text-xs text-muted-foreground">Reps</span>
-              <p class="font-medium">{latestCalibration.reps}</p>
-            </div>
-            <div>
-              <span class="text-xs text-muted-foreground">Est. 1RM</span>
-              <p class="font-medium">
-                {Math.round(WorkoutExerciseCalibrationService.get1RM(latestCalibration))} lb
-              </p>
-            </div>
+          <div>
+            <span class="text-xs text-muted-foreground">Progression</span>
+            <p>{exercise.preferredProgressionType}</p>
+          </div>
+          <div>
+            <span class="text-xs text-muted-foreground">Rest Time</span>
+            <p>{exercise.restSeconds ?? '—'}s</p>
+          </div>
+          <div>
+            <span class="text-xs text-muted-foreground">Rep Range</span>
+            <p>{repRange.min}-{repRange.max} ({exercise.repRange})</p>
           </div>
         </div>
-      {:else}
-        <div
-          class="rounded-lg border border-amber-300/50 bg-amber-50 p-3 dark:border-amber-600/30 dark:bg-amber-950/30"
-        >
-          <div class="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400">
-            <IconAlertTriangle size={14} />
-            Not Calibrated
-          </div>
-          <p class="mt-1 text-xs text-amber-600 dark:text-amber-500">
-            Calibration data is needed for accurate load recommendations.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" class="w-full" onclick={onAddCalibration}>
-          <IconBarbell size={14} />
-          Add Calibration
-        </Button>
-      {/if}
 
-      <!-- Actions -->
-      <div class="flex gap-2">
-        <Button variant="outline" size="sm" onclick={onEdit}>
-          <IconPencil size={14} />
-          Edit
-        </Button>
-        <Button variant="destructive" size="sm" onclick={onDelete}>
-          <IconTrash size={14} />
-          Delete
-        </Button>
+        <!-- Muscle groups -->
+        <div>
+          <span class="text-xs text-muted-foreground">Muscle Groups</span>
+          <div class="mt-1 flex flex-wrap gap-1">
+            {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
+              <Badge>{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge>
+            {/each}
+            {#each exercise.secondaryMuscleGroups as muscleGroupId (muscleGroupId)}
+              <Badge variant="outline"
+                >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</Badge
+              >
+            {/each}
+          </div>
+        </div>
+
+        <!-- Notes -->
+        {#if exercise.notes}
+          <div>
+            <span class="text-xs text-muted-foreground">Notes</span>
+            <p class="mt-0.5">{exercise.notes}</p>
+          </div>
+        {/if}
+
+        <!-- Calibration -->
+        <Separator />
+        {#if latestCalibration}
+          <div class="rounded-lg bg-muted/50 p-3">
+            <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <IconCheck size={14} class="text-green-600" />
+              Calibrated on {latestCalibration.dateRecorded.toLocaleDateString()}
+            </div>
+            <div class="mt-2 grid grid-cols-3 text-center">
+              <div>
+                <span class="text-xs text-muted-foreground">Weight</span>
+                <p class="font-medium">{latestCalibration.weight} lb</p>
+              </div>
+              <div>
+                <span class="text-xs text-muted-foreground">Reps</span>
+                <p class="font-medium">{latestCalibration.reps}</p>
+              </div>
+              <div>
+                <span class="text-xs text-muted-foreground">Est. 1RM</span>
+                <p class="font-medium">
+                  {Math.round(WorkoutExerciseCalibrationService.get1RM(latestCalibration))} lb
+                </p>
+              </div>
+            </div>
+          </div>
+        {:else}
+          <div
+            class="rounded-lg border border-amber-300/50 bg-amber-50 p-3 dark:border-amber-600/30 dark:bg-amber-950/30"
+          >
+            <div class="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400">
+              <IconAlertTriangle size={14} />
+              Not Calibrated
+            </div>
+            <p class="mt-1 text-xs text-amber-600 dark:text-amber-500">
+              Calibration data is needed for accurate load recommendations.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" class="w-full" onclick={onAddCalibration}>
+            <IconBarbell size={14} />
+            Add Calibration
+          </Button>
+        {/if}
+
+        <!-- Actions -->
+        <div class="flex gap-2">
+          <Button variant="outline" size="sm" onclick={onEdit}>
+            <IconPencil size={14} />
+            Edit
+          </Button>
+          <Button variant="destructive" size="sm" onclick={onDelete}>
+            <IconTrash size={14} />
+            Delete
+          </Button>
+        </div>
       </div>
     </div>
   {/if}

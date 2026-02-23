@@ -8,6 +8,7 @@
   import { ModeWatcher } from 'mode-watcher';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
+  import { onNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
@@ -20,6 +21,17 @@
   let { children }: { children?: Snippet } = $props();
 
   let mounted = $state(false);
+
+  onNavigate((navigation) => {
+    const transition = document.startViewTransition?.bind(document);
+    if (!transition) return;
+    return new Promise((resolve) => {
+      transition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
+  });
 
   onMount(() => {
     // Initialize services from LocalData. Not sure if this is the best place, but it does solve
@@ -53,8 +65,8 @@ at some point.
 <ModeWatcher />
 <div class="app">
   {#if !mounted || $loginState === LoginState.Initializing}
-    <div class="loading">
-      <p>Loading...</p>
+    <div class="flex h-dvh items-center justify-center">
+      <p class="animate-pulse text-muted-foreground">Loading...</p>
     </div>
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
     <Login />
@@ -64,7 +76,7 @@ at some point.
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->
     <main
-      class="md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48
+      class="[view-transition-name:main-content] md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48
         {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-(--top-nav-height)' : ''}"
     >
       {@render children?.()}

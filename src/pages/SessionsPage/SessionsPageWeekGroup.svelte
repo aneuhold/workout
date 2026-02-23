@@ -11,10 +11,12 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
-  import { IconChevronDown, IconChevronRight } from '@tabler/icons-svelte';
+  import { IconChevronRight } from '@tabler/icons-svelte';
+  import { slide } from 'svelte/transition';
   import SessionCard from '$components/SessionCard/SessionCard.svelte';
   import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
   import { getSessionStatus } from '$components/SessionCard/sessionCardUtils';
+  import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
 
@@ -80,11 +82,11 @@
 
 <div class="flex flex-col gap-2">
   <button class="flex items-center gap-2 text-left" onclick={() => (expanded = !expanded)}>
-    {#if expanded}
-      <IconChevronDown size={16} class="shrink-0 text-muted-foreground" />
-    {:else}
-      <IconChevronRight size={16} class="shrink-0 text-muted-foreground" />
-    {/if}
+    <IconChevronRight
+      size={16}
+      class="shrink-0 text-muted-foreground transition-transform duration-200
+        {expanded ? 'rotate-90' : ''}"
+    />
     <div class="flex flex-1 items-center gap-2">
       <span class="text-sm font-medium">{weekLabel}</span>
       <span class="text-xs text-muted-foreground">{dateRange}</span>
@@ -95,15 +97,19 @@
   </button>
 
   {#if expanded}
-    <div class="flex flex-col gap-2 pl-6">
-      {#each sessions as session (session._id)}
-        <SessionCard
-          {session}
-          status={getStatus(session)}
-          sessionExercises={getExercisesForSession(session)}
-          sets={getSetsForSession(session)}
-        />
-      {/each}
+    <div transition:slide={{ duration: 200 }}>
+      <div class="flex flex-col gap-2 pl-6">
+        {#each sessions as session, i (session._id)}
+          <StaggerItem index={i}>
+            <SessionCard
+              {session}
+              status={getStatus(session)}
+              sessionExercises={getExercisesForSession(session)}
+              sets={getSetsForSession(session)}
+            />
+          </StaggerItem>
+        {/each}
+      </div>
     </div>
   {/if}
 </div>

@@ -49,6 +49,19 @@ The workout app depends on `@aneuhold/core-ts-db-lib`, a schema-first data model
 - **Dark mode**: Managed by `mode-watcher` package; use `.dark` class variant in Tailwind
 - **Clean CSS**: Never use inline styles, and try to keep the number of CSS classes to the absolute minimum. Using a small amount of CSS classes is a good indication that you are leveraging CSS correctly. If you find yourself needing to add a large number of CSS classes to a component, it's often a sign you need to take a step back and rethink your approach.
 
+### Animations & Transitions
+
+The app uses a layered animation approach. Each layer uses the simplest tool that works, and all animations respect `prefers-reduced-motion` via a single global media query in `global.css`.
+
+**Hierarchy (prefer higher layers first):**
+
+1. **CSS pseudo-classes (`:active`, `:hover`, `:focus`)** — for instant interaction feedback (e.g. nav tap highlight). Zero JS, zero overhead.
+2. **Tailwind utility classes and CSS keyframes** — for entrance effects, tab switches, and any animation that doesn't depend on dynamic height. The `animate-fade-in-up` keyframe in `global.css` powers content entrances. Use `data-*` attribute selectors (e.g. `data-[state=active]:animate-fade-in-up`) to tie animations to component state set by bits-ui/shadcn-svelte.
+3. **View Transitions API** — for page navigation cross-fades. Scoped to the `<main>` element via `view-transition-name: main-content` so TopBar/NavBar stay static. Progressive enhancement — does nothing in unsupported browsers.
+4. **Svelte transitions (`transition:slide`, `in:fly`)** — only when CSS alone can't do it. The primary use case is `transition:slide` for expand/collapse of content with `height: auto` (CSS cannot natively transition to `height: auto`). For staggered list entrances, use the `<StaggerItem>` wrapper component (`src/components/StaggerItem/StaggerItem.svelte`) which centralizes fly-in parameters.
+
+**What NOT to animate:** shadcn-svelte overlays (Dialog, Sheet, Popover, Select, AlertDialog) already have animations via `tw-animate-css` — don't add competing transitions. Don't animate individual set rows, badge lists, or other fine-grained items — keep it to page-level and section-level effects.
+
 ### Component Patterns
 
 - **Svelte 5 syntax**: Use modern runes (`$state()`, `$derived()`, `$effect()`, `$props()`)

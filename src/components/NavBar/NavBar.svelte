@@ -52,7 +52,7 @@
         md:flex-initial md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-md md:px-3 md:py-2.5
         {isActive(item.url, currentPath)
         ? 'text-primary md:bg-sidebar-accent'
-        : 'text-sidebar-foreground/60 hover:text-sidebar-foreground md:hover:bg-sidebar-accent/50'}"
+        : 'text-sidebar-foreground/60 hover:text-sidebar-foreground active:text-primary md:hover:bg-sidebar-accent/50 md:active:bg-sidebar-accent'}"
     >
       {#if item.iconName && iconMap[item.iconName]}
         {@const Icon = iconMap[item.iconName]}
