@@ -195,7 +195,6 @@
   ::view-transition-old(main-content) {
     animation: 200ms ease-out both fade-out;
   }
-
   ::view-transition-new(main-content) {
     animation: 200ms ease-out both fade-in-up;
   }
@@ -204,6 +203,8 @@
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none;
+    /* Needed so that it also stays above the other content */
+    z-index: 40;
   }
 
   @keyframes fade-out {

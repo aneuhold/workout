@@ -32,18 +32,15 @@
   // --- Data ---
 
   let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
-
   let sessionExercises = $derived(
     session ? sessionMapService.getOrderedSessionExercisesForSession(session) : []
   );
-
   let allSets = $derived(session ? sessionMapService.getOrderedSetsForSession(session) : []);
-
   let completedSets = $derived(allSets.filter((s) => WorkoutSetService.isCompleted(s)));
-
   let totalSets = $derived(allSets.length);
   let completedCount = $derived(completedSets.length);
   let percent = $derived(totalSets > 0 ? Math.round((completedCount / totalSets) * 100) : 0);
+  let allSetsLogged = $derived(completedCount >= totalSets && totalSets > 0);
 
   let allImmediateSlidersFilled = $derived(
     sessionExercises.every((se) => {
@@ -247,6 +244,7 @@
         cardState={getCardState(i)}
         {mode}
         expanded={isExpanded(se._id)}
+        {allSetsLogged}
         onToggle={() => toggleExpanded(se._id)}
       />
     {/each}

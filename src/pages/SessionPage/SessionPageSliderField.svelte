@@ -56,17 +56,12 @@
       ];
       return colors[score] ?? 'text-muted-foreground';
     }
-    if (colorMode === SessionPageSliderColorMode.Negative) {
-      const colors = ['text-muted-foreground', 'text-orange-500', 'text-red-500', 'text-red-700'];
-      return colors[score] ?? 'text-muted-foreground';
-    }
-    // performance: neutral for 0-2, red for 3
-    if (score === 3) return 'text-red-600';
-    return 'text-muted-foreground';
+    const colors = ['text-muted-foreground', 'text-orange-500', 'text-red-500', 'text-red-700'];
+    return colors[score] ?? 'text-muted-foreground';
   }
 </script>
 
-<div class={highlight ? 'rounded-lg ring-1 ring-primary/30 p-2' : ''}>
+<div class={highlight && value == null ? 'rounded-lg ring-2 ring-amber-500/50 p-2' : ''}>
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-1.5">
       <Label>{label}</Label>

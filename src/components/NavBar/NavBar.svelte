@@ -42,8 +42,9 @@
   }
 </script>
 
+<!-- View transition is specified just so it participates in that part of the UI when they happen -->
 <nav
-  class="bg-sidebar border-sidebar-border fixed bottom-0 left-0 z-40 flex w-full border-t md:top-(--top-nav-height) md:h-[calc(100vh-var(--top-nav-height))] md:w-48 md:flex-col md:border-t-0 md:border-r"
+  class="[view-transition-name:match-element] bg-sidebar border-sidebar-border fixed bottom-0 left-0 z-40 flex w-full border-t md:top-(--top-nav-height) md:h-[calc(100vh-var(--top-nav-height))] md:w-48 md:flex-col md:border-t-0 md:border-r"
 >
   {#each navBarItems as item (item.url)}
     <a
