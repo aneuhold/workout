@@ -50,7 +50,7 @@
       <Button class="w-full" disabled={!canComplete} onclick={onComplete}>Complete Session</Button>
       {#if setsComplete && !allImmediateSlidersFilled}
         <p class="text-center text-xs text-muted-foreground">
-          Fill in all RSM, Fatigue, and Performance sliders to complete the session.
+          Fill in all RSM and Fatigue fields to complete the session.
         </p>
       {/if}
     {:else if mode === SessionPageMode.Review}
