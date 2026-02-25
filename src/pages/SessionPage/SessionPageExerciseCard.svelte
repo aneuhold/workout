@@ -49,41 +49,39 @@
     cardState,
     mode,
     expanded,
+    allSetsLogged = false,
     onToggle
   }: {
     sessionExercise: WorkoutSessionExercise;
     cardState: SessionPageExerciseCardState;
     mode: SessionPageMode;
     expanded: boolean;
+    allSetsLogged?: boolean;
     onToggle: () => void;
   } = $props();
 
-  // --- Data lookups ---
-
   let exercise = $derived(exerciseMapService.getDoc(sessionExercise.workoutExerciseId));
-
   let sets = $derived(
     sessionExercise.setOrder
       .map((id) => setMapService.getDoc(id))
       .filter((s): s is WorkoutSet => s != null)
   );
-
   let isDeload = $derived(WorkoutSessionExerciseService.isDeloadExercise(sets));
-
+  let hasRirAndReps = $derived(sets.some((s) => s.plannedReps != null && s.plannedRir != null));
   let computedPerformanceScore = $derived(WorkoutSessionExerciseService.getPerformanceScore(sets));
   let displayPerformanceScore = $derived(
     computedPerformanceScore ?? sessionExercise.performanceScore ?? null
   );
+  let repRange = $derived(
+    exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
+  );
+
   $effect(() => {
     const score = computedPerformanceScore;
     if (score !== null && score !== sessionExercise.performanceScore) {
       updatePerformance(score);
     }
   });
-
-  let repRange = $derived(
-    exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
-  );
 
   // --- Muscle group names ---
 
@@ -165,19 +163,18 @@
 
   // --- Slider interaction states ---
 
-  /**
-   * Returns whether a slider is disabled and highlighted based on field type and mode.
-   * Immediate fields: interactive in active, read-only in review/view
-   * Late fields: deferred in active, interactive+highlighted in review, read-only in view
-   */
-  function getImmediateFieldState(): { disabled: boolean; highlight: boolean } {
-    return { disabled: mode !== SessionPageMode.Active, highlight: false };
-  }
+  /** Immediate fields: interactive in active, read-only in review/view */
+  let immediateFieldState = $derived({
+    disabled: mode !== SessionPageMode.Active,
+    highlight: mode === SessionPageMode.Active && allSetsLogged
+  });
 
-  function getLateFieldState(): { disabled: boolean; highlight: boolean } {
-    if (mode === SessionPageMode.Review) return { disabled: false, highlight: true };
-    return { disabled: true, highlight: false };
-  }
+  /** Late fields: deferred in active, interactive+highlighted in review, read-only in view */
+  let lateFieldState = $derived(
+    mode === SessionPageMode.Review
+      ? { disabled: false, highlight: true }
+      : { disabled: true, highlight: false }
+  );
 
   // --- Slider change handlers ---
 
@@ -315,6 +312,11 @@
               onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
             />
           {/each}
+          {#if hasRirAndReps && mode === SessionPageMode.Active}
+            <p class="px-2 pt-1 text-xs text-muted-foreground/70">
+              Hit target reps first, then keep going until you reach target RIR.
+            </p>
+          {/if}
         </div>
 
         <!-- Section 2: Rest Timer -->
@@ -352,7 +354,7 @@
               <p class="mb-2 font-medium">Rest Readiness Guidelines</p>
               <ul class="flex flex-col gap-1.5 text-sm">
                 <li>
-                  Are my <strong>{primaryMuscleNames}</strong> still burning from the last set?
+                  Are my <strong>{primaryMuscleNames}</strong> no longer burning from the last set?
                 </li>
                 {#if secondaryMuscleNames}
                   <li>
@@ -391,8 +393,8 @@
               value={sessionExercise.rsm?.mindMuscleConnection ?? null}
               descriptions={mindMuscleDescriptions}
               colorMode={SessionPageSliderColorMode.Positive}
-              disabled={getImmediateFieldState().disabled}
-              highlight={getImmediateFieldState().highlight}
+              disabled={immediateFieldState.disabled}
+              highlight={immediateFieldState.highlight}
               onValueChange={(v) => updateRsm('mindMuscleConnection', v)}
             />
 
@@ -401,8 +403,8 @@
               value={sessionExercise.rsm?.pump ?? null}
               descriptions={pumpDescriptions}
               colorMode={SessionPageSliderColorMode.Positive}
-              disabled={getImmediateFieldState().disabled}
-              highlight={getImmediateFieldState().highlight}
+              disabled={immediateFieldState.disabled}
+              highlight={immediateFieldState.highlight}
               onValueChange={(v) => updateRsm('pump', v)}
             />
 
@@ -417,8 +419,8 @@
                 value={sessionExercise.rsm?.disruption ?? null}
                 descriptions={disruptionDescriptions}
                 colorMode={SessionPageSliderColorMode.Positive}
-                disabled={getLateFieldState().disabled}
-                highlight={getLateFieldState().highlight}
+                disabled={lateFieldState.disabled}
+                highlight={lateFieldState.highlight}
                 onValueChange={(v) => updateRsm('disruption', v)}
               />
             {/if}
@@ -440,8 +442,8 @@
               value={sessionExercise.fatigue?.perceivedEffort ?? null}
               descriptions={effortDescriptions}
               colorMode={SessionPageSliderColorMode.Negative}
-              disabled={getImmediateFieldState().disabled}
-              highlight={getImmediateFieldState().highlight}
+              disabled={immediateFieldState.disabled}
+              highlight={immediateFieldState.highlight}
               onValueChange={(v) => updateFatigue('perceivedEffort', v)}
             />
 
@@ -450,8 +452,8 @@
               value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
               descriptions={unusedMuscleDescriptions}
               colorMode={SessionPageSliderColorMode.Negative}
-              disabled={getImmediateFieldState().disabled}
-              highlight={getImmediateFieldState().highlight}
+              disabled={immediateFieldState.disabled}
+              highlight={immediateFieldState.highlight}
               onValueChange={(v) => updateFatigue('unusedMusclePerformance', v)}
             />
 
@@ -466,8 +468,8 @@
                 value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
                 descriptions={jointDescriptions}
                 colorMode={SessionPageSliderColorMode.Negative}
-                disabled={getLateFieldState().disabled}
-                highlight={getLateFieldState().highlight}
+                disabled={lateFieldState.disabled}
+                highlight={lateFieldState.highlight}
                 onValueChange={(v) => updateFatigue('jointAndTissueDisruption', v)}
               />
             {/if}
@@ -520,8 +522,8 @@
                 value={sessionExercise.sorenessScore ?? null}
                 descriptions={sorenessDescriptions}
                 colorMode={SessionPageSliderColorMode.Negative}
-                disabled={getLateFieldState().disabled}
-                highlight={getLateFieldState().highlight}
+                disabled={lateFieldState.disabled}
+                highlight={lateFieldState.highlight}
                 onValueChange={updateSoreness}
               />
             {/if}

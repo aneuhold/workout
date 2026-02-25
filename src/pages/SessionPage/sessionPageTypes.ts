@@ -36,10 +36,8 @@ export enum SessionPageSetState {
  *
  * - `Positive`: Green gradient (higher = better), used for RSM sliders
  * - `Negative`: Red gradient (higher = worse), used for fatigue sliders
- * - `Performance`: Neutral for scores 0-2, red only for score 3
  */
 export enum SessionPageSliderColorMode {
   Positive = 'positive',
-  Negative = 'negative',
-  Performance = 'performance'
+  Negative = 'negative'
 }
