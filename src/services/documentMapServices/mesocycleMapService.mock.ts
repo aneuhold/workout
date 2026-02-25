@@ -173,7 +173,7 @@ export default class MesocycleMapServiceMock {
   /**
    * Fills in mid-session metrics on session exercises belonging to completed
    * sessions. Mid-session metrics are filled during the workout:
-   * mindMuscleConnection, pump, perceivedEffort, unusedMusclePerformance,
+   * mindMuscleConnection, pump, unusedMusclePerformance,
    * and performanceScore.
    *
    * @param data The mock mesocycle data to modify in-place
@@ -183,7 +183,7 @@ export default class MesocycleMapServiceMock {
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
         se.rsm = { ...se.rsm, mindMuscleConnection: 2, pump: 2 };
-        se.fatigue = { ...se.fatigue, perceivedEffort: 2, unusedMusclePerformance: 1 };
+        se.fatigue = { ...se.fatigue, unusedMusclePerformance: 1 };
         se.performanceScore = 1;
       }
     }
@@ -192,7 +192,8 @@ export default class MesocycleMapServiceMock {
   /**
    * Fills in post-session (late) metrics on session exercises belonging to
    * completed sessions so they show as fully "Completed" rather than "Review".
-   * Late metrics are: disruption, jointAndTissueDisruption, and sorenessScore.
+   * Late metrics are: disruption, jointAndTissueDisruption, perceivedEffort,
+   * and sorenessScore.
    *
    * @param data The mock mesocycle data to modify in-place
    */
@@ -201,7 +202,7 @@ export default class MesocycleMapServiceMock {
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
         se.rsm = { ...se.rsm, disruption: 1 };
-        se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1 };
+        se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1, perceivedEffort: 2 };
         se.sorenessScore = 1;
       }
     }

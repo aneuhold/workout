@@ -435,15 +435,22 @@
               </InfoPopover>
             </div>
 
-            <SessionPageSliderField
-              label="Perceived Effort"
-              value={sessionExercise.fatigue?.perceivedEffort ?? null}
-              descriptions={effortDescriptions}
-              colorMode={SessionPageSliderColorMode.Negative}
-              disabled={getImmediateFieldState().disabled}
-              highlight={getImmediateFieldState().highlight}
-              onValueChange={(v) => updateFatigue('perceivedEffort', v)}
-            />
+            {#if mode === SessionPageMode.Active}
+              <SessionPageDeferredField
+                label="Perceived Effort"
+                reason="requires assessing recovery and energy levels over the following days"
+              />
+            {:else}
+              <SessionPageSliderField
+                label="Perceived Effort"
+                value={sessionExercise.fatigue?.perceivedEffort ?? null}
+                descriptions={effortDescriptions}
+                colorMode={SessionPageSliderColorMode.Negative}
+                disabled={getLateFieldState().disabled}
+                highlight={getLateFieldState().highlight}
+                onValueChange={(v) => updateFatigue('perceivedEffort', v)}
+              />
+            {/if}
 
             <SessionPageSliderField
               label="Unused Muscle Performance"
