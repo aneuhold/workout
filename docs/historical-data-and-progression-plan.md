@@ -11,23 +11,23 @@ planning.
 
 ### What's Already Implemented
 
-| Feature | Service | Status |
-|---------|---------|--------|
-| 1RM estimation (NASM formula) | `ExerciseCalibrationService` | Done |
-| Target weight from %1RM | `ExerciseCalibrationService` | Done |
-| Rep progression (+2 reps/microcycle) | `ExerciseService` | Done |
-| Load progression (+2% weight/microcycle) | `ExerciseService` | Done |
-| Intra-session fatigue drops (-2 reps/set) | `SetService` | Done |
-| Volume baseline (2 sets + 1/microcycle) | `VolumePlanningService` | Done |
-| Volume adjustment from soreness/performance table | `VolumePlanningService` | Done |
-| RIR progression (4 -> 3 -> 2 -> 1 -> 0) | `MesocycleService` | Done |
-| Performance scoring (actual vs planned) | `SessionExerciseService` | Done |
-| Set addition recommendations | `SessionExerciseService` | Done |
-| Deload handling (half reps, then half weight) | `SetService` | Done |
-| Session distribution (fatigue-aware ordering) | `MicrocycleService` | Done |
-| Mesocycle generation/regeneration | `MesocycleService` | Done |
-| RSM/Fatigue/SFR calculation | `SFRService` | Done |
-| Equipment weight rounding | `EquipmentTypeService` | Done |
+| Feature                                           | Service                      | Status |
+| ------------------------------------------------- | ---------------------------- | ------ |
+| 1RM estimation (NASM formula)                     | `ExerciseCalibrationService` | Done   |
+| Target weight from %1RM                           | `ExerciseCalibrationService` | Done   |
+| Rep progression (+2 reps/microcycle)              | `ExerciseService`            | Done   |
+| Load progression (+2% weight/microcycle)          | `ExerciseService`            | Done   |
+| Intra-session fatigue drops (-2 reps/set)         | `SetService`                 | Done   |
+| Volume baseline (2 sets + 1/microcycle)           | `VolumePlanningService`      | Done   |
+| Volume adjustment from soreness/performance table | `VolumePlanningService`      | Done   |
+| RIR progression (4 -> 3 -> 2 -> 1 -> 0)           | `MesocycleService`           | Done   |
+| Performance scoring (actual vs planned)           | `SessionExerciseService`     | Done   |
+| Set addition recommendations                      | `SessionExerciseService`     | Done   |
+| Deload handling (half reps, then half weight)     | `SetService`                 | Done   |
+| Session distribution (fatigue-aware ordering)     | `MicrocycleService`          | Done   |
+| Mesocycle generation/regeneration                 | `MesocycleService`           | Done   |
+| RSM/Fatigue/SFR calculation                       | `SFRService`                 | Done   |
+| Equipment weight rounding                         | `EquipmentTypeService`       | Done   |
 
 ### What's Missing
 
@@ -69,6 +69,7 @@ getLastPerformanceForExercise(
 
 Returns the most recent completed session-exercise data for a given exercise
 before a date, including:
+
 - Last actual weight, reps, RIR (from the first set of the last session)
 - Average performance score across the last microcycle
 - Average soreness score across the last microcycle
@@ -124,6 +125,7 @@ set starting weights instead of purely using calibration + formula. The logic:
 and "Load Progression" sections
 
 **Problem:** Currently, rep and load progression are purely formulaic:
+
 - Rep progression: +2 reps/microcycle regardless of actual performance
 - Load progression: +2% weight/microcycle regardless of actual performance
 
@@ -151,6 +153,7 @@ interface PreviousPerformance {
 New logic:
 
 **For Rep Progression:**
+
 - If user hit or exceeded planned reps at planned RIR: apply normal +2 reps
 - If user hit planned reps but at lower RIR than planned (e.g., hit 15 reps but
   at 1 RIR instead of planned 3 RIR): hold reps the same, don't add 2. The
@@ -161,6 +164,7 @@ New logic:
   use actual reps as baseline, progress from there
 
 **For Load Progression:**
+
 - If user hit targets: apply normal +2% weight increase
 - If user hit targets at lower RIR than planned: hold weight, don't increase
 - If user missed targets: hold weight or reduce by minimum increment
@@ -182,11 +186,11 @@ microcycle's completed sets and pass that to `calculateTargetRepsAndWeightForFir
 **Problem:** The book prescribes using RSM scores from the first 2-3 sessions to
 determine if starting volume is at MEV. No service implements this.
 
-| Total RSM Score | Proximity to MEV | Action |
-|---:|---|---|
-| 0-3 | Below MEV | Increase volume next week by 2-4 sets |
-| 4-6 | At or just above MEV (ideal start) | Progress normally |
-| 7-9 | Between MEV and MRV | Drop volume next week |
+| Total RSM Score | Proximity to MEV                   | Action                                |
+| --------------: | ---------------------------------- | ------------------------------------- |
+|             0-3 | Below MEV                          | Increase volume next week by 2-4 sets |
+|             4-6 | At or just above MEV (ideal start) | Progress normally                     |
+|             7-9 | Between MEV and MRV                | Drop volume next week                 |
 
 **What to Build:**
 
@@ -202,6 +206,7 @@ evaluateMevProximity(
 
 This aggregates RSM scores across all session exercises in the first microcycle
 that target a given muscle group, averages them, and returns:
+
 - `proximity`: `'below'` | `'at'` | `'above'`
 - `recommendedSetAdjustment`: number (e.g., +3, 0, -2)
 - `averageRsm`: number
@@ -222,6 +227,7 @@ normal soreness/performance progression kicks in.
 
 **Problem:** The system schedules deloads at a fixed position (last microcycle).
 The book says deload should also trigger early when:
+
 - More than half of muscle groups required a recovery session in the last 2 weeks
 - Performance drops of 3+ reps from target across 2+ consecutive sessions
 - Illness lasting more than 3 days
@@ -241,11 +247,13 @@ shouldTriggerEarlyDeload(
 ```
 
 Returns:
+
 - `shouldDeload`: boolean
 - `reason`: string (for UI display)
 - `severity`: `'suggested'` | `'recommended'` | `'urgent'`
 
 Detection rules:
+
 1. Count muscle groups where `isRecoveryExercise` was true in last 2
    microcycles. If > 50% of all trained muscle groups, trigger deload.
 2. For each exercise, check if actual reps fell 3+ below planned reps for 2+
@@ -268,6 +276,7 @@ accepts, the system regenerates remaining microcycles as deload microcycles.
 **Problem:** The `isRecoveryExercise` field exists on `WorkoutSessionExercise`
 and the `VolumePlanningService` cuts sets in half for recovery exercises. But
 there's no complete logic for:
+
 - Transitioning back from a recovery session
 - The "restart at midpoint between MEV and MRV" rule
 - Suggesting which muscle groups need recovery sessions
@@ -287,12 +296,14 @@ getRecoveryRecommendations(
 ```
 
 Returns:
+
 - `needsRecovery`: boolean
 - `returnSetCount`: number (midpoint between MEV and MRV estimates)
 - `reason`: string
 
 The "midpoint between MEV and MRV" requires volume landmark estimates. Since
 exact MEV/MRV are hard to know, use heuristics:
+
 - Estimated MEV: the starting set count of the current mesocycle (since that's
   where the user calibrated to roughly MEV at start)
 - Estimated MRV: the maximum set count the user successfully completed without
@@ -318,6 +329,7 @@ pg. 194 (Resensitization)
 **What to Change:**
 
 **For `CycleType.Cut`:**
+
 - Slower set progression: instead of +1 set per muscle group per microcycle,
   use +0.5 (alternate which exercises get the extra set each week)
 - Longer target mesocycle: 6-8 weeks accumulation instead of 5
@@ -328,6 +340,7 @@ Modify `VolumePlanningService.getBaselineSetCount()` to accept `cycleType` and
 apply a `cutProgressionMultiplier` of 0.5 to the set addition rate.
 
 **For `CycleType.Resensitization`:**
+
 - Use MV-level training (very low volume: 2-3 sets per muscle group total)
 - Bias toward 5-10 rep range (heavier weight, lower volume)
 - Frequency can drop to 1-2x per week per muscle group
@@ -338,6 +351,7 @@ Modify `MesocycleService.generateOrUpdateMesocycle()` to detect
 `Resensitization` and use a flat volume plan with heavy rep range bias.
 
 **For `CycleType.MuscleGain`:**
+
 - Current behavior is correct for this type (the default)
 - No changes needed
 
@@ -366,6 +380,7 @@ getFrequencyRecommendation(
 ```
 
 Algorithm:
+
 1. For each microcycle, check the soreness scores for the muscle group
 2. If soreness consistently resolves before the next session targeting that
    muscle group (soreness score 0-1 by next session): recommend +1 frequency
@@ -374,6 +389,7 @@ Algorithm:
 4. If soreness resolves just in time (mixed 1-2 scores): recommend no change
 
 Returns:
+
 - `recommendedChange`: -1 | 0 | +1
 - `currentFrequency`: number
 - `suggestedFrequency`: number
@@ -408,6 +424,7 @@ getExerciseRetentionRecommendation(
 ```
 
 Uses the book's 3-question decision tree:
+
 1. **Performance stalled?** Check if rep strength improved across the mesocycle
    (compare first microcycle actual reps/weight to last). If no improvement or
    regression -> `stalled = true`
@@ -419,6 +436,7 @@ Uses the book's 3-question decision tree:
    to second half of mesocycle -> `stale = true`
 
 Returns:
+
 - `recommendation`: `'keep'` | `'consider-replacing'` | `'replace'`
 - `stalled`: boolean
 - `painful`: boolean
@@ -452,6 +470,7 @@ estimateVolumeLandmarks(
 ```
 
 Heuristics:
+
 - **Estimated MEV**: The set count at which the user first reported RSM >= 4
   for that muscle group. Average across available mesocycles. If no RSM data,
   use the starting set count of the most recent mesocycle.
@@ -464,6 +483,7 @@ These are rough estimates that improve with more data. The system should store
 these as derived data (not persisted documents) and recalculate when needed.
 
 **Integration Point:** Used by:
+
 - `VolumePlanningService` for starting set counts (start at estimated MEV)
 - Recovery session return logic (Gap 5)
 - Cut mesocycle volume ceiling
@@ -494,6 +514,7 @@ This is closely related to Gap 1 and Gap 2. The core change is in
 `MesocycleService.generateOrUpdateMesocycle()`:
 
 When building the plan context for a new mesocycle:
+
 1. For each calibrated exercise, check if the same exercise was used in the
    immediately preceding completed mesocycle
 2. If yes, and the rep range is the same:
@@ -641,62 +662,44 @@ is useful for debugging and analytics. These would be set during
 
 These questions could significantly change the plan's scope or approach:
 
-1. **How much historical data should be required before autoregulation kicks
-   in?** The plan assumes "if any previous mesocycle exists, use it." Should
-   there be a minimum of 2-3 completed mesocycles before trusting historical
-   patterns? Or should even 1 prior mesocycle inform the next?
-
-2. **Should the system auto-regenerate future microcycles after each session,
-   or only when explicitly triggered?** Auto-regeneration means better plans
-   but more computation and potentially confusing UX (the user's upcoming
-   sessions keep changing). Manual regeneration is simpler but means the plan
-   gets stale. A middle ground: regenerate after each microcycle completes?
-
-3. **How should the system handle partial mesocycle completions?** If a user
+1. **How should the system handle partial mesocycle completions?** If a user
    abandons a mesocycle at week 3 of 6, should that data still be used for
    historical lookups? The performance data is valid but the volume progression
    is incomplete. Should abandoned mesocycles be weighted differently?
 
-4. **Should volume landmark estimates be per-muscle-group or per-exercise?**
+2. **Should volume landmark estimates be per-muscle-group or per-exercise?**
    The book discusses MEV/MRV per muscle group, but the app tracks data per
    exercise. An exercise-level estimate is more precise but noisier. A
    muscle-group-level estimate is smoother but less specific. The plan currently
    proposes per-muscle-group. Should it be both?
 
-5. **What should happen when the user's calibration data is stale?** If the
+3. **What should happen when the user's calibration data is stale?** If the
    most recent calibration is 6+ months old and the user has completed several
    mesocycles since then, the 1RM estimate may be significantly off. Should the
    system prompt for re-calibration? Should it infer an updated 1RM from recent
    actual performance data?
 
-6. **Should the frequency recommendation system actually modify the mesocycle
-   template, or just advise?** The plan proposes advisory recommendations. But
-   changing frequency means changing session count and exercise distribution,
-   which is a significant structural change to the mesocycle. Should the system
-   offer to auto-apply frequency changes, or should the user always configure
-   this manually?
-
-7. **How should the resensitization mesocycle interact with exercise selection?**
+4. **How should the resensitization mesocycle interact with exercise selection?**
    The book offers 3 options for deload/resensitization exercises: same as
    current, next mesocycle's, or low-stress alternatives. The plan proposes
    using current exercises. Should the UI offer the choice? Does this affect
    the data model?
 
-8. **Is there a need for a "macrocycle" concept in the data model?** The book
+5. **Is there a need for a "macrocycle" concept in the data model?** The book
    describes sequencing mesocycles into blocks (muscle gain -> maintenance ->
    fat loss). Currently there's no structure above `WorkoutMesocycle`. Should a
    `WorkoutMacrocycle` document exist to group mesocycles and track block-level
    progression? Or is `previousMesocycleId` chaining sufficient?
 
-9. **How should the system handle exercises that appear in different sessions
+6. **How should the system handle exercises that appear in different sessions
    within the same microcycle?** The book says don't do the exact same workout
    twice in a microcycle, but you can do the same exercise with different
    parameters. Currently, the same `WorkoutExercise` could appear in multiple
    sessions. Should the historical data service treat these as independent
    progression tracks or aggregate them?
 
-10. **What priority should the analytics/visualization layer have?** The plan
-    focuses on core logic, but the historical data service enables a rich
-    analytics page. Should Phase E include frontend work for displaying
-    progression charts, SFR trends, and volume landmark visualizations? Or
-    should that be a separate effort?
+7. **What priority should the analytics/visualization layer have?** The plan
+   focuses on core logic, but the historical data service enables a rich
+   analytics page. Should Phase E include frontend work for displaying
+   progression charts, SFR trends, and volume landmark visualizations? Or
+   should that be a separate effort?
