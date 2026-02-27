@@ -27,8 +27,8 @@ for a given muscle group:
  * @param muscleGroupId - The muscle group to evaluate
  * @param firstMicrocycleSessionExercises - All completed session exercises
  *   from the first microcycle
- * @param exerciseToMuscleGroupMap - Maps exercise IDs to their primary muscle
- *   group IDs
+ * @param exerciseToMuscleGroupMap - Maps exercise IDs to their primary
+ *   muscle group IDs
  */
 evaluateMevProximity(
   muscleGroupId: UUID,
@@ -38,8 +38,6 @@ evaluateMevProximity(
 ```
 
 ### MevProximityResult Type
-
-Define as an embedded type:
 
 ```typescript
 interface MevProximityResult {
@@ -68,10 +66,10 @@ interface MevProximityResult {
 4. Apply the table:
 
 | Average RSM | Proximity | Set Adjustment |
-|---:|---|---:|
-| 0-3 | `'below'` | +3 |
-| 4-6 | `'at'` | 0 |
-| 7-9 | `'above'` | -2 |
+| ----------: | --------- | -------------: |
+|         0-3 | `'below'` |             +3 |
+|         4-6 | `'at'`    |              0 |
+|         7-9 | `'above'` |             -2 |
 
 ### Integration with MesocycleService
 
@@ -82,15 +80,13 @@ microcycle), and microcycle index 0 is complete with RSM data:
 2. Apply `recommendedSetAdjustment` to the baseline set count for that muscle
    group before the normal soreness/performance set-addition logic runs
 
-This is a one-time adjustment at the start of the mesocycle. After this,
-the normal `getRecommendedSetAdditionsOrRecovery` from
-`WorkoutSessionExerciseService` drives weekly adjustments.
+This is a one-time adjustment. After this, the existing
+`getRecommendedSetAdditionsOrRecovery` drives weekly adjustments.
 
 ### When to Skip
 
-- If `firstMicrocycleSessionExercises` have no RSM data (user didn't fill out
-  the RSM fields), skip this check and use the default baseline.
-- If the mesocycle is `FreeForm`, skip (no automatic recommendations).
+If `firstMicrocycleSessionExercises` have no RSM data (user didn't fill out
+the RSM fields), skip this check and use the default baseline.
 
 ---
 
@@ -114,6 +110,12 @@ estimateVolumeLandmarks(
 ### VolumeLandmarkEstimate Type
 
 ```typescript
+enum VolumeLandmarkConfidence {
+  Low = 'Low',
+  Medium = 'Medium',
+  High = 'High'
+}
+
 interface VolumeLandmarkEstimate {
   /** Estimated minimum effective volume (sets per muscle group per session) */
   estimatedMev: number;
@@ -125,10 +127,10 @@ interface VolumeLandmarkEstimate {
   estimatedMav: number;
 
   /**
-   * Confidence level based on amount of historical data.
-   * 'low' = 0-1 mesocycles, 'medium' = 2-3 mesocycles, 'high' = 4+ mesocycles
+   * Confidence based on amount of historical data.
+   * Low = 0-1 mesocycles, Medium = 2-3 mesocycles, High = 4+ mesocycles
    */
-  confidence: 'low' | 'medium' | 'high';
+  confidence: VolumeLandmarkConfidence;
 }
 ```
 
@@ -137,6 +139,7 @@ interface VolumeLandmarkEstimate {
 Using the `mesocycleHistory` array from the `WorkoutMuscleGroupVolumeCTO`:
 
 **Estimated MEV:**
+
 1. Look at the `startingSetCount` across all mesocycle summaries where
    `avgRsm >= 4` (indicating the starting volume was effective)
 2. Average these starting set counts
@@ -144,6 +147,7 @@ Using the `mesocycleHistory` array from the `WorkoutMuscleGroupVolumeCTO`:
    across all mesocycles, or default to 2 if no history exists
 
 **Estimated MRV:**
+
 1. Look for mesocycles where `avgPerformanceScore >= 2.5` (approaching score 3,
    meaning performance started declining) or `recoverySessionCount > 0`
 2. Use the `peakSetCount` from those mesocycles as the MRV indicator
@@ -154,28 +158,31 @@ Using the `mesocycleHistory` array from the `WorkoutMuscleGroupVolumeCTO`:
 6. Default to 8 if no history exists
 
 **Estimated MAV:**
+
 ```
 estimatedMav = Math.ceil((estimatedMev + estimatedMrv) / 2)
 ```
 
 **Confidence:**
-- `mesocycleHistory.length === 0-1`: `'low'`
-- `mesocycleHistory.length === 2-3`: `'medium'`
-- `mesocycleHistory.length >= 4`: `'high'`
+
+- `mesocycleHistory.length <= 1`: `Low`
+- `mesocycleHistory.length <= 3`: `Medium`
+- `mesocycleHistory.length >= 4`: `High`
 
 ### Integration
 
 Volume landmark estimates are used by:
 
-- **Gap 5** (MEV detection): Provides a calibrated baseline for the MEV
-  proximity check. When `confidence` is `'high'`, use `estimatedMev` directly
-  as the starting set count instead of the fixed default of 2.
+- **Gap 5** (MEV detection): When confidence is `Medium` or `High`, use
+  `estimatedMev` as the starting set count instead of the hardcoded default
+  of 2. When confidence is `Low`, continue using the default and rely on the
+  RSM-based MEV proximity check (Gap 5) to adjust after the first microcycle.
 - **Gap 7** (Recovery return): Provides the midpoint for restart volume.
 - **Gap 8** (Cycle-type progression): Provides the volume ceiling for cut
   mesocycles.
-- **WorkoutVolumePlanningService.getBaselineSetCount**: When historical data
-  exists with medium+ confidence, use `estimatedMev` as the starting set count
-  instead of the hardcoded 2.
+- **WorkoutVolumePlanningService.getBaselineSetCount**: When confidence is
+  `Medium` or `High`, use `estimatedMev` as the starting set count instead of
+  the hardcoded 2.
 
 ---
 
@@ -216,13 +223,13 @@ risks hitting MRV again immediately. The midpoint balances these concerns.
 
 ### Fallback When No Volume Landmark Data
 
-When `estimatedMev` and `estimatedMrv` come from `'low'` confidence estimates:
+When `estimatedMev` and `estimatedMrv` come from `Low` confidence estimates:
 
 - `estimatedMev` = starting set count of the current mesocycle for this muscle
   group (this is already a MEV approximation since the mesocycle should start
   near MEV)
-- `estimatedMrv` = the hard cap from existing constants (`MAX_SETS_PER_EXERCISE
-  = 8` or `MAX_SETS_PER_MUSCLE_GROUP_PER_SESSION = 10`)
+- `estimatedMrv` = the hard cap from existing constants
+  (`MAX_SETS_PER_EXERCISE = 8` or `MAX_SETS_PER_MUSCLE_GROUP_PER_SESSION = 10`)
 - Midpoint = `Math.ceil((startingSetCount + hardCap) / 2)`
 
 ### Integration
@@ -248,22 +255,23 @@ volume changes).
 The set progression rate needs to vary by `CycleType`. Currently, the volume
 planning service adds ~1 set per muscle group per microcycle uniformly.
 
-Add a `cycleType` parameter to `getBaselineSetCount` (or wherever the per-
-microcycle set addition is calculated):
+The `cycleType` is available from the `WorkoutMesocycle` document that is
+already the first argument to `generateOrUpdateMesocycle`. It should be
+threaded down, or used from the MesocyclePlanContext, in the volume planning methods.
 
 ### Cut Cycle Modifications
 
-| Parameter | MuscleGain | Cut |
-|-----------|-----------|-----|
-| Set progression rate | +1 set/muscle group/microcycle | +0.5 (alternate which exercises get the extra set) |
-| Default accumulation weeks | 5 | 6-7 |
-| RIR start | 4 | 3 |
-| Volume ceiling | estimated MRV | estimated MAV (don't push to MRV) |
+| Parameter                  | MuscleGain                     | Cut                                                        |
+| -------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| Set progression rate       | +1 set/muscle group/microcycle | +0.5 (alternate which session exercises get the extra set) |
+| Default accumulation weeks | 5                              | 6-7                                                        |
+| RIR start                  | 4                              | 3                                                          |
+| Volume ceiling             | estimated MRV                  | estimated MAV (don't push to MRV)                          |
 
 **Implementation:** Apply a `progressionMultiplier` of `0.5` for Cut cycles.
 When the multiplier produces a fractional set addition (e.g., +0.5), alternate
 between adding and not adding across microcycles. One approach: add a set only
-on even-indexed microcycles, or only to the exercise with the best SFR.
+on even-indexed microcycles, or only to the session exercise with the best SFR.
 
 **Starting RIR:** When `cycleType === Cut`, start at RIR 3 instead of 4. The
 RIR progression array becomes `[3, 2, 1, 1, 0, 0, null]` (longer accumulation
@@ -271,25 +279,27 @@ with more weeks spent at lower RIR, plus deload).
 
 ### Resensitization Cycle Modifications
 
-| Parameter | MuscleGain | Resensitization |
-|-----------|-----------|-----------------|
-| Set count | Progressive (2 -> 6+) | Flat (2-3 per muscle group total) |
-| Rep range | Mixed (Heavy/Medium/Light) | Bias Heavy (5-10 reps) |
-| Volume progression | +1/microcycle | None (flat) |
-| Duration | 5 accumulation + 1 deload | 3-4 weeks, no deload |
-| Frequency | 2-4x/week | 1-2x/week |
+| Parameter          | MuscleGain                 | Resensitization                       |
+| ------------------ | -------------------------- | ------------------------------------- |
+| Set count          | Progressive (2 -> 6+)      | Flat (2-3 per session exercise)       |
+| Rep range          | Mixed (Heavy/Medium/Light) | User-selected (suggest Heavy to user) |
+| Volume progression | +1/microcycle              | None (flat)                           |
+| Duration           | 5 accumulation + 1 deload  | 3-4 weeks, no deload                  |
 
 **Implementation:** When `cycleType === Resensitization`:
 
-1. In `getBaselineSetCount`: return a flat count of 2-3 sets per muscle group
-   per session, regardless of microcycle index
+1. In `getBaselineSetCount`: return a flat count of 2-3 sets per session
+   exercise, regardless of microcycle index. No set addition logic runs.
 2. In `MesocycleService`: skip deload microcycle generation, set total
-   microcycle count to 3-4
-3. In `MicrocycleService.distributeExercisesAcrossSessions`: bias distribution
-   toward heavy rep range exercises. If an exercise has multiple rep ranges
-   available, prefer the Heavy variant.
-4. RIR can stay at 3-4 throughout (no taper to 0, since the goal is to reduce
-   fatigue, not push limits)
+   microcycle count to 3-4.
+3. RIR stays at 3-4 throughout (no taper to 0, since the goal is to reduce
+   fatigue, not push limits).
+
+**Note on exercise selection:** The system does not control which exercises the
+user picks for a mesocycle. For resensitization, the UI can suggest that the
+user select Heavy rep range exercises (and the mesocycle creation screen could
+display a hint), but the system plans whatever exercises the user chooses. If
+they pick Medium or Light exercises, the flat MV-level volume still applies.
 
 ### MuscleGain (No Changes)
 
@@ -297,18 +307,8 @@ Current behavior is correct for MuscleGain. No modifications needed.
 
 ### FreeForm (No Changes)
 
-No automatic recommendations. The `generateOrUpdateMesocycle` method already
-short-circuits for FreeForm. No modifications needed.
-
-### Changes to WorkoutMesocycleService
-
-Modify `generateOrUpdateMesocycle` to pass `cycleType` down to all relevant
-methods:
-
-1. **Microcycle count:** MuscleGain = 6 (5+1 deload), Cut = 7-8 (6-7+1
-   deload), Resensitization = 3-4 (no deload)
-2. **RIR array:** Derived from `cycleType` (see tables above)
-3. **Volume planning:** `cycleType` passed to `VolumePlanningService` methods
+No automatic recommendations. `generateOrUpdateMesocycle` already exits early
+for FreeForm. No modifications needed.
 
 ---
 
@@ -326,7 +326,7 @@ methods:
 
 ### Volume Landmark Tests
 
-- No history (0 mesocycles): returns defaults (MEV=2, MRV=8, confidence=low)
+- No history (0 mesocycles): returns defaults (MEV=2, MRV=8, confidence=Low)
 - 1 mesocycle with good data: returns estimates from that single data point
 - 3 mesocycles with consistent patterns: returns averaged estimates
 - Mesocycle where recovery sessions were needed: MRV estimated near that
@@ -341,15 +341,15 @@ methods:
   and hard cap
 - Return set count is always >= MEV estimate
 - Return set count is always <= MRV estimate
-- Load stays unchanged (just volume changes)
+- Load stays unchanged (only volume changes)
 
 ### Cycle-Type Tests
 
 - **Cut:** Set progression is half the rate of MuscleGain. 6-7 accumulation
   weeks. RIR starts at 3.
-- **Resensitization:** Flat set count (no progression). 3-4 weeks total. No
-  deload microcycle generated. Heavy rep range bias.
+- **Resensitization:** Flat set count per session exercise (no progression).
+  3-4 weeks total. No deload microcycle generated.
 - **MuscleGain:** Unchanged from current behavior.
-- **FreeForm:** No plan generated (existing behavior preserved).
-- Verify that `cycleType` propagates correctly through the generation pipeline
-  to volume planning, microcycle count, and RIR arrays.
+- **FreeForm:** Early exit preserved (no plan generated).
+- Verify that `cycleType` from the mesocycle document propagates correctly
+  through the generation pipeline to volume planning and RIR arrays.

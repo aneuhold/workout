@@ -22,8 +22,9 @@ it to adjust progression.
 
 **New optional parameter:** The previous microcycle's completed first
 `WorkoutSet` for this exercise (the existing document type, no new interface
-needed). This is `null` for the first microcycle of a mesocycle (no previous
-data within this mesocycle).
+needed). This is `null` for the first microcycle of a mesocycle when no
+intra-mesocycle history exists (cross-mesocycle data from the CTO is handled
+separately in Gap 4).
 
 ### Autoregulation Logic - Rep Progression
 
@@ -75,11 +76,12 @@ Decision:
 
 Reps stay at the rep range maximum (existing behavior for load progression).
 
-### Fallback When No Previous Set Exists
+### When No Previous Set Exists
 
-When there is no previous microcycle data (first microcycle of a mesocycle, or
-first time performing this exercise), fall back to the current formulaic
-progression. This preserves backward compatibility.
+When there is no previous microcycle data (first microcycle of a mesocycle with
+no cross-mesocycle history, or first time performing this exercise), use the
+calibration-based formula. This is the only available approach when historical
+performance data has not yet been generated.
 
 ### Where to Get the Previous Set
 
@@ -90,8 +92,8 @@ microcycle N's session exercises. This data is already loaded during
 `generateOrUpdateMesocycle`.
 
 **Across mesocycles (new mesocycle):** Use the `lastFirstSet` field from the
-`WorkoutExerciseCTO` (Phase 1). This represents the most recent performance
-from any previous mesocycle.
+`WorkoutExerciseCTO` (Phase 1). This represents the most recent accumulation
+performance from any previous mesocycle or free-form session.
 
 ---
 
@@ -108,8 +110,8 @@ targetPercentage = 85 - ((targetReps - 5) * 2.2)
 startingWeight = (targetPercentage / 100) * 1RM
 ```
 
-With the `WorkoutExerciseCTO`, we can check whether the exercise was used in a
-previous mesocycle and use that data instead.
+With the `WorkoutExerciseCTO`, we can check whether the exercise has prior
+performance data and use it instead.
 
 ### Starting Weight Selection Algorithm
 
@@ -118,69 +120,57 @@ For each exercise in the new mesocycle:
 ```
 exerciseCTO = the WorkoutExerciseCTO for this exercise
 lastSet = exerciseCTO.lastFirstSet
-lastMesoId = exerciseCTO.lastMesocycleId
 ```
 
-**Case 1: Previous mesocycle used this exercise with the same rep range**
+**Case 1: Previous performance exists with the same rep range**
 
 ```
-if lastSet is not null
-   AND lastMesoId is not null
-   AND exercise.repRange has not changed:
-
+if lastSet is not null AND exercise.repRange has not changed:
   startingWeight = lastSet.actualWeight
-  startingReps = apply normal first-microcycle rep target for this rep range
+  startingReps = standard first-microcycle rep target for this rep range
     // e.g., Heavy starts at 11, Medium at 15, Light at 21
-    // (these are the same "midpoint" targets already used)
-
-  // If the previous mesocycle completed successfully (has completedDate),
-  // optionally bump weight by minimum equipment increment
-  if previousMesocycleCompleted:
-    startingWeight = findNearestWeight(equipmentType, startingWeight, 'up')
 ```
 
-The key insight is that `lastSet.actualWeight` already reflects what the user
-could handle at the START of the previous mesocycle (since `lastFirstSet` is
-from the most recent session, which is typically late in the mesocycle under
-peak fatigue). After a deload, the user should be able to match or slightly
-exceed this weight.
+The user successfully lifted `lastSet.actualWeight` during their most recent
+accumulation session. After a deload, they should be able to match this weight.
+Starting here is a conservative baseline that avoids both overshooting (which
+would risk early burnout) and undershooting (which would waste early weeks
+on suboptimal stimulus).
 
-Actually, a better approach: Use `lastSet.actualWeight` directly. The user
-successfully lifted this weight. After a deload, they should be able to do it
-again. If the previous mesocycle completed successfully, try the next weight
-up. If it was abandoned, use the same weight as a conservative restart.
-
-**Case 2: Previous mesocycle used this exercise but rep range changed**
+**Case 2: Previous performance exists but rep range changed**
 
 ```
-if lastSet is not null
-   AND lastMesoId is not null
-   AND exercise.repRange has changed:
-
-  // Recalculate from best 1RM at new rep range
-  // This is expected to produce a different weight
-  startingWeight = getTargetWeight(best1RM, newTargetReps, equipmentType)
+if lastSet is not null AND exercise.repRange has changed:
+  effective1RM = max(get1RM(bestCalibration), get1RM(bestSet))
+  startingWeight = getTargetWeight(effective1RM, newTargetReps, equipmentType)
 ```
+
+Recalculating from 1RM at the new rep range is expected to produce a different
+weight. This is not a violation of progressive overload - it's a different
+training stimulus at an appropriate load.
 
 **Case 3: No previous data (new exercise)**
 
 ```
-if lastSet is null OR lastMesoId is null:
-
-  // Fall back to calibration formula (current behavior)
-  startingWeight = getTargetWeight(best1RM, targetReps, equipmentType)
+if lastSet is null:
+  effective1RM = max(get1RM(bestCalibration), get1RM(bestSet))
+  startingWeight = getTargetWeight(effective1RM, targetReps, equipmentType)
 ```
+
+Fall back to the calibration-based formula. This is the only option when
+no historical performance exists.
 
 ### Integration
 
 This logic should be added to the set generation pipeline within
-`generateOrUpdateMesocycle`. Specifically, when `WorkoutSetService
+`generateOrUpdateMesocycle`. When `WorkoutSetService
 .generateSetsForSessionExercise` is called for the first microcycle
 (`microcycleIndex === 0`), it should receive the starting weight determined by
 the algorithm above rather than always computing from calibration.
 
 For microcycles 1+ within the same mesocycle, the intra-mesocycle progression
-(Gap 3's autoregulation) takes over.
+(Gap 3's autoregulation) takes over using the previous microcycle's actual
+sets.
 
 ---
 
@@ -208,20 +198,20 @@ Test each surplus scenario with concrete numbers:
 
 ### Cross-Mesocycle Continuity Tests
 
-- Exercise used in previous mesocycle with same rep range: starting weight =
-  previous actual weight (or +1 increment if completed)
-- Exercise used in previous mesocycle with different rep range: starting weight
-  recalculated from 1RM
+- Exercise used previously with same rep range: starting weight =
+  previous actual weight
+- Exercise used previously with different rep range: starting weight
+  recalculated from effective 1RM
 - New exercise: starting weight from calibration formula
-- No previous data at all: fallback to calibration formula
-- Previous mesocycle was abandoned (no completedDate): use same weight, don't
-  bump
+- No previous data at all: uses calibration formula
+- `lastFirstSet` from a deload session should never appear in the CTO (the
+  query contract filters deload sessions out)
 
 ### Edge Cases
 
-- User performed dramatically better than planned (e.g., +10 reps). Acceleration
-  should still apply but should not exceed the rep range ceiling.
-- User failed completely (0 actual reps). Should use a minimum of 1 rep as
-  target (or flag for investigation rather than auto-progressing).
+- User performed dramatically better than planned (e.g., +10 reps).
+  Acceleration should still apply but should not exceed the rep range ceiling.
+- User failed completely (0 actual reps). Should use a minimum of the rep range
+  floor as target rather than 0.
 - Weight changes from autoregulation should still go through
   `findNearestWeight` for equipment rounding.

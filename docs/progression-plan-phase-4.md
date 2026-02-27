@@ -2,8 +2,8 @@
 
 **Gaps Addressed:** [Gap 9](./progression-plan-overview.md#gap-9-early-deload-triggers)
 
-**Goal:** Detect when an early deload is warranted based on fatigue indicators,
-rather than only scheduling deloads at the fixed last microcycle position.
+**Goal:** Detect when an early deload is warranted based on fatigue indicators
+and surface a recommendation to the user through the existing deload dialog.
 
 **Depends on:** Phase 1 (CTO data available), Phase 3 (volume context)
 **Unlocks:** Nothing (final phase)
@@ -11,6 +11,24 @@ rather than only scheduling deloads at the fixed last microcycle position.
 ---
 
 ## Gap 9: Early Deload Triggers
+
+### Existing Infrastructure
+
+Investigation of the codebase shows that deload **execution** is already fully
+built:
+
+| Component | Status |
+|-----------|--------|
+| Deload set generation (halve reps, then halve weight) | Done (`WorkoutSetService`) |
+| Deload volume reduction (halve set counts) | Done (`WorkoutVolumePlanningService`) |
+| Fixed deload scheduling (last microcycle) | Done (`WorkoutMesocycleService`) |
+| Early deload execution (`initiateEarlyDeload`) | Done (`mesocycleMapService` in frontend) |
+| Deload dialog UI (`SingletonDeloadDialog`) | Done (asks user when to start) |
+
+**What is missing is only the detection and recommendation layer.** The system
+can execute a deload at any time but never suggests one. This phase adds a
+method that evaluates fatigue indicators and returns a recommendation, which
+the frontend can use to trigger the existing dialog.
 
 ### New Method
 
@@ -22,8 +40,8 @@ concern):
  * Evaluates whether the mesocycle should trigger an early deload based on
  * fatigue indicators from recent session data.
  *
- * This should be called after each session completion. All inputs come from
- * the current mesocycle's already-loaded data (no CTO needed).
+ * Should be called after each session completion. All inputs come from the
+ * current mesocycle's already-loaded data (no CTO needed).
  *
  * @param currentMicrocycleIndex - The index of the current microcycle
  * @param recentSessionExercises - Session exercises from the last 2
@@ -46,6 +64,18 @@ shouldTriggerEarlyDeload(
 ### DeloadRecommendation Type
 
 ```typescript
+enum DeloadSeverity {
+  None = 'None',
+  Suggested = 'Suggested',
+  Recommended = 'Recommended',
+  Urgent = 'Urgent',
+}
+
+enum DeloadTriggerRule {
+  RecoverySessionThreshold = 'RecoverySessionThreshold',
+  ConsecutivePerformanceDrop = 'ConsecutivePerformanceDrop',
+}
+
 interface DeloadRecommendation {
   /** Whether a deload is recommended */
   shouldDeload: boolean;
@@ -57,19 +87,14 @@ interface DeloadRecommendation {
   reason: string | null;
 
   /**
-   * 'suggested' = approaching threshold, user should be aware
-   * 'recommended' = threshold met, deload is the right call
-   * 'urgent' = multiple thresholds met, deload strongly advised
+   * Suggested = approaching threshold, user should be aware
+   * Recommended = threshold met, deload is the right call
+   * Urgent = multiple thresholds met, deload strongly advised
    */
-  severity: 'none' | 'suggested' | 'recommended' | 'urgent';
+  severity: DeloadSeverity;
 
   /** Which detection rules triggered (for transparency in the UI) */
   triggeredRules: DeloadTriggerRule[];
-}
-
-enum DeloadTriggerRule {
-  RecoverySessionThreshold = 'RecoverySessionThreshold',
-  ConsecutivePerformanceDrop = 'ConsecutivePerformanceDrop',
 }
 ```
 
@@ -99,8 +124,8 @@ if ratio > 0.5:
 ```
 
 **Severity mapping:**
-- `ratio > 0.4 && ratio <= 0.5`: `'suggested'` (approaching threshold)
-- `ratio > 0.5`: `'recommended'`
+- `ratio > 0.4 && ratio <= 0.5`: `Suggested` (approaching threshold)
+- `ratio > 0.5`: `Recommended`
 
 #### Rule 2: Consecutive Performance Drops
 
@@ -120,8 +145,8 @@ for each unique exerciseId in recentSessionExercises:
   for each sessionExercise in sessionsForExercise:
     firstSet = recentSets.find(set =>
       set._id === sessionExercise.setOrder[0]
-      && set.actualReps !== null
-      && set.plannedReps !== null
+      && set.actualReps is not null
+      && set.plannedReps is not null
     )
 
     if firstSet is null:
@@ -141,8 +166,8 @@ for each unique exerciseId in recentSessionExercises:
 ```
 
 **Severity mapping:**
-- 1 exercise with consecutive drops: `'suggested'`
-- 2+ exercises with consecutive drops: `'recommended'`
+- 1 exercise with consecutive drops: `Suggested`
+- 2+ exercises with consecutive drops: `Recommended`
 
 ### Combining Rules
 
@@ -158,9 +183,9 @@ if ConsecutivePerformanceDrop triggered:
 shouldDeload = triggeredRules.length > 0
 
 severity = match triggeredRules.length:
-  0 -> 'none'
-  1 -> check individual severity (could be 'suggested' or 'recommended')
-  2 -> 'urgent'
+  0 -> None
+  1 -> individual rule's severity (Suggested or Recommended)
+  2 -> Urgent
 
 reason = build string from triggered rules
   e.g., "Recovery sessions needed for 4 of 6 muscle groups in the last 2
@@ -176,34 +201,29 @@ variation is expected. Early fluctuations should not cause premature deloads.
 
 ```
 if currentMicrocycleIndex < 2:
-  return { shouldDeload: false, severity: 'none', ... }
+  return { shouldDeload: false, severity: None, ... }
 ```
 
-### What Happens When Deload Is Accepted
+### Frontend Integration
 
-When the frontend displays a deload recommendation and the user accepts:
+The frontend already has both `SingletonDeloadDialog` and
+`mesocycleMapService.initiateEarlyDeload()`. The integration is:
 
-1. Mark the current microcycle as the last accumulation microcycle
-2. Regenerate remaining microcycles as deload microcycles (using the existing
-   deload logic in `WorkoutSetService.generateSetsForSessionExercise`)
-3. The mesocycle's total microcycle count effectively shrinks
+1. After a session is marked complete, call `shouldTriggerEarlyDeload` with
+   the current mesocycle's recent data
+2. If `shouldDeload === true`, open the existing `SingletonDeloadDialog`
+   - Pass the `reason` as additional context for the user
+   - Color-code by `severity` (amber for `Suggested`, red for
+     `Recommended`/`Urgent`)
+3. If the user accepts: call `mesocycleMapService.initiateEarlyDeload()` which
+   already handles regenerating remaining microcycles as deload
+4. If the user dismisses: do nothing (the check will re-run after the next
+   session)
 
-This reuses the existing deload generation logic - no new deload calculation is
-needed. The only new part is the TRIGGER detection.
-
-### Frontend Integration Notes
-
-The frontend should call `shouldTriggerEarlyDeload` after each session is
-marked complete. If `shouldDeload === true`:
-
-- Display a dialog or banner with the `reason` text
-- Color-code by `severity` (amber for suggested, red for recommended/urgent)
-- Offer the user two choices:
-  1. "Start Deload" - triggers mesocycle regeneration with remaining weeks as
-     deload
-  2. "Continue Training" - dismisses for now (can re-trigger after next session)
-
-The decision is always the user's. The system advises but does not force.
+No new UI components are needed. The existing dialog and execution logic handle
+everything. The only new frontend code is the call to
+`shouldTriggerEarlyDeload` in the session completion flow and passing the
+result to the existing dialog.
 
 ---
 
@@ -213,9 +233,9 @@ The decision is always the user's. The system advises but does not force.
 
 - 0 of 6 muscle groups had recovery: no trigger
 - 2 of 6 (33%): no trigger
-- 3 of 6 (50%): `'suggested'` (approaching threshold)
-- 4 of 6 (67%): `'recommended'`
-- 6 of 6 (100%): `'recommended'`
+- 3 of 6 (50%): `Suggested` (approaching threshold)
+- 4 of 6 (67%): `Recommended`
+- 6 of 6 (100%): `Recommended`
 - Muscle groups counted correctly through exercise -> muscle group mapping
 - Same muscle group with multiple recovery exercises only counted once
 
@@ -232,14 +252,8 @@ The decision is always the user's. The system advises but does not force.
 
 ### Combined Rule Tests
 
-- Both rules triggered: severity = `'urgent'`
-- Only one rule at `'recommended'` level: severity = `'recommended'`
-- Only one rule at `'suggested'` level: severity = `'suggested'`
-- Neither triggered: `shouldDeload = false`, severity = `'none'`
+- Both rules triggered: severity = `Urgent`
+- Only one rule at `Recommended` level: severity = `Recommended`
+- Only one rule at `Suggested` level: severity = `Suggested`
+- Neither triggered: `shouldDeload = false`, severity = `None`
 - Before microcycle index 2: always returns no trigger regardless of data
-
-### Deload Acceptance Tests
-
-- After accepting deload: remaining microcycles regenerated as deload type
-- Deload sets use existing half-reps/half-weight logic (no new calculation)
-- Mesocycle microcycle count reflects the shortened accumulation

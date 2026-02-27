@@ -3,11 +3,76 @@
 **Gaps Addressed:** [Gap 1](./progression-plan-overview.md#gap-1-dynamic-1rm-from-best-performance), [Gap 2](./progression-plan-overview.md#gap-2-cross-mesocycle-historical-performance-lookup)
 
 **Goal:** Define two CTOs that bundle complex cross-document query results into
-clean input types for core service methods, and extend 1RM calculation to use
-the best data from any source.
+clean input types for core service methods. Extend 1RM tracking to
+automatically capture new personal bests from actual set performance.
 
 **Depends on:** Nothing (foundational)
 **Unlocks:** Phase 2 (Autoregulated Progression), Phase 3 (Volume Intelligence)
+
+---
+
+## Schema Change: WorkoutExerciseCalibration
+
+### New Field: `associatedWorkoutSetId`
+
+Add a nullable UUID field to `WorkoutExerciseCalibrationSchema`:
+
+```typescript
+export const WorkoutExerciseCalibrationSchema = z.object({
+  ...BaseDocumentWithTypeSchema.shape,
+  ...RequiredUserIdSchema.shape,
+  ...BaseDocumentWithUpdatedAndCreatedDatesSchema.shape,
+  docType: z
+    .literal(WorkoutExerciseCalibration_docType)
+    .default(WorkoutExerciseCalibration_docType),
+  workoutExerciseId: z.uuidv7().transform((val) => val as UUID),
+  exerciseProperties: z.record(z.string(), z.unknown()).nullish(),
+  reps: z.int().positive(),
+  weight: z.number(),
+  dateRecorded: z.date().default(() => new Date()),
+
+  /**
+   * When populated, this calibration was auto-created from an actual set
+   * that produced a higher 1RM than any existing calibration for this
+   * exercise. The ID references the WorkoutSet that generated it.
+   *
+   * When null, this calibration was manually entered by the user.
+   */
+  associatedWorkoutSetId: z
+    .uuidv7()
+    .transform((val) => val as UUID)
+    .nullish()
+});
+```
+
+### Auto-Creation Logic
+
+When a mesocycle concludes (completedDate is set) or a free-form session
+completes:
+
+1. For each exercise that was performed, find the completed set with the
+   highest calculated 1RM (using the NASM formula:
+   `(weight * reps / 30.48) + weight`)
+2. Find the existing calibration with the highest 1RM for that exercise
+3. If the best set's 1RM exceeds the best calibration's 1RM (or no calibration
+   exists), auto-create a new `WorkoutExerciseCalibration` with:
+   - `weight` = the set's `actualWeight`
+   - `reps` = the set's `actualReps`
+   - `dateRecorded` = the session's `startTime`
+   - `associatedWorkoutSetId` = the set's `_id`
+   - `workoutExerciseId` = the exercise ID
+   - `exerciseProperties` = copied from the set's `exerciseProperties`
+
+This means:
+
+- Calibrations accumulate organically as the user gets stronger
+- The number of auto-created calibrations is low (only when a new best is
+  achieved)
+- The user gets a clean historical record of their progression milestones
+- The existing mesocycle locking mechanism (`calibratedExercises` referencing
+  calibration IDs) works without changes
+- Calibrations do NOT need to be created at mesocycle creation time - the
+  latest best calibration already exists from prior completions
 
 ---
 
@@ -19,26 +84,26 @@ the best data from any source.
 
 ### Purpose
 
-This CTO bundles an exercise with its best available 1RM data (from any source)
-and its most recent completed performance. It eliminates the need for core
+This CTO bundles an exercise with its best calibration, best set, equipment
+type, and most recent accumulation performance. It eliminates the need for core
 service methods to separately accept `WorkoutExercise`,
 `WorkoutExerciseCalibration`, and `WorkoutEquipmentType` parameters and then
 perform expensive lookups.
 
 ### Schema
 
-Define in `src/documents/workout/WorkoutExerciseCTO.ts` using the same Zod
-extension pattern as `UserCTO`:
+Define in `src/documents/workout/WorkoutExerciseCTO.ts`:
 
 ```typescript
 import { WorkoutExerciseSchema } from './WorkoutExercise';
 import { WorkoutEquipmentTypeSchema } from './WorkoutEquipmentType';
+import { WorkoutExerciseCalibrationSchema } from './WorkoutExerciseCalibration';
 import { WorkoutSessionExerciseSchema } from './WorkoutSessionExercise';
 import { WorkoutSetSchema } from './WorkoutSet';
 
-const Best1RMSourceType = z.enum(['calibration', 'set']);
+export const WorkoutExerciseCTOSchema = z.object({
+  ...WorkoutExerciseSchema.shape,
 
-export const WorkoutExerciseCTOSchema = WorkoutExerciseSchema.extend({
   /**
    * The equipment type associated with this exercise.
    * Included so weight rounding can be performed without additional lookups.
@@ -46,27 +111,29 @@ export const WorkoutExerciseCTOSchema = WorkoutExerciseSchema.extend({
   equipmentType: WorkoutEquipmentTypeSchema,
 
   /**
-   * The highest 1RM calculated from any source (calibrations or actual sets)
-   * using the NASM formula: (weight * reps / 30.48) + weight
+   * The WorkoutExerciseCalibration with the highest calculated 1RM for this
+   * exercise. Includes both manually-entered calibrations and auto-created
+   * ones (from best sets). Null if no calibrations exist.
    */
-  best1RM: z.number(),
+  bestCalibration: WorkoutExerciseCalibrationSchema.nullable(),
 
-  /** The weight used in the set/calibration that produced the best 1RM */
-  best1RMWeight: z.number(),
-
-  /** The reps performed in the set/calibration that produced the best 1RM */
-  best1RMReps: z.number(),
-
-  /** When the best 1RM was recorded */
-  best1RMDate: z.date(),
-
-  /** Whether the best 1RM came from an explicit calibration or an actual set */
-  best1RMSourceType: Best1RMSourceType,
+  /**
+   * The completed WorkoutSet with the highest calculated 1RM for this
+   * exercise, across all sessions ever performed. Null if the exercise has
+   * never been performed.
+   *
+   * This may or may not match the set that generated bestCalibration. It
+   * provides the raw source data for 1RM comparison.
+   */
+  bestSet: WorkoutSetSchema.nullable(),
 
   /**
    * The most recent completed WorkoutSessionExercise for this exercise,
-   * from the most recently completed mesocycle (or free-form session).
-   * Null if the exercise has never been performed.
+   * from a non-deload accumulation session. Deload sessions (where all sets
+   * have plannedRir === null) are excluded since their halved weights/reps
+   * are not meaningful baselines for progression.
+   *
+   * Null if the exercise has never been performed in an accumulation session.
    *
    * Contains: sorenessScore, performanceScore, rsm, fatigue, setOrder, etc.
    */
@@ -74,28 +141,13 @@ export const WorkoutExerciseCTOSchema = WorkoutExerciseSchema.extend({
 
   /**
    * The first WorkoutSet from the lastSessionExercise's setOrder.
-   * This is the "anchor" set that progression calculations use since subsequent
-   * sets are derived from the first via intra-session fatigue drops.
-   * Null if no previous performance exists.
+   * This is the "anchor" set that progression calculations use since
+   * subsequent sets are derived from the first via intra-session fatigue
+   * drops.
    *
-   * Contains: actualWeight, actualReps, rir, plannedWeight, plannedReps,
-   * plannedRir, etc.
+   * Null if no previous accumulation performance exists.
    */
-  lastFirstSet: WorkoutSetSchema.nullable(),
-
-  /**
-   * Number of sets in the lastSessionExercise (setOrder.length).
-   * Useful for volume continuity without needing to query all sets.
-   */
-  lastSetCount: z.number().nullable(),
-
-  /**
-   * The mesocycle ID where the last performance occurred.
-   * Null if the last performance was a free-form session (no mesocycle).
-   * Useful for determining whether the exercise was used in the immediately
-   * preceding mesocycle without additional lookups.
-   */
-  lastMesocycleId: z.string().uuid().nullable(),
+  lastFirstSet: WorkoutSetSchema.nullable()
 });
 
 export type WorkoutExerciseCTO = z.infer<typeof WorkoutExerciseCTOSchema>;
@@ -106,46 +158,40 @@ export type WorkoutExerciseCTO = z.infer<typeof WorkoutExerciseCTOSchema>;
 The backend must build this CTO by:
 
 1. Loading the `WorkoutExercise` document
-2. Loading the associated `WorkoutEquipmentType`
-3. Finding the best 1RM across:
-   - All `WorkoutExerciseCalibration` documents for this exercise
-   - All completed `WorkoutSet` documents for this exercise (where
-     `actualWeight` and `actualReps` are non-null)
-   - Applying the NASM formula to each and taking the maximum
-4. Finding the most recent completed `WorkoutSessionExercise` for this exercise
-   (where the parent `WorkoutSession.complete === true`), preferring data from
-   completed mesocycles over free-form sessions when available
-5. Loading the first `WorkoutSet` from that session exercise's `setOrder`
-6. Determining the `lastMesocycleId` by traversing session -> microcycle ->
-   mesocycle
+2. Loading the associated `WorkoutEquipmentType` via `workoutEquipmentTypeId`
+3. Finding `bestCalibration`: query all `WorkoutExerciseCalibration` documents
+   for this exercise, calculate 1RM for each using the NASM formula, and return
+   the one with the highest result
+4. Finding `bestSet`: query all completed `WorkoutSet` documents for this
+   exercise (where `actualWeight` and `actualReps` are non-null), calculate
+   1RM for each, and return the one with the highest result
+5. Finding `lastSessionExercise`: find the most recent completed
+   `WorkoutSessionExercise` for this exercise where:
+   - The parent `WorkoutSession.complete === true`
+   - The session exercise is NOT a deload exercise (i.e., not all of its sets
+     have `plannedRir === null`)
+6. Finding `lastFirstSet`: load the first `WorkoutSet` from
+   `lastSessionExercise.setOrder`
 
-### 1RM Calculation Change
+### How Services Use bestCalibration vs bestSet
 
-Currently `WorkoutExerciseCalibrationService.get1RM()` only accepts a
-`WorkoutExerciseCalibration`. The NASM formula itself does not need to change:
+The consumer determines the effective 1RM by comparing:
 
+```typescript
+const cal1RM = cto.bestCalibration
+  ? WorkoutExerciseCalibrationService.get1RM(cto.bestCalibration)
+  : 0;
+const set1RM = cto.bestSet
+  ? WorkoutExerciseCalibrationService.get1RM({
+      weight: cto.bestSet.actualWeight,
+      reps: cto.bestSet.actualReps
+    })
+  : 0;
+const effective1RM = Math.max(cal1RM, set1RM);
 ```
-1RM = (weight * reps / 30.48) + weight
-```
 
-What changes is **where the inputs come from**. The CTO query (in be-ts-db-lib)
-applies the formula to both calibrations and actual sets, and surfaces the
-highest result. The core service method `get1RM` can remain as-is since it just
-computes the formula. The CTO query is the new consumer that runs the formula
-across multiple sources.
-
-### Mesocycle Locking
-
-When a new mesocycle is created and `calibratedExercises` needs to be populated:
-
-- If the best 1RM source is a `calibration`: reference that calibration's ID
-  as currently done
-- If the best 1RM source is a `set`: auto-create a new
-  `WorkoutExerciseCalibration` document from the set's `actualWeight` and
-  `actualReps`, and reference that new calibration's ID
-
-This preserves the existing locking mechanism (calibratedExercises references
-calibration IDs) without schema changes.
+The existing `get1RM` method works for both since it just applies the NASM
+formula to weight and reps. No changes needed to that method.
 
 ### Integration with MesocycleService
 
@@ -156,8 +202,8 @@ accept `WorkoutExerciseCTO[]` instead.
 
 The plan context already has maps for exercises, calibrations, and equipment.
 These can be derived from the CTO array. Additionally, the CTO's
-`lastFirstSet`, `lastSessionExercise`, `lastSetCount`, and `lastMesocycleId`
-feed directly into Phase 2's autoregulated progression logic.
+`lastFirstSet` and `lastSessionExercise` feed directly into Phase 2's
+autoregulated progression logic.
 
 ---
 
@@ -177,10 +223,10 @@ Define in `src/embedded-types/workout/MesocycleVolumeSummary.ts`:
 ```typescript
 export const MesocycleVolumeSummarySchema = z.object({
   /** The mesocycle these stats are from */
-  mesocycleId: z.string().uuid(),
+  mesocycleId: z.uuidv7().transform((val) => val as UUID),
 
   /** The cycle type (MuscleGain, Cut, Resensitization, FreeForm) */
-  cycleType: CycleTypeSchema,
+  cycleType: z.enum(CycleType),
 
   /**
    * Total sets for this muscle group in the first microcycle.
@@ -210,7 +256,7 @@ export const MesocycleVolumeSummarySchema = z.object({
   recoverySessionCount: z.number(),
 
   /** When the mesocycle was completed. Null if not yet completed. */
-  completedDate: z.date().nullable(),
+  completedDate: z.date().nullable()
 });
 
 export type MesocycleVolumeSummary = z.infer<typeof MesocycleVolumeSummarySchema>;
@@ -221,18 +267,18 @@ export type MesocycleVolumeSummary = z.infer<typeof MesocycleVolumeSummarySchema
 Define in `src/documents/workout/WorkoutMuscleGroupVolumeCTO.ts`:
 
 ```typescript
-export const WorkoutMuscleGroupVolumeCTOSchema = WorkoutMuscleGroupSchema.extend({
+export const WorkoutMuscleGroupVolumeCTOSchema = z.object({
+  ...WorkoutMuscleGroupSchema.shape,
+
   /**
    * Volume history for this muscle group across completed mesocycles.
    * Ordered newest-first. Limited to the last 10 mesocycles to keep the CTO
    * lightweight.
    */
-  mesocycleHistory: z.array(MesocycleVolumeSummarySchema),
+  mesocycleHistory: z.array(MesocycleVolumeSummarySchema)
 });
 
-export type WorkoutMuscleGroupVolumeCTO = z.infer<
-  typeof WorkoutMuscleGroupVolumeCTOSchema
->;
+export type WorkoutMuscleGroupVolumeCTO = z.infer<typeof WorkoutMuscleGroupVolumeCTOSchema>;
 ```
 
 ### Query Contract (for be-ts-db-lib)
@@ -242,12 +288,12 @@ The backend must build this CTO by:
 1. Loading the `WorkoutMuscleGroup` document
 2. For each completed mesocycle (up to the last 10):
    a. Find all `WorkoutExercise` documents that have this muscle group in
-      `primaryMuscleGroups` or `secondaryMuscleGroups`
+   `primaryMuscleGroups` or `secondaryMuscleGroups`
    b. Find all `WorkoutSessionExercise` documents referencing those exercises
-      within this mesocycle's microcycles/sessions
+   within this mesocycle's microcycles/sessions
    c. Count total sets per microcycle (sum of `setOrder.length` across
-      session exercises) for the `startingSetCount` (first microcycle) and
-      `peakSetCount` (max across microcycles)
+   session exercises) for `startingSetCount` (first microcycle) and
+   `peakSetCount` (max across microcycles)
    d. Average RSM totals (sum of mindMuscleConnection + pump + disruption)
    e. Average soreness scores and performance scores
    f. Count session exercises where `isRecoveryExercise === true`
@@ -268,26 +314,38 @@ This CTO is passed into volume planning methods that need historical context:
 
 ## Testing Strategy
 
+### WorkoutExerciseCalibration Auto-Creation Tests
+
+- When a set produces a higher 1RM than any existing calibration: a new
+  calibration is created with `associatedWorkoutSetId` populated
+- When a set's 1RM is equal to or less than the best calibration: no new
+  calibration is created
+- When no calibrations exist for an exercise: first qualifying set creates one
+- Auto-created calibration has correct weight, reps, date, and exercise
+  properties from the source set
+- Multiple exercises in the same session: each evaluated independently
+
 ### WorkoutExerciseCTO Tests
 
-Test the 1RM selection logic:
-- When calibration has highest 1RM, CTO reflects calibration source
-- When an actual set has highest 1RM, CTO reflects set source
-- When no calibrations exist, use best set
-- When no sets exist, use best calibration
-- When neither exists, the CTO should still be constructable (though this
-  shouldn't happen in practice since exercises must be calibrated for
-  mesocycle planning)
+Test the best calibration/set selection:
+
+- When calibration has highest 1RM, `bestCalibration` is populated
+- When an actual set has highest 1RM, `bestSet` is populated
+- Both can be non-null simultaneously (consumer compares them)
+- When no calibrations exist, `bestCalibration` is null
+- When no sets exist, `bestSet` is null
 
 Test the last performance lookup:
+
 - Returns null when exercise has never been performed
-- Returns data from most recent completed session
-- Correctly identifies mesocycle ID from session chain
-- Prefers completed mesocycle data over free-form sessions
+- Returns data from the most recent completed accumulation session
+- Skips deload sessions (where all sets have `plannedRir === null`)
+- `lastFirstSet` matches the first entry in `lastSessionExercise.setOrder`
 
 ### WorkoutMuscleGroupVolumeCTO Tests
 
 Test aggregation:
+
 - Correctly counts sets across exercises targeting the muscle group
 - Handles primary vs secondary muscle group membership
 - Correctly identifies starting vs peak set counts
