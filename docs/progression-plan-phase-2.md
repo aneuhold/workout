@@ -15,14 +15,26 @@ boundaries for continuity.
 
 ### Changes to ExerciseService.calculateTargetRepsAndWeightForFirstSet
 
-This method currently accepts `microcycleIndex` and applies a fixed progression
-formula (+2 reps or +2% weight per microcycle). It needs to also accept the
-previous microcycle's actual first `WorkoutSet` for the same exercise, and use
-it to adjust progression.
+This method currently has the signature:
 
-**New optional parameter:** The previous microcycle's completed first
-`WorkoutSet` for this exercise (the existing document type, no new interface
-needed). This is `null` for the first microcycle of a mesocycle when no
+```typescript
+static calculateTargetRepsAndWeightForFirstSet(params: {
+  exercise: WorkoutExercise;
+  calibration: WorkoutExerciseCalibration;
+  equipment: WorkoutEquipmentType;
+  microcycleIndex: number;
+  firstMicrocycleRir: number;
+}): { targetWeight: number; targetReps: number }
+```
+
+It applies a fixed progression formula (+2 reps or +2% weight per microcycle).
+It needs to also accept the previous microcycle's actual first `WorkoutSet`
+for the same exercise, and use it to adjust progression.
+
+**New optional parameter:** Add `previousFirstSet?: WorkoutSet` to the params
+object. This is the previous microcycle's completed first `WorkoutSet` for
+this exercise (the existing document type, no new interface needed). It is
+`null`/`undefined` for the first microcycle of a mesocycle when no
 intra-mesocycle history exists (cross-mesocycle data from the CTO is handled
 separately in Gap 4).
 
@@ -127,8 +139,9 @@ lastSet = exerciseCTO.lastFirstSet
 ```
 if lastSet is not null AND exercise.repRange has not changed:
   startingWeight = lastSet.actualWeight
-  startingReps = standard first-microcycle rep target for this rep range
-    // e.g., Heavy starts at 11, Medium at 15, Light at 21
+  startingReps = first-microcycle rep target for this rep range
+    // Determined by existing logic in calculateTargetRepsAndWeightForFirstSet
+    // at microcycleIndex 0. Rep ranges: Heavy 5-15, Medium 10-20, Light 15-30.
 ```
 
 The user successfully lifted `lastSet.actualWeight` during their most recent
@@ -141,9 +154,21 @@ on suboptimal stimulus).
 
 ```
 if lastSet is not null AND exercise.repRange has changed:
-  effective1RM = max(get1RM(bestCalibration), get1RM(bestSet))
-  startingWeight = getTargetWeight(effective1RM, newTargetReps, equipmentType)
+  cal1RM = bestCalibration ? get1RM(bestCalibration) : 0
+  set1RM = bestSet ? get1RMRaw(bestSet.actualWeight, bestSet.actualReps) : 0
+  effective1RM = max(cal1RM, set1RM)
 ```
+
+The existing `getTargetWeight(calibration, targetReps)` takes a full
+`WorkoutExerciseCalibration`, not a raw 1RM value. Two options:
+
+1. **Preferred:** Add a new method `getTargetWeightFrom1RM(effective1RM,
+   targetReps)` that applies the same `targetPercentage` formula without
+   requiring a calibration document. The consumer then rounds via
+   `WorkoutEquipmentTypeService.findNearestWeight()`.
+2. **Alternative:** Construct a synthetic calibration from the effective 1RM
+   (weight = effective1RM, reps = 1) and pass it to the existing
+   `getTargetWeight`.
 
 Recalculating from 1RM at the new rep range is expected to produce a different
 weight. This is not a violation of progressive overload - it's a different
@@ -153,8 +178,12 @@ training stimulus at an appropriate load.
 
 ```
 if lastSet is null:
-  effective1RM = max(get1RM(bestCalibration), get1RM(bestSet))
-  startingWeight = getTargetWeight(effective1RM, targetReps, equipmentType)
+  // Same 1RM resolution as Case 2
+  cal1RM = bestCalibration ? get1RM(bestCalibration) : 0
+  set1RM = bestSet ? get1RMRaw(bestSet.actualWeight, bestSet.actualReps) : 0
+  effective1RM = max(cal1RM, set1RM)
+  startingWeight = getTargetWeightFrom1RM(effective1RM, targetReps)
+    // Then round via findNearestWeight
 ```
 
 Fall back to the calibration-based formula. This is the only option when

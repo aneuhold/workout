@@ -124,8 +124,12 @@ if ratio > 0.5:
 ```
 
 **Severity mapping:**
-- `ratio > 0.4 && ratio <= 0.5`: `Suggested` (approaching threshold)
+- `ratio >= 0.4 && ratio <= 0.5`: `Suggested` (approaching threshold)
 - `ratio > 0.5`: `Recommended`
+
+Note: `>=` is used for the lower bound so that the `Suggested` range is
+reachable with common muscle group counts (e.g., 2/5 = 0.4 hits `Suggested`,
+3/6 = 0.5 hits `Suggested`, 4/6 = 0.67 hits `Recommended`).
 
 #### Rule 2: Consecutive Performance Drops
 
@@ -207,23 +211,65 @@ if currentMicrocycleIndex < 2:
 ### Frontend Integration
 
 The frontend already has both `SingletonDeloadDialog` and
-`mesocycleMapService.initiateEarlyDeload()`. The integration is:
+`mesocycleMapService.initiateEarlyDeload()`. The integration requires two
+changes:
 
-1. After a session is marked complete, call `shouldTriggerEarlyDeload` with
-   the current mesocycle's recent data
-2. If `shouldDeload === true`, open the existing `SingletonDeloadDialog`
-   - Pass the `reason` as additional context for the user
+#### 1. Extend DeloadDialogParams
+
+The existing `DeloadDialogParams` type is:
+
+```typescript
+type DeloadDialogParams = {
+  mesocycleTitle: string;
+  scheduledDeloadDate: Date | null;
+  onConfirm: (startDate: DeloadChoice) => Promise<void>;
+};
+```
+
+Add `reason` and `severity` fields so the dialog can display why the deload
+is being recommended and color-code accordingly:
+
+```typescript
+type DeloadDialogParams = {
+  mesocycleTitle: string;
+  scheduledDeloadDate: Date | null;
+  onConfirm: (startDate: DeloadChoice) => Promise<void>;
+  /** Human-readable reason for the recommendation. Null for scheduled deloads. */
+  reason: string | null;
+  /** Severity level for color-coding. Null for scheduled deloads. */
+  severity: DeloadSeverity | null;
+};
+```
+
+#### 2. Restructure Session Completion Flow
+
+The current `handleCompleteSession()` in `SessionPage.svelte` immediately
+navigates away after marking the session complete:
+
+```typescript
+function handleCompleteSession() {
+  sessionMapService.updateDoc(session._id, (doc) => {
+    doc.complete = true;
+    doc.lastUpdatedDate = new Date();
+    return doc;
+  });
+  goto(`/sessions`);
+}
+```
+
+This needs to be restructured to run the deload check **before** navigation:
+
+1. Mark the session complete
+2. Call `shouldTriggerEarlyDeload` with the current mesocycle's recent data
+3. If `shouldDeload === true`, open the `SingletonDeloadDialog` with the
+   `reason` and `severity`
    - Color-code by `severity` (amber for `Suggested`, red for
      `Recommended`/`Urgent`)
-3. If the user accepts: call `mesocycleMapService.initiateEarlyDeload()` which
-   already handles regenerating remaining microcycles as deload
-4. If the user dismisses: do nothing (the check will re-run after the next
-   session)
-
-No new UI components are needed. The existing dialog and execution logic handle
-everything. The only new frontend code is the call to
-`shouldTriggerEarlyDeload` in the session completion flow and passing the
-result to the existing dialog.
+   - On confirm: call `mesocycleMapService.initiateEarlyDeload()`, then
+     navigate to `/sessions`
+   - On dismiss: navigate to `/sessions` (the check will re-run after the
+     next session)
+4. If `shouldDeload === false`, navigate to `/sessions` immediately
 
 ---
 
@@ -233,6 +279,7 @@ result to the existing dialog.
 
 - 0 of 6 muscle groups had recovery: no trigger
 - 2 of 6 (33%): no trigger
+- 2 of 5 (40%): `Suggested` (approaching threshold, hits `>= 0.4` boundary)
 - 3 of 6 (50%): `Suggested` (approaching threshold)
 - 4 of 6 (67%): `Recommended`
 - 6 of 6 (100%): `Recommended`

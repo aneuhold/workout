@@ -9,6 +9,13 @@ rules.
 **Depends on:** Phase 1 (WorkoutMuscleGroupVolumeCTO provides historical data)
 **Unlocks:** Phase 4 (Deload Detection uses volume context)
 
+**Pipeline entry point:** `generateOrUpdateMesocycle` already accepts the
+mesocycle as its first argument and exercise CTOs (Phase 1). It should
+additionally accept `WorkoutMuscleGroupVolumeCTO[]` for the muscle groups
+trained in this mesocycle. The `WorkoutMesocyclePlanContext` should store
+these CTOs (or a derived map of muscle group ID -> volume CTO) so that volume
+planning methods can access historical landmarks without additional lookups.
+
 ---
 
 ## Gap 5: MEV Detection from Initial RSM Scores
@@ -60,10 +67,16 @@ interface MevProximityResult {
 
 1. Filter `firstMicrocycleSessionExercises` to those whose exercise ID maps to
    the target `muscleGroupId` via `exerciseToMuscleGroupMap`
-2. For each matching session exercise, compute RSM total:
-   `rsm.mindMuscleConnection + rsm.pump + rsm.disruption` (0-9)
-3. Average across all matching session exercises
-4. Apply the table:
+2. For each matching session exercise, compute RSM total using
+   `WorkoutSFRService.getRsmTotal(sessionExercise.rsm)`. This returns
+   `number | null` - skip session exercises where it returns `null`.
+3. Average across all matching session exercises that have RSM data
+4. Apply the table (use `Math.floor()` on the average to determine the
+   bracket, e.g., average of 3.7 -> bracket 0-3 -> `'below'`):
+
+**Note:** `WorkoutSFRService.getRsmTotal()` already exists and computes
+`mindMuscleConnection + pump + disruption`. Reuse it rather than
+reimplementing.
 
 | Average RSM | Proximity | Set Adjustment |
 | ----------: | --------- | -------------: |
@@ -180,9 +193,11 @@ Volume landmark estimates are used by:
 - **Gap 7** (Recovery return): Provides the midpoint for restart volume.
 - **Gap 8** (Cycle-type progression): Provides the volume ceiling for cut
   mesocycles.
-- **WorkoutVolumePlanningService.getBaselineSetCount**: When confidence is
-  `Medium` or `High`, use `estimatedMev` as the starting set count instead of
-  the hardcoded 2.
+- **WorkoutVolumePlanningService.calculateBaselineSetCount**: When confidence
+  is `Medium` or `High`, use `estimatedMev` as the starting set count instead
+  of the hardcoded 2. Note: this method is currently `private static` and will
+  need its visibility changed (or the volume landmark data threaded in through
+  its callers).
 
 ---
 
@@ -275,7 +290,12 @@ on even-indexed microcycles, or only to the session exercise with the best SFR.
 
 **Starting RIR:** When `cycleType === Cut`, start at RIR 3 instead of 4. The
 RIR progression array becomes `[3, 2, 1, 1, 0, 0, null]` (longer accumulation
-with more weeks spent at lower RIR, plus deload).
+with more weeks spent at lower RIR, plus deload). This requires changing
+`FIRST_MICROCYCLE_RIR` on `WorkoutMesocyclePlanContext` (currently hardcoded
+to `4`) to be configurable based on cycle type. The RIR calculation in
+`generateOrUpdateMesocycle` uses `4 - rirForMicrocycle` where
+`rirForMicrocycle = Math.min(microcycleIndex, 4)` - this formula also needs
+to use the cycle-type-specific starting RIR.
 
 ### Resensitization Cycle Modifications
 
@@ -288,10 +308,14 @@ with more weeks spent at lower RIR, plus deload).
 
 **Implementation:** When `cycleType === Resensitization`:
 
-1. In `getBaselineSetCount`: return a flat count of 2-3 sets per session
+1. In `calculateBaselineSetCount`: return a flat count of 2-3 sets per session
    exercise, regardless of microcycle index. No set addition logic runs.
-2. In `MesocycleService`: skip deload microcycle generation, set total
-   microcycle count to 3-4.
+2. In `MesocycleService`: set total microcycle count to 3-4 and **skip the
+   deload microcycle**. Currently, the code always makes the last microcycle
+   a deload via `deloadMicrocycleIndex = totalMicrocycles - 1`. For
+   resensitization, either set `deloadMicrocycleIndex` to `-1` (never
+   matches) or add a `skipDeload` flag to the generation loop. All 3-4
+   microcycles should be accumulation microcycles.
 3. RIR stays at 3-4 throughout (no taper to 0, since the goal is to reduce
    fatigue, not push limits).
 

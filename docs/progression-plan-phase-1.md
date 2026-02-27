@@ -92,7 +92,7 @@ perform expensive lookups.
 
 ### Schema
 
-Define in `src/documents/workout/WorkoutExerciseCTO.ts`:
+Define in `src/ctos/workout/WorkoutExerciseCTO.ts`:
 
 ```typescript
 import { WorkoutExerciseSchema } from './WorkoutExercise';
@@ -182,16 +182,45 @@ const cal1RM = cto.bestCalibration
   ? WorkoutExerciseCalibrationService.get1RM(cto.bestCalibration)
   : 0;
 const set1RM = cto.bestSet
-  ? WorkoutExerciseCalibrationService.get1RM({
-      weight: cto.bestSet.actualWeight,
-      reps: cto.bestSet.actualReps
-    })
+  ? WorkoutExerciseCalibrationService.get1RMRaw(
+      cto.bestSet.actualWeight!,
+      cto.bestSet.actualReps!
+    )
   : 0;
 const effective1RM = Math.max(cal1RM, set1RM);
 ```
 
-The existing `get1RM` method works for both since it just applies the NASM
-formula to weight and reps. No changes needed to that method.
+**Method note:** `get1RM(calibration)` takes a full
+`WorkoutExerciseCalibration` document. `get1RMRaw(weight, reps)` takes raw
+numbers and is the correct method for computing 1RM from a `WorkoutSet`'s
+actual values. Both apply the same NASM formula internally.
+
+### Migration from CalibrationExercisePair
+
+The codebase currently uses a `CalibrationExercisePair` type (defined in
+`WorkoutExerciseCalibration.ts`) throughout 7 files including
+`WorkoutMesocyclePlanContext`, `WorkoutVolumePlanningService`,
+`WorkoutSessionService`, and `WorkoutMicrocycleService`. This type bundles
+`{ calibration, exercise }`.
+
+The `WorkoutExerciseCTO` is a superset of `CalibrationExercisePair` - it
+spreads the exercise fields and includes `bestCalibration` (which serves the
+same role as `calibration`), plus additional fields. During implementation:
+
+1. Update `WorkoutMesocyclePlanContext` to derive its internal maps from
+   `WorkoutExerciseCTO[]` instead of separate `CalibrationExercisePair[]`,
+   exercises, and equipment arrays
+2. Methods that currently accept `CalibrationExercisePair` can be updated to
+   accept `WorkoutExerciseCTO` since it contains the same data
+3. The `CalibrationExercisePair` type can be removed once all consumers are
+   migrated
+
+### CTO File Location
+
+CTOs are not documents (they are not stored in the database). They should be
+defined in a new `src/ctos/workout/` directory in core-ts-db-lib, not in
+`src/documents/workout/`. Similarly, the `MesocycleVolumeSummary` embedded
+type goes in the existing `src/embedded-types/workout/` directory.
 
 ### Integration with MesocycleService
 
@@ -264,7 +293,7 @@ export type MesocycleVolumeSummary = z.infer<typeof MesocycleVolumeSummarySchema
 
 ### Schema
 
-Define in `src/documents/workout/WorkoutMuscleGroupVolumeCTO.ts`:
+Define in `src/ctos/workout/WorkoutMuscleGroupVolumeCTO.ts`:
 
 ```typescript
 export const WorkoutMuscleGroupVolumeCTOSchema = z.object({
