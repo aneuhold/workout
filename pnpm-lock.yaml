@@ -16,11 +16,11 @@ importers:
         version: 4.8.3
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.23
-        version: 3.0.23
+        specifier: ^3.0.24
+        version: 3.0.24
       '@aneuhold/core-ts-db-lib':
-        specifier: ^4.1.12
-        version: 4.1.12
+        specifier: ^4.1.13
+        version: 4.1.13
       '@aneuhold/core-ts-lib':
         specifier: ^2.4.1
         version: 2.4.1
@@ -236,11 +236,11 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.23':
-    resolution: {integrity: sha512-z1isk3KcznDTFdpkMkSU7Doo2LBpCTbLDNU5yoYzPbdUo92LDa5dge+J+k8mqaJ2/QPR8nYOTsWqzXWq32bhbw==}
+  '@aneuhold/core-ts-api-lib@3.0.24':
+    resolution: {integrity: sha512-mgKF53fII3Upe00kAR/p75/AoWmv3AL0ezl24M/WABox7e36zDTnxt6CoKyeXsj5fE8SbSSfCsjqwK0+PIwL9g==}
 
-  '@aneuhold/core-ts-db-lib@4.1.12':
-    resolution: {integrity: sha512-a4waoFY/ls7HkdEhvDdyLg443INzN6gvrUoqCU5kcZTXWgALSgZbu23+rCZCciBz1vksRpUHt4X9PnqpTGeJ4g==}
+  '@aneuhold/core-ts-db-lib@4.1.13':
+    resolution: {integrity: sha512-mrMygjCJhnCgXiH75YNoSaGTNiHAlnmmx2IB6R6nZbfxhwyVJfY0KLRWKtEqopcb6FESJ1rgW1fLBcJ+qxy/UQ==}
 
   '@aneuhold/core-ts-lib@2.4.1':
     resolution: {integrity: sha512-5N+Wr3Y8pJ82r8wUQVxApEcepu3kEWN3cdt4gpCMMCIg5ifBe5u7b6HmzM/YZlfxFlrGSHuz8Y8uRmGxkZXHJA==}
@@ -7209,13 +7209,13 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.23':
+  '@aneuhold/core-ts-api-lib@3.0.24':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 4.1.12
+      '@aneuhold/core-ts-db-lib': 4.1.13
       '@aneuhold/core-ts-lib': 2.4.1
       bson: 7.2.0
 
-  '@aneuhold/core-ts-db-lib@4.1.12':
+  '@aneuhold/core-ts-db-lib@4.1.13':
     dependencies:
       '@aneuhold/core-ts-lib': 2.4.1
       uuid: 13.0.0
