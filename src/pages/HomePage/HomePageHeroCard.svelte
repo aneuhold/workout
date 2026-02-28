@@ -14,7 +14,7 @@
     WorkoutMicrocycle,
     WorkoutSession
   } from '@aneuhold/core-ts-db-lib';
-  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+  import { CycleType, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
   import { IconChevronRight, IconEdit, IconSparkles, IconTrophy } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
@@ -108,6 +108,14 @@
   const isLate = $derived(daysLate > 0);
   const isSeverelyLate = $derived(daysLate >= 3);
 
+  /** True when the hero session belongs to the deload microcycle. */
+  const isOnDeloadMicrocycle = $derived.by(() => {
+    if (!activeMesocycle || !heroSession?.workoutMicrocycleId) return false;
+    if (activeMesocycle.cycleType === CycleType.Resensitization) return false;
+    const lastMicrocycle = microcycles[microcycles.length - 1];
+    return lastMicrocycle?._id === heroSession.workoutMicrocycleId;
+  });
+
   const scheduledDateFormatted = $derived(
     state?.action === HeroCardAction.StartSession && state.scheduledDate
       ? state.scheduledDate.toLocaleDateString('en-US', {
@@ -157,7 +165,7 @@
     );
     const newEndDate = currentEndDate ? DateService.addDays(currentEndDate, late) : null;
 
-    const showDeload = late >= 3;
+    const showDeload = late >= 3 && !isOnDeloadMicrocycle;
 
     moveSessionsDialog.open({
       session,

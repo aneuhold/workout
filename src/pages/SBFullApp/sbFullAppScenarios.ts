@@ -128,23 +128,28 @@ function getSessionIdsForMicrocycles(
  * Sets up a mesocycle where completing the current session should trigger
  * an early deload recommendation via Rule 2 (consecutive performance drops).
  *
- * Layout: 5 microcycles, 5 sessions per microcycle.
+ * Layout: 6 microcycles (5 accumulation + 1 deload), 5 sessions per microcycle.
  * - Microcycles 0-1: fully complete, normal performance
  * - Microcycle 2: fully complete, performance drops applied
  * - Microcycle 3: fully complete, performance drops applied
  * - Microcycle 4: first session has all sets filled but NOT marked complete
+ * - Microcycle 5: deload (untouched)
+ *
+ * Using 6 microcycles is important: with fewer, microcycle 4 would be the
+ * deload microcycle whose sets lack `plannedRir`, causing the surplus
+ * calculation to bail out.
  *
  * The deload check looks at the last 2 microcycles relative to the current
  * one. When the user completes the session in microcycle 4 (index 4, which
  * is >= MIN_MICROCYCLE_INDEX_FOR_DELOAD of 2), microcycles 3 and 4 are
- * examined, and the consecutive drops across microcycles 2-3-4 satisfy
+ * examined, and the consecutive drops across those microcycles satisfy
  * Rule 2 for multiple exercises.
  *
  * @param baseData The base exercise/calibration/equipment data
  */
 function setupDeloadTriggerScenario(baseData: MockBaseData): void {
   const sessionsPerMicrocycle = 5;
-  const microcycleCount = 5;
+  const microcycleCount = 6;
   // Complete all sessions in microcycles 0-3 (4 * 5 = 20)
   const completedSessionCount = sessionsPerMicrocycle * 4;
 
