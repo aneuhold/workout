@@ -114,6 +114,7 @@ export default class MesocycleMapServiceMock {
       [],
       [],
       [],
+      [],
       config.startDate
     );
 

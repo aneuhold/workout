@@ -154,6 +154,7 @@ export function regenerateMesocycle(
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
     docs.exerciseCTOs,
+    [],
     docs.microcycles,
     docs.sessions,
     docs.sessionExercises,

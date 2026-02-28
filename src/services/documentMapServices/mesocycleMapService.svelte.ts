@@ -328,6 +328,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const generateResult = WorkoutMesocycleService.generateOrUpdateMesocycle(
       deloadMesocycle,
       docs.exerciseCTOs,
+      [],
       remainingMicrocycles,
       remainingSessions,
       remainingSessionExercises,
