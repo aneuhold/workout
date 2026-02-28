@@ -16,13 +16,6 @@ const log = createLogger('WorkoutAPIService.ts');
 const SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA = 10;
 
 export default class WorkoutAPIService {
-  /**
-   * A variable to determine if the initial data is currently being fetched
-   * for the first time.
-   * This is used to show the user that the data was synced if it was fetched
-   * successfully.
-   */
-  private static processingFirstInitData = false;
   static lastInitialDataFetchTime: number | null = null;
   private static processingRequestQueue = false;
 
@@ -83,7 +76,6 @@ export default class WorkoutAPIService {
    */
   static getInitialData(): void {
     log.info('Getting initial data...');
-    this.processingFirstInitData = !this.lastInitialDataFetchTime;
     this.lastInitialDataFetchTime = Date.now();
 
     this.queryApi({
@@ -95,8 +87,10 @@ export default class WorkoutAPIService {
         sets: { all: true },
         exercises: { all: true },
         exerciseCalibrations: { all: true },
+        exerciseCTOs: { all: true },
         muscleGroups: { all: true },
-        equipmentTypes: { all: true }
+        equipmentTypes: { all: true },
+        muscleGroupVolumeCTOs: { all: true }
       }
     });
   }
@@ -139,12 +133,7 @@ export default class WorkoutAPIService {
         // Only set the stores if there are no more requests to process. This
         // should help prevent the stores from being set to an old value if
         // the user refreshes the page while the task queue is being processed.
-        WorkoutAPIResponseHandlingService.processWorkoutApiOutput(
-          combinedOutput,
-          combinedInput,
-          this.processingFirstInitData
-        );
-        this.processingFirstInitData = false;
+        WorkoutAPIResponseHandlingService.processWorkoutApiOutput(combinedOutput, combinedInput);
       } else {
         // If there was an error, add the task back to the queue and try again
         // Save this for later to ensure there is no infinite loop

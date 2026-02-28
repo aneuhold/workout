@@ -4,7 +4,7 @@
   Card for selecting calibrated exercises to include in a mesocycle.
 -->
 <script lang="ts">
-  import { type CalibrationExercisePair } from '@aneuhold/core-ts-db-lib';
+  import { type WorkoutExerciseCTO } from '@aneuhold/core-ts-db-lib';
   import { IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
@@ -30,11 +30,11 @@
   const PAGE_SIZE = 5;
 
   let {
-    calibratedExercisePairs,
+    exerciseCTOs,
     selectedCalibrationIds = $bindable<UUID[]>([]),
     disabled = false
   }: {
-    calibratedExercisePairs: CalibrationExercisePair[];
+    exerciseCTOs: WorkoutExerciseCTO[];
     selectedCalibrationIds: UUID[];
     disabled?: boolean;
   } = $props();
@@ -53,25 +53,17 @@
   let normalizedQuery = $derived(searchQuery.trim().toLowerCase());
   let currentPage = $state(1);
 
-  function getMuscleGroupNames(pair: CalibrationExercisePair): string[] {
-    return muscleGroupMapService.getMuscleGroupNames(pair.exercise.primaryMuscleGroups);
+  function getMuscleGroupNames(cto: WorkoutExerciseCTO): string[] {
+    return muscleGroupMapService.getMuscleGroupNames(cto.primaryMuscleGroups);
   }
 
-  const filteredPairs = $derived.by(() => {
-    if (!normalizedQuery) return calibratedExercisePairs;
-    return calibratedExercisePairs.filter((pair) => {
-      if (pair.exercise.exerciseName.toLowerCase().includes(normalizedQuery)) return true;
-      return getMuscleGroupNames(pair).some((name) => name.toLowerCase().includes(normalizedQuery));
+  const displayCTOs = $derived.by(() => {
+    if (!normalizedQuery) return exerciseCTOs;
+    return exerciseCTOs.filter((cto) => {
+      if (cto.exerciseName.toLowerCase().includes(normalizedQuery)) return true;
+      return getMuscleGroupNames(cto).some((name) => name.toLowerCase().includes(normalizedQuery));
     });
   });
-
-  const displayPairs = $derived(
-    disabled
-      ? calibratedExercisePairs.filter((pair) =>
-          selectedCalibrationIds.includes(pair.calibration._id)
-        )
-      : filteredPairs
-  );
 
   // Reset to page 1 when search changes the result set
   $effect(() => {
@@ -79,11 +71,11 @@
     currentPage = 1;
   });
 
-  const totalPages = $derived(Math.ceil(displayPairs.length / PAGE_SIZE));
+  const totalPages = $derived(Math.ceil(displayCTOs.length / PAGE_SIZE));
   const showPagination = $derived(totalPages > 1);
 
-  const paginatedPairs = $derived(
-    displayPairs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const paginatedCTOs = $derived(
+    displayCTOs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
   );
 </script>
 
@@ -99,12 +91,12 @@
     </CardDescription>
   </CardHeader>
   <CardContent class="flex flex-col gap-4">
-    {#if calibratedExercisePairs.length === 0}
+    {#if exerciseCTOs.length === 0}
       <p class="text-sm text-muted-foreground">
         No calibrated exercises found. Calibrate exercises first to include them in a mesocycle.
       </p>
     {:else}
-      {#if !disabled && calibratedExercisePairs.length > 5}
+      {#if !disabled && exerciseCTOs.length > 5}
         <InputGroupRoot>
           <InputGroupAddon>
             <IconSearch size={16} />
@@ -114,39 +106,42 @@
       {/if}
 
       <div class="flex flex-col">
-        {#each paginatedPairs as pair, i (pair.calibration._id)}
-          {@const isSelected = selectedCalibrationIds.includes(pair.calibration._id)}
-          {@const muscleGroups = getMuscleGroupNames(pair)}
-          <button
-            type="button"
-            class="flex w-full items-center justify-between gap-3 py-2 text-left {disabled
-              ? 'cursor-default opacity-70'
-              : ''}"
-            {disabled}
-            onclick={() => toggleCalibration(pair.calibration._id)}
-          >
-            <div class="flex min-w-0 flex-1 flex-col gap-1">
-              <span class="text-sm leading-snug">{pair.exercise.exerciseName}</span>
-              {#if muscleGroups.length > 0}
-                <div class="flex flex-wrap gap-1">
-                  {#each muscleGroups as group (group)}
-                    <Badge variant="secondary" class="px-1.5 py-0 text-[10px]">{group}</Badge>
-                  {/each}
-                </div>
-              {/if}
-            </div>
-            <div class="pointer-events-none shrink-0">
-              <Switch checked={isSelected} {disabled} />
-            </div>
-          </button>
-          {#if i < paginatedPairs.length - 1}
-            <Separator />
+        {#each paginatedCTOs as cto, i (cto._id)}
+          {#if cto.bestCalibration}
+            {@const calibrationId = cto.bestCalibration._id}
+            {@const isSelected = selectedCalibrationIds.includes(calibrationId)}
+            {@const muscleGroups = getMuscleGroupNames(cto)}
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-3 py-2 text-left {disabled
+                ? 'cursor-default opacity-70'
+                : ''}"
+              {disabled}
+              onclick={() => toggleCalibration(calibrationId)}
+            >
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <span class="text-sm leading-snug">{cto.exerciseName}</span>
+                {#if muscleGroups.length > 0}
+                  <div class="flex flex-wrap gap-1">
+                    {#each muscleGroups as group (group)}
+                      <Badge variant="secondary" class="px-1.5 py-0 text-[10px]">{group}</Badge>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+              <div class="pointer-events-none shrink-0">
+                <Switch checked={isSelected} {disabled} />
+              </div>
+            </button>
+            {#if i < paginatedCTOs.length - 1}
+              <Separator />
+            {/if}
           {/if}
         {/each}
       </div>
 
       {#if showPagination}
-        <Pagination bind:page={currentPage} count={displayPairs.length} perPage={PAGE_SIZE}>
+        <Pagination bind:page={currentPage} count={displayCTOs.length} perPage={PAGE_SIZE}>
           {#snippet children({ pages })}
             <PaginationContent>
               <PaginationItem>
@@ -171,7 +166,7 @@
         </Pagination>
       {/if}
 
-      {#if !disabled && normalizedQuery && displayPairs.length === 0}
+      {#if !disabled && normalizedQuery && displayCTOs.length === 0}
         <p class="text-sm text-muted-foreground">No exercises match "{searchQuery.trim()}".</p>
       {/if}
 

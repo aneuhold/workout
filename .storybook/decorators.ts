@@ -2,8 +2,9 @@
     makes this a tiny bit cleaner IMO. */
 
 import type { DecoratorFunction } from 'storybook/internal/csf';
-import SbConfettiDecorator from '$components/singletons/Confetti/SBConfettiDecorator.svelte';
+import SBAllSingletonsDecorator from '$components/singletons/SBAllSingletonsDecorator.svelte';
 
-export const confettiDecoratorFunction: DecoratorFunction = () => ({
-  Component: SbConfettiDecorator
+/** Mounts all singleton components (dialogs + confetti) for every story. */
+export const allSingletonsDecoratorFunction: DecoratorFunction = () => ({
+  Component: SBAllSingletonsDecorator
 });

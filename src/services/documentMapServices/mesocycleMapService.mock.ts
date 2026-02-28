@@ -1,5 +1,6 @@
 import {
   CycleType,
+  WorkoutExerciseCTOSchema,
   type WorkoutMesocycle,
   WorkoutMesocycleSchema,
   WorkoutMesocycleService,
@@ -11,6 +12,7 @@ import {
 import type { UUID } from 'crypto';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import TestUsers from '$testUtils/TestUsers';
+import exerciseMapService from './exerciseMapService.svelte';
 import mesocycleMapService from './mesocycleMapService.svelte';
 
 export type AddMockMesocycleInfo = {
@@ -88,15 +90,31 @@ export default class MesocycleMapServiceMock {
       calibratedExercises: baseData.calibrations.map((c) => c._id)
     });
 
+    // This could be more performant with maps.
+    const exerciseCTOs = baseData.calibrations.map((cal) => {
+      const exercise = baseData.exercises.find((e) => e._id === cal.workoutExerciseId);
+      const equipmentType = baseData.equipmentTypes.find(
+        (et) => et._id === exercise?.workoutEquipmentTypeId
+      );
+      return WorkoutExerciseCTOSchema.parse({
+        ...exercise,
+        equipmentType,
+        bestCalibration: cal,
+        bestSet: null,
+        lastSessionExercise: null,
+        lastFirstSet: null
+      });
+    });
+    exerciseMapService.setExerciseCTOs(exerciseCTOs);
+
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesoDoc,
-      baseData.calibrations,
-      baseData.exercises,
-      baseData.equipmentTypes,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
+      exerciseCTOs,
+      [],
+      [],
+      [],
+      [],
+      [],
       config.startDate
     );
 
@@ -173,7 +191,7 @@ export default class MesocycleMapServiceMock {
   /**
    * Fills in mid-session metrics on session exercises belonging to completed
    * sessions. Mid-session metrics are filled during the workout:
-   * mindMuscleConnection, pump, perceivedEffort, unusedMusclePerformance,
+   * mindMuscleConnection, pump, unusedMusclePerformance,
    * and performanceScore.
    *
    * @param data The mock mesocycle data to modify in-place
@@ -183,7 +201,7 @@ export default class MesocycleMapServiceMock {
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
         se.rsm = { ...se.rsm, mindMuscleConnection: 2, pump: 2 };
-        se.fatigue = { ...se.fatigue, perceivedEffort: 2, unusedMusclePerformance: 1 };
+        se.fatigue = { ...se.fatigue, unusedMusclePerformance: 1 };
         se.performanceScore = 1;
       }
     }
@@ -192,7 +210,8 @@ export default class MesocycleMapServiceMock {
   /**
    * Fills in post-session (late) metrics on session exercises belonging to
    * completed sessions so they show as fully "Completed" rather than "Review".
-   * Late metrics are: disruption, jointAndTissueDisruption, and sorenessScore.
+   * Late metrics are: disruption, jointAndTissueDisruption, perceivedEffort,
+   * and sorenessScore.
    *
    * @param data The mock mesocycle data to modify in-place
    */
@@ -201,7 +220,7 @@ export default class MesocycleMapServiceMock {
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
         se.rsm = { ...se.rsm, disruption: 1 };
-        se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1 };
+        se.fatigue = { ...se.fatigue, jointAndTissueDisruption: 1, perceivedEffort: 2 };
         se.sorenessScore = 1;
       }
     }
@@ -223,6 +242,60 @@ export default class MesocycleMapServiceMock {
       set.actualWeight = set.plannedWeight ?? 135;
       if (set.plannedRir != null) {
         set.rir = Math.max(0, set.plannedRir - 1);
+      }
+    }
+  }
+
+  /**
+   * Applies performance drops to sets in specified sessions so that the first
+   * set of each session exercise shows a surplus of <= -3 (triggering
+   * `evaluateConsecutivePerformanceDrops`). Modifies sets in-place.
+   *
+   * The surplus formula is: `actualReps - plannedReps + (rir - plannedRir)`.
+   * To get surplus <= -3 we set actualReps 4 below planned and keep RIR matching.
+   *
+   * @param data The mock mesocycle data to modify in-place
+   * @param sessionIds The IDs of sessions whose sets should show performance drops
+   */
+  static applyPerformanceDrops(data: MockGeneratedMesocycleData, sessionIds: Set<UUID>): void {
+    for (const set of data.sets) {
+      if (sessionIds.has(set.workoutSessionId)) {
+        set.actualReps = Math.max(1, (set.plannedReps ?? 8) - 4);
+        set.actualWeight = set.plannedWeight ?? 135;
+        if (set.plannedRir != null) {
+          set.rir = set.plannedRir;
+        }
+      }
+    }
+  }
+
+  /**
+   * Fills actual data on all sets for a specific session so it appears
+   * "ready to complete" (all exercises logged) without marking the session
+   * itself as complete.
+   *
+   * @param data The mock mesocycle data to modify in-place
+   * @param sessionId The session whose sets should be fully filled in
+   * @param options Optional overrides for the fill behaviour
+   * @param options.performanceDrop Whether to apply a performance drop (surplus <= -3) instead of normal performance
+   */
+  static fillSessionSets(
+    data: MockGeneratedMesocycleData,
+    sessionId: UUID,
+    options: { performanceDrop?: boolean } = {}
+  ): void {
+    const { performanceDrop = false } = options;
+    for (const set of data.sets) {
+      if (set.workoutSessionId === sessionId) {
+        if (performanceDrop) {
+          set.actualReps = Math.max(1, (set.plannedReps ?? 8) - 4);
+        } else {
+          set.actualReps = (set.plannedReps ?? 8) + 1;
+        }
+        set.actualWeight = set.plannedWeight ?? 135;
+        if (set.plannedRir != null) {
+          set.rir = performanceDrop ? set.plannedRir : Math.max(0, set.plannedRir - 1);
+        }
       }
     }
   }

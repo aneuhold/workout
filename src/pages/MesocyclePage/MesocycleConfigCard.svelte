@@ -95,6 +95,15 @@
 
   const cycleTypeLabel = $derived(formatCycleType(cycleType));
 
+  const cycleTypeHints: Partial<Record<CycleType, string>> = {
+    [CycleType.Resensitization]:
+      'Heavy rep range exercises are recommended for resensitization to preserve strength with lower volume.',
+    [CycleType.Cut]:
+      'Volume progression will be slower during a cut. Focus on maintaining intensity while managing recovery.'
+  };
+
+  const cycleTypeHint = $derived(cycleTypeHints[cycleType] ?? null);
+
   // --- Date overlap logic (form mode only) ---
 
   const allMesocycles = $derived(disabled ? [] : mesocycleMapService.allDocs);
@@ -270,6 +279,9 @@
           <SelectItem value={CycleType.Cut}>{formatCycleType(CycleType.Cut)}</SelectItem>
         </SelectContent>
       </Select>
+      {#if cycleTypeHint}
+        <span class="text-xs text-muted-foreground">{cycleTypeHint}</span>
+      {/if}
     </div>
 
     <div class="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">

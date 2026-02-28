@@ -16,13 +16,9 @@
   import { SvelteSet } from 'svelte/reactivity';
   import { goto, replaceState } from '$app/navigation';
   import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
-  import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import { deleteDialog } from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
-  import SingletonDeleteDialog from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
   import { equipmentFormDialog } from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
-  import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import { muscleGroupFormDialog } from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
-  import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -420,11 +416,6 @@
     </TabsContent>
   </Tabs>
 </div>
-
-<SingletonDeleteDialog />
-<SingletonMuscleGroupFormDialog />
-<SingletonEquipmentFormDialog />
-<SingletonCalibrationFormDialog />
 
 <LibraryPageMuscleOrExerciseMissingDialog
   bind:open={prerequisiteDialogOpen}

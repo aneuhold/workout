@@ -4,8 +4,6 @@
   Root component for the home page. Orchestrates data and renders dashboard sections.
 -->
 <script lang="ts">
-  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
-  import SingletonMoveSessionsDialog from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
@@ -24,7 +22,9 @@
   const activeMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
 
   const docs = $derived(
-    activeMesocycle ? mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id) : null
+    activeMesocycle
+      ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id)
+      : null
   );
 
   const microcycles = $derived(
@@ -80,6 +80,3 @@
     <HomePageEmptyState />
   {/if}
 </div>
-
-<SingletonMoveSessionsDialog />
-<SingletonDeloadDialog />

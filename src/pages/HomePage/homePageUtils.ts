@@ -135,7 +135,7 @@ export function regenerateMesocycle(
     completedMicrocycleNumber?: number;
   }
 ): void {
-  const docs = mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id);
+  const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id);
 
   // Apply state transitions before regeneration so the core library sees them
   if (options?.startMesocycle) {
@@ -153,9 +153,8 @@ export function regenerateMesocycle(
   // Call the core library to regenerate
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
-    docs.calibrations,
-    docs.exercises,
-    docs.equipmentTypes,
+    docs.exerciseCTOs,
+    docs.volumeCTOs,
     docs.microcycles,
     docs.sessions,
     docs.sessionExercises,

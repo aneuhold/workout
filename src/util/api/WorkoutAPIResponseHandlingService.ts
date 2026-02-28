@@ -23,12 +23,10 @@ export default class WorkoutAPIResponseHandlingService {
    *
    * @param output The combined output of all API requests
    * @param input The combined input options across the batch
-   * @param _isFirstInitData Whether this is the first time getting initial data (currently unused)
    */
   static processWorkoutApiOutput(
     output: ProjectWorkoutPrimaryOutput,
-    input: ProjectWorkoutPrimaryEndpointOptions,
-    _isFirstInitData: boolean
+    input: ProjectWorkoutPrimaryEndpointOptions
   ) {
     const get = input.get;
     if (output.mesocycles && get?.mesocycles?.all) {
@@ -49,6 +47,9 @@ export default class WorkoutAPIResponseHandlingService {
     if (output.exercises && get?.exercises?.all) {
       exerciseMapService.setMap(this.convertDocumentArrayToMap(output.exercises));
     }
+    if (output.exerciseCTOs && get?.exerciseCTOs?.all) {
+      exerciseMapService.setExerciseCTOs(output.exerciseCTOs);
+    }
     if (output.exerciseCalibrations && get?.exerciseCalibrations?.all) {
       exerciseCalibrationMapService.setMap(
         this.convertDocumentArrayToMap(output.exerciseCalibrations)
@@ -59,6 +60,9 @@ export default class WorkoutAPIResponseHandlingService {
     }
     if (output.equipmentTypes && get?.equipmentTypes?.all) {
       equipmentTypeMapService.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
+    }
+    if (output.muscleGroupVolumeCTOs && get?.muscleGroupVolumeCTOs?.all) {
+      muscleGroupMapService.setVolumeCTOs(output.muscleGroupVolumeCTOs);
     }
   }
 

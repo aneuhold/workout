@@ -42,10 +42,10 @@ const sharedTextConstants = {
     "You could not match last week's reps at any RIR"
   ],
   sorenessDescriptions: [
-    'You did not get at all sore in the target muscles',
-    'You got stiff for a few hours after training and had mild soreness that resolved by next session',
-    'You got DOMS that resolved just in time for the next session',
-    'You got DOMS that remained for the next session'
+    'You did not get at all sore in the target muscle group',
+    'You got stiff for a few hours after training and had mild soreness in the target muscle group that resolved by next session targeting the same muscle group',
+    'You got DOMS in the target muscle group that resolved just in time for the next session targeting the same muscle group',
+    'You got DOMS in the target muscle group that remained for the next session targeting the same muscle group'
   ]
 } as const;
 

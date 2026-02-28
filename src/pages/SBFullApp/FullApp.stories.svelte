@@ -1,6 +1,5 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import { confettiDecoratorFunction } from '$storybook/decorators';
   import { createEnumArgType } from '$storybook/storybookUtil';
   import SBFullAppExample from './SBFullAppExample.svelte';
   import routeState from './sbFullAppRouteState.svelte';
@@ -10,7 +9,6 @@
     title: 'Full App',
     tags: ['!autodocs'],
     component: SBFullAppExample,
-    decorators: [confettiDecoratorFunction],
     parameters: {
       layout: 'fullscreen',
       sveltekit_experimental: {
@@ -50,3 +48,7 @@
 <Story name="Mesocycle Start" args={{ scenario: FullAppScenario.MesocycleStart }} />
 
 <Story name="Very Late Session" args={{ scenario: FullAppScenario.VeryLateSession }} />
+
+<Story name="Deload Trigger" args={{ scenario: FullAppScenario.DeloadTrigger }} />
+
+<Story name="Historical Data (3 Mesocycles)" args={{ scenario: FullAppScenario.HistoricalData }} />

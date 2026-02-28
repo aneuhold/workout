@@ -11,6 +11,7 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .yarn/install-state.gz
+docs/FullBook.md
 
 # Sentry Config File
 .sentryclirc

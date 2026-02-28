@@ -12,6 +12,12 @@
   import { page } from '$app/state';
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
+  import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
+  import SingletonDeleteDialog from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
+  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
+  import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
+  import SingletonMoveSessionsDialog from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
+  import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -81,5 +87,11 @@ at some point.
     >
       {@render children?.()}
     </main>
+    <SingletonCalibrationFormDialog />
+    <SingletonDeleteDialog />
+    <SingletonDeloadDialog />
+    <SingletonEquipmentFormDialog />
+    <SingletonMoveSessionsDialog />
+    <SingletonMuscleGroupFormDialog />
   {/if}
 </div>

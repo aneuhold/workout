@@ -63,7 +63,9 @@ describe('Unit Tests', () => {
       mesocycleMapService.endMesocycle(data.mesocycle._id);
 
       // Verify the docs are in the associated docs (i.e. not deleted)
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // No incomplete sessions should remain
       for (const session of updatedDocs.sessions) {
@@ -103,7 +105,9 @@ describe('Unit Tests', () => {
 
       mesocycleMapService.endMesocycle(data.mesocycle._id);
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       for (const mc of microcyclesExpectedDeleted) {
         expect(updatedDocs.microcycles.find((d) => d._id === mc._id)).toBeUndefined();
@@ -133,7 +137,9 @@ describe('Unit Tests', () => {
 
       mesocycleMapService.endMesocycle(data.mesocycle._id);
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // All completed sessions should still exist
       for (const session of completedSessions) {
@@ -168,7 +174,9 @@ describe('Unit Tests', () => {
       const deloadStartDate = new Date(data.microcycles[2].startDate);
       mesocycleMapService.initiateEarlyDeload(data.mesocycle._id, deloadStartDate);
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // None of the original incomplete sessions should remain
       for (const session of incompleteSessions) {
@@ -214,7 +222,9 @@ describe('Unit Tests', () => {
       const deloadStartDate = new Date(data.microcycles[2].startDate);
       mesocycleMapService.initiateEarlyDeload(data.mesocycle._id, deloadStartDate);
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // Deload sessions and sets
       const deloadSessions = updatedDocs.sessions.filter((s) => !originalSessionIds.has(s._id));
@@ -267,7 +277,9 @@ describe('Unit Tests', () => {
       const deloadStartDate = new Date(data.microcycles[2].startDate);
       mesocycleMapService.initiateEarlyDeload(data.mesocycle._id, deloadStartDate);
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // All completed sessions should still exist
       for (const session of completedSessions) {
@@ -323,7 +335,9 @@ describe('Unit Tests', () => {
         mesocycleMapService.initiateEarlyDeload(data.mesocycle._id, deloadStartDate);
       }).not.toThrow();
 
-      const updatedDocs = mesocycleMapService.getAssociatedDocsForMesocycle(data.mesocycle._id);
+      const updatedDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(
+        data.mesocycle._id
+      );
 
       // Microcycle 2 should still exist with completedDate set
       const updatedMc2 = updatedDocs.microcycles.find((mc) => mc._id === data.microcycles[1]._id);

@@ -15,22 +15,19 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
-  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService, {
     type MesocycleChildDocs
   } from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
   import MesocyclePageActions from './MesocyclePageActions.svelte';
   import {
-    buildCalibratedExercisePairs,
     generateMesocycleChildren,
     getDefaultNewMesocycleStartDate,
     getEarliestStartDate,
@@ -56,7 +53,9 @@
   );
 
   const associatedDocs = $derived(
-    mesocycleId ? mesocycleMapService.getAssociatedDocsForMesocycle(mesocycleId as UUID) : null
+    mesocycleId
+      ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycleId as UUID)
+      : null
   );
 
   // --- Mode ---
@@ -92,29 +91,29 @@
   let formRestDays = $derived<number[]>([...(mesocycle?.plannedMicrocycleRestDays ?? [0, 6])]);
   let formSelectedCalibrationIds = $derived<UUID[]>([...(mesocycle?.calibratedExercises ?? [])]);
 
-  // --- Data sources (for form mode) ---
+  // --- Exercise CTOs ---
 
-  const dataSources = $derived({
-    calibrations: exerciseCalibrationMapService.allDocs,
-    exercises: exerciseMapService.allDocs,
-    equipmentTypes: equipmentTypeMapService.allDocs
-  });
-
-  // --- Calibration-exercise pairs ---
-
-  const calibratedExercisePairs = $derived(
+  /** Calibrated CTOs (form mode, for the selection UI) or scoped CTOs (static mode). */
+  const exerciseCTOs = $derived(
     isFormMode
-      ? buildCalibratedExercisePairs(dataSources.calibrations, dataSources.exercises)
-      : buildCalibratedExercisePairs(
-          associatedDocs?.calibrations ?? [],
-          associatedDocs?.exercises ?? []
-        )
+      ? exerciseMapService.exerciseCTOs.filter((cto) => cto.bestCalibration != null)
+      : exerciseMapService.getCTOsForCalibrationIds(mesocycle?.calibratedExercises ?? [])
   );
+
+  /** CTOs narrowed to only the user's current selection (form mode preview). */
+  const selectedExerciseCTOs = $derived(
+    exerciseMapService.getCTOsForCalibrationIds(formSelectedCalibrationIds)
+  );
+
+  /** Exercises for display cards — selected subset in form mode, scoped set in static mode. */
+  const displayExercises = $derived(isFormMode ? selectedExerciseCTOs : exerciseCTOs);
 
   // Prune selected calibration IDs that no longer exist (form mode only)
   $effect(() => {
     if (!isFormMode) return;
-    const validIds = new Set(calibratedExercisePairs.map((p) => p.calibration._id));
+    const validIds = new Set(
+      exerciseCTOs.map((cto) => cto.bestCalibration?._id).filter((id): id is UUID => id != null)
+    );
 
     untrack(() => {
       const pruned = formSelectedCalibrationIds.filter((id) => validIds.has(id));
@@ -151,8 +150,8 @@
     if (!generatedMesocycle) return null;
     return generateMesocycleChildren(
       generatedMesocycle,
-      formSelectedCalibrationIds,
-      dataSources,
+      selectedExerciseCTOs,
+      muscleGroupMapService.allVolumeCTOs,
       formStartDate
     );
   });
@@ -163,8 +162,7 @@
     microcycles: [],
     sessions: [],
     sessionExercises: [],
-    sets: [],
-    exercises: []
+    sets: []
   };
   const displayDocs = $derived(
     isFormMode ? (previewResult ?? emptyDocs) : (associatedDocs ?? emptyDocs)
@@ -215,11 +213,7 @@
 
   function handleCreate() {
     if (!isValid) return;
-    persistNewMesocycle(
-      { ...buildMesocycleInput(), title: formTitle || null },
-      dataSources,
-      formStartDate
-    );
+    persistNewMesocycle({ ...buildMesocycleInput(), title: formTitle || null }, formStartDate);
     goto('/mesocycles');
   }
 
@@ -228,7 +222,6 @@
     persistMesocycleEdits(
       mesocycle,
       { ...buildMesocycleInput(), title: formTitle || null },
-      dataSources,
       formStartDate
     );
     goto('/mesocycles');
@@ -269,7 +262,7 @@
     />
 
     <MesocycleExercisesCard
-      {calibratedExercisePairs}
+      {exerciseCTOs}
       bind:selectedCalibrationIds={formSelectedCalibrationIds}
     />
 
@@ -277,7 +270,7 @@
       firstMicrocycle={displayDocs.microcycles[0]}
       previewSessions={displayDocs.sessions}
       previewSessionExercises={displayDocs.sessionExercises}
-      exercises={displayDocs.exercises}
+      exercises={displayExercises}
     />
 
     {#if generatedMesocycle && displayDocs.microcycles.length > 0}
@@ -287,7 +280,7 @@
         sessions={displayDocs.sessions}
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
-        exercises={displayDocs.exercises}
+        exercises={displayExercises}
       />
 
       <MesocycleProgressionCard
@@ -295,7 +288,7 @@
         sessions={displayDocs.sessions}
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
-        exercises={displayDocs.exercises}
+        exercises={displayExercises}
       />
 
       <MesocycleSummaryCard
@@ -323,7 +316,7 @@
     />
 
     <MesocycleExercisesCard
-      {calibratedExercisePairs}
+      {exerciseCTOs}
       selectedCalibrationIds={mesocycle.calibratedExercises}
       disabled
     />
@@ -332,7 +325,7 @@
       firstMicrocycle={displayDocs.microcycles[0]}
       previewSessions={displayDocs.sessions}
       previewSessionExercises={displayDocs.sessionExercises}
-      exercises={displayDocs.exercises}
+      exercises={displayExercises}
     />
 
     {#if displayDocs.microcycles.length > 0}
@@ -342,7 +335,7 @@
         sessions={displayDocs.sessions}
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
-        exercises={displayDocs.exercises}
+        exercises={displayExercises}
       />
 
       <MesocycleProgressionCard
@@ -350,7 +343,7 @@
         sessions={displayDocs.sessions}
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
-        exercises={displayDocs.exercises}
+        exercises={displayExercises}
       />
 
       <MesocycleSummaryCard
@@ -362,5 +355,3 @@
     {/if}
   {/if}
 </div>
-
-<SingletonDeloadDialog />

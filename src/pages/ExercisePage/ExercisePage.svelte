@@ -6,7 +6,6 @@
 -->
 <script lang="ts">
   import { IconArrowLeft } from '@tabler/icons-svelte';
-  import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import ExercisePageEditForm from './ExercisePageEditForm.svelte';
@@ -66,5 +65,3 @@
     <Button variant="outline" onclick={handleBack}>Back to Library</Button>
   {/if}
 </div>
-
-<SingletonCalibrationFormDialog />

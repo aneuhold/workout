@@ -15,7 +15,9 @@
   const activeMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
 
   const docs = $derived(
-    activeMesocycle ? mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id) : null
+    activeMesocycle
+      ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id)
+      : null
   );
 
   const microcycles = $derived(
