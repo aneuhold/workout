@@ -51,8 +51,11 @@ repDelta = previousSet.actualReps - previousSet.plannedReps
 surplus = repDelta + rirDelta
   // positive = user exceeded expectations
   // negative = user fell short
-  // this is the same surplus calculation already used in
-  //   WorkoutSessionExerciseService.getPerformanceScore
+  // This is the same surplus calculation already used in
+  //   WorkoutSessionExerciseService.getPerformanceScore.
+  //   Extract into a shared private method (e.g.
+  //   WorkoutSessionExerciseService.calculateSurplus) so both
+  //   getPerformanceScore and the autoregulation logic reuse it.
 ```
 
 Decision:
