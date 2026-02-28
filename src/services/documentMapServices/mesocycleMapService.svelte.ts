@@ -1,8 +1,6 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
-  WorkoutEquipmentType,
-  WorkoutExercise,
-  WorkoutExerciseCalibration,
+  WorkoutExerciseCTO,
   WorkoutMesocycle,
   WorkoutMicrocycle,
   WorkoutSession,
@@ -17,29 +15,22 @@ import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
-import equipmentTypeMapService from './equipmentTypeMapService.svelte';
-import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
 import exerciseMapService from './exerciseMapService.svelte';
 import microcycleMapService from './microcycleMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import sessionMapService from './sessionMapService.svelte';
 import setMapService from './setMapService.svelte';
 
-export type MesocycleDataSources = {
-  calibrations: WorkoutExerciseCalibration[];
-  exercises: WorkoutExercise[];
-  equipmentTypes: WorkoutEquipmentType[];
-};
-
 export type MesocycleChildDocs = {
   microcycles: WorkoutMicrocycle[];
   sessions: WorkoutSession[];
   sessionExercises: WorkoutSessionExercise[];
   sets: WorkoutSet[];
-  exercises: WorkoutExercise[];
 };
 
-export type MesocycleAssociatedDocs = MesocycleDataSources & MesocycleChildDocs;
+export type MesocycleAssociatedDocs = MesocycleChildDocs & {
+  exerciseCTOs: WorkoutExerciseCTO[];
+};
 
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
   constructor() {
@@ -56,7 +47,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   readonly activeAndNextSessions = $derived.by(() => {
     const activeMesocycle = this.getActiveMesocycle();
     if (!activeMesocycle) return { inProgressSession: null, nextUpSession: null } as const;
-    const docs = this.getAssociatedDocsForMesocycle(activeMesocycle._id);
+    const docs = this.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id);
     return WorkoutSessionService.getActiveAndNextSessions(
       docs.sessions,
       sessionExerciseMapService.getMap(),
@@ -110,16 +101,14 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   }
 
   /**
-   * Single entry point for all docs belonging to a mesocycle. Runs the O(n)
-   * microcycle scan once, then traverses down via O(1) order-array lookups.
-   * Microcycles are sorted by `startDate`; sessions, exercises, and sets
-   * preserve their respective order-array sequences.
-   * Overall: O(n log m + s + e + t) where n = total microcycles,
-   * m = matched microcycles, s = sessions, e = exercises, t = sets.
+   * Single entry point for all child docs and exercise CTOs belonging to a
+   * mesocycle. Runs the O(n) microcycle scan once, then traverses down via
+   * O(1) order-array lookups. Microcycles are sorted by `startDate`; sessions,
+   * sessionExercises, and sets preserve their respective order-array sequences.
    *
    * @param mesocycleId ID of the mesocycle to get associated docs for.
    */
-  getAssociatedDocsForMesocycle(mesocycleId: UUID): MesocycleAssociatedDocs {
+  getAssociatedDocsAndCTOsForMesocycle(mesocycleId: UUID): MesocycleAssociatedDocs {
     const mesocycle = this.getDoc(mesocycleId);
     const microcycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycleId);
     const sessions = microcycleMapService.getOrderedSessionsForMicrocycles(microcycles);
@@ -127,20 +116,16 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const sets = sessionExercises.flatMap((sessionExercise) =>
       sessionExerciseMapService.getOrderedSetsForSessionExercise(sessionExercise)
     );
-    const calibrations = exerciseCalibrationMapService.getDocsWithIds(
+    const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(
       mesocycle?.calibratedExercises ?? []
     );
-    const exercises = exerciseMapService.getExercisesForCalibrations(calibrations);
-    const equipmentTypes = equipmentTypeMapService.getEquipmentTypesForExercises(exercises);
 
     return {
       microcycles,
       sessions,
       sessionExercises,
       sets,
-      calibrations,
-      exercises,
-      equipmentTypes
+      exerciseCTOs
     };
   }
 
@@ -207,7 +192,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const mesocycle = this.getDoc(mesocycleId);
     if (!mesocycle) return;
 
-    const docs = this.getAssociatedDocsForMesocycle(mesocycleId);
+    const docs = this.getAssociatedDocsAndCTOsForMesocycle(mesocycleId);
 
     // Single pass: partition sessions and build lookup structures
     const incompleteSessions: WorkoutSession[] = [];
@@ -246,8 +231,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
         microcycles: microcyclesToDelete,
         sessions: incompleteSessions,
         sessionExercises: incompleteSessionExercises,
-        sets: incompleteSets,
-        exercises: []
+        sets: incompleteSets
       }
     });
 
@@ -265,7 +249,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const mesocycle = this.getDoc(mesocycleId);
     if (!mesocycle) return;
 
-    const docs = this.getAssociatedDocsForMesocycle(mesocycleId);
+    const docs = this.getAssociatedDocsAndCTOsForMesocycle(mesocycleId);
 
     // Partition sessions in a single pass, building lookup structures inline
     const incompleteSessions: WorkoutSession[] = [];
@@ -343,9 +327,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
 
     const generateResult = WorkoutMesocycleService.generateOrUpdateMesocycle(
       deloadMesocycle,
-      docs.calibrations,
-      docs.exercises,
-      docs.equipmentTypes,
+      docs.exerciseCTOs,
       remainingMicrocycles,
       remainingSessions,
       remainingSessionExercises,
@@ -360,15 +342,13 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
         microcycles: microcyclesToDelete,
         sessions: incompleteSessions,
         sessionExercises: incompleteSessionExercises,
-        sets: incompleteSets,
-        exercises: []
+        sets: incompleteSets
       },
       insert: {
         microcycles: generateResult.microcycles?.create ?? [],
         sessions: generateResult.sessions?.create ?? [],
         sessionExercises: generateResult.sessionExercises?.create ?? [],
-        sets: generateResult.sets?.create ?? [],
-        exercises: []
+        sets: generateResult.sets?.create ?? []
       },
       update: { microcycles: remainingMicrocycles }
     });
@@ -388,7 +368,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const mesocycle = this.getDoc(mesocycleId);
     if (!mesocycle) return;
 
-    const docs = this.getAssociatedDocsForMesocycle(mesocycleId);
+    const docs = this.getAssociatedDocsAndCTOsForMesocycle(mesocycleId);
 
     // Shift dates in place
     WorkoutMesocycleService.shiftMesocycleDates(
@@ -411,7 +391,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       for (const m of allMesocycles) {
         if (m._id === mesocycleId || m.completedDate != null) continue;
 
-        const subsequentDocs = this.getAssociatedDocsForMesocycle(m._id);
+        const subsequentDocs = this.getAssociatedDocsAndCTOsForMesocycle(m._id);
         const effectiveStart = this.getMesocycleStartDate(m, subsequentDocs.microcycles);
         if (effectiveStart == null) continue;
 
@@ -439,7 +419,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
    * @param mesocycleId The ID of the mesocycle to delete.
    */
   deleteMesocycle(mesocycleId: UUID): void {
-    const docs = this.getAssociatedDocsForMesocycle(mesocycleId);
+    const docs = this.getAssociatedDocsAndCTOsForMesocycle(mesocycleId);
 
     const apiOptions = this.prepareDocsForSave({ delete: [mesocycleId] });
     this.batchChildDocSaves(apiOptions, { delete: docs });

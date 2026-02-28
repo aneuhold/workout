@@ -21,7 +21,7 @@
 
   const currentDocs = $derived(
     currentMesocycle
-      ? mesocycleMapService.getAssociatedDocsForMesocycle(currentMesocycle._id)
+      ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(currentMesocycle._id)
       : null
   );
 </script>
@@ -55,7 +55,7 @@
     <div class="flex flex-col gap-2">
       <h2 class="text-sm font-medium text-muted-foreground">Past Mesocycles</h2>
       {#each pastMesocycles as past, i (past._id)}
-        {@const pastDocs = mesocycleMapService.getAssociatedDocsForMesocycle(past._id)}
+        {@const pastDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(past._id)}
         <StaggerItem index={i}>
           <MesocyclesPagePastCard
             mesocycle={past}

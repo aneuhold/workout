@@ -6,9 +6,7 @@ import type {
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleService, WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
-import mesocycleMapService, {
-  buildExerciseCTOs
-} from '$services/documentMapServices/mesocycleMapService.svelte';
+import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
 import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
@@ -137,7 +135,7 @@ export function regenerateMesocycle(
     completedMicrocycleNumber?: number;
   }
 ): void {
-  const docs = mesocycleMapService.getAssociatedDocsForMesocycle(activeMesocycle._id);
+  const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id);
 
   // Apply state transitions before regeneration so the core library sees them
   if (options?.startMesocycle) {
@@ -153,10 +151,9 @@ export function regenerateMesocycle(
   }
 
   // Call the core library to regenerate
-  const exerciseCTOs = buildExerciseCTOs(docs.calibrations, docs.exercises, docs);
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
-    exerciseCTOs,
+    docs.exerciseCTOs,
     docs.microcycles,
     docs.sessions,
     docs.sessionExercises,

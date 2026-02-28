@@ -1,5 +1,6 @@
 import {
   CycleType,
+  WorkoutExerciseCTOSchema,
   type WorkoutMesocycle,
   WorkoutMesocycleSchema,
   WorkoutMesocycleService,
@@ -11,7 +12,8 @@ import {
 import type { UUID } from 'crypto';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import TestUsers from '$testUtils/TestUsers';
-import mesocycleMapService, { buildExerciseCTOs } from './mesocycleMapService.svelte';
+import exerciseMapService from './exerciseMapService.svelte';
+import mesocycleMapService from './mesocycleMapService.svelte';
 
 export type AddMockMesocycleInfo = {
   cycleType?: CycleType;
@@ -88,7 +90,22 @@ export default class MesocycleMapServiceMock {
       calibratedExercises: baseData.calibrations.map((c) => c._id)
     });
 
-    const exerciseCTOs = buildExerciseCTOs(baseData.calibrations, baseData.exercises, baseData);
+    // This could be more performant with maps.
+    const exerciseCTOs = baseData.calibrations.map((cal) => {
+      const exercise = baseData.exercises.find((e) => e._id === cal.workoutExerciseId);
+      const equipmentType = baseData.equipmentTypes.find(
+        (et) => et._id === exercise?.workoutEquipmentTypeId
+      );
+      return WorkoutExerciseCTOSchema.parse({
+        ...exercise,
+        equipmentType,
+        bestCalibration: cal,
+        bestSet: null,
+        lastSessionExercise: null,
+        lastFirstSet: null
+      });
+    });
+    exerciseMapService.setExerciseCTOs(exerciseCTOs);
 
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesoDoc,
