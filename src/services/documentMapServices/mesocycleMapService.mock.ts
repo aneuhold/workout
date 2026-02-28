@@ -11,7 +11,7 @@ import {
 import type { UUID } from 'crypto';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import TestUsers from '$testUtils/TestUsers';
-import mesocycleMapService from './mesocycleMapService.svelte';
+import mesocycleMapService, { buildExerciseCTOs } from './mesocycleMapService.svelte';
 
 export type AddMockMesocycleInfo = {
   cycleType?: CycleType;
@@ -88,15 +88,15 @@ export default class MesocycleMapServiceMock {
       calibratedExercises: baseData.calibrations.map((c) => c._id)
     });
 
+    const exerciseCTOs = buildExerciseCTOs(baseData.calibrations, baseData.exercises, baseData);
+
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesoDoc,
-      baseData.calibrations,
-      baseData.exercises,
-      baseData.equipmentTypes,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
+      exerciseCTOs,
+      [],
+      [],
+      [],
+      [],
       config.startDate
     );
 

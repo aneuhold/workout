@@ -1,5 +1,4 @@
 import type {
-  CalibrationExercisePair,
   WorkoutExercise,
   WorkoutExerciseCalibration,
   WorkoutMesocycle,
@@ -8,9 +7,11 @@ import type {
 import { WorkoutMesocycleSchema, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import mesocycleMapService, {
+  buildExerciseCTOs,
   type MesocycleChildDocs,
   type MesocycleDataSources
 } from '$services/documentMapServices/mesocycleMapService.svelte';
+export { buildExerciseCTOs };
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
 
@@ -18,37 +19,6 @@ export enum MesocyclePageMode {
   New = 'new',
   Edit = 'edit',
   Static = 'static'
-}
-
-/**
- * Groups calibrations by exercise (keeping only the latest per exercise),
- * pairs each with its exercise, and returns the list sorted by exercise name.
- *
- * @param calibrations Calibrations to consider (pre-filter if needed)
- * @param exercises All available exercises
- */
-export function buildCalibratedExercisePairs(
-  calibrations: WorkoutExerciseCalibration[],
-  exercises: WorkoutExercise[]
-): CalibrationExercisePair[] {
-  const exerciseMap = new Map(exercises.map((exercise) => [exercise._id, exercise]));
-
-  const latestByExercise = new Map<UUID, WorkoutExerciseCalibration>();
-  for (const calibration of calibrations) {
-    const existing = latestByExercise.get(calibration.workoutExerciseId);
-    if (!existing || new Date(calibration.dateRecorded) > new Date(existing.dateRecorded)) {
-      latestByExercise.set(calibration.workoutExerciseId, calibration);
-    }
-  }
-
-  const pairs: CalibrationExercisePair[] = [];
-  for (const [exerciseId, calibration] of latestByExercise) {
-    const exercise = exerciseMap.get(exerciseId);
-    if (exercise) {
-      pairs.push({ calibration, exercise });
-    }
-  }
-  return pairs.sort((a, b) => a.exercise.exerciseName.localeCompare(b.exercise.exerciseName));
 }
 
 /**
@@ -104,12 +74,11 @@ export function generateMesocycleChildren(
     dataSources.calibrations,
     dataSources.exercises
   );
+  const exerciseCTOs = buildExerciseCTOs(calibrations, exercises, dataSources);
   try {
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesocycle,
-      calibrations,
-      exercises,
-      dataSources.equipmentTypes,
+      exerciseCTOs,
       [],
       [],
       [],

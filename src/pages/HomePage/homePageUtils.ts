@@ -6,7 +6,9 @@ import type {
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleService, WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
-import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+import mesocycleMapService, {
+  buildExerciseCTOs
+} from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
 import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
@@ -151,11 +153,10 @@ export function regenerateMesocycle(
   }
 
   // Call the core library to regenerate
+  const exerciseCTOs = buildExerciseCTOs(docs.calibrations, docs.exercises, docs);
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
-    docs.calibrations,
-    docs.exercises,
-    docs.equipmentTypes,
+    exerciseCTOs,
     docs.microcycles,
     docs.sessions,
     docs.sessionExercises,
