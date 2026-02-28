@@ -61,6 +61,9 @@ export default class WorkoutAPIResponseHandlingService {
     if (output.equipmentTypes && get?.equipmentTypes?.all) {
       equipmentTypeMapService.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
     }
+    if (output.muscleGroupVolumeCTOs && get?.muscleGroupVolumeCTOs?.all) {
+      muscleGroupMapService.setVolumeCTOs(output.muscleGroupVolumeCTOs);
+    }
   }
 
   private static convertDocumentArrayToMap<T extends BaseDocument>(

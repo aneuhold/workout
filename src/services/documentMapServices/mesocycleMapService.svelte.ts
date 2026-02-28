@@ -3,6 +3,7 @@ import type {
   WorkoutExerciseCTO,
   WorkoutMesocycle,
   WorkoutMicrocycle,
+  WorkoutMuscleGroupVolumeCTO,
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet
@@ -17,6 +18,7 @@ import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import exerciseMapService from './exerciseMapService.svelte';
 import microcycleMapService from './microcycleMapService.svelte';
+import muscleGroupMapService from './muscleGroupMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import sessionMapService from './sessionMapService.svelte';
 import setMapService from './setMapService.svelte';
@@ -30,6 +32,7 @@ export type MesocycleChildDocs = {
 
 export type MesocycleAssociatedDocs = MesocycleChildDocs & {
   exerciseCTOs: WorkoutExerciseCTO[];
+  volumeCTOs: WorkoutMuscleGroupVolumeCTO[];
 };
 
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
@@ -119,13 +122,15 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(
       mesocycle?.calibratedExercises ?? []
     );
+    const volumeCTOs = muscleGroupMapService.getVolumeCTOsForExerciseCTOs(exerciseCTOs);
 
     return {
       microcycles,
       sessions,
       sessionExercises,
       sets,
-      exerciseCTOs
+      exerciseCTOs,
+      volumeCTOs
     };
   }
 
@@ -328,7 +333,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const generateResult = WorkoutMesocycleService.generateOrUpdateMesocycle(
       deloadMesocycle,
       docs.exerciseCTOs,
-      [],
+      docs.volumeCTOs,
       remainingMicrocycles,
       remainingSessions,
       remainingSessionExercises,

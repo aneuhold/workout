@@ -89,7 +89,8 @@ export default class WorkoutAPIService {
         exerciseCalibrations: { all: true },
         exerciseCTOs: { all: true },
         muscleGroups: { all: true },
-        equipmentTypes: { all: true }
+        equipmentTypes: { all: true },
+        muscleGroupVolumeCTOs: { all: true }
       }
     });
   }

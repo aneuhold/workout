@@ -1,7 +1,8 @@
 import type {
   WorkoutExerciseCTO,
   WorkoutMesocycle,
-  WorkoutMicrocycle
+  WorkoutMicrocycle,
+  WorkoutMuscleGroupVolumeCTO
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleSchema, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
@@ -10,6 +11,7 @@ import mesocycleMapService, {
   type MesocycleChildDocs
 } from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
 
 export enum MesocyclePageMode {
@@ -38,18 +40,20 @@ export function getEarliestStartDate(microcycles: WorkoutMicrocycle[]): Date {
  *
  * @param mesocycle Parsed mesocycle document (may be a preview or persisted doc)
  * @param exerciseCTOs Pre-filtered exercise CTOs for this mesocycle's exercises
+ * @param volumeCTOs Volume CTOs for the muscle groups trained in this mesocycle
  * @param startDate Desired start date for the first microcycle
  */
 export function generateMesocycleChildren(
   mesocycle: WorkoutMesocycle,
   exerciseCTOs: WorkoutExerciseCTO[],
+  volumeCTOs: WorkoutMuscleGroupVolumeCTO[],
   startDate: Date
 ): MesocycleChildDocs | null {
   try {
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesocycle,
       exerciseCTOs,
-      [],
+      volumeCTOs,
       [],
       [],
       [],
@@ -84,7 +88,12 @@ export function persistNewMesocycle(
     mesocycleDoc.calibratedExercises
   );
 
-  const children = generateMesocycleChildren(mesocycleDoc, exerciseCTOs, startDate);
+  const children = generateMesocycleChildren(
+    mesocycleDoc,
+    exerciseCTOs,
+    muscleGroupMapService.allVolumeCTOs,
+    startDate
+  );
   if (!children) return;
 
   const apiOptions = mesocycleMapService.prepareDocsForSave({ insert: [mesocycleDoc] });
@@ -109,7 +118,12 @@ export function persistMesocycleEdits(
   Object.assign(mesocycle, updates);
 
   const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(mesocycle.calibratedExercises);
-  const children = generateMesocycleChildren(mesocycle, exerciseCTOs, startDate);
+  const children = generateMesocycleChildren(
+    mesocycle,
+    exerciseCTOs,
+    existingDocs.volumeCTOs,
+    startDate
+  );
   if (!children) return;
 
   const apiOptions = mesocycleMapService.prepareDocsForSave({ update: [mesocycle] });

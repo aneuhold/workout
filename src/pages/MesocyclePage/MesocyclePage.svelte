@@ -22,6 +22,7 @@
     type MesocycleChildDocs
   } from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
@@ -148,7 +149,12 @@
 
   const previewResult = $derived.by(() => {
     if (!generatedMesocycle) return null;
-    return generateMesocycleChildren(generatedMesocycle, selectedExerciseCTOs, formStartDate);
+    return generateMesocycleChildren(
+      generatedMesocycle,
+      selectedExerciseCTOs,
+      muscleGroupMapService.allVolumeCTOs,
+      formStartDate
+    );
   });
 
   // --- Display data (unified across modes) ---
