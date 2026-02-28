@@ -15,7 +15,6 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
-  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService, {
@@ -356,5 +355,3 @@
     {/if}
   {/if}
 </div>
-
-<SingletonDeloadDialog />

@@ -8,7 +8,11 @@ import type {
   WorkoutSessionExercise,
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
-import { WorkoutMesocycleService, WorkoutSessionService } from '@aneuhold/core-ts-db-lib';
+import {
+  WorkoutExerciseCalibrationService,
+  WorkoutMesocycleService,
+  WorkoutSessionService
+} from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
@@ -16,6 +20,7 @@ import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
 import exerciseMapService from './exerciseMapService.svelte';
 import microcycleMapService from './microcycleMapService.svelte';
 import muscleGroupMapService from './muscleGroupMapService.svelte';
@@ -239,6 +244,17 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
         sets: incompleteSets
       }
     });
+
+    // Generate auto-calibrations for exercises whose best set 1RM exceeds
+    // their best calibration 1RM, and include them in the same API batch.
+    const newCalibrations = WorkoutExerciseCalibrationService.generateAutoCalibrations(
+      docs.exerciseCTOs,
+      mesocycle.userId,
+      new Date()
+    );
+    if (newCalibrations.length > 0) {
+      exerciseCalibrationMapService.prepareDocsForSave({ insert: newCalibrations }, apiOptions);
+    }
 
     WorkoutAPIService.queryApi(apiOptions);
   }

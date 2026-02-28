@@ -245,4 +245,58 @@ export default class MesocycleMapServiceMock {
       }
     }
   }
+
+  /**
+   * Applies performance drops to sets in specified sessions so that the first
+   * set of each session exercise shows a surplus of <= -3 (triggering
+   * `evaluateConsecutivePerformanceDrops`). Modifies sets in-place.
+   *
+   * The surplus formula is: `actualReps - plannedReps + (rir - plannedRir)`.
+   * To get surplus <= -3 we set actualReps 4 below planned and keep RIR matching.
+   *
+   * @param data The mock mesocycle data to modify in-place
+   * @param sessionIds The IDs of sessions whose sets should show performance drops
+   */
+  static applyPerformanceDrops(data: MockGeneratedMesocycleData, sessionIds: Set<UUID>): void {
+    for (const set of data.sets) {
+      if (sessionIds.has(set.workoutSessionId)) {
+        set.actualReps = Math.max(1, (set.plannedReps ?? 8) - 4);
+        set.actualWeight = set.plannedWeight ?? 135;
+        if (set.plannedRir != null) {
+          set.rir = set.plannedRir;
+        }
+      }
+    }
+  }
+
+  /**
+   * Fills actual data on all sets for a specific session so it appears
+   * "ready to complete" (all exercises logged) without marking the session
+   * itself as complete.
+   *
+   * @param data The mock mesocycle data to modify in-place
+   * @param sessionId The session whose sets should be fully filled in
+   * @param options Optional overrides for the fill behaviour
+   * @param options.performanceDrop Whether to apply a performance drop (surplus <= -3) instead of normal performance
+   */
+  static fillSessionSets(
+    data: MockGeneratedMesocycleData,
+    sessionId: UUID,
+    options: { performanceDrop?: boolean } = {}
+  ): void {
+    const { performanceDrop = false } = options;
+    for (const set of data.sets) {
+      if (set.workoutSessionId === sessionId) {
+        if (performanceDrop) {
+          set.actualReps = Math.max(1, (set.plannedReps ?? 8) - 4);
+        } else {
+          set.actualReps = (set.plannedReps ?? 8) + 1;
+        }
+        set.actualWeight = set.plannedWeight ?? 135;
+        if (set.plannedRir != null) {
+          set.rir = performanceDrop ? set.plannedRir : Math.max(0, set.plannedRir - 1);
+        }
+      }
+    }
+  }
 }

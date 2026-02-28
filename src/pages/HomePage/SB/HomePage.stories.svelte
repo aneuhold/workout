@@ -1,6 +1,5 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import { confettiDecoratorFunction } from '$storybook/decorators';
   import { createEnumArgType } from '$storybook/storybookUtil';
   import SBHomePageExample from './SBHomePageExample.svelte';
 
@@ -21,7 +20,6 @@
     title: 'Pages/HomePage',
     tags: ['!autodocs'],
     component: SBHomePageExample,
-    decorators: [confettiDecoratorFunction],
     parameters: {
       layout: 'fullscreen'
     },

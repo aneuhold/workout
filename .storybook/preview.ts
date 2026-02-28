@@ -3,6 +3,7 @@ import { withThemeByClassName } from '@storybook/addon-themes';
 import type { Preview, SvelteRenderer } from '@storybook/sveltekit';
 import { spyOn } from 'storybook/test';
 import TestSetup from '$testUtils/TestSetup';
+import { allSingletonsDecoratorFunction } from './decorators';
 
 // This is called at the top level to ensure that global mocks are set up
 // before any other modules are loaded. This is important because some
@@ -37,6 +38,7 @@ const preview: Preview = {
     }
   },
   decorators: [
+    allSingletonsDecoratorFunction,
     withThemeByClassName<SvelteRenderer>({
       themes: {
         light: 'light',
