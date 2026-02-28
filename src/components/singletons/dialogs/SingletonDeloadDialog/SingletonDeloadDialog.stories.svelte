@@ -6,7 +6,10 @@
   const storyModeEnum = {
     withScheduled: 'withScheduled',
     immediateOnly: 'immediateOnly',
-    error: 'error'
+    error: 'error',
+    suggested: 'suggested',
+    recommended: 'recommended',
+    urgent: 'urgent'
   } as const;
 
   const { Story } = defineMeta({
@@ -40,3 +43,9 @@
     await userEvent.click(confirmButton);
   }}
 />
+
+<Story name="Fatigue Warning - Suggested" args={{ storyMode: 'suggested' }} />
+
+<Story name="Fatigue Warning - Recommended" args={{ storyMode: 'recommended' }} />
+
+<Story name="Fatigue Warning - Urgent" args={{ storyMode: 'urgent' }} />

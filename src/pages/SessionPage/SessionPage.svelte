@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import {
+    WorkoutMesocycleService,
     WorkoutSessionExerciseService,
     WorkoutSessionLockReason,
     WorkoutSessionService,
@@ -13,6 +14,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
+  import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
@@ -204,7 +206,35 @@
       doc.lastUpdatedDate = new Date();
       return doc;
     });
-    goto(`/sessions`);
+
+    // Check for early deload recommendation before navigating
+    if (mesocycle && microcycle) {
+      const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
+      const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
+        mesocycle,
+        docs.exerciseCTOs,
+        microcycle._id,
+        docs.microcycles,
+        docs.sessions,
+        docs.sessionExercises,
+        docs.sets
+      );
+      if (recommendation.shouldDeload) {
+        deloadDialog.open({
+          mesocycleTitle: mesocycle.title ?? 'Mesocycle',
+          scheduledDeloadDate: null,
+          onConfirm: async () => {
+            mesocycleMapService.initiateEarlyDeload(mesocycle._id, new Date());
+            await goto('/sessions');
+          },
+          severity: recommendation.severity,
+          triggeredRules: recommendation.triggeredRules
+        });
+        return;
+      }
+    }
+
+    goto('/sessions');
   }
 
   function handleCompleteReview() {
