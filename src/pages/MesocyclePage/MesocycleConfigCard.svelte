@@ -284,7 +284,7 @@
       {/if}
     </div>
 
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-3">
       <div class="flex flex-col gap-1.5">
         <Label for="meso-weeks">Weeks</Label>
         <ValidatedInput
@@ -297,7 +297,7 @@
         />
       </div>
       <div class="flex flex-col gap-1.5">
-        <Label for="meso-sessions">Sessions/Microcycle</Label>
+        <Label for="meso-sessions">Sessions/Cycle</Label>
         <ValidatedInput
           id="meso-sessions"
           type="number"

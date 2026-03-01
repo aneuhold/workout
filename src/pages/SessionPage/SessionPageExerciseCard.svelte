@@ -20,7 +20,6 @@
     IconPlayerStop,
     IconStopwatch
   } from '@tabler/icons-svelte';
-  import { slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -30,10 +29,10 @@
   import timerService from '$services/TimerService';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
-  import Label from '$ui/Label/Label.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import { formatTime } from '$util/formatTime';
   import sharedTextConstants from '$util/sharedTextConstants';
+  import { cn } from '$util/svelte-shadcn-util';
   import SessionPageDeferredField from './SessionPageDeferredField.svelte';
   import SessionPageSetRow from './SessionPageSetRow.svelte';
   import SessionPageSliderField from './SessionPageSliderField.svelte';
@@ -69,17 +68,18 @@
   let isDeload = $derived(WorkoutSessionExerciseService.isDeloadExercise(sets));
   let hasRirAndReps = $derived(sets.some((s) => s.plannedReps != null && s.plannedRir != null));
   let computedPerformanceScore = $derived(WorkoutSessionExerciseService.getPerformanceScore(sets));
-  let displayPerformanceScore = $derived(
-    computedPerformanceScore ?? sessionExercise.performanceScore ?? null
-  );
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
   );
 
+  // Auto-sync computed performance score to the document (no UI, used by downstream checks)
   $effect(() => {
     const score = computedPerformanceScore;
     if (score !== null && score !== sessionExercise.performanceScore) {
-      updatePerformance(score);
+      sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
+        doc.performanceScore = score;
+        return doc;
+      });
     }
   });
 
@@ -157,7 +157,6 @@
     jointDescriptions,
     effortDescriptions,
     unusedMuscleDescriptions,
-    performanceDescriptions,
     sorenessDescriptions
   } = sharedTextConstants;
 
@@ -201,13 +200,6 @@
         };
       }
       doc.fatigue[field] = value;
-      return doc;
-    });
-  }
-
-  function updatePerformance(value: number | null) {
-    sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
-      doc.performanceScore = value;
       return doc;
     });
   }
@@ -290,8 +282,13 @@
     />
   </button>
 
-  {#if expanded}
-    <div transition:slide={{ duration: 200 }}>
+  <div
+    class={cn(
+      'grid transition-[grid-template-rows] duration-200 ease-out',
+      expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+    )}
+  >
+    <div class="overflow-hidden">
       <Separator />
       <div class="flex flex-col gap-4 px-3 py-3">
         <!-- Section 1: Set Table -->
@@ -487,37 +484,6 @@
           <div class="flex flex-col gap-3">
             <h3 class="text-sm font-medium">Recovery</h3>
 
-            <div class="flex flex-col gap-1.5">
-              <div class="flex items-center gap-1.5">
-                <Label>Performance Score</Label>
-                <InfoPopover>
-                  <p class="mb-2 text-sm">
-                    Auto-calculated from your logged sets by comparing actual reps and RIR to
-                    planned targets.
-                  </p>
-                  <ul class="flex flex-col gap-1.5 text-sm">
-                    {#each performanceDescriptions as desc, i (i)}
-                      <li><strong>{i}:</strong> {desc}</li>
-                    {/each}
-                  </ul>
-                </InfoPopover>
-              </div>
-              {#if displayPerformanceScore !== null}
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-foreground">
-                    {displayPerformanceScore}
-                  </span>
-                  <span class="text-xs text-muted-foreground">
-                    {performanceDescriptions[displayPerformanceScore]}
-                  </span>
-                </div>
-              {:else}
-                <p class="text-xs text-muted-foreground">
-                  Calculated automatically as you log sets
-                </p>
-              {/if}
-            </div>
-
             {#if mode === SessionPageMode.Active}
               <SessionPageDeferredField
                 label="Soreness"
@@ -538,5 +504,5 @@
         {/if}
       </div>
     </div>
-  {/if}
+  </div>
 </div>
