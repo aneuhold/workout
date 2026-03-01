@@ -293,12 +293,19 @@
       <div class="flex flex-col gap-4 px-3 py-3">
         <!-- Section 1: Set Table -->
         <div class="flex flex-col gap-1">
-          <div class="grid grid-cols-12 items-center gap-1.5 px-2 text-xs text-muted-foreground">
+          <div
+            class="grid items-center gap-1.5 px-2 text-xs text-muted-foreground {mode ===
+            SessionPageMode.Active
+              ? 'grid-cols-12'
+              : 'grid-cols-9'}"
+          >
             <div class="col-span-1">#</div>
             <div class="col-span-3">Weight</div>
             <div class="col-span-3">Reps</div>
             <div class="col-span-2">RIR</div>
-            <div class="col-span-3"></div>
+            {#if mode === SessionPageMode.Active}
+              <div class="col-span-3"></div>
+            {/if}
           </div>
           {#each sets as set, i (set._id)}
             <SessionPageSetRow

@@ -16,7 +16,6 @@
   import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
   import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
-  import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
   import { SessionPageMode, SessionPageSetState } from './sessionPageTypes';
@@ -95,12 +94,18 @@
     setState === SessionPageSetState.Completed || mode !== SessionPageMode.Active
   );
 
+  let isActive = $derived(mode === SessionPageMode.Active);
+
   let hasTargets = $derived(
     set.plannedWeight != null || set.plannedReps != null || set.plannedRir != null
   );
 </script>
 
-<div class="grid grid-cols-12 items-center gap-1.5 rounded-lg px-2 py-1.5 {rowClass}">
+<div
+  class="grid items-center gap-1.5 rounded-lg px-2 py-1.5 {isActive
+    ? 'grid-cols-12'
+    : 'grid-cols-9'} {rowClass}"
+>
   <!-- Set number -->
   <div class="col-span-1">
     <span class="text-sm font-medium {numberClass}">{setNumber}</span>
@@ -158,25 +163,24 @@
     {/if}
   </div>
 
-  <!-- Action -->
-  <div class="col-span-3 flex justify-end">
-    {#if setState === SessionPageSetState.Completed && mode === SessionPageMode.Active}
-      <Button variant="secondary" size="xs" onclick={handleEditClick}>
-        Done
-        <IconPencil size={12} />
-      </Button>
-    {:else if setState === SessionPageSetState.Completed}
-      <Badge variant="secondary">Done</Badge>
-    {:else if setState === SessionPageSetState.Current && mode === SessionPageMode.Active}
-      <Button size="sm" disabled={!canLog} onclick={handleLogClick}>Log</Button>
-    {/if}
-  </div>
+  <!-- Action (Active mode only) -->
+  {#if isActive}
+    <div class="col-span-3 flex justify-end">
+      {#if setState === SessionPageSetState.Completed}
+        <Button variant="secondary" size="icon-xs" onclick={handleEditClick}>
+          <IconPencil size={12} />
+        </Button>
+      {:else if setState === SessionPageSetState.Current}
+        <Button size="sm" disabled={!canLog} onclick={handleLogClick}>Log</Button>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 {#if hasTargets && mode !== SessionPageMode.Locked}
-  <div class="grid grid-cols-12 gap-1.5 px-2 pb-0.5">
+  <div class="grid gap-1.5 px-2 pb-0.5 {isActive ? 'grid-cols-12' : 'grid-cols-9'}">
     <div class="col-span-1"></div>
-    <div class="col-span-11 text-xs text-muted-foreground">
+    <div class="{isActive ? 'col-span-11' : 'col-span-8'} text-xs text-muted-foreground">
       Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'}{#if set.plannedRir != null}
         @ {set.plannedRir} RIR{/if}
     </div>
