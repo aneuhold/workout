@@ -18,6 +18,7 @@ if (initalizeSentry) {
   Sentry.init({
     dsn: 'https://d2be0b33224daa1b4da3c30d5163f89a@o4507319328702464.ingest.us.sentry.io/4510925034618880',
     tracesSampleRate: 1.0,
+    tracePropagationTargets: ['https://api.antonneuhold.com'],
     // This sets the sample rate to be 10%. You may want this to be 100% while
     // in development and sample at a lower rate in production
     replaysSessionSampleRate: 0.1,
