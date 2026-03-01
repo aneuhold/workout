@@ -307,6 +307,7 @@
               setState={getSetState(set, i)}
               {mode}
               onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
+              onEdit={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
             />
           {/each}
           {#if hasRirAndReps && mode === SessionPageMode.Active}

@@ -15,6 +15,7 @@
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
+  import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
@@ -293,3 +294,5 @@
     {/if}
   {/if}
 </div>
+
+<SingletonEditSetDialog />

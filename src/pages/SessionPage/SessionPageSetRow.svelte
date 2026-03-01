@@ -6,6 +6,8 @@
 -->
 <script lang="ts">
   import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
+  import { IconPencil } from '@tabler/icons-svelte';
+  import { editSetDialog } from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -24,13 +26,15 @@
     setNumber,
     setState,
     mode,
-    onLog
+    onLog,
+    onEdit
   }: {
     set: WorkoutSet;
     setNumber: number;
     setState: SessionPageSetState;
     mode: SessionPageMode;
     onLog: (weight: number, reps: number, rir: number | null) => void;
+    onEdit: (weight: number, reps: number, rir: number | null) => void;
   } = $props();
 
   let weight = $derived<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
@@ -51,6 +55,24 @@
       onLog(weight, reps, rir ?? null);
     }
     dialogOpen = false;
+  }
+
+  function handleEditClick() {
+    const targetParts: string[] = [];
+    if (set.plannedWeight != null) targetParts.push(`${set.plannedWeight}lb`);
+    if (set.plannedReps != null) targetParts.push(`x ${set.plannedReps}`);
+    if (set.plannedRir != null) targetParts.push(`@ ${set.plannedRir} RIR`);
+    const target = targetParts.length > 0 ? `Target: ${targetParts.join(' ')}` : null;
+
+    editSetDialog.open({
+      setNumber,
+      weight: set.actualWeight ?? set.plannedWeight ?? undefined,
+      reps: set.actualReps ?? set.plannedReps ?? undefined,
+      rir: set.rir ?? set.plannedRir ?? undefined,
+      hasRir: set.plannedRir != null,
+      targetText: target,
+      onSave: onEdit
+    });
   }
 
   let numberClass = $derived(
@@ -138,7 +160,12 @@
 
   <!-- Action -->
   <div class="col-span-3 flex justify-end">
-    {#if setState === SessionPageSetState.Completed}
+    {#if setState === SessionPageSetState.Completed && mode === SessionPageMode.Active}
+      <Button variant="secondary" size="xs" onclick={handleEditClick}>
+        Done
+        <IconPencil size={12} />
+      </Button>
+    {:else if setState === SessionPageSetState.Completed}
       <Badge variant="secondary">Done</Badge>
     {:else if setState === SessionPageSetState.Current && mode === SessionPageMode.Active}
       <Button size="sm" disabled={!canLog} onclick={handleLogClick}>Log</Button>
