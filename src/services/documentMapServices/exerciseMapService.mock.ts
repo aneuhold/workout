@@ -4,6 +4,9 @@ import {
   type Fatigue,
   type WorkoutEquipmentType,
   type WorkoutExercise,
+  type WorkoutExerciseCalibration,
+  type WorkoutExerciseCTO,
+  WorkoutExerciseCTOSchema,
   WorkoutExerciseSchema,
   type WorkoutMuscleGroup
 } from '@aneuhold/core-ts-db-lib';
@@ -43,6 +46,7 @@ export type AddMockExerciseInfo = {
 export default class ExerciseMapServiceMock {
   reset(): void {
     exerciseMapService.setMap({});
+    exerciseMapService.setExerciseCTOs([]);
   }
 
   addExercise(options: AddMockExerciseInfo): WorkoutExercise {
@@ -60,6 +64,37 @@ export default class ExerciseMapServiceMock {
     });
     exerciseMapService.addDocWithoutPersist(doc);
     return doc;
+  }
+
+  /**
+   * Builds exercise CTOs from calibrations, exercises, and equipment types,
+   * and sets them on the exercise map service.
+   *
+   * @param calibrations The calibrations to build CTOs from
+   * @param exercises The exercises to match calibrations against
+   * @param equipmentTypes The equipment types to attach to CTOs
+   */
+  setDefaultExerciseCTOs(
+    calibrations: WorkoutExerciseCalibration[],
+    exercises: WorkoutExercise[],
+    equipmentTypes: WorkoutEquipmentType[]
+  ): WorkoutExerciseCTO[] {
+    const exerciseCTOs = calibrations.map((cal) => {
+      const exercise = exercises.find((e) => e._id === cal.workoutExerciseId);
+      const equipmentType = equipmentTypes.find(
+        (et) => et._id === exercise?.workoutEquipmentTypeId
+      );
+      return WorkoutExerciseCTOSchema.parse({
+        ...exercise,
+        equipmentType,
+        bestCalibration: cal,
+        bestSet: null,
+        lastSessionExercise: null,
+        lastFirstSet: null
+      });
+    });
+    exerciseMapService.setExerciseCTOs(exerciseCTOs);
+    return exerciseCTOs;
   }
 
   addDefaultExercises(

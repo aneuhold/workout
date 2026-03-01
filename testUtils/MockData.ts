@@ -1,7 +1,8 @@
 import type {
   WorkoutEquipmentType,
   WorkoutExercise,
-  WorkoutExerciseCalibration
+  WorkoutExerciseCalibration,
+  WorkoutExerciseCTO
 } from '@aneuhold/core-ts-db-lib';
 import EquipmentTypeMapServiceMock from '$services/documentMapServices/equipmentTypeMapService.mock';
 import ExerciseCalibrationMapServiceMock from '$services/documentMapServices/exerciseCalibrationMapService.mock';
@@ -19,6 +20,7 @@ export type MockBaseData = {
   exercises: WorkoutExercise[];
   calibrations: WorkoutExerciseCalibration[];
   equipmentTypes: WorkoutEquipmentType[];
+  exerciseCTOs: WorkoutExerciseCTO[];
 };
 
 /**
@@ -62,6 +64,12 @@ export default class MockData {
     const exercises = MockData.exerciseMapServiceMock.addDefaultExercises(muscleGroups, equipment);
     const calibrations = MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
     const equipmentTypes = Object.values(equipment);
-    return { exercises, calibrations, equipmentTypes };
+    const exerciseCTOs = MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      calibrations,
+      exercises,
+      equipmentTypes
+    );
+
+    return { exercises, calibrations, equipmentTypes, exerciseCTOs };
   }
 }
