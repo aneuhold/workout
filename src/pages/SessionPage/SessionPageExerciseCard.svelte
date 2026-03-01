@@ -67,9 +67,21 @@
   );
   let isDeload = $derived(WorkoutSessionExerciseService.isDeloadExercise(sets));
   let hasRirAndReps = $derived(sets.some((s) => s.plannedReps != null && s.plannedRir != null));
+  let computedPerformanceScore = $derived(WorkoutSessionExerciseService.getPerformanceScore(sets));
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
   );
+
+  // Auto-sync computed performance score to the document (no UI, used by downstream checks)
+  $effect(() => {
+    const score = computedPerformanceScore;
+    if (score !== null && score !== sessionExercise.performanceScore) {
+      sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
+        doc.performanceScore = score;
+        return doc;
+      });
+    }
+  });
 
   // --- Muscle group names ---
 
