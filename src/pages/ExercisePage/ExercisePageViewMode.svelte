@@ -1,47 +1,53 @@
 <!--
   @component
 
-  Read-only view for an exercise's details, calibration data, and actions.
+  Read-only view for an exercise's details, strength data, training quality, and actions.
+  Composes sub-components for the strength hero card, strength history, and training quality.
 -->
 <script lang="ts">
   import {
     type WorkoutExercise,
-    WorkoutExerciseCalibrationService,
+    type WorkoutExerciseCTO,
     WorkoutExerciseService
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
-  import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
+  import ExercisePageStrengthHero from './ExercisePageStrengthHero.svelte';
+  import ExercisePageStrengthHistory from './ExercisePageStrengthHistory.svelte';
+  import ExercisePageTrainingQuality from './ExercisePageTrainingQuality.svelte';
 
   let {
     exercise,
+    cto,
     onEdit
   }: {
     exercise: WorkoutExercise;
+    cto: WorkoutExerciseCTO | undefined;
     onEdit: () => void;
   } = $props();
 
-  // --- Data ---
-
-  let calibrations = $derived(
-    exerciseCalibrationMapService.allDocs.filter((c) => c.workoutExerciseId === exercise._id)
-  );
-  let latestCalibration = $derived(calibrations[calibrations.length - 1]);
-
-  // --- Helpers ---
-
+  /**
+   * Resolves an equipment type ID to its display name.
+   *
+   * @param id The equipment type ID
+   */
   function getEquipmentName(id: UUID): string {
     return equipmentTypeMapService.getDoc(id)?.title ?? 'Unknown';
   }
 </script>
 
 <div class="flex flex-col gap-4">
-  <!-- Properties grid -->
+  <!-- Section A: Strength Hero Card -->
+  <ExercisePageStrengthHero
+    bestCalibration={cto?.bestCalibration ?? null}
+    bestSet={cto?.bestSet ?? null}
+  />
+
+  <!-- Section B: Properties grid -->
   <div class="grid grid-cols-2 gap-x-4 gap-y-2">
     <div>
       <span class="text-xs text-muted-foreground">Equipment</span>
@@ -64,7 +70,7 @@
     </div>
   </div>
 
-  <!-- Muscle groups -->
+  <!-- Section C: Muscle groups -->
   <div>
     <span class="text-xs text-muted-foreground">Muscle Groups</span>
     <div class="mt-1 flex flex-wrap gap-1">
@@ -80,7 +86,7 @@
     </div>
   </div>
 
-  <!-- Notes -->
+  <!-- Section D: Notes -->
   {#if exercise.notes}
     <div>
       <span class="text-xs text-muted-foreground">Notes</span>
@@ -88,62 +94,22 @@
     </div>
   {/if}
 
-  <!-- Fatigue guess -->
-  {#if exercise.initialFatigueGuess}
-    <Separator />
-    <div>
-      <span class="text-xs text-muted-foreground">Fatigue Guess</span>
-      <div class="mt-1 grid grid-cols-3 gap-2 text-center text-sm">
-        <div>
-          <span class="text-xs text-muted-foreground">Joint</span>
-          <p class="font-medium">
-            {exercise.initialFatigueGuess.jointAndTissueDisruption ?? '—'}
-          </p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Effort</span>
-          <p class="font-medium">{exercise.initialFatigueGuess.perceivedEffort ?? '—'}</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Unused</span>
-          <p class="font-medium">
-            {exercise.initialFatigueGuess.unusedMusclePerformance ?? '—'}
-          </p>
-        </div>
-      </div>
-    </div>
-  {/if}
-
-  <!-- Calibration -->
+  <!-- Section E: Strength History -->
   <Separator />
-  {#if latestCalibration}
-    <div class="rounded-lg bg-muted/50 p-3">
-      <span class="text-xs text-muted-foreground">
-        Calibrated on {latestCalibration.dateRecorded.toLocaleDateString()}
-      </span>
-      <div class="mt-2 grid grid-cols-3 text-center">
-        <div>
-          <span class="text-xs text-muted-foreground">Weight</span>
-          <p class="font-medium">{latestCalibration.weight} lb</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Reps</span>
-          <p class="font-medium">{latestCalibration.reps}</p>
-        </div>
-        <div>
-          <span class="text-xs text-muted-foreground">Est. 1RM</span>
-          <p class="font-medium">
-            {Math.round(WorkoutExerciseCalibrationService.get1RM(latestCalibration))} lb
-          </p>
-        </div>
-      </div>
-    </div>
-  {/if}
-  <Button variant="outline" size="sm" onclick={() => calibrationFormDialog.open(exercise)}>
-    Add Calibration
-  </Button>
+  <ExercisePageStrengthHistory
+    bestSet={cto?.bestSet ?? null}
+    bestCalibration={cto?.bestCalibration ?? null}
+    {exercise}
+  />
 
-  <!-- Actions -->
+  <!-- Section F: Training Quality -->
+  <Separator />
+  <ExercisePageTrainingQuality
+    initialFatigueGuess={exercise.initialFatigueGuess}
+    lastSessionExercise={cto?.lastSessionExercise ?? null}
+  />
+
+  <!-- Section G: Actions -->
   <div class="flex gap-2">
     <Button onclick={onEdit}>Edit</Button>
     <Button variant="outline" onclick={() => history.back()}>Back</Button>

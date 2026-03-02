@@ -14,6 +14,129 @@ describe('Unit Tests', () => {
     vi.restoreAllMocks();
   });
 
+  describe('categorizedMesocycles', () => {
+    it('should return null active and empty arrays when no mesocycles exist', () => {
+      MockData.setupBaseData();
+
+      const { active, past, future } = mesocycleMapService.categorizedMesocycles;
+
+      expect(active).toBeNull();
+      expect(past).toHaveLength(0);
+      expect(future).toHaveLength(0);
+    });
+
+    it('should partition mesocycles into active, past, and future', () => {
+      const baseData = MockData.setupBaseData();
+
+      // Past mesocycle (completed)
+      const pastData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Past Block',
+        startDate: new Date('2025-10-01T00:00:00.000Z'),
+        completedSessionCount: 20,
+        completedDate: new Date('2025-11-01T00:00:00.000Z')
+      });
+
+      // Active mesocycle (in progress, no completedDate)
+      const activeData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Active Block',
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        completedSessionCount: 5
+      });
+
+      // Future mesocycle (no completedDate, created after active)
+      const futureData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Future Block',
+        startDate: new Date('2026-04-01T00:00:00.000Z'),
+        completedSessionCount: 0
+      });
+
+      const { active, past, future } = mesocycleMapService.categorizedMesocycles;
+
+      expect(active?._id).toBe(activeData.mesocycle._id);
+      expect(past).toHaveLength(1);
+      expect(past[0]._id).toBe(pastData.mesocycle._id);
+      expect(future).toHaveLength(1);
+      expect(future[0]._id).toBe(futureData.mesocycle._id);
+    });
+
+    it('should only have one active mesocycle (the first without completedDate)', () => {
+      const baseData = MockData.setupBaseData();
+
+      // Two mesocycles without completedDate — first should be active, second future
+      const firstData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'First Block',
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        completedSessionCount: 3
+      });
+
+      const secondData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Second Block',
+        startDate: new Date('2026-03-01T00:00:00.000Z'),
+        completedSessionCount: 0
+      });
+
+      const { active, future } = mesocycleMapService.categorizedMesocycles;
+
+      expect(active?._id).toBe(firstData.mesocycle._id);
+      expect(future).toHaveLength(1);
+      expect(future[0]._id).toBe(secondData.mesocycle._id);
+    });
+
+    it('should sort past mesocycles by completedDate descending', () => {
+      const baseData = MockData.setupBaseData();
+
+      const olderPast = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Older Past',
+        startDate: new Date('2025-06-01T00:00:00.000Z'),
+        completedSessionCount: 20,
+        completedDate: new Date('2025-07-01T00:00:00.000Z')
+      });
+
+      const newerPast = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Newer Past',
+        startDate: new Date('2025-09-01T00:00:00.000Z'),
+        completedSessionCount: 20,
+        completedDate: new Date('2025-10-01T00:00:00.000Z')
+      });
+
+      const { past } = mesocycleMapService.categorizedMesocycles;
+
+      expect(past).toHaveLength(2);
+      expect(past[0]._id).toBe(newerPast.mesocycle._id);
+      expect(past[1]._id).toBe(olderPast.mesocycle._id);
+    });
+
+    it('should sort future mesocycles by effective start date ascending', () => {
+      const baseData = MockData.setupBaseData();
+
+      // Active mesocycle
+      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Active',
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        completedSessionCount: 3
+      });
+
+      // Two future mesocycles — later start date first in insertion order
+      const laterFuture = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Later Future',
+        startDate: new Date('2026-06-01T00:00:00.000Z'),
+        completedSessionCount: 0
+      });
+
+      const soonerFuture = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Sooner Future',
+        startDate: new Date('2026-04-01T00:00:00.000Z'),
+        completedSessionCount: 0
+      });
+
+      const { future } = mesocycleMapService.categorizedMesocycles;
+
+      expect(future).toHaveLength(2);
+      expect(future[0]._id).toBe(soonerFuture.mesocycle._id);
+      expect(future[1]._id).toBe(laterFuture.mesocycle._id);
+    });
+  });
+
   describe('endMesocycle', () => {
     it('should set completedDate on the mesocycle', () => {
       const baseData = MockData.setupBaseData();

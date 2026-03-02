@@ -12,6 +12,7 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
+  import { IconChevronRight } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
   import MesocycleCalendar from '$components/MesocycleCalendar/MesocycleCalendar.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
@@ -66,6 +67,7 @@
     <div class="flex items-center gap-2">
       <CardTitle>{title}</CardTitle>
       <Badge variant="secondary">{formatCycleType(mesocycle.cycleType)}</Badge>
+      <IconChevronRight size={16} class="ml-auto shrink-0 text-muted-foreground" />
     </div>
     <CardDescription>Cycle {currentCycleNumber} of {totalCycles}</CardDescription>
   </CardHeader>

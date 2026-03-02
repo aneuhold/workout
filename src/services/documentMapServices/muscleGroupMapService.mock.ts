@@ -18,6 +18,7 @@ export enum MockDefaultMuscleGroup {
 export default class MuscleGroupMapServiceMock {
   reset(): void {
     muscleGroupMapService.setMap({});
+    muscleGroupMapService.setVolumeCTOs([]);
   }
 
   addMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {

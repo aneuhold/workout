@@ -12,7 +12,7 @@
   import SessionsPageHeader from './SessionsPageHeader.svelte';
   import SessionsPageWeekGroup from './SessionsPageWeekGroup.svelte';
 
-  const activeMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
+  const activeMesocycle = $derived(mesocycleMapService.categorizedMesocycles.active);
 
   const docs = $derived(
     activeMesocycle

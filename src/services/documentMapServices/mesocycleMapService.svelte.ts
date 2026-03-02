@@ -50,10 +50,47 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   }
 
   /**
+   * Partitions all mesocycles into active, past, and future in a single pass.
+   * - `active`: the first mesocycle without a `completedDate`
+   * - `past`: mesocycles with a `completedDate`, sorted most-recent-first
+   * - `future`: remaining mesocycles without a `completedDate`, sorted by
+   *   effective start date ascending
+   */
+  readonly categorizedMesocycles = $derived.by(() => {
+    let active: WorkoutMesocycle | null = null;
+    const past: WorkoutMesocycle[] = [];
+    const future: WorkoutMesocycle[] = [];
+
+    for (const m of this.allDocs) {
+      if (m.completedDate != null) {
+        past.push(m);
+      } else if (!active) {
+        active = m;
+      } else {
+        future.push(m);
+      }
+    }
+
+    past.sort((a, b) => {
+      const aTime = a.completedDate?.getTime() ?? 0;
+      const bTime = b.completedDate?.getTime() ?? 0;
+      return bTime - aTime;
+    });
+
+    future.sort((a, b) => {
+      const aStart = this.getMesocycleStartDate(a)?.getTime() ?? a.createdDate.getTime();
+      const bStart = this.getMesocycleStartDate(b)?.getTime() ?? b.createdDate.getTime();
+      return aStart - bStart;
+    });
+
+    return { active, past, future };
+  });
+
+  /**
    * The derived in-progress and next-up sessions for the active mesocycle.
    */
   readonly activeAndNextSessions = $derived.by(() => {
-    const activeMesocycle = this.getActiveMesocycle();
+    const activeMesocycle = this.categorizedMesocycles.active;
     if (!activeMesocycle) return { inProgressSession: null, nextUpSession: null } as const;
     const docs = this.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id);
     return WorkoutSessionService.getActiveAndNextSessions(
@@ -62,27 +99,6 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       setMapService.getMap()
     );
   });
-
-  /**
-   * Returns the first mesocycle without a `completedDate`, or null.
-   * O(n) where n = total mesocycles.
-   */
-  getActiveMesocycle(): WorkoutMesocycle | null {
-    return this.allDocs.find((m) => !m.completedDate) ?? null;
-  }
-
-  /**
-   * Returns completed mesocycles sorted most-recent-first by `completedDate`.
-   * O(n log n) where n = total mesocycles.
-   */
-  getPastMesocycles(): WorkoutMesocycle[] {
-    return this.allDocs
-      .filter(
-        (m: WorkoutMesocycle): m is WorkoutMesocycle & { completedDate: Date } =>
-          m.completedDate != null
-      )
-      .sort((a, b) => b.completedDate.getTime() - a.completedDate.getTime());
-  }
 
   /**
    * Returns the effective start date of a mesocycle. Uses the mesocycle's own

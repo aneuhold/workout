@@ -9,6 +9,7 @@
   type StoryMode =
     | 'default'
     | 'allComplete'
+    | 'allCompleteBlocked'
     | 'review'
     | 'inProgress'
     | 'inProgressReview'
@@ -37,6 +38,18 @@
           completedSessionCount: 999
         });
         MesocycleMapServiceMock.fillLateFields(data);
+        return;
+      }
+
+      if (mode === 'allCompleteBlocked') {
+        // All sessions complete but reviews NOT filled — blocks mesocycle completion
+        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(28),
+          completedSessionCount: 999
+        });
         return;
       }
 

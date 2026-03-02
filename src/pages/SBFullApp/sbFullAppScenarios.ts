@@ -36,6 +36,10 @@ export function setupScenario(scenario: FullAppScenario): void {
         startDate: daysAgo(21),
         completedSessionCount: 8
       });
+      // generateFullMesocycle leaves the last fully-completed microcycle
+      // without completedDate (for the hero card). With 8 sessions that's
+      // microcycle 0. Mark it completed so microcycle 1 sessions are unlocked.
+      data.microcycles[0].completedDate = new Date();
       MesocycleMapServiceMock.fillLateFields(data);
       MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
       break;

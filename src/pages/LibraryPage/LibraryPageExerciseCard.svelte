@@ -7,7 +7,6 @@
 <script lang="ts">
   import {
     type WorkoutExercise,
-    type WorkoutExerciseCalibration,
     WorkoutExerciseCalibrationService,
     WorkoutExerciseService
   } from '@aneuhold/core-ts-db-lib';
@@ -16,14 +15,13 @@
     IconBarbell,
     IconCheck,
     IconChevronDown,
-    IconPencil,
+    IconEye,
     IconTrash
   } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
-  import { SvelteMap } from 'svelte/reactivity';
   import { slide } from 'svelte/transition';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -34,7 +32,7 @@
     showTypeLabel,
     expanded,
     onToggle,
-    onEdit,
+    onViewDetails,
     onDelete,
     onAddCalibration
   }: {
@@ -42,7 +40,7 @@
     showTypeLabel: boolean;
     expanded: boolean;
     onToggle: () => void;
-    onEdit: () => void;
+    onViewDetails: () => void;
     onDelete: () => void;
     onAddCalibration: () => void;
   } = $props();
@@ -52,21 +50,8 @@
     return equipmentType?.title ?? 'Unknown';
   }
 
-  let calibrationsByExerciseId = $derived.by(() => {
-    const map = new SvelteMap<UUID, WorkoutExerciseCalibration[]>();
-    for (const c of exerciseCalibrationMapService.allDocs) {
-      const existing = map.get(c.workoutExerciseId);
-      if (existing) {
-        existing.push(c);
-      } else {
-        map.set(c.workoutExerciseId, [c]);
-      }
-    }
-    return map;
-  });
-  let calibrations = $derived(calibrationsByExerciseId.get(exercise._id) ?? []);
-  let latestCalibration = $derived(calibrations[calibrations.length - 1]);
   let repRange = $derived(WorkoutExerciseService.getRepRangeValues(exercise.repRange));
+  let bestCalibration = $derived(exerciseMapService.getCTO(exercise._id)?.bestCalibration ?? null);
 </script>
 
 <div
@@ -82,7 +67,7 @@
       {/if}
       <div class="flex items-center gap-1.5">
         <span class="font-medium">{exercise.exerciseName}</span>
-        {#if !latestCalibration}
+        {#if !bestCalibration}
           <IconAlertTriangle size={14} class="shrink-0 text-amber-500" />
         {/if}
       </div>
@@ -151,27 +136,27 @@
           </div>
         {/if}
 
-        <!-- Calibration -->
+        <!-- Strength / Calibration -->
         <Separator />
-        {#if latestCalibration}
+        {#if bestCalibration}
           <div class="rounded-lg bg-muted/50 p-3">
             <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
               <IconCheck size={14} class="text-green-600" />
-              Calibrated on {latestCalibration.dateRecorded.toLocaleDateString()}
+              Best calibration on {bestCalibration.dateRecorded.toLocaleDateString()}
             </div>
             <div class="mt-2 grid grid-cols-3 text-center">
               <div>
                 <span class="text-xs text-muted-foreground">Weight</span>
-                <p class="font-medium">{latestCalibration.weight} lb</p>
+                <p class="font-medium">{bestCalibration.weight} lb</p>
               </div>
               <div>
                 <span class="text-xs text-muted-foreground">Reps</span>
-                <p class="font-medium">{latestCalibration.reps}</p>
+                <p class="font-medium">{bestCalibration.reps}</p>
               </div>
               <div>
                 <span class="text-xs text-muted-foreground">Est. 1RM</span>
                 <p class="font-medium">
-                  {Math.round(WorkoutExerciseCalibrationService.get1RM(latestCalibration))} lb
+                  {Math.round(WorkoutExerciseCalibrationService.get1RM(bestCalibration))} lb
                 </p>
               </div>
             </div>
@@ -196,9 +181,9 @@
 
         <!-- Actions -->
         <div class="flex gap-2">
-          <Button variant="outline" size="sm" onclick={onEdit}>
-            <IconPencil size={14} />
-            Edit
+          <Button variant="outline" size="sm" onclick={onViewDetails}>
+            <IconEye size={14} />
+            Details
           </Button>
           <Button variant="destructive" size="sm" onclick={onDelete}>
             <IconTrash size={14} />

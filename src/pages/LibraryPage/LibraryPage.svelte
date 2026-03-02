@@ -283,7 +283,7 @@
                   showTypeLabel={true}
                   expanded={expandedIds.has(item.id)}
                   onToggle={() => toggleCard(item.id)}
-                  onEdit={() => goto(`/exercise?exerciseId=${item.data._id}`)}
+                  onViewDetails={() => goto(`/exercise?exerciseId=${item.data._id}`)}
                   onDelete={() =>
                     deleteDialog.open(
                       item.data.exerciseName,
@@ -342,7 +342,7 @@
                 showTypeLabel={false}
                 expanded={expandedIds.has(exercise._id)}
                 onToggle={() => toggleCard(exercise._id)}
-                onEdit={() => goto(`/exercise?exerciseId=${exercise._id}`)}
+                onViewDetails={() => goto(`/exercise?exerciseId=${exercise._id}`)}
                 onDelete={() =>
                   deleteDialog.open(
                     exercise.exerciseName,

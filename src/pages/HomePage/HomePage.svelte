@@ -19,7 +19,7 @@
   } from './homePageUtils';
   import HomePageWeekSessions from './HomePageWeekSessions.svelte';
 
-  const activeMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
+  const activeMesocycle = $derived(mesocycleMapService.categorizedMesocycles.active);
 
   const docs = $derived(
     activeMesocycle

@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { IconArrowLeft } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import ExercisePageEditForm from './ExercisePageEditForm.svelte';
@@ -24,6 +25,8 @@
   let exercise = $derived(
     exerciseId ? exerciseMapService.allDocs.find((e) => e._id === exerciseId) : undefined
   );
+
+  let cto = $derived(exerciseId ? exerciseMapService.getCTO(exerciseId as UUID) : undefined);
 
   // --- Mode ---
 
@@ -59,7 +62,7 @@
   {#if editMode}
     <ExercisePageEditForm {exercise} {isNew} onCancel={handleCancel} />
   {:else if exercise}
-    <ExercisePageViewMode {exercise} onEdit={() => (editOverride = true)} />
+    <ExercisePageViewMode {exercise} {cto} onEdit={() => (editOverride = true)} />
   {:else}
     <p class="text-sm text-muted-foreground">Exercise not found.</p>
     <Button variant="outline" onclick={handleBack}>Back to Library</Button>
