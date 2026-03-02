@@ -50,6 +50,7 @@ export type HeroCardState =
     }
   | {
       action: HeroCardAction.CompleteMesocycle;
+      blockedByPendingReviews: boolean;
     };
 
 /**
@@ -133,7 +134,10 @@ export function getHeroCardState(
     return mcSessions.length > 0 && mcSessions.every((s) => s.complete);
   });
   if (allMicrocyclesComplete) {
-    return { action: HeroCardAction.CompleteMesocycle };
+    return {
+      action: HeroCardAction.CompleteMesocycle,
+      blockedByPendingReviews: pendingReviewBundles.length > 0
+    };
   }
 
   // 6. If the PREVIOUS microcycle is fully complete but not yet marked →

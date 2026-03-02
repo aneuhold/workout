@@ -6,6 +6,7 @@
   const storyModeEnum = {
     default: 'default',
     allComplete: 'allComplete',
+    allCompleteBlocked: 'allCompleteBlocked',
     review: 'review',
     inProgress: 'inProgress',
     inProgressReview: 'inProgressReview',
@@ -35,6 +36,8 @@
 <Story name="Default" />
 
 <Story name="All Complete" args={{ storyMode: 'allComplete' }} />
+
+<Story name="Mesocycle Complete (Blocked)" args={{ storyMode: 'allCompleteBlocked' }} />
 
 <Story name="Review Needed" args={{ storyMode: 'review' }} />
 

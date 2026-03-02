@@ -138,6 +138,11 @@
     });
   }
 
+  function handleCompleteMesocycle() {
+    if (!activeMesocycle) return;
+    mesocycleMapService.endMesocycle(activeMesocycle._id);
+  }
+
   function handleStartMesocycle() {
     if (!activeMesocycle) return;
     regenerateMesocycle(activeMesocycle, { startMesocycle: true });
@@ -345,8 +350,26 @@
           </span>
         </div>
       </CardHeader>
-      <CardContent>
-        <p class="text-xs text-muted-foreground">All microcycles are done. Great work!</p>
+      <CardContent class="flex flex-col gap-3">
+        {#if state.blockedByPendingReviews}
+          <p class="text-xs text-muted-foreground">
+            Fill in your session reviews before completing the mesocycle. This helps optimize your
+            next training block.
+          </p>
+          <Button size="sm" disabled>Complete Mesocycle</Button>
+        {:else}
+          <p class="text-xs text-muted-foreground">All microcycles are done. Great work!</p>
+          <Button
+            size="sm"
+            onclick={(e: MouseEvent) => {
+              triggerConfetti(e.clientX, e.clientY);
+              handleCompleteMesocycle();
+            }}
+          >
+            Complete Mesocycle
+            <IconChevronRight size={14} />
+          </Button>
+        {/if}
       </CardContent>
     </Card>
   {/if}
