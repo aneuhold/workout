@@ -2,7 +2,7 @@
   @component
 
   Main mesocycles page showing the active mesocycle with a calendar grid and
-  progress bar, plus a list of past completed mesocycles.
+  progress bar, plus lists of future and past mesocycles.
 -->
 <script lang="ts">
   import { IconPlus } from '@tabler/icons-svelte';
@@ -13,10 +13,13 @@
   import Button from '$ui/Button/Button.svelte';
   import MesocyclesPageCurrentCard from './MesocyclesPageCurrentCard.svelte';
   import MesocyclesPageEmptyState from './MesocyclesPageEmptyState.svelte';
-  import MesocyclesPagePastCard from './MesocyclesPagePastCard.svelte';
+  import MesocyclesPageMesoCard from './MesocyclesPageMesoCard.svelte';
 
-  const currentMesocycle = $derived(mesocycleMapService.getActiveMesocycle());
-  const pastMesocycles = $derived(mesocycleMapService.getPastMesocycles());
+  const {
+    active: currentMesocycle,
+    past: pastMesocycles,
+    future: futureMesocycles
+  } = $derived(mesocycleMapService.categorizedMesocycles);
   const allExercises = $derived(exerciseMapService.allDocs);
 
   const currentDocs = $derived(
@@ -46,8 +49,26 @@
       sets={currentDocs.sets}
       exercises={allExercises}
     />
-  {:else if pastMesocycles.length === 0}
+  {:else if futureMesocycles.length === 0 && pastMesocycles.length === 0}
     <MesocyclesPageEmptyState />
+  {/if}
+
+  <!-- Future mesocycles -->
+  {#if futureMesocycles.length > 0}
+    <div class="flex flex-col gap-2">
+      <h2 class="text-sm font-medium text-muted-foreground">Future Mesocycles</h2>
+      {#each futureMesocycles as future, i (future._id)}
+        {@const futureDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(future._id)}
+        <StaggerItem index={i}>
+          <MesocyclesPageMesoCard
+            mesocycle={future}
+            sortedMicrocycles={futureDocs.microcycles}
+            sessions={futureDocs.sessions}
+            variant="future"
+          />
+        </StaggerItem>
+      {/each}
+    </div>
   {/if}
 
   <!-- Past mesocycles -->
@@ -57,7 +78,7 @@
       {#each pastMesocycles as past, i (past._id)}
         {@const pastDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(past._id)}
         <StaggerItem index={i}>
-          <MesocyclesPagePastCard
+          <MesocyclesPageMesoCard
             mesocycle={past}
             sortedMicrocycles={pastDocs.microcycles}
             sessions={pastDocs.sessions}

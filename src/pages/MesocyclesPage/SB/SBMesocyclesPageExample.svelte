@@ -16,6 +16,10 @@
     return DateService.addDays(new Date(), -n);
   }
 
+  function daysFromNow(n: number): Date {
+    return DateService.addDays(new Date(), n);
+  }
+
   $effect(() => {
     const mode = storyMode;
 
@@ -32,6 +36,15 @@
           microcycleCount: 4,
           startDate: daysAgo(21),
           completedSessionCount: 8
+        });
+
+        // Future mesocycle (starts in ~2 weeks, no sessions completed)
+        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Strength Phase',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysFromNow(14),
+          completedSessionCount: 0
         });
       }
 

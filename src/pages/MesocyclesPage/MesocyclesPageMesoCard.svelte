@@ -1,8 +1,8 @@
 <!--
   @component
 
-  Card displaying a completed (past) mesocycle with title, cycle type badge,
-  date range, and session count.
+  Card displaying a past or future mesocycle with title, cycle type badge,
+  date range, and session count. Use `variant` to control the session subtitle.
 -->
 <script lang="ts">
   import type {
@@ -19,12 +19,15 @@
   let {
     mesocycle,
     sortedMicrocycles,
-    sessions
+    sessions,
+    variant = 'past'
   }: {
     mesocycle: WorkoutMesocycle;
     /** Must be sorted by `startDate` ascending. */
     sortedMicrocycles: WorkoutMicrocycle[];
     sessions: WorkoutSession[];
+    /** Controls the session subtitle format. */
+    variant?: 'past' | 'future';
   } = $props();
 
   const title = $derived(mesocycle.title || 'Untitled Mesocycle');
@@ -64,7 +67,13 @@
           <span>·</span>
         {/if}
         {#if totalCount > 0}
-          <span>{completedCount}/{totalCount} sessions</span>
+          <span>
+            {#if variant === 'future'}
+              {totalCount} sessions
+            {:else}
+              {completedCount}/{totalCount} sessions
+            {/if}
+          </span>
         {/if}
       </div>
     </div>
