@@ -11,11 +11,13 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      ...createBoolArgTypes('isNew', 'notFound')
+      ...createBoolArgTypes('isNew', 'notFound', 'noCalibration', 'noFatigueGuess')
     },
     args: {
       isNew: false,
-      notFound: false
+      notFound: false,
+      noCalibration: false,
+      noFatigueGuess: false
     }
   });
 </script>
@@ -25,3 +27,7 @@
 <Story name="New Exercise" args={{ isNew: true }} />
 
 <Story name="Exercise Not Found" args={{ notFound: true }} />
+
+<Story name="No Calibration" args={{ noCalibration: true }} />
+
+<Story name="No Fatigue Guess" args={{ noFatigueGuess: true }} />

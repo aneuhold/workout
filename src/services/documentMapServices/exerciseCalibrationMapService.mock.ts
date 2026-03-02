@@ -87,7 +87,7 @@ export default class ExerciseCalibrationMapServiceMock {
       );
     }
 
-    const pullups = findExercise(MockDefaultExercise.Pullups);
+    const pullups = findExercise(MockDefaultExercise.PullUps);
     if (pullups) {
       calibrations.push(
         this.addCalibration({
