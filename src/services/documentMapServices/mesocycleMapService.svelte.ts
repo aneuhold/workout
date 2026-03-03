@@ -17,6 +17,7 @@ import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
@@ -140,9 +141,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
     const sets = sessionExercises.flatMap((sessionExercise) =>
       sessionExerciseMapService.getOrderedSetsForSessionExercise(sessionExercise)
     );
-    const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(
-      mesocycle?.calibratedExercises ?? []
-    );
+    const exerciseCTOs = getCTOsForCalibrationIds(mesocycle?.calibratedExercises ?? []);
     const volumeCTOs = muscleGroupMapService.getVolumeCTOsForExerciseCTOs(exerciseCTOs);
 
     return {
@@ -269,7 +268,16 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       new Date()
     );
     if (newCalibrations.length > 0) {
-      exerciseCalibrationMapService.prepareDocsForSave({ insert: newCalibrations }, apiOptions);
+      exerciseCalibrationMapService.prepareDocsForSave(
+        {
+          insert: newCalibrations,
+          get: { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } }
+        },
+        apiOptions
+      );
+      for (const cal of newCalibrations) {
+        exerciseMapService.updateCTOBestCalibration(cal);
+      }
     }
 
     WorkoutAPIService.queryApi(apiOptions);

@@ -6,13 +6,13 @@ import type {
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleSchema, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
 import mesocycleMapService, {
   type MesocycleChildDocs
 } from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
 import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 
 export enum MesocyclePageMode {
   New = 'new',
@@ -84,9 +84,7 @@ export function persistNewMesocycle(
   startDate: Date
 ): void {
   const mesocycleDoc = WorkoutMesocycleSchema.parse(mesocycleInput);
-  const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(
-    mesocycleDoc.calibratedExercises
-  );
+  const exerciseCTOs = getCTOsForCalibrationIds(mesocycleDoc.calibratedExercises);
 
   const children = generateMesocycleChildren(
     mesocycleDoc,
@@ -117,7 +115,7 @@ export function persistMesocycleEdits(
   const existingDocs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
   Object.assign(mesocycle, updates);
 
-  const exerciseCTOs = exerciseMapService.getCTOsForCalibrationIds(mesocycle.calibratedExercises);
+  const exerciseCTOs = getCTOsForCalibrationIds(mesocycle.calibratedExercises);
   const children = generateMesocycleChildren(
     mesocycle,
     exerciseCTOs,

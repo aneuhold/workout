@@ -1,8 +1,11 @@
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
+import type { UUID } from 'crypto';
+import type { Updater } from 'svelte/store';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import exerciseMapService from './exerciseMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
@@ -12,6 +15,18 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
       persistToDb: createWorkoutPersistToDb('sessions'),
       prepareForSave: createWorkoutPrepareForSave('sessions')
     });
+  }
+
+  override updateDoc(docId: UUID, mutator: Updater<WorkoutSession>): void {
+    const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
+    const wasComplete = this.getDoc(docId)?.complete ?? false;
+    super.updateDoc(docId, mutator, ctoGet);
+    const session = this.getDoc(docId);
+    if (session && !wasComplete && session.complete) {
+      const sessionExercises = this.getOrderedSessionExercisesForSession(session);
+      const sets = this.getOrderedSetsForSession(session);
+      exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sets);
+    }
   }
 
   /**

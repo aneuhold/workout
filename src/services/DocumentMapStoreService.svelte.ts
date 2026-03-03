@@ -10,6 +10,7 @@ export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
   insert?: T[];
   update?: T[];
   delete?: UUID[];
+  get?: ProjectWorkoutPrimaryEndpointOptions['get'];
 };
 
 export type UpsertManyInfo<T> = {
@@ -101,29 +102,34 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     this.mapState[doc._id] = doc;
   }
 
-  public addDoc(doc: T): void {
-    this.addManyDocs([doc]);
+  public addDoc(doc: T, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
+    this.addManyDocs([doc], get);
   }
 
-  public addManyDocs(docs: T[]): void {
+  public addManyDocs(docs: T[], get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     docs.forEach((doc) => {
       this.addDocWithoutPersist(doc);
     });
     this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ insert: docs });
+    this.config.persistToDb({ insert: docs, get });
   }
 
-  public updateDoc(docId: UUID, mutator: Updater<T>): void {
-    this.updateManyDocs([docId], mutator);
+  public updateDoc(
+    docId: UUID,
+    mutator: Updater<T>,
+    get?: ProjectWorkoutPrimaryEndpointOptions['get']
+  ): void {
+    this.updateManyDocs([docId], mutator, get);
   }
 
   public updateManyDocs(
     filterOrDocIds: ((currentDoc: T) => boolean) | UUID[],
-    mutator: Updater<T>
+    mutator: Updater<T>,
+    get?: ProjectWorkoutPrimaryEndpointOptions['get']
   ): void {
     const docsToUpdate = this.updateManyDocsWithoutPersist(filterOrDocIds, mutator);
     this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ update: docsToUpdate });
+    this.config.persistToDb({ update: docsToUpdate, get });
   }
 
   private updateManyDocsWithoutPersist(
@@ -149,11 +155,11 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     return docsToUpdate;
   }
 
-  public deleteDoc(docId: UUID): void {
-    this.deleteManyDocs([docId]);
+  public deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
+    this.deleteManyDocs([docId], get);
   }
 
-  public deleteManyDocs(docIds: UUID[]): void {
+  public deleteManyDocs(docIds: UUID[], get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     docIds.forEach((id) => {
       if (!this.mapState[id]) {
         log.error(`Document with ID ${id} does not exist in the map.`);
@@ -162,10 +168,13 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       delete this.mapState[id];
     });
     this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ delete: docIds });
+    this.config.persistToDb({ delete: docIds, get });
   }
 
-  public upsertManyDocs(upsertInfo: UpsertManyInfo<T>): void {
+  public upsertManyDocs(
+    upsertInfo: UpsertManyInfo<T>,
+    get?: ProjectWorkoutPrimaryEndpointOptions['get']
+  ): void {
     const { filter, mutator, newDocs } = upsertInfo;
     newDocs.forEach((doc) => {
       this.addDocWithoutPersist(doc);
@@ -174,7 +183,8 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     this.config.persistToLocalData(this.mapState);
     this.config.persistToDb({
       insert: newDocs,
-      update: docsToUpdate
+      update: docsToUpdate,
+      get
     });
   }
 
