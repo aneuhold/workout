@@ -3,9 +3,23 @@ import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import exerciseMapService from './exerciseMapService.svelte';
 
-export default new DocumentMapStoreService<WorkoutExerciseCalibration>({
-  persistToLocalData: (map) => LocalData.setAndGetExerciseCalibrationMap(map),
-  persistToDb: createWorkoutPersistToDb('exerciseCalibrations'),
-  prepareForSave: createWorkoutPrepareForSave('exerciseCalibrations')
-});
+const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
+
+class ExerciseCalibrationDocumentMapService extends DocumentMapStoreService<WorkoutExerciseCalibration> {
+  constructor() {
+    super({
+      persistToLocalData: (map) => LocalData.setAndGetExerciseCalibrationMap(map),
+      persistToDb: createWorkoutPersistToDb('exerciseCalibrations'),
+      prepareForSave: createWorkoutPrepareForSave('exerciseCalibrations')
+    });
+  }
+
+  override addDoc(doc: WorkoutExerciseCalibration): void {
+    super.addDoc(doc, ctoGet);
+    exerciseMapService.updateCTOBestCalibration(doc);
+  }
+}
+
+export default new ExerciseCalibrationDocumentMapService();

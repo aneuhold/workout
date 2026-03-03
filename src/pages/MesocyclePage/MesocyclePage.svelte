@@ -24,6 +24,7 @@
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
+  import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
   import MesocyclePageActions from './MesocyclePageActions.svelte';
@@ -97,13 +98,11 @@
   const exerciseCTOs = $derived(
     isFormMode
       ? exerciseMapService.exerciseCTOs.filter((cto) => cto.bestCalibration != null)
-      : exerciseMapService.getCTOsForCalibrationIds(mesocycle?.calibratedExercises ?? [])
+      : getCTOsForCalibrationIds(mesocycle?.calibratedExercises ?? [])
   );
 
   /** CTOs narrowed to only the user's current selection (form mode preview). */
-  const selectedExerciseCTOs = $derived(
-    exerciseMapService.getCTOsForCalibrationIds(formSelectedCalibrationIds)
-  );
+  const selectedExerciseCTOs = $derived(getCTOsForCalibrationIds(formSelectedCalibrationIds));
 
   /** Exercises for display cards — selected subset in form mode, scoped set in static mode. */
   const displayExercises = $derived(isFormMode ? selectedExerciseCTOs : exerciseCTOs);
