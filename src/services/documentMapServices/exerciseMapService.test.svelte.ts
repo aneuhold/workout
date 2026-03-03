@@ -176,7 +176,8 @@ describe('exerciseMapService CTO update methods', () => {
 
       exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sets);
 
-      // Verify at least one CTO was updated
+      // Every session exercise should have its CTO updated
+      const uniqueExerciseIds = new Set(sessionExercises.map((se) => se.workoutExerciseId));
       let updatedCount = 0;
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
@@ -191,7 +192,7 @@ describe('exerciseMapService CTO update methods', () => {
           }
         }
       }
-      expect(updatedCount).toBeGreaterThan(0);
+      expect(updatedCount).toBe(uniqueExerciseIds.size);
     });
 
     it('should update bestSet from session sets', () => {

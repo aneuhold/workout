@@ -155,19 +155,19 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       const cto = this.exerciseCTOMapState[exerciseId];
       if (!cto) continue;
 
+      const seSets = setsBySessionExerciseId.get(se._id);
+
       // Update lastSessionExercise if more recent
       if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
         cto.lastSessionExercise = se;
 
         // Update lastFirstSet from setOrder[0]
-        const seSets = setsBySessionExerciseId.get(se._id);
         const firstSetId = se.setOrder[0];
         const firstSet = seSets?.find((s) => s._id === firstSetId);
         cto.lastFirstSet = firstSet ?? null;
       }
 
       // Check sets against bestSet
-      const seSets = setsBySessionExerciseId.get(se._id);
       if (seSets) {
         for (const set of seSets) {
           this.updateCTOBestSet(set);
