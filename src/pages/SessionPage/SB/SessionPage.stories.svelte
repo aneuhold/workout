@@ -6,9 +6,11 @@
   const storyModes = {
     activeEarly: 'activeEarly',
     activeMid: 'activeMid',
+    activePrevSoreness: 'activePrevSoreness',
     deload: 'deload',
     review: 'review',
-    viewOnly: 'viewOnly'
+    viewOnly: 'viewOnly',
+    viewSorenessEditable: 'viewSorenessEditable'
   };
 
   const { Story } = defineMeta({
@@ -31,8 +33,12 @@
 
 <Story name="Active (Mid-Session)" args={{ storyMode: 'activeMid' }} />
 
+<Story name="Active (Previous Soreness)" args={{ storyMode: 'activePrevSoreness' }} />
+
 <Story name="Deload Session" args={{ storyMode: 'deload' }} />
 
 <Story name="Post-Session Review" args={{ storyMode: 'review' }} />
 
 <Story name="View Only" args={{ storyMode: 'viewOnly' }} />
+
+<Story name="View (Soreness Editable)" args={{ storyMode: 'viewSorenessEditable' }} />

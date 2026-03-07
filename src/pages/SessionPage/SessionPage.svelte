@@ -7,12 +7,14 @@
 <script lang="ts">
   import {
     WorkoutMesocycleService,
+    type WorkoutSessionExercise,
     WorkoutSessionExerciseService,
     WorkoutSessionLockReason,
     WorkoutSessionService,
     WorkoutSetService
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
+  import { SvelteMap, SvelteSet } from 'svelte/reactivity';
   import { goto } from '$app/navigation';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
@@ -147,6 +149,52 @@
     return sessionExercises.length;
   });
 
+  // --- Previous session exercise & soreness lock ---
+
+  let { previousSessionExerciseMap, sorenessLockedExerciseIds } = $derived.by(() => {
+    const prevMap = new SvelteMap<UUID, WorkoutSessionExercise>();
+    const locked = new SvelteSet<UUID>();
+    if (!mesocycle || !session) {
+      return { previousSessionExerciseMap: prevMap, sorenessLockedExerciseIds: locked };
+    }
+    if (mesocycle.completedDate) {
+      for (const se of sessionExercises) locked.add(se.workoutExerciseId);
+      return { previousSessionExerciseMap: prevMap, sorenessLockedExerciseIds: locked };
+    }
+    const exerciseIds = new SvelteSet(sessionExercises.map((se) => se.workoutExerciseId));
+    const allMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycle._id);
+    let foundCurrentSession = false;
+
+    for (const mc of allMicrocycles) {
+      const mcSessions = microcycleMapService.getOrderedSessionsForMicrocycle(mc);
+      for (const s of mcSessions) {
+        if (s._id === session._id) {
+          foundCurrentSession = true;
+          continue;
+        }
+        if (!foundCurrentSession) {
+          if (!s.complete) continue;
+          const ses = sessionMapService.getOrderedSessionExercisesForSession(s);
+          for (const se of ses) {
+            if (exerciseIds.has(se.workoutExerciseId)) {
+              prevMap.set(se.workoutExerciseId, se);
+            }
+          }
+        } else {
+          const ses = sessionMapService.getOrderedSessionExercisesForSession(s);
+          for (const se of ses) {
+            if (locked.has(se.workoutExerciseId)) continue;
+            const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+            if (seSets.some((set) => WorkoutSetService.isCompleted(set))) {
+              locked.add(se.workoutExerciseId);
+            }
+          }
+        }
+      }
+    }
+    return { previousSessionExerciseMap: prevMap, sorenessLockedExerciseIds: locked };
+  });
+
   // --- Card state ---
 
   function exerciseHasAllSessionMetricsFilled(se: (typeof sessionExercises)[number]): boolean {
@@ -277,6 +325,8 @@
         expanded={isExpanded(se._id)}
         {allSetsLogged}
         onToggle={() => toggleExpanded(se._id)}
+        previousSessionExercise={previousSessionExerciseMap.get(se.workoutExerciseId)}
+        sorenessLocked={sorenessLockedExerciseIds.has(se.workoutExerciseId)}
       />
     {/each}
 

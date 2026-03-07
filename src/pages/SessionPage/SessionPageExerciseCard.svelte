@@ -9,7 +9,8 @@
     WorkoutExerciseService,
     type WorkoutSessionExercise,
     WorkoutSessionExerciseService,
-    type WorkoutSet
+    type WorkoutSet,
+    WorkoutSetService
   } from '@aneuhold/core-ts-db-lib';
   import {
     IconCheck,
@@ -49,7 +50,9 @@
     mode,
     expanded,
     allSetsLogged = false,
-    onToggle
+    onToggle,
+    previousSessionExercise,
+    sorenessLocked = true
   }: {
     sessionExercise: WorkoutSessionExercise;
     cardState: SessionPageExerciseCardState;
@@ -57,6 +60,8 @@
     expanded: boolean;
     allSetsLogged?: boolean;
     onToggle: () => void;
+    previousSessionExercise?: WorkoutSessionExercise;
+    sorenessLocked?: boolean;
   } = $props();
 
   let exercise = $derived(exerciseMapService.getDoc(sessionExercise.workoutExerciseId));
@@ -211,6 +216,14 @@
     });
   }
 
+  function updatePreviousSoreness(value: number | null) {
+    if (!previousSessionExercise) return;
+    sessionExerciseMapService.updateDoc(previousSessionExercise._id, (doc) => {
+      doc.sorenessScore = value;
+      return doc;
+    });
+  }
+
   // --- Card styling ---
 
   let cardClass = $derived(
@@ -291,6 +304,29 @@
     <div class="overflow-hidden">
       <Separator />
       <div class="flex flex-col gap-4 px-3 py-3">
+        <!-- Previous Session Soreness (shown until first set logged) -->
+        {#if mode === SessionPageMode.Active && previousSessionExercise && !sets.some( (s) => WorkoutSetService.isCompleted(s) )}
+          <div
+            class="flex flex-col gap-2 rounded-lg border border-dashed border-muted-foreground/30 p-3"
+          >
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-medium text-muted-foreground">Previous Session Soreness</h4>
+              <span class="text-xs text-muted-foreground">
+                {new Date(previousSessionExercise.createdDate).toLocaleDateString()}
+              </span>
+            </div>
+            <SessionPageSliderField
+              label="Soreness"
+              value={previousSessionExercise.sorenessScore ?? null}
+              descriptions={sorenessDescriptions}
+              colorMode={SessionPageSliderColorMode.Negative}
+              highlight={previousSessionExercise.sorenessScore == null}
+              onValueChange={updatePreviousSoreness}
+            />
+          </div>
+          <Separator />
+        {/if}
+
         <!-- Section 1: Set Table -->
         <div class="flex flex-col gap-1">
           <div
@@ -503,10 +539,16 @@
                 value={sessionExercise.sorenessScore ?? null}
                 descriptions={sorenessDescriptions}
                 colorMode={SessionPageSliderColorMode.Negative}
-                disabled={lateFieldState.disabled}
-                highlight={lateFieldState.highlight}
+                disabled={mode === SessionPageMode.Locked ||
+                  (mode === SessionPageMode.View && sorenessLocked)}
+                highlight={mode === SessionPageMode.Review}
                 onValueChange={updateSoreness}
               />
+              {#if mode === SessionPageMode.View && !sorenessLocked}
+                <p class="text-xs text-muted-foreground">
+                  Adjustable until you perform this exercise again.
+                </p>
+              {/if}
             {/if}
           </div>
         {/if}

@@ -1,12 +1,22 @@
 <script lang="ts">
-  import type { WorkoutExercise } from '@aneuhold/core-ts-db-lib';
-  import type { UUID } from 'crypto';
+  import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
+  import MesocycleMapServiceMock, {
+    type MockGeneratedMesocycleData
+  } from '$services/documentMapServices/mesocycleMapService.mock';
   import timerService from '$services/TimerService';
+  import { daysAgo } from '$testUtils/dateUtils';
   import MockData from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
-  type StoryMode = 'activeEarly' | 'activeMid' | 'deload' | 'review' | 'viewOnly';
+  type StoryMode =
+    | 'activeEarly'
+    | 'activeMid'
+    | 'activePrevSoreness'
+    | 'deload'
+    | 'review'
+    | 'viewOnly'
+    | 'viewSorenessEditable';
 
   let { storyMode = 'activeEarly' as StoryMode }: { storyMode?: StoryMode } = $props();
 
@@ -14,160 +24,60 @@
 
   let sessionId = $state<string | null>(null);
 
+  const completedSessionCounts: Record<StoryMode, number> = {
+    activeEarly: 0,
+    activeMid: 0,
+    deload: 0,
+    activePrevSoreness: 3,
+    review: 1,
+    viewOnly: 1,
+    viewSorenessEditable: 4
+  };
+
+  // Modes that navigate to the second microcycle (need exercise overlap with previous session)
+  const secondMicrocycleModes = new Set<StoryMode>(['activePrevSoreness', 'viewSorenessEditable']);
+
   $effect(() => {
-    const currentMode = storyMode;
+    const mode = storyMode;
 
     untrack(() => {
       MockData.resetAll();
+      const baseData = MockData.setupBaseData();
 
-      const { exercises } = MockData.setupBaseData();
-
-      // Pick 3 exercises for the session
-      const benchPress = exercises[0]; // Barbell Bench Press
-      const pullups = exercises[1]; // Pull-ups
-      const squats = exercises[2]; // Barbell Squat
-
-      const isComplete = currentMode === 'review' || currentMode === 'viewOnly';
-      const isDeload = currentMode === 'deload';
-
-      // Create session
-      const session = MockData.sessionMapServiceMock.addSession({
-        title: isDeload ? 'Deload - Session 1' : 'Push Day A',
-        startTime: new Date(),
-        complete: isComplete
+      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        title: 'Hypertrophy Block',
+        cycleType: CycleType.MuscleGain,
+        microcycleCount: 3,
+        sessionsPerMicrocycle: 3,
+        startDate: daysAgo(14),
+        completedSessionCount: completedSessionCounts[mode]
       });
 
-      // Helper to create sets for an exercise
-      function createSetsForExercise(
-        exercise: WorkoutExercise,
-        sessionExerciseId: UUID,
-        numSets: number,
-        completedSets: number,
-        baseWeight: number,
-        baseReps: number,
-        baseRir: number | null
-      ) {
-        const setIds: UUID[] = [];
-        for (let i = 0; i < numSets; i++) {
-          const isCompleted = i < completedSets;
-          const set = MockData.setMapServiceMock.addSet({
-            workoutExerciseId: exercise._id,
-            workoutSessionId: session._id,
-            workoutSessionExerciseId: sessionExerciseId,
-            plannedWeight: baseWeight,
-            plannedReps: baseReps,
-            plannedRir: baseRir,
-            ...(isCompleted
-              ? {
-                  actualWeight: baseWeight,
-                  actualReps: baseReps + (i === 0 ? 1 : 0),
-                  ...(baseRir != null ? { rir: baseRir } : {})
-                }
-              : {})
-          });
-          setIds.push(set._id);
-        }
-        return setIds;
+      // Start mesocycle for active modes with no completed sessions
+      if (completedSessionCounts[mode] === 0) {
+        data.mesocycle.startDate = daysAgo(7);
       }
 
-      // Determine how many sets are completed per exercise based on mode
-      const benchCompletedSets =
-        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 3 : 3;
-      const pullupCompletedSets =
-        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 1 : 3;
-      const squatCompletedSets =
-        currentMode === 'activeEarly' || isDeload ? 0 : currentMode === 'activeMid' ? 0 : 3;
-
-      // Deload: halved reps, null RIR, 1 set per exercise
-      const deloadSetCount = isDeload ? 1 : 3;
-      const deloadRir: number | null = isDeload ? null : 0; // placeholder, overridden below
-
-      // Create session exercises with sets
-      const benchSE = MockData.sessionExerciseMapServiceMock.addSessionExercise({
-        workoutSessionId: session._id,
-        workoutExerciseId: benchPress._id
-      });
-      const benchSetIds = createSetsForExercise(
-        benchPress,
-        benchSE._id,
-        deloadSetCount,
-        benchCompletedSets,
-        isDeload ? 135 : 135,
-        isDeload ? 5 : 10,
-        isDeload ? deloadRir : 2
-      );
-      benchSE.setOrder = benchSetIds;
-
-      const pullupSE = MockData.sessionExerciseMapServiceMock.addSessionExercise({
-        workoutSessionId: session._id,
-        workoutExerciseId: pullups._id
-      });
-      const pullupSetIds = createSetsForExercise(
-        pullups,
-        pullupSE._id,
-        deloadSetCount,
-        pullupCompletedSets,
-        0,
-        isDeload ? 4 : 8,
-        isDeload ? deloadRir : 3
-      );
-      pullupSE.setOrder = pullupSetIds;
-
-      const squatSE = MockData.sessionExerciseMapServiceMock.addSessionExercise({
-        workoutSessionId: session._id,
-        workoutExerciseId: squats._id
-      });
-      const squatSetIds = createSetsForExercise(
-        squats,
-        squatSE._id,
-        deloadSetCount,
-        squatCompletedSets,
-        isDeload ? 92 : 185,
-        isDeload ? 4 : 8,
-        isDeload ? deloadRir : 2
-      );
-      squatSE.setOrder = squatSetIds;
-
-      // Update session exercise order
-      session.sessionExerciseOrder = [benchSE._id, pullupSE._id, squatSE._id];
-
-      // Add mid-session metrics for completed exercises in review/view modes
-      if (currentMode === 'review' || currentMode === 'viewOnly') {
-        const midSessionRsm = { mindMuscleConnection: 2, pump: 2 };
-        const midSessionFatigue = {
-          perceivedEffort: 2,
-          unusedMusclePerformance: 1
-        };
-
-        benchSE.rsm = midSessionRsm;
-        benchSE.fatigue = midSessionFatigue;
-        benchSE.performanceScore = 2;
-
-        pullupSE.rsm = midSessionRsm;
-        pullupSE.fatigue = midSessionFatigue;
-        pullupSE.performanceScore = 1;
-
-        squatSE.rsm = midSessionRsm;
-        squatSE.fatigue = midSessionFatigue;
-        squatSE.performanceScore = 2;
-
-        if (currentMode === 'viewOnly') {
-          // Fill in late (post-session) fields
-          benchSE.rsm = { ...benchSE.rsm, disruption: 1 };
-          benchSE.fatigue = { ...benchSE.fatigue, jointAndTissueDisruption: 1 };
-          benchSE.sorenessScore = 1;
-
-          pullupSE.rsm = { ...pullupSE.rsm, disruption: 0 };
-          pullupSE.fatigue = { ...pullupSE.fatigue, jointAndTissueDisruption: 0 };
-          pullupSE.sorenessScore = 0;
-
-          squatSE.rsm = { ...squatSE.rsm, disruption: 2 };
-          squatSE.fatigue = { ...squatSE.fatigue, jointAndTissueDisruption: 2 };
-          squatSE.sorenessScore = 2;
-        }
+      // Unlock second microcycle by completing the first
+      if (secondMicrocycleModes.has(mode)) {
+        data.microcycles[0].completedDate = new Date();
       }
 
-      sessionId = session._id;
+      // Fill late fields for view/prev-soreness modes
+      if (mode === 'viewOnly' || mode === 'activePrevSoreness' || mode === 'viewSorenessEditable') {
+        MesocycleMapServiceMock.fillLateFields(data);
+      }
+
+      if (mode === 'activeMid') {
+        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+      }
+
+      if (mode === 'deload') {
+        applyDeloadToFirstSession(data);
+      }
+
+      const targetIndex = secondMicrocycleModes.has(mode) ? 3 : 0;
+      sessionId = data.sessions[targetIndex]._id;
     });
 
     return () => {
@@ -177,6 +87,25 @@
       });
     };
   });
+
+  /**
+   * Trims the first session's exercises to 1 set each with null RIR and halved reps,
+   * simulating a deload session.
+   *
+   * @param data The generated mesocycle data to modify in-place
+   */
+  function applyDeloadToFirstSession(data: MockGeneratedMesocycleData) {
+    const targetSession = data.sessions[0];
+    for (const se of data.sessionExercises) {
+      if (se.workoutSessionId !== targetSession._id) continue;
+      const seSets = data.sets.filter((s) => s.workoutSessionExerciseId === se._id);
+      if (seSets.length > 0) {
+        seSets[0].plannedRir = null;
+        seSets[0].plannedReps = Math.floor((seSets[0].plannedReps ?? 8) / 2);
+        se.setOrder = [seSets[0]._id];
+      }
+    }
+  }
 </script>
 
 <SessionPage {sessionId} />
