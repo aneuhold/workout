@@ -113,7 +113,7 @@
     if (!activeMesocycle || !heroSession?.workoutMicrocycleId) return false;
     if (activeMesocycle.cycleType === CycleType.Resensitization) return false;
     const lastMicrocycle = microcycles[microcycles.length - 1];
-    return lastMicrocycle?._id === heroSession.workoutMicrocycleId;
+    return lastMicrocycle._id === heroSession.workoutMicrocycleId;
   });
 
   const scheduledDateFormatted = $derived(
@@ -133,9 +133,36 @@
 
   function handleCompleteMicrocycle() {
     if (!activeMesocycle || state?.action !== HeroCardAction.CompleteMicrocycle) return;
-    regenerateMesocycle(activeMesocycle, {
-      completedMicrocycleNumber: state.completedMicrocycleNumber
-    });
+
+    const { completedMicrocycleNumber } = state;
+    const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(activeMesocycle._id);
+    const completedMicrocycle = docs.microcycles[completedMicrocycleNumber - 1];
+
+    regenerateMesocycle(activeMesocycle, { completedMicrocycleNumber });
+
+    const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
+      activeMesocycle,
+      docs.exerciseCTOs,
+      completedMicrocycle._id,
+      docs.microcycles,
+      docs.sessions,
+      docs.sessionExercises,
+      docs.sets
+    );
+
+    if (recommendation.shouldDeload) {
+      deloadDialog.open({
+        mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
+        scheduledDeloadDate: null,
+        onConfirm: () => {
+          return Promise.resolve(
+            mesocycleMapService.initiateEarlyDeload(activeMesocycle._id, new Date())
+          );
+        },
+        severity: recommendation.severity,
+        triggeredRules: recommendation.triggeredRules
+      });
+    }
   }
 
   function handleCompleteMesocycle() {
