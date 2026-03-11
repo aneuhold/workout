@@ -12,6 +12,7 @@
     inProgressReview: 'inProgressReview',
     microcycleComplete: 'microcycleComplete',
     microcycleCompleteBlocked: 'microcycleCompleteBlocked',
+    microcycleCompleteDeload: 'microcycleCompleteDeload',
     mesocycleStart: 'mesocycleStart',
     lateSession: 'lateSession',
     severelyLateSession: 'severelyLateSession'
@@ -48,6 +49,11 @@
 <Story name="Microcycle Complete" args={{ storyMode: 'microcycleComplete' }} />
 
 <Story name="Microcycle Complete (Blocked)" args={{ storyMode: 'microcycleCompleteBlocked' }} />
+
+<Story
+  name="Microcycle Complete (Deload Trigger)"
+  args={{ storyMode: 'microcycleCompleteDeload' }}
+/>
 
 <Story name="Mesocycle Start" args={{ storyMode: 'mesocycleStart' }} />
 
