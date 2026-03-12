@@ -24,13 +24,16 @@
     sessions,
     sessionExercises,
     sets,
-    exercises
+    exercises,
+    lastCycleIsDeload = true
   }: {
     microcycles: WorkoutMicrocycle[];
     sessions: WorkoutSession[];
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
     exercises: WorkoutExercise[];
+    /** When false, the last microcycle is not labelled as a deload. */
+    lastCycleIsDeload?: boolean;
   } = $props();
 </script>
 
@@ -40,6 +43,13 @@
     <CardDescription>Per-set reps, weight, and RIR across cycles</CardDescription>
   </CardHeader>
   <CardContent>
-    <MesocycleProgression {microcycles} {sessions} {sessionExercises} {sets} {exercises} />
+    <MesocycleProgression
+      {microcycles}
+      {sessions}
+      {sessionExercises}
+      {sets}
+      {exercises}
+      {lastCycleIsDeload}
+    />
   </CardContent>
 </Card>

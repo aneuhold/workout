@@ -280,6 +280,7 @@
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
         exercises={displayExercises}
+        lastCycleIsDeload={formCycleType !== CycleType.Resensitization}
       />
 
       <MesocycleProgressionCard
@@ -288,6 +289,7 @@
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
         exercises={displayExercises}
+        lastCycleIsDeload={formCycleType !== CycleType.Resensitization}
       />
 
       <MesocycleSummaryCard
@@ -335,6 +337,7 @@
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
         exercises={displayExercises}
+        lastCycleIsDeload={mesocycle.cycleType !== CycleType.Resensitization}
       />
 
       <MesocycleProgressionCard
@@ -343,6 +346,7 @@
         sessionExercises={displayDocs.sessionExercises}
         sets={displayDocs.sets}
         exercises={displayExercises}
+        lastCycleIsDeload={mesocycle.cycleType !== CycleType.Resensitization}
       />
 
       <MesocycleSummaryCard
