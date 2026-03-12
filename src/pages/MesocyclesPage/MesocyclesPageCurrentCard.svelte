@@ -4,13 +4,14 @@
   Card displaying the active (current) mesocycle with progress bar and calendar grid.
 -->
 <script lang="ts">
-  import type {
-    WorkoutExercise,
-    WorkoutMesocycle,
-    WorkoutMicrocycle,
-    WorkoutSession,
-    WorkoutSessionExercise,
-    WorkoutSet
+  import {
+    CycleType,
+    type WorkoutExercise,
+    type WorkoutMesocycle,
+    type WorkoutMicrocycle,
+    type WorkoutSession,
+    type WorkoutSessionExercise,
+    type WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { IconChevronRight } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
@@ -80,6 +81,7 @@
       {sessionExercises}
       {sets}
       {exercises}
+      lastCycleIsDeload={mesocycle.cycleType !== CycleType.Resensitization}
     />
   </CardContent>
 </Card>

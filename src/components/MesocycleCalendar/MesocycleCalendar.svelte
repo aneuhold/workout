@@ -20,7 +20,8 @@
     sessions,
     sessionExercises,
     sets,
-    exercises
+    exercises,
+    lastCycleIsDeload = true
   }: {
     mesocycle: WorkoutMesocycle;
     microcycles: WorkoutMicrocycle[];
@@ -28,6 +29,8 @@
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
     exercises: WorkoutExercise[];
+    /** When false, the last microcycle is not labelled as a deload. */
+    lastCycleIsDeload?: boolean;
   } = $props();
 
   const calendarData = $derived(
@@ -37,7 +40,8 @@
       sessions,
       sessionExercises,
       sets,
-      exercises
+      exercises,
+      lastCycleIsDeload
     })
   );
 

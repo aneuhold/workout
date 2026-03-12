@@ -74,13 +74,16 @@
     sessions,
     sessionExercises,
     sets,
-    exercises
+    exercises,
+    lastCycleIsDeload = true
   }: {
     microcycles: WorkoutMicrocycle[];
     sessions: WorkoutSession[];
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
     exercises: WorkoutExercise[];
+    /** When false, the last microcycle is not labelled as a deload. */
+    lastCycleIsDeload?: boolean;
   } = $props();
 
   const exerciseMap = $derived(
@@ -158,7 +161,7 @@
             hasActual: set.actualReps != null || set.actualWeight != null
           }));
 
-          const isDeload = cycleIdx === lastCycleIndex && totalCycles > 1;
+          const isDeload = lastCycleIsDeload && cycleIdx === lastCycleIndex && totalCycles > 1;
           const cycleLabel = isDeload ? 'DL' : `C${cycleIdx + 1}`;
           const prevTargets = prevTargetsMap.get(exerciseId) ?? null;
           const rows = exerciseRows.get(exerciseId) ?? [];

@@ -25,7 +25,8 @@
     sessions,
     sessionExercises,
     sets,
-    exercises
+    exercises,
+    lastCycleIsDeload = true
   }: {
     mesocycle: WorkoutMesocycle;
     microcycles: WorkoutMicrocycle[];
@@ -33,11 +34,13 @@
     sessionExercises: WorkoutSessionExercise[];
     sets: WorkoutSet[];
     exercises: WorkoutExercise[];
+    /** When false, the last microcycle is not labelled as a deload. */
+    lastCycleIsDeload?: boolean;
   } = $props();
 
   const description = $derived.by(() => {
     const cycleCount = microcycles.length;
-    const deloadCount = microcycles.length > 0 ? 1 : 0;
+    const deloadCount = lastCycleIsDeload && cycleCount > 0 ? 1 : 0;
     const accumCount = cycleCount - deloadCount;
     if (deloadCount > 0) {
       return `${accumCount} week${accumCount !== 1 ? 's' : ''} + deload`;
@@ -54,6 +57,14 @@
     </CardDescription>
   </CardHeader>
   <CardContent>
-    <MesocycleCalendar {mesocycle} {microcycles} {sessions} {sessionExercises} {sets} {exercises} />
+    <MesocycleCalendar
+      {mesocycle}
+      {microcycles}
+      {sessions}
+      {sessionExercises}
+      {sets}
+      {exercises}
+      {lastCycleIsDeload}
+    />
   </CardContent>
 </Card>

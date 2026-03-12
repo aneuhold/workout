@@ -23,6 +23,8 @@ export type BuildCalendarDataInput = {
   sessionExercises: WorkoutSessionExercise[];
   sets: WorkoutSet[];
   exercises: WorkoutExercise[];
+  /** When false, the last microcycle is not labelled as a deload. Defaults to true. */
+  lastCycleIsDeload?: boolean;
 };
 
 function addDays(date: Date, days: number): Date {
@@ -50,7 +52,15 @@ class MesocycleCalendarUtils {
   }
 
   buildCalendarData(input: BuildCalendarDataInput): MesocycleCalendarData {
-    const { mesocycle, microcycles, sessions, sessionExercises, sets, exercises } = input;
+    const {
+      mesocycle,
+      microcycles,
+      sessions,
+      sessionExercises,
+      sets,
+      exercises,
+      lastCycleIsDeload = true
+    } = input;
 
     const microcycleLengthDays = mesocycle.plannedMicrocycleLengthInDays;
     const microcycleCount = microcycles.length;
@@ -99,7 +109,7 @@ class MesocycleCalendarUtils {
     for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
       const date = addDays(startDate, dayIndex);
       const cycleNumber = Math.floor(dayIndex / microcycleLengthDays) + 1;
-      const isDeload = cycleNumber === microcycleCount;
+      const isDeload = lastCycleIsDeload && cycleNumber === microcycleCount;
       const isCycleStart = dayIndex % microcycleLengthDays === 0;
       const dayInMicrocycle = dayIndex % microcycleLengthDays;
       const isRestDay = restDays.includes(dayInMicrocycle);

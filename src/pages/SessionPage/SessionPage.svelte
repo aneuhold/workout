@@ -34,8 +34,6 @@
     sessionId: string | null;
   } = $props();
 
-  // --- Data ---
-
   let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
   let sessionExercises = $derived(
     session ? sessionMapService.getOrderedSessionExercisesForSession(session) : []
@@ -46,28 +44,22 @@
   let completedCount = $derived(completedSets.length);
   let percent = $derived(totalSets > 0 ? Math.round((completedCount / totalSets) * 100) : 0);
   let allSetsLogged = $derived(completedCount >= totalSets && totalSets > 0);
-
   let allImmediateSlidersFilled = $derived(
     sessionExercises.every((se) => {
       const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
       return WorkoutSessionExerciseService.hasMidSessionMetricsFilled(se, seSets);
     })
   );
-
-  // --- Lock derivation ---
-
   let microcycle = $derived(
     session?.workoutMicrocycleId
       ? microcycleMapService.getDoc(session.workoutMicrocycleId)
       : undefined
   );
-
   let mesocycle = $derived(
     microcycle?.workoutMesocycleId
       ? mesocycleMapService.getDoc(microcycle.workoutMesocycleId)
       : undefined
   );
-
   let previousMicrocycle = $derived.by(() => {
     if (!microcycle || !mesocycle) return undefined;
     const orderedMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(
@@ -92,8 +84,6 @@
       previousSessionInMicrocycle
     )
   );
-
-  // --- Mode derivation ---
 
   let dataMode: SessionPageMode = $derived.by(() => {
     if (!session) return SessionPageMode.Active;
