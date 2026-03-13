@@ -8,6 +8,7 @@
     activeMid: 'activeMid',
     activePrevSoreness: 'activePrevSoreness',
     deload: 'deload',
+    recovery: 'recovery',
     review: 'review',
     viewOnly: 'viewOnly',
     viewSorenessEditable: 'viewSorenessEditable'
@@ -36,6 +37,8 @@
 <Story name="Active (Previous Soreness)" args={{ storyMode: 'activePrevSoreness' }} />
 
 <Story name="Deload Session" args={{ storyMode: 'deload' }} />
+
+<Story name="Recovery Exercises" args={{ storyMode: 'recovery' }} />
 
 <Story name="Post-Session Review" args={{ storyMode: 'review' }} />
 

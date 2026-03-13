@@ -88,7 +88,14 @@
 
             {#each session.exercises as exercise (exercise.exerciseName)}
               <div class="space-y-1">
-                <p class="text-sm font-medium">{exercise.exerciseName}</p>
+                <p class="text-sm font-medium">
+                  {exercise.exerciseName}
+                  {#if exercise.isRecoveryExercise}
+                    <span class="text-xs font-normal text-amber-600 dark:text-amber-400"
+                      >Recovery</span
+                    >
+                  {/if}
+                </p>
                 {#if session.completed}
                   <div class="grid grid-cols-4 gap-1 text-xs">
                     {#each exercise.sets as set (set.setNumber)}

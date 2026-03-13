@@ -143,14 +143,16 @@ class MesocycleCalendarUtils {
           return {
             exerciseName: exercise?.exerciseName ?? 'Unknown',
             repRange: exercise?.repRange ?? 'Medium',
-            sets: setsOnDay
+            sets: setsOnDay,
+            isRecoveryExercise: se.isRecoveryExercise
           };
         });
         return {
           sessionId: session._id,
           title: session.title,
           completed: session.complete,
-          exercises: exercisesOnDay
+          exercises: exercisesOnDay,
+          hasRecoveryExercise: exercisesOnDay.some((e) => e.isRecoveryExercise)
         };
       });
 

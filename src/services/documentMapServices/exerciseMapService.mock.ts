@@ -11,6 +11,7 @@ import {
   WorkoutExerciseSchema,
   type WorkoutMuscleGroup,
   type WorkoutSessionExercise,
+  WorkoutSessionExerciseService,
   type WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
@@ -162,6 +163,9 @@ export default class ExerciseMapServiceMock {
 
     for (const se of sessionExerciseMapService.allDocs) {
       if (!completedSessionIds.has(se.workoutSessionId)) continue;
+      // Skip deload exercises — halved weights/reps are not meaningful progression baselines
+      const seSets = setMapService.allDocs.filter((s) => s.workoutSessionExerciseId === se._id);
+      if (WorkoutSessionExerciseService.isDeloadExercise(seSets)) continue;
       const current = exerciseToLastSessionExerciseMap.get(se.workoutExerciseId);
       if (!current || se.createdDate > current.createdDate) {
         exerciseToLastSessionExerciseMap.set(se.workoutExerciseId, se);

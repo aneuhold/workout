@@ -9,7 +9,8 @@ import type {
 } from '@aneuhold/core-ts-db-lib';
 import {
   WorkoutExerciseCalibrationService,
-  WorkoutExerciseCTOSchema
+  WorkoutExerciseCTOSchema,
+  WorkoutSessionExerciseService
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
@@ -157,14 +158,18 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
       const seSets = setsBySessionExerciseId.get(se._id);
 
-      // Update lastSessionExercise if more recent
-      if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
-        cto.lastSessionExercise = se;
+      // Skip deload exercises for lastSessionExercise/lastFirstSet — halved
+      // weights/reps are not meaningful progression baselines.
+      if (!WorkoutSessionExerciseService.isDeloadExercise(seSets ?? [])) {
+        // Update lastSessionExercise if more recent
+        if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
+          cto.lastSessionExercise = se;
 
-        // Update lastFirstSet from setOrder[0]
-        const firstSetId = se.setOrder[0];
-        const firstSet = seSets?.find((s) => s._id === firstSetId);
-        cto.lastFirstSet = firstSet ?? null;
+          // Update lastFirstSet from setOrder[0]
+          const firstSetId = se.setOrder[0];
+          const firstSet = seSets?.find((s) => s._id === firstSetId);
+          cto.lastFirstSet = firstSet ?? null;
+        }
       }
 
       // Check sets against bestSet

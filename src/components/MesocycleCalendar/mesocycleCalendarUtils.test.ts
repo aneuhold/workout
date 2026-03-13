@@ -427,6 +427,53 @@ describe('buildCalendarData', () => {
     expect(sets[1].actualRir).toBe(1);
   });
 
+  it('populates isRecoveryExercise and hasRecoveryExercise', () => {
+    const mesocycle = makeMesocycle({ plannedMicrocycleCount: 2 });
+    const micro1 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 15), new Date(2026, 1, 21));
+    const micro2 = makeMicrocycle(mesocycle._id, new Date(2026, 1, 22), new Date(2026, 1, 28));
+    const session = makeSession(micro1._id, 'Push', new Date(2026, 1, 16));
+
+    const exerciseId1 = DocumentService.generateID();
+    const exerciseId2 = DocumentService.generateID();
+    const exercise1 = WorkoutExerciseSchema.parse({
+      userId,
+      _id: exerciseId1,
+      exerciseName: 'Bench Press',
+      repRange: ExerciseRepRange.Heavy,
+      workoutEquipmentTypeId: DocumentService.generateID(),
+      initialFatigueGuess: {}
+    });
+    const exercise2 = WorkoutExerciseSchema.parse({
+      userId,
+      _id: exerciseId2,
+      exerciseName: 'Incline Press',
+      repRange: ExerciseRepRange.Medium,
+      workoutEquipmentTypeId: DocumentService.generateID(),
+      initialFatigueGuess: {}
+    });
+
+    const se1 = makeSessionExercise(session._id, exerciseId1);
+    se1.isRecoveryExercise = true;
+    const se2 = makeSessionExercise(session._id, exerciseId2);
+
+    const result = mesocycleCalendarUtils.buildCalendarData({
+      mesocycle,
+      microcycles: [micro1, micro2],
+      sessions: [session],
+      sessionExercises: [se1, se2],
+      sets: [],
+      exercises: [exercise1, exercise2]
+    });
+
+    const allDays = result.weekRows.flatMap((r) => r.days).filter((d) => d !== null);
+    const sessionDay = allDays.find((d) => d.type === 'session');
+    expect(sessionDay).toBeDefined();
+    const calExercises = sessionDay?.sessions[0].exercises ?? [];
+    expect(calExercises[0].isRecoveryExercise).toBe(true);
+    expect(calExercises[1].isRecoveryExercise).toBe(false);
+    expect(sessionDay?.sessions[0].hasRecoveryExercise).toBe(true);
+  });
+
   it('handles non-7-day microcycles', () => {
     const mesocycle = makeMesocycle({
       plannedMicrocycleCount: 2,

@@ -8,7 +8,8 @@
     component: SBMesocycleCalendarExample,
     argTypes: {
       ...createNumberArgTypes('microcycleCount', 'microcycleLengthDays', 'completedSessionCount'),
-      ...createTextArgTypes('restDays', 'startDate')
+      ...createTextArgTypes('restDays', 'startDate'),
+      hasRecoveryExercises: { control: 'boolean' }
     },
     args: {
       microcycleCount: 6,
@@ -16,7 +17,8 @@
       restDays: '0,6',
       startDate: '2026-02-15',
       completedSessionCount: 0,
-      plannedSessionCountPerMicrocycle: 5
+      plannedSessionCountPerMicrocycle: 5,
+      hasRecoveryExercises: false
     }
   });
 </script>
@@ -34,3 +36,8 @@
 <Story name="In-Progress In Deload" args={{ completedSessionCount: 20 }} />
 
 <Story name="All Completed" args={{ completedSessionCount: 30 }} />
+
+<Story
+  name="With Recovery Exercises"
+  args={{ completedSessionCount: 10, hasRecoveryExercises: true }}
+/>

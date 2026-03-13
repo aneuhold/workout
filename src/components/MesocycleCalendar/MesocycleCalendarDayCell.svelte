@@ -22,6 +22,7 @@
 
 <script lang="ts">
   import { IconCheck } from '@tabler/icons-svelte';
+  import { cn } from '$util/svelte-shadcn-util';
   import type { MesocycleCalendarDayCell } from './mesocycleCalendarTypes';
 
   let {
@@ -57,9 +58,16 @@
     <div class="flex gap-0.5 mt-0.5">
       {#each day.sessions as session (session.sessionId)}
         {#if session.completed}
-          <IconCheck class="size-3 text-primary" />
+          <IconCheck
+            class={cn('size-3', session.hasRecoveryExercise ? 'text-amber-500' : 'text-primary')}
+          />
         {:else}
-          <span class="size-2 rounded-full bg-primary/60"></span>
+          <span
+            class={cn(
+              'size-2 rounded-full',
+              session.hasRecoveryExercise ? 'bg-amber-500/60' : 'bg-primary/60'
+            )}
+          ></span>
         {/if}
       {/each}
     </div>

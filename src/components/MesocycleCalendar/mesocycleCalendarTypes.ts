@@ -26,6 +26,8 @@ export type MesocycleCalendarExercise = {
   repRange: string;
   /** Ordered list of planned sets for this exercise on this day. */
   sets: MesocycleCalendarSet[];
+  /** Whether this exercise is a recovery exercise due to high soreness / low performance. */
+  isRecoveryExercise: boolean;
 };
 
 /** A single workout session mapped to a calendar day. */
@@ -38,6 +40,8 @@ export type MesocycleCalendarSession = {
   completed: boolean;
   /** Exercises scheduled for this session with their planned sets. */
   exercises: MesocycleCalendarExercise[];
+  /** Whether any exercise in this session is a recovery exercise. */
+  hasRecoveryExercise: boolean;
 };
 
 /** A single calendar day cell in the 7-column grid. */
