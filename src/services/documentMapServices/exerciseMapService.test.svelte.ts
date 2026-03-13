@@ -44,7 +44,7 @@ describe('exerciseMapService CTO update methods', () => {
       expect(cto?.bestCalibration?._id).toBe(calibration._id);
       expect(cto?.bestSet).toBeNull();
       expect(cto?.lastSessionExercise).toBeNull();
-      expect(cto?.lastFirstSet).toBeNull();
+      expect(cto?.lastSessionSets).toEqual([]);
     });
 
     it('should replace bestCalibration when new cal has higher 1RM', () => {
@@ -147,7 +147,7 @@ describe('exerciseMapService CTO update methods', () => {
   });
 
   describe('updateCTOsForCompletedSession', () => {
-    it('should update lastSessionExercise and lastFirstSet', () => {
+    it('should update lastSessionExercise and lastSessionSets', () => {
       const baseData = MockData.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -174,7 +174,7 @@ describe('exerciseMapService CTO update methods', () => {
       // Clear lastSessionExercise on CTOs to test the update
       for (const cto of exerciseMapService.exerciseCTOs) {
         cto.lastSessionExercise = null;
-        cto.lastFirstSet = null;
+        cto.lastSessionSets = [];
       }
 
       exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sets);
@@ -186,11 +186,12 @@ describe('exerciseMapService CTO update methods', () => {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
         if (cto?.lastSessionExercise?._id === se._id) {
           updatedCount++;
-          // Verify lastFirstSet was set from setOrder[0]
+          // Verify lastSessionSets contains all sets from setOrder
           if (se.setOrder.length > 0) {
+            expect(cto.lastSessionSets.length).toBe(se.setOrder.length);
             const expectedFirstSet = sets.find((s) => s._id === se.setOrder[0]);
             if (expectedFirstSet) {
-              expect(cto.lastFirstSet?._id).toBe(expectedFirstSet._id);
+              expect(cto.lastSessionSets[0]?._id).toBe(expectedFirstSet._id);
             }
           }
         }
@@ -198,7 +199,7 @@ describe('exerciseMapService CTO update methods', () => {
       expect(updatedCount).toBe(uniqueExerciseIds.size);
     });
 
-    it('should not overwrite lastSessionExercise/lastFirstSet for deload exercises', () => {
+    it('should not overwrite lastSessionExercise/lastSessionSets for deload exercises', () => {
       const baseData = MockData.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -229,13 +230,13 @@ describe('exerciseMapService CTO update methods', () => {
       // Snapshot current CTO values
       const snapshotBefore = new SvelteMap<
         string,
-        { lastSE: WorkoutSessionExercise | null; lastFS: WorkoutSet | null }
+        { lastSE: WorkoutSessionExercise | null; lastSets: WorkoutSet[] }
       >();
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
         snapshotBefore.set(se.workoutExerciseId, {
           lastSE: cto?.lastSessionExercise ?? null,
-          lastFS: cto?.lastFirstSet ?? null
+          lastSets: cto?.lastSessionSets ?? []
         });
       }
 
@@ -271,12 +272,14 @@ describe('exerciseMapService CTO update methods', () => {
 
       exerciseMapService.updateCTOsForCompletedSession(deloadSessionExercises, deloadSets);
 
-      // Assert: lastSessionExercise/lastFirstSet unchanged
+      // Assert: lastSessionExercise/lastSessionSets unchanged
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
         const before = snapshotBefore.get(se.workoutExerciseId);
         expect(cto?.lastSessionExercise?._id).toBe(before?.lastSE?._id);
-        expect(cto?.lastFirstSet?._id).toBe(before?.lastFS?._id);
+        const ctoSetIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
+        const beforeSetIds = before?.lastSets.map((s) => s._id) ?? [];
+        expect(ctoSetIds).toEqual(beforeSetIds);
       }
     });
 

@@ -52,7 +52,7 @@ export type AddMockExerciseInfo = {
 
 type DerivedExerciseCTOFields = Pick<
   WorkoutExerciseCTO,
-  'bestSet' | 'lastSessionExercise' | 'lastFirstSet'
+  'bestSet' | 'lastSessionExercise' | 'lastSessionSets'
 >;
 
 export default class ExerciseMapServiceMock {
@@ -83,8 +83,8 @@ export default class ExerciseMapServiceMock {
    * and sets them on the exercise map service.
    *
    * If session/set map services are populated, bestSet, lastSessionExercise,
-   * and lastFirstSet are derived automatically from those services. Otherwise,
-   * those fields default to null.
+   * and lastSessionSets are derived automatically from those services. Otherwise,
+   * those fields default to null/empty.
    *
    * @param calibrations The calibrations to build CTOs from
    * @param exercises The exercises to match calibrations against
@@ -112,7 +112,7 @@ export default class ExerciseMapServiceMock {
         bestCalibration: cal,
         bestSet: derived?.bestSet ?? null,
         lastSessionExercise: derived?.lastSessionExercise ?? null,
-        lastFirstSet: derived?.lastFirstSet ?? null
+        lastSessionSets: derived?.lastSessionSets
       });
     });
     exerciseMapService.setExerciseCTOs(exerciseCTOs);
@@ -120,14 +120,14 @@ export default class ExerciseMapServiceMock {
   }
 
   /**
-   * Derives bestSet, lastSessionExercise, and lastFirstSet per exercise
+   * Derives bestSet, lastSessionExercise, and lastSessionSets per exercise
    * from the already-populated session, session exercise, and set map services.
    *
    * Uses intermediary maps keyed by exercise ID for efficient lookup:
    * - Best set: the completed set with the highest 1RM per exercise
    * - Last session exercise: the most recently created session exercise per
    *   exercise (from completed sessions only)
-   * - Last first set: the first set from that last session exercise's setOrder
+   * - Last session sets: all sets from that last session exercise's setOrder
    */
   private static deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
     const completedSessionIds = new Set<UUID>();
@@ -181,13 +181,16 @@ export default class ExerciseMapServiceMock {
 
     for (const exerciseId of allExerciseIds) {
       const lastSE = exerciseToLastSessionExerciseMap.get(exerciseId) ?? null;
-      const firstSetId = lastSE?.setOrder[0];
-      const lastFirstSet = firstSetId ? (setMapService.getDoc(firstSetId) ?? null) : null;
+      const lastSessionSets = lastSE
+        ? lastSE.setOrder
+            .map((setId) => setMapService.getDoc(setId))
+            .filter((s): s is WorkoutSet => s != null)
+        : [];
 
       result.set(exerciseId, {
         bestSet: bestSetByExercise.get(exerciseId) ?? null,
         lastSessionExercise: lastSE,
-        lastFirstSet
+        lastSessionSets
       });
     }
 
