@@ -132,7 +132,7 @@
     const totalCycles = microcycles.length;
     const lastCycleIndex = totalCycles - 1;
 
-    return firstMicrocycleSessions.map((templateSession, sessionIndex) => {
+    return firstMicrocycleSessions.map((_, sessionIndex) => {
       const exerciseRows = new SvelteMap<UUID, SetRow[]>();
       const exerciseOrder: UUID[] = [];
       const prevTargetsMap = new SvelteMap<UUID, SetTarget[]>();
@@ -140,7 +140,11 @@
       for (let cycleIdx = 0; cycleIdx < totalCycles; cycleIdx++) {
         const microcycle = microcycles[cycleIdx];
         const microcycleSessions = sessionsByMicrocycle.get(microcycle._id) ?? [];
-        const session = microcycleSessions[sessionIndex];
+        const session = microcycleSessions.at(sessionIndex);
+
+        // This can be undefined if microcycles have skipped sessions (such as when a deload was
+        // started early)
+        if (!session) continue;
         const exercisesForSession = sessionExercisesBySession.get(session._id) ?? [];
 
         for (const sessionExercise of exercisesForSession) {

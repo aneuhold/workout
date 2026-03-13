@@ -2,8 +2,11 @@ import {
   DocumentService,
   WorkoutExerciseCalibrationSchema,
   WorkoutExerciseCalibrationService,
+  type WorkoutSessionExercise,
+  type WorkoutSet,
   WorkoutSetSchema
 } from '@aneuhold/core-ts-db-lib';
+import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MockData from '$testUtils/MockData';
 import TestSetup from '$testUtils/TestSetup';
@@ -41,7 +44,7 @@ describe('exerciseMapService CTO update methods', () => {
       expect(cto?.bestCalibration?._id).toBe(calibration._id);
       expect(cto?.bestSet).toBeNull();
       expect(cto?.lastSessionExercise).toBeNull();
-      expect(cto?.lastFirstSet).toBeNull();
+      expect(cto?.lastSessionSets).toEqual([]);
     });
 
     it('should replace bestCalibration when new cal has higher 1RM', () => {
@@ -144,7 +147,7 @@ describe('exerciseMapService CTO update methods', () => {
   });
 
   describe('updateCTOsForCompletedSession', () => {
-    it('should update lastSessionExercise and lastFirstSet', () => {
+    it('should update lastSessionExercise and lastSessionSets', () => {
       const baseData = MockData.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -171,7 +174,7 @@ describe('exerciseMapService CTO update methods', () => {
       // Clear lastSessionExercise on CTOs to test the update
       for (const cto of exerciseMapService.exerciseCTOs) {
         cto.lastSessionExercise = null;
-        cto.lastFirstSet = null;
+        cto.lastSessionSets = [];
       }
 
       exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sets);
@@ -183,16 +186,101 @@ describe('exerciseMapService CTO update methods', () => {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
         if (cto?.lastSessionExercise?._id === se._id) {
           updatedCount++;
-          // Verify lastFirstSet was set from setOrder[0]
+          // Verify lastSessionSets contains all sets from setOrder
           if (se.setOrder.length > 0) {
+            expect(cto.lastSessionSets.length).toBe(se.setOrder.length);
             const expectedFirstSet = sets.find((s) => s._id === se.setOrder[0]);
             if (expectedFirstSet) {
-              expect(cto.lastFirstSet?._id).toBe(expectedFirstSet._id);
+              expect(cto.lastSessionSets[0]?._id).toBe(expectedFirstSet._id);
             }
           }
         }
       }
       expect(updatedCount).toBe(uniqueExerciseIds.size);
+    });
+
+    it('should not overwrite lastSessionExercise/lastSessionSets for deload exercises', () => {
+      const baseData = MockData.setupBaseData();
+      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        startDate: new Date('2026-01-01T00:00:00.000Z'),
+        completedSessionCount: 5,
+        sessionsPerMicrocycle: 5
+      });
+
+      // Re-setup CTOs with session data
+      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+        baseData.calibrations,
+        baseData.exercises,
+        baseData.equipmentTypes
+      );
+
+      // Pick a completed session and record CTO values before the deload update
+      const completedSession = data.sessions.find((s) => s.complete);
+      expect(completedSession).toBeDefined();
+      if (!completedSession) return;
+
+      const sessionExercises = data.sessionExercises.filter(
+        (se) => se.workoutSessionId === completedSession._id
+      );
+      const sessionSets = data.sets.filter((s) => s.workoutSessionId === completedSession._id);
+
+      // Run a normal update first to populate lastSessionExercise
+      exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sessionSets);
+
+      // Snapshot current CTO values
+      const snapshotBefore = new SvelteMap<
+        string,
+        { lastSE: WorkoutSessionExercise | null; lastSets: WorkoutSet[] }
+      >();
+      for (const se of sessionExercises) {
+        const cto = exerciseMapService.getCTO(se.workoutExerciseId);
+        snapshotBefore.set(se.workoutExerciseId, {
+          lastSE: cto?.lastSessionExercise ?? null,
+          lastSets: cto?.lastSessionSets ?? []
+        });
+      }
+
+      // Create deload versions: null plannedRir on all sets, newer createdDate
+      const deloadSessionExercises: WorkoutSessionExercise[] = sessionExercises.map((se) => ({
+        ...se,
+        _id: DocumentService.generateID(),
+        createdDate: new Date(Date.now() + 100_000)
+      }));
+      const deloadSets: WorkoutSet[] = [];
+      for (const dse of deloadSessionExercises) {
+        const originalSE = sessionExercises.find(
+          (se) => se.workoutExerciseId === dse.workoutExerciseId
+        );
+        if (!originalSE) continue;
+        const originalSets = sessionSets.filter(
+          (s) => s.workoutSessionExerciseId === originalSE._id
+        );
+        const newSetIds: string[] = [];
+        for (const os of originalSets) {
+          const deloadSet = WorkoutSetSchema.parse({
+            ...os,
+            _id: DocumentService.generateID(),
+            workoutSessionExerciseId: dse._id,
+            plannedRir: null,
+            plannedReps: Math.floor((os.plannedReps ?? 8) / 2)
+          });
+          deloadSets.push(deloadSet);
+          newSetIds.push(deloadSet._id);
+        }
+        dse.setOrder = newSetIds as unknown as typeof dse.setOrder;
+      }
+
+      exerciseMapService.updateCTOsForCompletedSession(deloadSessionExercises, deloadSets);
+
+      // Assert: lastSessionExercise/lastSessionSets unchanged
+      for (const se of sessionExercises) {
+        const cto = exerciseMapService.getCTO(se.workoutExerciseId);
+        const before = snapshotBefore.get(se.workoutExerciseId);
+        expect(cto?.lastSessionExercise?._id).toBe(before?.lastSE?._id);
+        const ctoSetIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
+        const beforeSetIds = before?.lastSets.map((s) => s._id) ?? [];
+        expect(ctoSetIds).toEqual(beforeSetIds);
+      }
     });
 
     it('should update bestSet from session sets', () => {

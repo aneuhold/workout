@@ -8,6 +8,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
+  import { SvelteSet } from 'svelte/reactivity';
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/mesocycleMapService.mock';
@@ -20,7 +21,8 @@
     restDays = '0,6',
     startDate = '2026-02-16',
     completedSessionCount = 0,
-    plannedSessionCountPerMicrocycle = 5
+    plannedSessionCountPerMicrocycle = 5,
+    hasRecoveryExercises = false
   }: {
     microcycleCount?: number;
     microcycleLengthDays?: number;
@@ -28,6 +30,7 @@
     startDate?: string;
     completedSessionCount?: number;
     plannedSessionCountPerMicrocycle?: number;
+    hasRecoveryExercises?: boolean;
   } = $props();
 
   let mesocycle = $state<WorkoutMesocycle | null>(null);
@@ -45,6 +48,7 @@
     const _startDate = startDate;
     const _completedCount = completedSessionCount;
     const _plannedSessionCount = plannedSessionCountPerMicrocycle;
+    const _hasRecovery = hasRecoveryExercises;
 
     untrack(() => {
       MockData.resetAll();
@@ -68,6 +72,21 @@
         startDate: parsedStart,
         completedSessionCount: _completedCount
       });
+
+      // Flag one recovery exercise per session for microcycle 2+
+      if (_hasRecovery) {
+        const firstCycleId = generated.microcycles[0]._id;
+        const laterSessionIds = new Set(
+          generated.sessions.filter((s) => s.workoutMicrocycleId !== firstCycleId).map((s) => s._id)
+        );
+        const flaggedSessions = new SvelteSet<string>();
+        for (const se of generated.sessionExercises) {
+          if (!laterSessionIds.has(se.workoutSessionId)) continue;
+          if (flaggedSessions.has(se.workoutSessionId)) continue;
+          se.isRecoveryExercise = true;
+          flaggedSessions.add(se.workoutSessionId);
+        }
+      }
 
       // Set component state
       mesocycle = generated.mesocycle;

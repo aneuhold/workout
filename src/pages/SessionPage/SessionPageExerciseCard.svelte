@@ -278,6 +278,11 @@
             {repRange.min}-{repRange.max} reps ({exercise.repRange})
           </Badge>
         {/if}
+        {#if sessionExercise.isRecoveryExercise}
+          <Badge variant="outline" class="border-amber-500 text-amber-600 dark:text-amber-400"
+            >Recovery</Badge
+          >
+        {/if}
         {#if exercise}
           {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}
             <Badge variant="secondary"

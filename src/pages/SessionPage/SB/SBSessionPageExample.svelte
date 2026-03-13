@@ -14,6 +14,7 @@
     | 'activeMid'
     | 'activePrevSoreness'
     | 'deload'
+    | 'recovery'
     | 'review'
     | 'viewOnly'
     | 'viewSorenessEditable';
@@ -28,6 +29,7 @@
     activeEarly: 0,
     activeMid: 0,
     deload: 0,
+    recovery: 0,
     activePrevSoreness: 3,
     review: 1,
     viewOnly: 1,
@@ -76,6 +78,10 @@
         applyDeloadToFirstSession(data);
       }
 
+      if (mode === 'recovery') {
+        applyRecoveryToFirstSession(data);
+      }
+
       const targetIndex = secondMicrocycleModes.has(mode) ? 3 : 0;
       sessionId = data.sessions[targetIndex]._id;
     });
@@ -87,6 +93,22 @@
       });
     };
   });
+
+  /**
+   * Flags the first two session exercises in the first session as recovery exercises.
+   *
+   * @param data The generated mesocycle data to modify in-place
+   */
+  function applyRecoveryToFirstSession(data: MockGeneratedMesocycleData) {
+    const targetSession = data.sessions[0];
+    let flagged = 0;
+    for (const se of data.sessionExercises) {
+      if (se.workoutSessionId !== targetSession._id) continue;
+      se.isRecoveryExercise = true;
+      flagged++;
+      if (flagged >= 2) break;
+    }
+  }
 
   /**
    * Trims the first session's exercises to 1 set each with null RIR and halved reps,
