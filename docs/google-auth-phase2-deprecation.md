@@ -1,116 +1,61 @@
 # Google Authentication — Phase 2: Deprecation of Old Auth
 
-This document describes the plan for removing the legacy authentication system (API key + password) after Phase 1 (Google Sign-In + JWT) has been deployed and verified in production.
+This document describes the plan for removing the legacy API key system after Phase 1 (Google Sign-In + JWT) has been deployed and verified in production. Password-based login is kept for test accounts but moves to JWT auth.
 
 See also: [Phase 1: Implementation](./google-auth-plan.md)
 
 ## Prerequisites
 
-Before starting Phase 2:
-
-- Phase 1 is fully deployed across all three repos (ts-libs, gcloud-backend, workout)
-- Google Sign-In and JWT auth have been verified working in production
-- All active users have successfully logged in with the new system at least once (or have been notified of the migration)
+- Phase 1 is fully deployed and verified across all three repos
 - The dashboard app (if still in use) has also been updated to use JWT auth
 
 ---
 
-## Detailed Deprecation Plan
+## Deprecation Plan
 
 ### Step 1: ts-libs Changes
 
 #### 1a. Remove `apiKey` from `WebSocketHandshakeAuth`
 
-**File**: Update `packages/core-ts-api-lib/src/types/WebSocket.ts`
-
-Remove the deprecated `apiKey` field so only `accessToken` remains:
-
-```typescript
-export type WebSocketHandshakeAuth = {
-  /** JWT access token for authenticating the WebSocket connection. */
-  accessToken: string;
-};
-```
+**File**: Update `packages/core-ts-api-lib/src/types/WebSocket.ts` — remove deprecated `apiKey`, keep only `accessToken`.
 
 #### 1b. Remove `apiKey` from API input types
 
-**Files**: Update `ProjectWorkoutPrimaryInput`, `ProjectDashboardInput`, and any other input types that carry an `apiKey` field.
-
-Remove the `apiKey` field from these types. The `AuthGuard` (JWT-based) now handles authentication via the `Authorization` header, so individual endpoints no longer need the API key in the request body.
+Update `ProjectWorkoutPrimaryInput`, `ProjectDashboardInput`, etc. The `AuthGuard` handles auth via the `Authorization` header now.
 
 #### 1c. Remove `ApiKey` document (optional)
 
-If API keys are no longer used anywhere:
-
-- Remove `ApiKey` document type from `core-ts-db-lib`
-- Remove `ApiKeyRepository` from `be-ts-db-lib`
-- Remove the `apiKey` field from `AuthValidateUserOutput.userInfo`
-
-> **Note**: Only do this if the dashboard app and any other consumers have also been migrated. If the dashboard still uses API keys, defer this step.
-
-#### 1d. Remove password fields from `AuthValidateUserInput`
-
-**File**: Update `packages/core-ts-api-lib/src/types/AuthValidateUser.ts`
-
-Remove `userName` and `password` fields, leaving only `credential`:
-
-```typescript
-export interface AuthValidateUserInput {
-  /** Google ID token received from Google Identity Services. */
-  credential: string;
-}
-```
+Remove `ApiKey` from `core-ts-db-lib`, `ApiKeyRepository` from `be-ts-db-lib`, and `apiKey` from `AuthValidateUserOutput.userInfo` — only if the dashboard and all other consumers have been migrated.
 
 ### Step 2: gcloud-backend Changes
 
 #### 2a. Remove legacy API key fallback from `AuthGuard`
 
-**File**: Update `src/common/guards/Auth.guard.ts`
+Remove the fallback that checks for `apiKey` in the request body (Phase 1 step 2g item 4). The guard now only accepts JWT `Authorization: Bearer` headers.
 
-Remove the fallback that checks for `apiKey` in the request body (added in Phase 1 step 2g item 5). The guard should now only accept JWT `Authorization: Bearer` headers.
-
-#### 2b. Remove password validation from `validateUser`
-
-**File**: Update `src/routes/auth/Auth.controller.ts`
-
-Remove the `else if (body.userName && body.password)` branch from the `validateUser` endpoint. Only the Google credential flow remains.
-
-#### 2c. Remove `POST /auth/checkPassword`
-
-**File**: Update `src/routes/auth/Auth.controller.ts`
+#### 2b. Remove `POST /auth/checkPassword`
 
 Delete the `checkPassword` endpoint entirely.
 
-#### 2d. Remove legacy API key fallback from WebSocket gateways
+#### 2c. Remove legacy API key fallback from WebSocket gateways
 
-**File**: Update WebSocket gateway `handleConnection` methods
+Remove the `else if (apiKey)` branch. Only `accessToken` JWT verification remains.
 
-Remove the `else if (apiKey)` fallback branch. Only `accessToken` JWT verification remains.
+#### 2d. Hash stored passwords (optional)
 
-#### 2e. Remove `auth.password` from User documents (optional)
-
-If password-based login is fully removed:
-
-- Remove `auth.password` from the `User` document schema in `core-ts-db-lib`
-- Optionally run a migration script to unset the `auth.password` field on all existing User documents in the database
+If keeping password-based login for test accounts, migrate from plaintext password comparison to bcrypt hashing. This is independent of the API key removal but is a good security improvement to bundle in.
 
 ### Step 3: Workout App Changes
 
-#### 3a. Remove password login form
+#### 3a. Remove `apiKey` from user config
 
-**File**: Update `src/components/Login/Login.svelte`
+**File**: Update `src/stores/local/userConfig/userConfig.ts` — remove `apiKey`. Only `accessToken` and `refreshToken` are used.
 
-Remove the username/password form fields and the "or" separator. Only the Google Sign-In button remains.
+#### 3b. Remove API key from request bodies
 
-#### 3b. Remove `apiKey` from user config
+Remove any remaining code that includes `apiKey` in API call bodies.
 
-**File**: Update `src/stores/local/userConfig/userConfig.ts`
-
-Remove the `apiKey` field from `UserConfig`. Only `accessToken` and `refreshToken` are used for auth.
-
-#### 3c. Remove API key from request bodies
-
-Remove any remaining code that includes `apiKey` in API call bodies, since authentication is now handled via the `Authorization` header.
+> **Note**: The username/password login form and password flow in `validateUser` are **kept** for test accounts that don't have a Google account. Both flows already issue JWTs in Phase 1, so no additional work is needed — the password flow just continues to work as-is without API keys.
 
 ---
 
@@ -120,17 +65,14 @@ Remove any remaining code that includes `apiKey` in API call bodies, since authe
 
 | File | Action |
 |------|--------|
-| `src/types/WebSocket.ts` | Update (remove `apiKey` from `WebSocketHandshakeAuth`) |
-| `src/types/AuthValidateUser.ts` | Update (remove `userName`, `password` fields from input) |
-| Input types (`ProjectWorkoutPrimaryInput`, etc.) | Update (remove `apiKey` field) |
-| Barrel exports | Update as needed |
+| `src/types/WebSocket.ts` | Update (remove `apiKey`) |
+| Input types (`ProjectWorkoutPrimaryInput`, etc.) | Update (remove `apiKey`) |
 
 ### ts-libs (`core-ts-db-lib`) — optional
 
 | File | Action |
 |------|--------|
 | `src/documents/common/ApiKey.ts` | Delete (if no consumers remain) |
-| `src/documents/common/User.ts` | Update (remove `auth.password`) |
 
 ### ts-libs (`be-ts-db-lib`) — optional
 
@@ -143,14 +85,13 @@ Remove any remaining code that includes `apiKey` in API call bodies, since authe
 | File | Action |
 |------|--------|
 | `src/common/guards/Auth.guard.ts` | Update (remove API key fallback) |
-| `src/routes/auth/Auth.controller.ts` | Update (remove password flow, remove `checkPassword` endpoint) |
+| `src/routes/auth/Auth.controller.ts` | Update (remove `checkPassword` endpoint) |
 | WebSocket gateways | Update (remove `apiKey` fallback) |
 
 ### workout
 
 | File | Action |
 |------|--------|
-| `src/components/Login/Login.svelte` | Update (remove password form) |
 | `src/stores/local/userConfig/userConfig.ts` | Update (remove `apiKey`) |
 | API call sites | Update (remove `apiKey` from request bodies) |
 
@@ -158,6 +99,5 @@ Remove any remaining code that includes `apiKey` in API call bodies, since authe
 
 ## Risks and Rollback
 
-- **Dashboard app**: Ensure the dashboard app has been migrated to JWT auth before removing API key support. If it hasn't, defer steps 1b, 1c, 2a, and 2d.
-- **Rollback**: If issues are discovered, the Phase 1 code supports both auth methods. Reverting Phase 2 changes restores dual-auth support.
-- **Database migration**: Removing `auth.password` from User documents is a one-way operation. Take a database backup before running any migration script.
+- **Dashboard app**: Ensure it has been migrated before removing API key support. If not, defer steps 1b, 1c, 2a, and 2c.
+- **Rollback**: Phase 1 code supports both auth methods. Reverting Phase 2 changes restores dual-auth support.
