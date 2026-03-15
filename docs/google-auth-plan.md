@@ -65,7 +65,7 @@ Both login flows (Google and password) go through `POST /auth/validateUser` and 
 - **Client-side Google button**: Google Identity Services (GIS) SDK handles the consent flow entirely in the browser. Recommended approach for SPAs. The GIS script is loaded lazily only on the Login page.
 - **JWT access + refresh tokens**: Short-lived access tokens (15 min) via `Authorization: Bearer` header. Longer-lived refresh tokens (7 days) with rotation. Only active tokens are stored server-side.
 - **Account linking by email**: When a Google user signs in, the backend looks up by `auth.googleId`, then falls back to `email`. This links existing password-based accounts automatically.
-- **ConfigService for secrets**: Google Client ID and JWT secrets are stored in the existing ConfigService system (private GitHub `config` repo).
+- **ConfigService for secrets**: JWT secrets are stored in the existing ConfigService system (private GitHub `config` repo). The Google Client ID is a public value, hardcoded in `core-ts-api-lib`.
 
 ---
 
@@ -207,7 +207,7 @@ Also add `APIService` facade methods for `refreshToken()` and `setAccessToken()`
 Follows the existing document composition pattern:
 
 ```typescript
-const RefreshToken_docType = 'RefreshToken';
+const RefreshToken_docType = 'refreshToken';
 
 export const RefreshTokenSchema = z.object({
   ...BaseDocumentWithTypeSchema.shape,
@@ -229,13 +229,26 @@ export type RefreshToken = z.infer<typeof RefreshTokenSchema>;
 - **Theft detection**: if no matching `tokenHash` found, delete ALL documents for that `userId` (token was likely stolen and replayed after legitimate client rotated)
 - **Expired token cleanup**: on any login or refresh, delete any documents for that `userId` where `expiresAt` has passed
 
-A corresponding `RefreshTokenRepository` is added in `be-ts-db-lib` following the existing repository pattern.
+A corresponding `RefreshTokenRepository` and `RefreshTokenValidator` are added in `be-ts-db-lib` following the existing patterns (see `UserRepository`/`UserValidator`). The validator takes `RefreshTokenSchema` and `RefreshTokenSchema.partial()`, with business logic validation for checking `tokenHash` uniqueness.
 
-#### 1g. Add secrets to ConfigService
+#### 1g. Hardcode Google Client ID in `core-ts-api-lib`
+
+**File**: `packages/core-ts-api-lib/src/constants/googleClientId.ts` (new)
+
+The Google Client ID is a public value (embedded in the frontend HTML), not a secret. Hardcode it as a constant in `core-ts-api-lib` so both the frontend and backend can import it:
+
+```typescript
+/** Google OAuth 2.0 Client ID. This is a public value, not a secret. */
+export const GOOGLE_CLIENT_ID = '<client-id-from-google-console>';
+```
+
+Export from `browser.ts`.
+
+#### 1h. Add JWT secrets to ConfigService
 
 **File**: Update `packages/be-ts-lib/src/services/ConfigService/ConfigDefinition.ts`
 
-Add `googleClientId`, `jwtAccessSecret`, and `jwtRefreshSecret` to the `Config` interface. Then add the actual values to `local.jsonc`, `dev.jsonc`, and `prod.jsonc` in the private GitHub `config` repo.
+Add `jwtAccessSecret` and `jwtRefreshSecret` to the `Config` interface. Then add the actual values to `local.jsonc`, `dev.jsonc`, and `prod.jsonc` in the private GitHub `config` repo.
 
 ### Step 2: gcloud-backend Changes
 
@@ -251,7 +264,7 @@ pnpm add @nestjs/jwt google-auth-library
 
 This NestJS injectable service:
 1. Accepts a Google ID token (the `credential` string from the frontend)
-2. Verifies it using `OAuth2Client.verifyIdToken()` with `ConfigService.config.googleClientId` as audience
+2. Verifies it using `OAuth2Client.verifyIdToken()` with `GOOGLE_CLIENT_ID` (imported from `core-ts-api-lib`) as audience
 3. Extracts the Google user ID (`sub`), email, and name from the verified token payload
 4. **Account linking**: look up user by `auth.googleId` → fall back to `email` → create new user if neither match. When matched by email, sets `auth.googleId` on the existing user (linking the account).
 5. Ensures an `ApiKey` exists for the user (find or create)
@@ -260,7 +273,7 @@ This NestJS injectable service:
 
 **File**: Update `src/routes/auth/Auth.module.ts`
 
-Register `JwtModule` from `@nestjs/jwt` with `ConfigService.config.jwtAccessSecret` and `expiresIn: '15m'`.
+Register `JwtModule` from `@nestjs/jwt` with `ConfigService.config.jwtAccessSecret` and `expiresIn: '15m'`. Register `GoogleAuthService` and `RefreshTokenService` as providers.
 
 #### 2d. Create refresh token service
 
@@ -310,6 +323,8 @@ async validateUser(
 - `POST /auth/refresh` — validates and rotates the refresh token, returns new `accessToken` + `refreshTokenString`
 - `POST /auth/logout` — deletes the refresh token for that session
 
+Both endpoints should have the same `@Throttle({ default: { limit: 10, ttl: 60000 } })` decorator as the existing `validateUser` endpoint.
+
 #### 2g. Create an auth guard
 
 **File**: `src/common/guards/Auth.guard.ts` (new)
@@ -329,20 +344,31 @@ A `CanActivate` guard that:
 
 #### 2i. Mark public endpoints
 
-Add `@Public()` to: `POST /auth/validateUser`, `POST /auth/refresh`, `POST /auth/checkPassword`, `GET /`.
+Add `@Public()` to: `POST /auth/validateUser`, `POST /auth/refresh`, `POST /auth/checkPassword`, `GET /`. Note: `POST /auth/logout` is NOT public — it requires a valid JWT so the server knows which user's token to delete.
 
 #### 2j. Update WebSocket gateways
 
-Accept `accessToken` in the handshake alongside the existing `apiKey`:
+The existing gateways authenticate via middleware registered in `afterInit()`. Update that middleware to accept `accessToken` alongside the existing `apiKey`. The JWT is verified once at connection time — the connection is trusted for its lifetime:
 
 ```typescript
-const { accessToken, apiKey } = client.handshake.auth as WebSocketHandshakeAuth;
+afterInit(socketServer: Server) {
+  socketServer.use(async (socket, next) => {
+    const { accessToken, apiKey } = socket.handshake.auth as WebSocketHandshakeAuth;
 
-if (accessToken) {
-  const payload = await jwtService.verifyAsync(accessToken);
-  // Use payload.userId
-} else if (apiKey) {
-  // Legacy: look up by API key (backward compat)
+    if (accessToken) {
+      const payload = await jwtService.verifyAsync(accessToken);
+      socket.data.userId = payload.userId;
+    } else if (apiKey) {
+      // Legacy: look up by API key (backward compat)
+      const apiKeyDoc = await ApiKeyRepository.getRepo().get({ key: apiKey });
+      socket.data.userId = apiKeyDoc?.userId;
+    }
+
+    if (!socket.data.userId) {
+      return next(new Error('Unauthorized'));
+    }
+    next();
+  });
 }
 ```
 
@@ -374,7 +400,7 @@ Add a Google Sign-In button alongside the existing username/password form:
   onMount(async () => {
     const accounts = await loadGoogleGIS();
     accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID, // from env/config
+      client_id: GOOGLE_CLIENT_ID, // hardcoded constant in core-ts-api-lib
       callback: handleGoogleCallback
     });
     accounts.id.renderButton(googleButtonRef, {
@@ -408,11 +434,17 @@ Add a Google Sign-In button alongside the existing username/password form:
 
 Add `accessToken` and `refreshToken` fields to `UserConfig`. When tokens are stored, call `APIService.setAccessToken(token)` so all subsequent API calls include the Bearer header.
 
+**File**: Update `src/stores/session/loginState.ts`
+
+Update the initialization check to consider the user logged in if either `accessToken` or `apiKey` exists in `userConfig` (supporting both old and new auth during migration).
+
 #### 3d. Add token refresh logic
 
 **File**: Update `GCloudAPIService` in `core-ts-api-lib`
 
-Add a 401 interceptor via an `onUnauthorized` callback. The workout app sets it at startup:
+Add a 401 interceptor via an `onUnauthorized` callback. The workout app's `WorkoutAPIService` already processes API requests sequentially through its queue, so only one request can encounter a 401 at a time — the refresh happens inline within that request's `call()`, and the queue doesn't advance until it completes. No mutex is needed.
+
+The workout app sets the callback at startup:
 
 ```typescript
 GCloudAPIService.setOnUnauthorized(async () => {
@@ -490,7 +522,7 @@ The existing throttle on the auth controller (10 requests per minute) applies to
 3. Application type: "Web application", name: "MesoPro Workout App"
 4. Authorized JavaScript origins: `http://localhost:5173`, `https://mesopro.tonyneuhold.com`
 5. No redirect URIs needed (client-side flow)
-6. Copy the Client ID into the GitHub `config` repo JSONC files
+6. Copy the Client ID into `core-ts-api-lib/src/constants/googleClientId.ts`
 7. Configure OAuth consent screen: External, scopes `email`/`profile`/`openid`, add test users
 
 ---
@@ -507,24 +539,29 @@ The existing throttle on the auth controller (10 requests per minute) applies to
 | `src/types/WebSocket.ts` | Update (`WebSocketHandshakeAuth` adds `accessToken`) |
 | `src/services/GCloudAPIService/GCloudAPIService.ts` | Update (add Bearer header, `setAccessToken`, `onUnauthorized`) |
 | `src/services/APIService/APIService.ts` | Update (add `refreshToken`, `setAccessToken`) |
+| `src/constants/googleClientId.ts` | Create (hardcoded public Google Client ID) |
+| `src/browser.ts` | Update (export new types + `GOOGLE_CLIENT_ID`) |
 
 ### ts-libs (`core-ts-db-lib`)
 
 | File | Action |
 |------|--------|
 | `src/documents/common/RefreshToken.ts` | Create (Zod schema for hashed refresh tokens) |
+| `src/browser.ts` | Update (export `RefreshTokenSchema`, `RefreshToken` type) |
 
 ### ts-libs (`be-ts-db-lib`)
 
 | File | Action |
 |------|--------|
-| `src/repositories/RefreshTokenRepository.ts` | Create (MongoDB repository) |
+| `src/repositories/common/RefreshTokenRepository.ts` | Create (MongoDB repository) |
+| `src/validators/common/RefreshTokenValidator.ts` | Create (Zod + business logic validation) |
+| `src/index.ts` | Update (export `RefreshTokenRepository`) |
 
 ### ts-libs (`be-ts-lib`)
 
 | File | Action |
 |------|--------|
-| `src/services/ConfigService/ConfigDefinition.ts` | Update (add `googleClientId`, `jwtAccessSecret`, `jwtRefreshSecret`) |
+| `src/services/ConfigService/ConfigDefinition.ts` | Update (add `jwtAccessSecret`, `jwtRefreshSecret`) |
 
 ### gcloud-backend
 
@@ -548,6 +585,7 @@ The existing throttle on the auth controller (10 requests per minute) applies to
 | `src/util/auth/loadGoogleGIS.ts` | Create (dynamic script loader) |
 | `src/components/Login/Login.svelte` | Update (add Google Sign-In button) |
 | `src/stores/local/userConfig/userConfig.ts` | Update (add `accessToken`, `refreshToken`) |
+| `src/stores/session/loginState.ts` | Update (check `accessToken` OR `apiKey` for logged-in state) |
 | WebSocket connection setup | Update (use `accessToken` in handshake) |
 | Logout logic | Update (delete refresh token, clear tokens) |
 
@@ -555,7 +593,7 @@ The existing throttle on the auth controller (10 requests per minute) applies to
 
 | File | Action |
 |------|--------|
-| `local.jsonc`, `dev.jsonc`, `prod.jsonc` | Update (add `googleClientId`, `jwtAccessSecret`, `jwtRefreshSecret`) |
+| `local.jsonc`, `dev.jsonc`, `prod.jsonc` | Update (add `jwtAccessSecret`, `jwtRefreshSecret`) |
 
 ---
 
