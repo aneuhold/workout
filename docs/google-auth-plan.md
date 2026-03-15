@@ -1,6 +1,8 @@
-# Google Authentication Implementation Plan
+# Google Authentication — Phase 1: Implementation
 
-This document describes the plan for adding Google Sign-In authentication across the three repositories: **workout** (SvelteKit SPA), **gcloud-backend** (NestJS API), and **ts-libs** (shared types/services).
+This document describes the plan for adding Google Sign-In authentication across the three repositories: **workout** (SvelteKit SPA), **gcloud-backend** (NestJS API), and **ts-libs** (shared types/services). The old auth system (API key + password) continues to work alongside the new system throughout this phase.
+
+See also: [Phase 2: Deprecation of Old Auth](./google-auth-phase2-deprecation.md)
 
 ## Current State
 
@@ -91,7 +93,7 @@ This document describes the plan for adding Google Sign-In authentication across
 - **Client-side Google button**: No server redirects needed. Google Identity Services (GIS) SDK handles the consent flow entirely in the browser and returns an ID token. This is the recommended approach for SPAs.
 - **Dynamic script loading**: The GIS script is loaded lazily only on the Login page (not on every page load) using a small utility function. Type safety provided by `@types/google.accounts`.
 - **Backend token verification**: The NestJS backend validates the Google ID token using `google-auth-library`. This checks JWT signature against Google's public keys, verifies audience, expiration, and issuer.
-- **JWT access + refresh tokens**: Short-lived access tokens (15 min) sent via `Authorization: Bearer` header. Longer-lived refresh tokens (7 days) with rotation and server-side revocation via hashed storage in the database.
+- **JWT access + refresh tokens**: Short-lived access tokens (15 min) sent via `Authorization: Bearer` header. Longer-lived refresh tokens (7 days) with rotation and server-side deletion via hashed storage in the database. Only active tokens are stored.
 - **Account linking by email**: When a Google user signs in, the backend first looks up by `auth.googleId`, then falls back to matching by `email`. This links existing password-based accounts to Google automatically.
 - **WebSocket uses JWT**: The `WebSocketHandshakeAuth` type is updated to accept an `accessToken` instead of `apiKey`, unifying auth across HTTP and WebSocket.
 - **ConfigService for secrets**: Google Client ID and JWT secrets are stored in the existing ConfigService system (private GitHub `config` repo) rather than `.env` files, keeping configuration centralized.
@@ -100,7 +102,7 @@ This document describes the plan for adding Google Sign-In authentication across
 
 ## Detailed Implementation Plan
 
-### Phase 1: ts-libs Changes (Shared Types and Services)
+### Step 1: ts-libs Changes (Shared Types and Services)
 
 #### 1a. Extend `AuthValidateUserInput` and `AuthValidateUserOutput`
 
@@ -129,7 +131,7 @@ export interface AuthValidateUserOutput {
   };
   /** JWT access token for authenticating API requests. */
   accessToken?: string;
-  /** JWT refresh token for obtaining new access tokens. */
+  /** Raw refresh token string for obtaining new access tokens. Not to be confused with the RefreshToken document type which stores the hashed server-side record. */
   refreshToken?: string;
   config?: {
     dashboard?: DashboardConfig;
@@ -143,13 +145,15 @@ Both the password flow and the Google flow use `POST /auth/validateUser` and ret
 
 **File**: `packages/core-ts-api-lib/src/types/AuthRefreshToken.ts` (new)
 
+> **Naming note**: The field is named `refreshTokenString` to distinguish it from the `RefreshToken` *document* type in `core-ts-db-lib`. The document represents a server-side database record (storing a SHA-256 hash and expiry — never the raw token value). By contrast, `refreshTokenString` is the raw opaque value sent to/from the client. The server hashes it to produce the `tokenHash` field stored on the `RefreshToken` document.
+
 ```typescript
 /**
  * Interface representing the input to the token refresh endpoint.
  */
 export interface AuthRefreshTokenInput {
-  /** The refresh token to exchange for new tokens. */
-  refreshToken: string;
+  /** The raw refresh token string to exchange for new tokens. */
+  refreshTokenString: string;
 }
 
 /**
@@ -158,8 +162,8 @@ export interface AuthRefreshTokenInput {
 export interface AuthRefreshTokenOutput {
   /** New JWT access token. */
   accessToken: string;
-  /** New refresh token (rotation -- old one is invalidated). */
-  refreshToken: string;
+  /** New raw refresh token string (rotation -- old one is invalidated). */
+  refreshTokenString: string;
 }
 ```
 
@@ -261,26 +265,34 @@ The existing `APIService.validateUser()` already delegates to `GCloudAPIService.
 
 **File**: `packages/core-ts-db-lib/src/documents/common/RefreshToken.ts` (new)
 
+Follows the existing document composition pattern (see `WorkoutSession`, `WorkoutExercise`, etc.):
+
 ```typescript
-export const RefreshTokenSchema = BaseDocumentSchema.extend({
-  /** The User._id this refresh token belongs to. */
-  userId: z.string(),
+const RefreshToken_docType = 'RefreshToken';
+
+export const RefreshTokenSchema = z.object({
+  ...BaseDocumentWithTypeSchema.shape,
+  ...RequiredUserIdSchema.shape,
+  ...BaseDocumentWithUpdatedAndCreatedDatesSchema.shape,
+  docType: z.literal(RefreshToken_docType).default(RefreshToken_docType),
   /** SHA-256 hash of the refresh token (never store the raw token). */
   tokenHash: z.string(),
   /** When this refresh token expires. */
-  expiresAt: z.date(),
-  /** Whether this token has been revoked (e.g. on logout or rotation). */
-  revoked: z.boolean().default(false)
+  expiresAt: z.date()
 });
 
 export type RefreshToken = z.infer<typeof RefreshTokenSchema>;
 ```
 
-This enables:
-- Server-side revocation (set `revoked = true`)
-- Refresh token rotation detection (if a revoked token is used, revoke ALL tokens for that user -- potential theft indicator)
-- Expiry enforcement independent of the JWT `exp` claim
-- Cleanup of expired tokens via a TTL index or periodic sweep
+> **How `refreshTokenString` relates to `tokenHash`**: When the server issues a refresh token, it generates a cryptographically random string (the `refreshTokenString` sent to the client) and stores only its SHA-256 hash as `tokenHash` in the `RefreshToken` document. On each refresh request, the server hashes the incoming `refreshTokenString` and looks up the matching `tokenHash`. This means a database breach never exposes usable token values.
+
+**Only active tokens are stored.** The collection contains one `RefreshToken` document per active device/session. There is no `revoked` field — tokens are deleted rather than marked:
+- **On rotation**: the old document is deleted and a new one is inserted
+- **On logout**: the document for that session is deleted
+- **Theft detection**: if an unrecognized token is presented (no matching `tokenHash` found), delete ALL `RefreshToken` documents for that `userId` — this logs the user out everywhere, because the token was likely stolen and replayed after the legitimate client already rotated it
+- **Expired token cleanup**: when a user authenticates (login or refresh), delete any of their `RefreshToken` documents where `expiresAt` has passed — this cleans up abandoned sessions (e.g. the user uninstalled the app on a device without logging out)
+
+This keeps the collection small — bounded to the number of active devices per user (typically 2-3).
 
 A corresponding `RefreshTokenRepository` is added in `be-ts-db-lib` following the existing repository pattern.
 
@@ -305,7 +317,7 @@ export default interface Config {
 
 Then add the actual values to `local.jsonc`, `dev.jsonc`, and `prod.jsonc` in the private GitHub `config` repo.
 
-### Phase 2: gcloud-backend Changes
+### Step 2: gcloud-backend Changes
 
 #### 2a. Install dependencies
 
@@ -360,11 +372,12 @@ export class AuthModule {}
 **File**: `src/routes/auth/RefreshToken.service.ts` (new)
 
 This service handles:
-1. **Issuing refresh tokens**: Generate a cryptographically random token, hash it with SHA-256, store the hash + userId + expiresAt in the `RefreshToken` collection, return the raw token to the client
-2. **Validating refresh tokens**: Hash the incoming token, look it up in the database, check `revoked` and `expiresAt`
-3. **Rotating refresh tokens**: On successful refresh, revoke the old token and issue a new one
-4. **Theft detection**: If a revoked token is presented, revoke ALL tokens for that user (the token was likely stolen and replayed)
-5. **Revoking on logout**: Mark the user's refresh token as revoked
+1. **Issuing refresh tokens**: Generate a cryptographically random token, hash it with SHA-256, store the hash + userId + expiresAt in the `RefreshToken` collection, return the raw token (`refreshTokenString`) to the client
+2. **Validating refresh tokens**: Hash the incoming `refreshTokenString`, look it up in the database by `tokenHash`, check `expiresAt`
+3. **Rotating refresh tokens**: On successful refresh, delete the old `RefreshToken` document and insert a new one
+4. **Theft detection**: If no matching `tokenHash` is found for the user, delete ALL `RefreshToken` documents for that `userId` (the token was likely stolen and replayed after the legitimate client already rotated)
+5. **Deleting on logout**: Delete the `RefreshToken` document for that session
+6. **Expired token cleanup**: On any authentication attempt (login or refresh), delete any `RefreshToken` documents for that `userId` where `expiresAt` has passed
 
 #### 2e. Update `validateUser` endpoint to handle both flows
 
@@ -416,13 +429,15 @@ async validateUser(
 async refreshToken(
   @Body() body: AuthRefreshTokenInput
 ): Promise<APIResponse<AuthRefreshTokenOutput>> {
-  // 1. RefreshTokenService.validateAndRotate(body.refreshToken)
-  //    → validates token, revokes old, issues new
-  //    → returns { userId, newRefreshToken }
+  // 1. RefreshTokenService.validateAndRotate(body.refreshTokenString)
+  //    → hashes the string, looks up matching tokenHash in DB
+  //    → deletes old RefreshToken document, inserts new one
+  //    → if no match found, deletes ALL tokens for user (theft detection)
+  //    → returns { userId, newRefreshTokenString }
   // 2. Look up user to ensure they still exist
   // 3. JwtService.signAsync({ userId, email })
   //    → returns new accessToken
-  // 4. Return { accessToken, refreshToken: newRefreshToken }
+  // 4. Return { accessToken, refreshTokenString: newRefreshTokenString }
 }
 ```
 
@@ -492,7 +507,7 @@ if (accessToken) {
 }
 ```
 
-### Phase 3: Workout App Changes
+### Step 3: Workout App Changes
 
 #### 3a. Google Cloud Console Setup
 
@@ -638,12 +653,12 @@ The workout app sets the `onUnauthorized` callback at startup:
 ```typescript
 GCloudAPIService.setOnUnauthorized(async () => {
   const refreshResult = await APIService.refreshToken({
-    refreshToken: userConfig.refreshToken
+    refreshTokenString: userConfig.refreshToken
   });
   if (refreshResult.success) {
     // Store new tokens
     APIService.setAccessToken(refreshResult.data.accessToken);
-    userConfig.update({ refreshToken: refreshResult.data.refreshToken });
+    userConfig.update({ refreshToken: refreshResult.data.refreshTokenString });
     return true;
   }
   // Refresh failed -- log user out
@@ -667,23 +682,15 @@ const socket = io(url, {
 #### 3g. Update logout flow
 
 On logout:
-1. Call `POST /auth/logout` (new endpoint) to revoke the refresh token server-side
+1. Call `POST /auth/logout` (new endpoint) to delete the refresh token server-side
 2. Clear `accessToken` and `refreshToken` from userConfig
 3. Call `APIService.setAccessToken(null)`
 4. Call `google.accounts.id.disableAutoSelect()` to prevent auto-sign-in on next visit
 5. Existing logout logic (clear localStorage, disconnect WebSocket) remains the same
 
-### Phase 4: Deprecation and Cleanup (Future)
+---
 
-Once Google auth is working and verified in production:
-
-1. Remove the `apiKey` field from `WebSocketHandshakeAuth`
-2. Remove the `apiKey` field from `ProjectWorkoutPrimaryInput` and `ProjectDashboardInput`
-3. Remove the legacy API key fallback from the `AuthGuard`
-4. Remove `POST /auth/checkPassword`
-5. Optionally remove `auth.password` from the `User` schema and the password-based login form
-
-This phase is **not part of the initial implementation**. The old auth coexists with the new system indefinitely until you decide to cut it.
+> **Next**: Once Phase 1 is deployed and verified in production, proceed to [Phase 2: Deprecation of Old Auth](./google-auth-phase2-deprecation.md).
 
 ---
 
@@ -698,15 +705,16 @@ This phase is **not part of the initial implementation**. The old auth coexists 
 | In-memory (Svelte store) | Safest (not in storage) | Not vulnerable | Lost on refresh |
 | `httpOnly` cookie | Not readable by JS | Needs `SameSite` | Survives refresh |
 
-**Decision**: Store both tokens in `localStorage`. This matches the current security posture (API key is already in `localStorage`). The short-lived access token (15 min) and server-side refresh token revocation limit exposure.
+**Decision**: Store both tokens in `localStorage`. This matches the current security posture (API key is already in `localStorage`). The short-lived access token (15 min) and server-side refresh token deletion on rotation/logout limit exposure.
 
 ### Refresh Token Security
 
 - **Hashed storage**: Only the SHA-256 hash of the refresh token is stored in the database. A database breach does not expose usable tokens.
-- **Rotation**: Every refresh request issues a new token and revokes the old one. A stolen token can only be used once.
-- **Theft detection**: If a revoked token is presented, ALL tokens for that user are revoked. This catches the case where an attacker replays a stolen token after the legitimate user has already rotated it.
-- **Expiry**: Refresh tokens expire after 7 days regardless of rotation.
-- **Logout revocation**: Explicit logout revokes the refresh token server-side.
+- **Active tokens only**: Only valid, active tokens are stored. Old tokens are deleted on rotation and logout — no revoked records accumulate.
+- **Rotation**: Every refresh request deletes the old token and issues a new one. A stolen token can only be used once.
+- **Theft detection**: If an unrecognized token is presented (no matching `tokenHash`), ALL tokens for that user are deleted. This catches the case where an attacker replays a stolen token after the legitimate user has already rotated it. The user is logged out everywhere.
+- **Expiry**: Refresh tokens expire after 7 days regardless of rotation. Expired tokens are cleaned up lazily when the user next authenticates.
+- **Logout deletion**: Explicit logout deletes the refresh token server-side.
 
 ### CSRF Protection
 
@@ -738,15 +746,14 @@ This means existing users who sign in with the same email they used for their pa
 
 ---
 
-## Migration Strategy
+## Deploy Order
 
 The implementation is **additive** -- both old and new auth work simultaneously:
 
-1. **Deploy ts-libs changes** -- New types + updated `GCloudAPIService` with Bearer header support. No breaking changes; the header is only sent when an access token is set.
-2. **Deploy gcloud-backend changes** -- Updated `validateUser` endpoint handles both flows + global auth guard. Existing endpoints marked `@Public()` so they keep working. The guard also falls back to API key validation in the request body.
-3. **Deploy workout app changes** -- Google Sign-In button alongside existing form. Both login methods go through the same `validateUser` endpoint and receive JWTs.
+1. **Deploy ts-libs changes** (Step 1) -- New types + updated `GCloudAPIService` with Bearer header support. No breaking changes; the header is only sent when an access token is set.
+2. **Deploy gcloud-backend changes** (Step 2) -- Updated `validateUser` endpoint handles both flows + global auth guard. Existing endpoints marked `@Public()` so they keep working. The guard also falls back to API key validation in the request body.
+3. **Deploy workout app changes** (Step 3) -- Google Sign-In button alongside existing form. Both login methods go through the same `validateUser` endpoint and receive JWTs.
 4. **Test end-to-end** -- Verify Google login and token refresh in production.
-5. **Deprecate old auth** -- Phase 4 cleanup (future, at your discretion).
 
 ---
 
@@ -813,7 +820,7 @@ The implementation is **additive** -- both old and new auth work simultaneously:
 | `src/routes/auth/Auth.module.ts` | Update (register `JwtModule`, add providers) |
 | `src/routes/auth/Auth.controller.ts` | Update (extend `validateUser` for Google flow, add `refresh`/`logout` endpoints) |
 | `src/routes/auth/GoogleAuth.service.ts` | Create (verify Google token, find/create/link user) |
-| `src/routes/auth/RefreshToken.service.ts` | Create (issue, validate, rotate, revoke refresh tokens) |
+| `src/routes/auth/RefreshToken.service.ts` | Create (issue, validate, rotate, delete refresh tokens) |
 | `src/routes/App.module.ts` | Update (register global `AuthGuard`) |
 | `src/common/guards/Auth.guard.ts` | Create |
 | `src/common/decorators/Public.decorator.ts` | Create |
@@ -828,7 +835,7 @@ The implementation is **additive** -- both old and new auth work simultaneously:
 | `src/components/Login/Login.svelte` | Update (add Google Sign-In button) |
 | `src/stores/local/userConfig/userConfig.ts` | Update (add `accessToken`, `refreshToken`) |
 | WebSocket connection setup | Update (use `accessToken` in handshake) |
-| Logout logic | Update (revoke refresh token, clear tokens) |
+| Logout logic | Update (delete refresh token, clear tokens) |
 
 ### GitHub `config` repo
 
