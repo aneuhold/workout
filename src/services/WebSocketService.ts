@@ -18,9 +18,12 @@ export default class WebSocketService {
       return;
     } else {
       // Use the namespace `/workout` to ensure that we only connect to the workout parts
+      const config = userConfig.get();
       this.#socket = io(`${APIService.getCurrentAPIUrl()}workout`, {
         auth: {
-          apiKey: userConfig.get().apiKey
+          accessToken: config.accessToken ?? undefined,
+
+          apiKey: config.apiKey ?? undefined
         }
       });
 

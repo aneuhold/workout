@@ -30,11 +30,11 @@
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@aneuhold/core-ts-api-lib": "^3.0.27",
-    "@aneuhold/core-ts-db-lib": "^5.0.0",
-    "@aneuhold/core-ts-lib": "^2.4.2",
+    "@aneuhold/core-ts-api-lib": "^3.0.29",
+    "@aneuhold/core-ts-db-lib": "^5.0.1",
+    "@aneuhold/core-ts-lib": "^2.4.3",
     "@aneuhold/eslint-config": "^2.0.3",
-    "@aneuhold/local-npm-registry": "^0.2.29",
+    "@aneuhold/local-npm-registry": "^0.2.30",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
@@ -53,6 +53,7 @@
     "@testing-library/svelte": "^5.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/d3-scale": "^4.0.9",
+    "@types/google.accounts": "^0.0.18",
     "@types/node": "^25.2.1",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",

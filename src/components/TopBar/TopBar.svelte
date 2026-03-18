@@ -5,8 +5,10 @@
   Static on mobile normally, fixed when timer active. Always fixed on desktop.
 -->
 <script lang="ts">
+  import { APIService } from '@aneuhold/core-ts-api-lib';
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
+  import googleGISService from '$services/GoogleGISService';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -36,9 +38,16 @@
       : ''
   );
 
-  function handleLogout() {
+  async function handleLogout() {
+    // Delete refresh token server-side
+    await APIService.logout();
+
+    // Clear local state
     userConfig.clear();
     loginState.set(LoginState.LoggedOut);
+
+    // Prevent Google auto-sign-in on next visit
+    googleGISService.disableAutoSelect();
   }
 </script>
 

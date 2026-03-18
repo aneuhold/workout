@@ -1,8 +1,9 @@
+import { APIService } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocketService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
 import { createLogger } from '$util/logging/logger';
 
@@ -38,12 +39,25 @@ function createLoginStateStore() {
     set(_loginState);
   }
 
-  // Determine initial login state based on persisted API key in userConfig.
-  if (browser && userConfig.get().apiKey) {
+  // Persist new tokens when GCloudAPIService auto-refreshes on 401.
+  APIService.setOnTokensRefreshed((accessToken, refreshTokenString) => {
+    userConfig.update((config) => ({ ...config, accessToken, refreshTokenString }));
+  });
+
+  // Determine initial login state based on persisted tokens in userConfig.
+  const config = userConfig.get();
+
+  if (browser && (config.accessToken || config.apiKey)) {
+    if (config.accessToken) {
+      APIService.setAccessToken(config.accessToken);
+    }
+    if (config.refreshTokenString) {
+      APIService.setRefreshTokenString(config.refreshTokenString);
+    }
     setLoginState(LoginState.LoggedIn);
     WorkoutAPIService.getInitialDataIfNeeded();
   } else {
-    log.info('No API key found, setting login state to LoggedOut');
+    log.info('No access token or API key found, setting login state to LoggedOut');
     setLoginState(LoginState.LoggedOut);
   }
 

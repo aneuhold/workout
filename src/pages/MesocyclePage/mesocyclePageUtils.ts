@@ -11,7 +11,7 @@ import mesocycleMapService, {
 } from '$services/documentMapServices/mesocycleMapService.svelte';
 import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
 import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 
 export enum MesocyclePageMode {

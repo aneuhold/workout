@@ -1,7 +1,7 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type { BaseDocument } from '@aneuhold/core-ts-db-lib';
 import type { DocumentInsertOrUpdateInfo } from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 
 type WorkoutApiKey = keyof NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>;
 

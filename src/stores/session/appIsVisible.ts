@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 
 function createAppIsVisibleStore() {
   let _appIsVisible = true;
