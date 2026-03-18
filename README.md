@@ -12,6 +12,10 @@ This was done originally with [this variant of shadcn](https://ui.shadcn.com/cre
 
 Logging is done via Sentry. Configuration is setup in `hooks.client.ts` primarily.
 
+### Auth
+
+Sign-in with Google is configured via the [backend project and the OAuth configuration here in Google Cloud](https://console.cloud.google.com/auth/overview?project=backend-463900).
+
 ## Development
 
 To start working on the project simply run:
