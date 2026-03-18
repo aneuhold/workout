@@ -11,7 +11,7 @@ import microcycleMapService from '$services/documentMapServices/microcycleMapSer
 import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
 import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
 import setMapService from '$services/documentMapServices/setMapService.svelte';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 
 export type HomePageMicrocycleInfo = {
   microcycle: WorkoutMicrocycle;

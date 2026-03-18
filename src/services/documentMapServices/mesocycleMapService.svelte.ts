@@ -16,7 +16,7 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$util/api/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPIService';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';

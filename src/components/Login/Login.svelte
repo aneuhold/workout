@@ -11,6 +11,9 @@
     type AuthValidateUserOutput
   } from '@aneuhold/core-ts-api-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
+  import { onMount } from 'svelte';
+  import googleGISService from '$services/GoogleGISService';
+  import WorkoutAPIService from '$services/WorkoutAPIService';
   import { password } from '$stores/local/password';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -23,7 +26,7 @@
   import CardTitle from '$ui/Card/CardTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
-  import WorkoutAPIService from '$util/api/WorkoutAPIService';
+  import Separator from '$ui/Separator/Separator.svelte';
   import LocalData from '$util/LocalData/LocalData';
   import { createLogger } from '$util/logging/logger';
 
@@ -34,6 +37,29 @@
   let processingCredentials = $derived($loginState === LoginState.ProcessingCredentials);
   let invalidCredentials = $state(false);
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
+  let googleButtonRef: HTMLDivElement | undefined = $state();
+
+  onMount(async () => {
+    if (googleButtonRef) {
+      await googleGISService.renderButton(googleButtonRef, (response) => {
+        void handleGoogleCallback(response);
+      });
+    }
+  });
+
+  /**
+   * Handles the Google Sign-In callback by sending the credential token
+   * to the backend for validation.
+   *
+   * @param response - The Google credential response.
+   */
+  async function handleGoogleCallback(response: google.accounts.id.CredentialResponse) {
+    $loginState = LoginState.ProcessingCredentials;
+    const result = await APIService.validateUser({
+      googleCredentialToken: response.credential
+    });
+    handleLoginResult(result);
+  }
 
   /**
    * Handles the login form submission by validating credentials against the API.
@@ -62,13 +88,25 @@
    * @param validationResponse - The response from the validate user API call.
    */
   function handleLoginResult(validationResponse: APIResponse<AuthValidateUserOutput>) {
-    if (validationResponse.success && validationResponse.data.userInfo?.apiKey) {
+    if (validationResponse.success && validationResponse.data.userInfo) {
       invalidCredentials = false;
       const { user, apiKey: userApiKey } = validationResponse.data.userInfo;
+      const { accessToken, refreshTokenString } = validationResponse.data;
+
+      // Store tokens for the auto-refresh mechanism
+      if (accessToken) {
+        APIService.setAccessToken(accessToken);
+      }
+      if (refreshTokenString) {
+        APIService.setRefreshTokenString(refreshTokenString);
+      }
+
       userConfig.set({
         userId: user._id,
         username: user.userName,
-        apiKey: userApiKey.key
+        apiKey: userApiKey.key,
+        accessToken: accessToken ?? null,
+        refreshTokenString: refreshTokenString ?? null
       });
       WorkoutAPIService.getInitialDataForLogin();
       $loginState = LoginState.LoggedIn;
@@ -88,6 +126,12 @@
       <CardDescription>Enter your credentials to continue.</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-4">
+      <div class="flex justify-center" bind:this={googleButtonRef}></div>
+      <div class="flex items-center gap-4">
+        <Separator class="flex-1" />
+        <span class="text-muted-foreground text-sm">or</span>
+        <Separator class="flex-1" />
+      </div>
       <div class="flex flex-col gap-2">
         <Label for="username">Username</Label>
         <Input

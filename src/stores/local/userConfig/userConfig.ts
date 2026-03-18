@@ -7,13 +7,19 @@ export type UserConfig = {
   userId: UUID;
   username: string;
   apiKey: UUID | null;
+  /** JWT access token for authenticating API requests. */
+  accessToken: string | null;
+  /** Raw refresh token string for automatic token refresh. */
+  refreshTokenString: string | null;
 };
 
 function createUserConfigStore() {
   let currentConfig: UserConfig = {
     userId: '' as UUID,
     username: '',
-    apiKey: null
+    apiKey: null,
+    accessToken: null,
+    refreshTokenString: null
   };
   const { subscribe, set } = writable<UserConfig>(currentConfig);
 
@@ -55,7 +61,13 @@ function createUserConfigStore() {
      * Clears the user config (e.g. on logout).
      */
     clear: () => {
-      updateUserConfig(() => ({ userId: '' as UUID, username: '', apiKey: null }));
+      updateUserConfig(() => ({
+        userId: '' as UUID,
+        username: '',
+        apiKey: null,
+        accessToken: null,
+        refreshTokenString: null
+      }));
     },
     /**
      * Simply gets the current config.

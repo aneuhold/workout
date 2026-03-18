@@ -15,7 +15,9 @@ export default class UserConfigMock {
     const mockConfig: UserConfig = {
       userId: this.userId,
       username: 'Mock User',
-      apiKey: DocumentService.generateID()
+      apiKey: DocumentService.generateID(),
+      accessToken: null,
+      refreshTokenString: null
     };
     userConfig.setWithoutPropagation(mockConfig);
   }
