@@ -10,6 +10,7 @@
     APIService,
     type AuthValidateUserOutput
   } from '@aneuhold/core-ts-api-lib';
+  import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
   import googleGISService from '$services/GoogleGISService';
@@ -56,7 +57,8 @@
   async function handleGoogleCallback(response: google.accounts.id.CredentialResponse) {
     $loginState = LoginState.ProcessingCredentials;
     const result = await APIService.validateUser({
-      googleCredentialToken: response.credential
+      googleCredentialToken: response.credential,
+      project: ProjectName.Workout
     });
     handleLoginResult(result);
   }
@@ -75,7 +77,8 @@
 
     const validationResponse: APIResponse<AuthValidateUserOutput> = await APIService.validateUser({
       userName: typedUserName,
-      password: typedPassword
+      password: typedPassword,
+      project: ProjectName.Workout
     });
 
     handleLoginResult(validationResponse);
