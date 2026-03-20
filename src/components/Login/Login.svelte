@@ -85,7 +85,7 @@
   }
 
   /**
-   * Processes the validation response, storing the API key and fetching initial
+   * Processes the validation response, storing tokens and fetching initial
    * data on success, or displaying an error on failure.
    *
    * @param validationResponse - The response from the validate user API call.
@@ -93,7 +93,7 @@
   function handleLoginResult(validationResponse: APIResponse<AuthValidateUserOutput>) {
     if (validationResponse.success && validationResponse.data.userInfo) {
       invalidCredentials = false;
-      const { user, apiKey: userApiKey } = validationResponse.data.userInfo;
+      const { user } = validationResponse.data.userInfo;
       const { accessToken, refreshTokenString } = validationResponse.data;
 
       // Store tokens for the auto-refresh mechanism
@@ -107,7 +107,6 @@
       userConfig.set({
         userId: user._id,
         username: user.userName,
-        apiKey: userApiKey.key,
         accessToken: accessToken ?? null,
         refreshTokenString: refreshTokenString ?? null
       });

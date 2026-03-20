@@ -1,4 +1,3 @@
-import { DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { type UserConfig, userConfig } from './userConfig';
 
@@ -15,7 +14,6 @@ export default class UserConfigMock {
     const mockConfig: UserConfig = {
       userId: this.userId,
       username: 'Mock User',
-      apiKey: DocumentService.generateID(),
       accessToken: null,
       refreshTokenString: null
     };

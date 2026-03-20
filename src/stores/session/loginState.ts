@@ -47,7 +47,7 @@ function createLoginStateStore() {
   // Determine initial login state based on persisted tokens in userConfig.
   const config = userConfig.get();
 
-  if (browser && (config.accessToken || config.apiKey)) {
+  if (browser && config.accessToken) {
     if (config.accessToken) {
       APIService.setAccessToken(config.accessToken);
     }
@@ -57,7 +57,7 @@ function createLoginStateStore() {
     setLoginState(LoginState.LoggedIn);
     WorkoutAPIService.getInitialDataIfNeeded();
   } else {
-    log.info('No access token or API key found, setting login state to LoggedOut');
+    log.info('No access token found, setting login state to LoggedOut');
     setLoginState(LoginState.LoggedOut);
   }
 

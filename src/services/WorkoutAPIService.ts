@@ -3,7 +3,6 @@ import {
   type ProjectWorkoutPrimaryEndpointOptions,
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import type { UUID } from 'crypto';
 import apiActivityService from '$services/ApiActivityService/ApiActivityService.svelte';
 import WebSocketService from '$services/WebSocketService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -46,7 +45,7 @@ export default class WorkoutAPIService {
    * ago or it hasn't been fetched yet.
    */
   static getInitialDataIfNeeded() {
-    if (userConfig.get().apiKey && LocalData.apiRequestQueue.length === 0) {
+    if (userConfig.get().accessToken && LocalData.apiRequestQueue.length === 0) {
       if (!this.lastInitialDataFetchTime) {
         this.getInitialData();
       } else if (
@@ -93,14 +92,6 @@ export default class WorkoutAPIService {
         muscleGroupVolumeCTOs: { all: true }
       }
     });
-  }
-
-  static checkOrSetupWorkoutAPI(): UUID {
-    const apiKeyValue = userConfig.get().apiKey;
-    if (!apiKeyValue) {
-      throw new Error('API Key not set!');
-    }
-    return apiKeyValue;
   }
 
   /**
@@ -151,10 +142,8 @@ export default class WorkoutAPIService {
   private static async callWorkoutAPI(
     input: ProjectWorkoutPrimaryEndpointOptions
   ): Promise<ProjectWorkoutPrimaryOutput | null> {
-    const apiKeyValue = this.checkOrSetupWorkoutAPI();
     log.info('Processing API request', input);
     const result = await APIService.callWorkoutAPI({
-      apiKey: apiKeyValue,
       options: input,
       socketId: WebSocketService.getSocketId()
     });

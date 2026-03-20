@@ -21,9 +21,7 @@ export default class WebSocketService {
       const config = userConfig.get();
       this.#socket = io(`${APIService.getCurrentAPIUrl()}workout`, {
         auth: {
-          accessToken: config.accessToken ?? undefined,
-
-          apiKey: config.apiKey ?? undefined
+          accessToken: config.accessToken ?? undefined
         }
       });
 
@@ -72,7 +70,7 @@ export default class WebSocketService {
 
   /**
    * Disconnects the current socket and clears it so a future `connect()` will
-   * create a fresh connection (useful after logout or API key changes).
+   * create a fresh connection (useful after logout).
    *
    * Also clears all current subscriptions.
    */
