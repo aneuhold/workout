@@ -6,7 +6,6 @@ import LocalData from '$util/LocalData/LocalData';
 export type UserConfig = {
   userId: UUID;
   username: string;
-  apiKey: UUID | null;
   /** JWT access token for authenticating API requests. */
   accessToken: string | null;
   /** Raw refresh token string for automatic token refresh. */
@@ -17,7 +16,6 @@ function createUserConfigStore() {
   let currentConfig: UserConfig = {
     userId: '' as UUID,
     username: '',
-    apiKey: null,
     accessToken: null,
     refreshTokenString: null
   };
@@ -64,7 +62,6 @@ function createUserConfigStore() {
       updateUserConfig(() => ({
         userId: '' as UUID,
         username: '',
-        apiKey: null,
         accessToken: null,
         refreshTokenString: null
       }));
