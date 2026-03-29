@@ -9,6 +9,7 @@ import routeState from './sbFullAppRouteState.svelte';
 export enum FullAppScenario {
   MidTraining = 'midTraining',
   FreshStart = 'freshStart',
+  FreeFormWorkout = 'freeFormWorkout',
   AllComplete = 'allComplete',
   ReviewPending = 'reviewPending',
   MesocycleStart = 'mesocycleStart',
@@ -47,6 +48,10 @@ export function setupScenario(scenario: FullAppScenario): void {
 
     case FullAppScenario.FreshStart:
       // Base data only — exercises, equipment, muscle groups. No mesocycle.
+      break;
+
+    case FullAppScenario.FreeFormWorkout:
+      setupFreeFormWorkoutScenario(baseData);
       break;
 
     case FullAppScenario.AllComplete: {
@@ -251,4 +256,47 @@ function setupHistoricalDataScenario(baseData: MockBaseData): void {
       se.performanceScore = Math.max(0, 2 - mesoIndex);
     }
   }
+}
+
+/**
+ * Sets up a free-form workout scenario: no mesocycle, one in-progress
+ * free-form session with 2 exercises (first exercise partially logged),
+ * and navigates to that session.
+ *
+ * @param baseData The base exercise/calibration/equipment data
+ */
+function setupFreeFormWorkoutScenario(baseData: MockBaseData): void {
+  const session = MockData.sessionMapServiceMock.addSession({
+    title: 'March 29 Workout',
+    startTime: daysAgo(0),
+    complete: false,
+    sessionExerciseOrder: []
+  });
+
+  const seOrder: UUID[] = [];
+  for (let i = 0; i < 2; i++) {
+    const exercise = baseData.exercises[i];
+    const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+      workoutSessionId: session._id,
+      workoutExerciseId: exercise._id,
+      setOrder: []
+    });
+    const setIds: UUID[] = [];
+    for (let j = 0; j < 3; j++) {
+      const shouldLog = i === 0 && j < 2;
+      const set = MockData.setMapServiceMock.addSet({
+        workoutExerciseId: exercise._id,
+        workoutSessionId: session._id,
+        workoutSessionExerciseId: se._id,
+        actualReps: shouldLog ? 10 : undefined,
+        actualWeight: shouldLog ? 135 : undefined
+      });
+      setIds.push(set._id);
+    }
+    se.setOrder = setIds;
+    seOrder.push(se._id);
+  }
+  session.sessionExerciseOrder = seOrder;
+
+  routeState.navigate(`/session?sessionId=${session._id}`);
 }
