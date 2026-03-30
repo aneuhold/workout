@@ -209,7 +209,8 @@
       }
 
       if (mode === HomePageStoryMode.FreeFormWithMesocycle) {
-        // Active mesocycle + free-form in-progress session
+        // Active mesocycle with no session currently in progress + free-form in progress.
+        // The free-form hero card takes priority over the "Next Up" mesocycle recommendation.
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -221,7 +222,9 @@
         MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
           startTime: daysAgo(1),
-          exerciseCount: 0
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 4
         });
         return;
       }
