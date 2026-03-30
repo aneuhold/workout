@@ -1,12 +1,20 @@
+<script lang="ts" module>
+  export enum OnboardingStoryMode {
+    NoCalibrations = 'noCalibrations',
+    FewCalibrations = 'fewCalibrations',
+    ReadyWithButton = 'readyWithButton',
+    ReadyWithoutButton = 'readyWithoutButton'
+  }
+</script>
+
 <script lang="ts">
   import { IconBarbell, IconCalendar } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import OnboardingEmptyState from './OnboardingEmptyState.svelte';
 
-  type StoryMode = 'noCalibrations' | 'fewCalibrations' | 'readyWithButton' | 'readyWithoutButton';
-
-  let { storyMode = 'noCalibrations' }: { storyMode?: StoryMode } = $props();
+  let { storyMode = OnboardingStoryMode.NoCalibrations }: { storyMode?: OnboardingStoryMode } =
+    $props();
 
   $effect(() => {
     const mode = storyMode;
@@ -14,12 +22,12 @@
     untrack(() => {
       MockData.resetAll();
 
-      if (mode === 'noCalibrations') return;
+      if (mode === OnboardingStoryMode.NoCalibrations) return;
 
       // Set up exercises and equipment (needed for calibrations)
       const baseData = MockData.setupBaseData();
 
-      if (mode === 'fewCalibrations') {
+      if (mode === OnboardingStoryMode.FewCalibrations) {
         // setupBaseData adds 12 calibrations. Reset and re-add only 2 so the
         // component shows the "on your way" state (0 < count < 4).
         const firstTwo = baseData.calibrations.slice(0, 2);
@@ -44,7 +52,7 @@
   });
 </script>
 
-{#if storyMode === 'readyWithoutButton'}
+{#if storyMode === OnboardingStoryMode.ReadyWithoutButton}
   <OnboardingEmptyState
     readyTitle="No mesocycles yet"
     readyMessage="Tap New to create your first training plan."

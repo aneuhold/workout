@@ -1,12 +1,9 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBMesocyclesPageExample from './SBMesocyclesPageExample.svelte';
-
-  const storyModeEnum = {
-    default: 'default',
-    noActive: 'noActive'
-  } as const;
+  import SBMesocyclesPageExample, {
+    MesocyclesPageStoryMode
+  } from './SBMesocyclesPageExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/MesocyclesPage',
@@ -16,14 +13,14 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      storyMode: createEnumArgType(storyModeEnum)
+      storyMode: createEnumArgType(MesocyclesPageStoryMode)
     },
     args: {
-      storyMode: 'default'
+      storyMode: MesocyclesPageStoryMode.Default
     }
   });
 </script>
 
 <Story name="Default" />
 
-<Story name="No Active Mesocycle" args={{ storyMode: 'noActive' }} />
+<Story name="No Active Mesocycle" args={{ storyMode: MesocyclesPageStoryMode.NoActive }} />

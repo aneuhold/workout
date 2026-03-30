@@ -1,17 +1,25 @@
+<script lang="ts" module>
+  export enum PlanComparisonStoryMode {
+    MicrocycleComplete = 'microcycleComplete',
+    MesocycleStart = 'mesocycleStart',
+    DeloadMicrocycle = 'deloadMicrocycle'
+  }
+</script>
+
 <script lang="ts">
   import Confetti from '$components/singletons/Confetti/Confetti.svelte';
   import Button from '$ui/Button/Button.svelte';
   import PlanComparisonDialog from './PlanComparisonDialog.svelte';
   import type { PlanComparisonHighlight, PlanComparisonStat } from './planComparisonTypes';
 
-  type StoryMode = 'microcycleComplete' | 'mesocycleStart' | 'deloadMicrocycle';
-
-  let { storyMode = 'microcycleComplete' }: { storyMode?: StoryMode } = $props();
+  let {
+    storyMode = PlanComparisonStoryMode.MicrocycleComplete
+  }: { storyMode?: PlanComparisonStoryMode } = $props();
 
   let open = $state(false);
 
   const configs: Record<
-    StoryMode,
+    PlanComparisonStoryMode,
     {
       title: string;
       subtitle?: string;
@@ -20,7 +28,7 @@
       buttonLabel: string;
     }
   > = {
-    microcycleComplete: {
+    [PlanComparisonStoryMode.MicrocycleComplete]: {
       title: 'Microcycle 2 Done!',
       subtitle: 'Your Microcycle 3 plan is ready.',
       stats: [
@@ -37,7 +45,7 @@
       ],
       buttonLabel: "Let's Go"
     },
-    mesocycleStart: {
+    [PlanComparisonStoryMode.MesocycleStart]: {
       title: 'Mesocycle Started!',
       subtitle: 'Your plan has been optimized.',
       stats: [
@@ -47,7 +55,7 @@
       ],
       buttonLabel: 'Start Training'
     },
-    deloadMicrocycle: {
+    [PlanComparisonStoryMode.DeloadMicrocycle]: {
       title: 'Microcycle 5 Done!',
       subtitle: 'Your deload microcycle is ready.',
       stats: [

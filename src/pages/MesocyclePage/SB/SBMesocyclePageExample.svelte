@@ -1,3 +1,15 @@
+<script lang="ts" module>
+  export enum MesocyclePageStoryMode {
+    New = 'new',
+    NewWithExisting = 'newWithExisting',
+    NewOverlapping = 'newOverlapping',
+    Edit = 'edit',
+    Static = 'static',
+    Completed = 'completed',
+    NotFound = 'notFound'
+  }
+</script>
+
 <script lang="ts">
   import { CycleType, DocumentService } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
@@ -6,18 +18,7 @@
   import MockData from '$testUtils/MockData';
   import MesocyclePage from '../MesocyclePage.svelte';
 
-  let {
-    storyMode = 'new'
-  }: {
-    storyMode?:
-      | 'new'
-      | 'newWithExisting'
-      | 'newOverlapping'
-      | 'edit'
-      | 'static'
-      | 'completed'
-      | 'notFound';
-  } = $props();
+  let { storyMode = MesocyclePageStoryMode.New }: { storyMode?: MesocyclePageStoryMode } = $props();
 
   function daysAgo(n: number): Date {
     return DateService.addDays(new Date(), -n);
@@ -35,13 +36,13 @@
     untrack(() => {
       MockData.resetAll();
 
-      if (mode === 'new') {
+      if (mode === MesocyclePageStoryMode.New) {
         MockData.setupBaseData();
         mesocycleId = null;
         return;
       }
 
-      if (mode === 'newWithExisting') {
+      if (mode === MesocyclePageStoryMode.NewWithExisting) {
         const baseData = MockData.setupBaseData();
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Current Hypertrophy Block',
@@ -54,7 +55,7 @@
         return;
       }
 
-      if (mode === 'newOverlapping') {
+      if (mode === MesocyclePageStoryMode.NewOverlapping) {
         const baseData = MockData.setupBaseData();
 
         // Active mesocycle ending in ~7 days
@@ -80,14 +81,14 @@
         return;
       }
 
-      if (mode === 'notFound') {
+      if (mode === MesocyclePageStoryMode.NotFound) {
         mesocycleId = DocumentService.generateID();
         return;
       }
 
       const baseData = MockData.setupBaseData();
 
-      if (mode === 'edit') {
+      if (mode === MesocyclePageStoryMode.Edit) {
         const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Strength Block',
           cycleType: CycleType.MuscleGain,
@@ -100,7 +101,7 @@
         return;
       }
 
-      if (mode === 'completed') {
+      if (mode === MesocyclePageStoryMode.Completed) {
         const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Completed Strength Block',
           cycleType: CycleType.MuscleGain,

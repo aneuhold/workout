@@ -1,40 +1,31 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { userEvent, within } from 'storybook/test';
-  import SBSingletonDeloadDialogExample from './SBSingletonDeloadDialogExample.svelte';
-
-  const storyModeEnum = {
-    withScheduled: 'withScheduled',
-    immediateOnly: 'immediateOnly',
-    error: 'error',
-    suggested: 'suggested',
-    recommended: 'recommended',
-    urgent: 'urgent'
-  } as const;
+  import { createEnumArgType } from '$storybook/storybookUtil';
+  import SBSingletonDeloadDialogExample, {
+    DeloadDialogStoryMode
+  } from './SBSingletonDeloadDialogExample.svelte';
 
   const { Story } = defineMeta({
     tags: ['!autodocs'],
     title: 'Singletons/DeloadDialog',
     component: SBSingletonDeloadDialogExample,
     argTypes: {
-      storyMode: {
-        control: { type: 'select' },
-        options: Object.values(storyModeEnum)
-      }
+      storyMode: createEnumArgType(DeloadDialogStoryMode)
     },
     args: {
-      storyMode: 'withScheduled'
+      storyMode: DeloadDialogStoryMode.WithScheduled
     }
   });
 </script>
 
-<Story name="Both Date Options" args={{ storyMode: 'withScheduled' }} />
+<Story name="Both Date Options" args={{ storyMode: DeloadDialogStoryMode.WithScheduled }} />
 
-<Story name="Immediate Only" args={{ storyMode: 'immediateOnly' }} />
+<Story name="Immediate Only" args={{ storyMode: DeloadDialogStoryMode.ImmediateOnly }} />
 
 <Story
   name="Error State"
-  args={{ storyMode: 'error' }}
+  args={{ storyMode: DeloadDialogStoryMode.Error }}
   play={async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const openButton = canvas.getByTestId('open-dialog-button');
@@ -44,8 +35,11 @@
   }}
 />
 
-<Story name="Fatigue Warning - Suggested" args={{ storyMode: 'suggested' }} />
+<Story name="Fatigue Warning - Suggested" args={{ storyMode: DeloadDialogStoryMode.Suggested }} />
 
-<Story name="Fatigue Warning - Recommended" args={{ storyMode: 'recommended' }} />
+<Story
+  name="Fatigue Warning - Recommended"
+  args={{ storyMode: DeloadDialogStoryMode.Recommended }}
+/>
 
-<Story name="Fatigue Warning - Urgent" args={{ storyMode: 'urgent' }} />
+<Story name="Fatigue Warning - Urgent" args={{ storyMode: DeloadDialogStoryMode.Urgent }} />
