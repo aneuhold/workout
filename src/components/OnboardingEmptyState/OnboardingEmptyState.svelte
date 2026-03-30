@@ -11,16 +11,18 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
 
+  type ReadyButton = { label: string; onclick: () => void };
+
   let {
     icon,
     readyTitle,
     readyMessage,
-    readyButton
+    readyButtons = []
   }: {
     icon: Snippet;
     readyTitle: string;
     readyMessage: string;
-    readyButton?: { label: string; href: string };
+    readyButtons?: ReadyButton[];
   } = $props();
 
   let calibratedExerciseCount = $derived(
@@ -33,8 +35,8 @@
   {#if calibratedExerciseCount === 0}
     <p class="font-medium">Getting started is easy!</p>
     <p class="mb-4 max-w-xs text-center text-xs">
-      Set up 3-4 exercises with calibrations in the Library first. This might take roughly a week so
-      you have enough rest between calibrations. Then the app can plan your sets and progression.
+      Want to jump right in? Start a free-form workout. For planned progression, set up 3-4
+      exercises with calibrations in the Library first.
     </p>
     <Button variant="outline" size="sm" href="/library">
       Go to Library
@@ -44,7 +46,7 @@
     <p class="font-medium">You're on your way!</p>
     <p class="mb-4 max-w-xs text-center text-xs">
       {calibratedExerciseCount} exercise{calibratedExerciseCount === 1 ? '' : 's'} calibrated. Add a few
-      more to get the best results from your mesocycle. (Aim for at least 4, but more the merrier!)
+      more to get the best results from your mesocycle. You can also start a free-form workout anytime.
     </p>
     <Button variant="outline" size="sm" href="/library">
       Go to Library
@@ -52,12 +54,16 @@
     </Button>
   {:else}
     <p class="font-medium">{readyTitle}</p>
-    {#if readyButton}
+    {#if readyButtons.length > 0}
       <p class="mb-4 text-xs">{readyMessage}</p>
-      <Button variant="outline" size="sm" href={readyButton.href}>
-        {readyButton.label}
-        <IconChevronRight size={14} />
-      </Button>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        {#each readyButtons as button (button.label)}
+          <Button variant="outline" size="sm" onclick={button.onclick}>
+            {button.label}
+            <IconChevronRight size={14} />
+          </Button>
+        {/each}
+      </div>
     {:else}
       <p class="text-xs">{readyMessage}</p>
     {/if}

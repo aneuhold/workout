@@ -13,15 +13,26 @@
       storyMode: createEnumArgType(OnboardingStoryMode)
     },
     args: {
-      storyMode: OnboardingStoryMode.NoCalibrations
+      storyMode: OnboardingStoryMode.HomePageReady
     }
   });
 </script>
 
-<Story name="No Calibrations" args={{ storyMode: OnboardingStoryMode.NoCalibrations }} />
+<Story
+  name="Home Page (No Calibrations)"
+  args={{ storyMode: OnboardingStoryMode.HomePageNoCalibrations }}
+/>
 
-<Story name="Few Calibrations" args={{ storyMode: OnboardingStoryMode.FewCalibrations }} />
+<Story
+  name="Home Page (Few Calibrations)"
+  args={{ storyMode: OnboardingStoryMode.HomePageFewCalibrations }}
+/>
 
-<Story name="Ready With Button" args={{ storyMode: OnboardingStoryMode.ReadyWithButton }} />
+<Story name="Home Page (Ready)" args={{ storyMode: OnboardingStoryMode.HomePageReady }} />
 
-<Story name="Ready Without Button" args={{ storyMode: OnboardingStoryMode.ReadyWithoutButton }} />
+<Story name="Sessions Page (Ready)" args={{ storyMode: OnboardingStoryMode.SessionsPageReady }} />
+
+<Story
+  name="Mesocycles Page (Ready)"
+  args={{ storyMode: OnboardingStoryMode.MesocyclesPageReady }}
+/>

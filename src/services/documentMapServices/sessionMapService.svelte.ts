@@ -17,6 +17,19 @@ import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import setMapService from './setMapService.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
+  /**
+   * Free-form sessions (no microcycle) categorized into in-progress and
+   * completed, sorted by startTime descending.
+   */
+  readonly freeFormSessions = $derived.by(() => {
+    const freeForm = this.allDocs.filter((s) => s.workoutMicrocycleId == null);
+    const inProgress = freeForm.find((s) => !s.complete) ?? null;
+    const completed = freeForm
+      .filter((s) => s.complete)
+      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+    return { inProgress, completed };
+  });
+
   constructor() {
     super({
       persistToLocalData: (map) => LocalData.setAndGetSessionMap(map),

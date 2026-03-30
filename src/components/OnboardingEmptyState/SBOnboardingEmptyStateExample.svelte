@@ -1,9 +1,10 @@
 <script lang="ts" module>
   export enum OnboardingStoryMode {
-    NoCalibrations = 'noCalibrations',
-    FewCalibrations = 'fewCalibrations',
-    ReadyWithButton = 'readyWithButton',
-    ReadyWithoutButton = 'readyWithoutButton'
+    HomePageNoCalibrations = 'homePageNoCalibrations',
+    HomePageFewCalibrations = 'homePageFewCalibrations',
+    HomePageReady = 'homePageReady',
+    SessionsPageReady = 'sessionsPageReady',
+    MesocyclesPageReady = 'mesocyclesPageReady'
   }
 </script>
 
@@ -13,8 +14,14 @@
   import MockData from '$testUtils/MockData';
   import OnboardingEmptyState from './OnboardingEmptyState.svelte';
 
-  let { storyMode = OnboardingStoryMode.NoCalibrations }: { storyMode?: OnboardingStoryMode } =
+  let { storyMode = OnboardingStoryMode.HomePageReady }: { storyMode?: OnboardingStoryMode } =
     $props();
+
+  const homePageModes = new Set<OnboardingStoryMode>([
+    OnboardingStoryMode.HomePageNoCalibrations,
+    OnboardingStoryMode.HomePageFewCalibrations,
+    OnboardingStoryMode.HomePageReady
+  ]);
 
   $effect(() => {
     const mode = storyMode;
@@ -22,12 +29,11 @@
     untrack(() => {
       MockData.resetAll();
 
-      if (mode === OnboardingStoryMode.NoCalibrations) return;
+      if (mode === OnboardingStoryMode.HomePageNoCalibrations) return;
 
-      // Set up exercises and equipment (needed for calibrations)
       const baseData = MockData.setupBaseData();
 
-      if (mode === OnboardingStoryMode.FewCalibrations) {
+      if (mode === OnboardingStoryMode.HomePageFewCalibrations) {
         // setupBaseData adds 12 calibrations. Reset and re-add only 2 so the
         // component shows the "on your way" state (0 < count < 4).
         const firstTwo = baseData.calibrations.slice(0, 2);
@@ -40,8 +46,6 @@
           });
         }
       }
-
-      // readyWithButton and readyWithoutButton keep all 12 calibrations (>= 4)
     });
 
     return () => {
@@ -52,23 +56,36 @@
   });
 </script>
 
-{#if storyMode === OnboardingStoryMode.ReadyWithoutButton}
+{#if homePageModes.has(storyMode)}
+  <OnboardingEmptyState
+    readyTitle="No active mesocycle"
+    readyMessage="Start a free-form workout or create a mesocycle for planned progression."
+    readyButtons={[
+      { label: 'View Mesocycles', onclick: () => {} },
+      { label: 'Start Free-Form Workout', onclick: () => {} }
+    ]}
+  >
+    {#snippet icon()}
+      <IconBarbell size={48} class="mb-3 opacity-40" />
+    {/snippet}
+  </OnboardingEmptyState>
+{:else if storyMode === OnboardingStoryMode.SessionsPageReady}
+  <OnboardingEmptyState
+    readyTitle="No active mesocycle"
+    readyMessage="Start a free-form workout from the home page, or create a mesocycle for planned progression."
+    readyButtons={[{ label: 'View Mesocycles', onclick: () => {} }]}
+  >
+    {#snippet icon()}
+      <IconBarbell size={48} class="mb-3 opacity-40" />
+    {/snippet}
+  </OnboardingEmptyState>
+{:else if storyMode === OnboardingStoryMode.MesocyclesPageReady}
   <OnboardingEmptyState
     readyTitle="No mesocycles yet"
     readyMessage="Tap New to create your first training plan."
   >
     {#snippet icon()}
       <IconCalendar size={48} class="mb-3 opacity-40" />
-    {/snippet}
-  </OnboardingEmptyState>
-{:else}
-  <OnboardingEmptyState
-    readyTitle="No active mesocycle"
-    readyMessage="Create a mesocycle to start planning sessions."
-    readyButton={{ label: 'View Mesocycles', href: '/mesocycles' }}
-  >
-    {#snippet icon()}
-      <IconBarbell size={48} class="mb-3 opacity-40" />
     {/snippet}
   </OnboardingEmptyState>
 {/if}

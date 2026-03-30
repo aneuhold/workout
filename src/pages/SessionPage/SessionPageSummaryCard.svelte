@@ -14,6 +14,8 @@
     total,
     percent,
     mode,
+    isFreeForm = false,
+    allExercisesDone = false,
     allImmediateSlidersFilled = false,
     allLateFieldsFilled = false,
     onComplete,
@@ -23,6 +25,8 @@
     total: number;
     percent: number;
     mode: SessionPageMode;
+    isFreeForm?: boolean;
+    allExercisesDone?: boolean;
     allImmediateSlidersFilled?: boolean;
     allLateFieldsFilled?: boolean;
     onComplete: () => void;
@@ -30,7 +34,9 @@
   } = $props();
 
   let setsComplete = $derived(completed >= total);
-  let canComplete = $derived(setsComplete && allImmediateSlidersFilled);
+  let canComplete = $derived(
+    isFreeForm ? allExercisesDone : setsComplete && allImmediateSlidersFilled
+  );
 </script>
 
 <Card>
@@ -48,7 +54,11 @@
 
     {#if mode === SessionPageMode.Active}
       <Button class="w-full" disabled={!canComplete} onclick={onComplete}>Complete Session</Button>
-      {#if setsComplete && !allImmediateSlidersFilled}
+      {#if isFreeForm && !allExercisesDone && total > 0}
+        <p class="text-center text-xs text-muted-foreground">
+          Mark all exercises as done to complete the session.
+        </p>
+      {:else if !isFreeForm && setsComplete && !allImmediateSlidersFilled}
         <p class="text-center text-xs text-muted-foreground">
           Fill in all RSM and Fatigue fields to complete the session.
         </p>
