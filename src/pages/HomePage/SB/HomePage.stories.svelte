@@ -1,22 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBHomePageExample from './SBHomePageExample.svelte';
-
-  const storyModeEnum = {
-    default: 'default',
-    allComplete: 'allComplete',
-    allCompleteBlocked: 'allCompleteBlocked',
-    review: 'review',
-    inProgress: 'inProgress',
-    inProgressReview: 'inProgressReview',
-    microcycleComplete: 'microcycleComplete',
-    microcycleCompleteBlocked: 'microcycleCompleteBlocked',
-    microcycleCompleteDeload: 'microcycleCompleteDeload',
-    mesocycleStart: 'mesocycleStart',
-    lateSession: 'lateSession',
-    severelyLateSession: 'severelyLateSession'
-  } as const;
+  import SBHomePageExample, { HomePageStoryMode } from './SBHomePageExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/HomePage',
@@ -26,37 +11,61 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      storyMode: createEnumArgType(storyModeEnum)
+      storyMode: createEnumArgType(HomePageStoryMode)
     },
     args: {
-      storyMode: 'default'
+      storyMode: HomePageStoryMode.Default
     }
   });
 </script>
 
 <Story name="Default" />
 
-<Story name="All Complete" args={{ storyMode: 'allComplete' }} />
+<Story name="All Complete" args={{ storyMode: HomePageStoryMode.AllComplete }} />
 
-<Story name="Mesocycle Complete (Blocked)" args={{ storyMode: 'allCompleteBlocked' }} />
+<Story
+  name="Mesocycle Complete (Blocked)"
+  args={{ storyMode: HomePageStoryMode.AllCompleteBlocked }}
+/>
 
-<Story name="Review Needed" args={{ storyMode: 'review' }} />
+<Story name="Review Needed" args={{ storyMode: HomePageStoryMode.Review }} />
 
-<Story name="Session In Progress" args={{ storyMode: 'inProgress' }} />
+<Story name="Session In Progress" args={{ storyMode: HomePageStoryMode.InProgress }} />
 
-<Story name="Session In Progress + Review Needed" args={{ storyMode: 'inProgressReview' }} />
+<Story
+  name="Session In Progress + Review Needed"
+  args={{ storyMode: HomePageStoryMode.InProgressReview }}
+/>
 
-<Story name="Microcycle Complete" args={{ storyMode: 'microcycleComplete' }} />
+<Story name="Microcycle Complete" args={{ storyMode: HomePageStoryMode.MicrocycleComplete }} />
 
-<Story name="Microcycle Complete (Blocked)" args={{ storyMode: 'microcycleCompleteBlocked' }} />
+<Story
+  name="Microcycle Complete (Blocked)"
+  args={{ storyMode: HomePageStoryMode.MicrocycleCompleteBlocked }}
+/>
 
 <Story
   name="Microcycle Complete (Deload Trigger)"
-  args={{ storyMode: 'microcycleCompleteDeload' }}
+  args={{ storyMode: HomePageStoryMode.MicrocycleCompleteDeload }}
 />
 
-<Story name="Mesocycle Start" args={{ storyMode: 'mesocycleStart' }} />
+<Story name="Mesocycle Start" args={{ storyMode: HomePageStoryMode.MesocycleStart }} />
 
-<Story name="Late Session (1-2 Days)" args={{ storyMode: 'lateSession' }} />
+<Story name="Late Session (1-2 Days)" args={{ storyMode: HomePageStoryMode.LateSession }} />
 
-<Story name="Severely Late Session (3+ Days)" args={{ storyMode: 'severelyLateSession' }} />
+<Story
+  name="Severely Late Session (3+ Days)"
+  args={{ storyMode: HomePageStoryMode.SeverelyLateSession }}
+/>
+
+<Story name="Free-Form (No Mesocycle)" args={{ storyMode: HomePageStoryMode.FreeFormEmpty }} />
+
+<Story
+  name="Free-Form In Progress (No Mesocycle)"
+  args={{ storyMode: HomePageStoryMode.FreeFormInProgress }}
+/>
+
+<Story
+  name="Free-Form + Active Mesocycle"
+  args={{ storyMode: HomePageStoryMode.FreeFormWithMesocycle }}
+/>

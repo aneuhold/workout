@@ -1,17 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBMesocyclePageExample from './SBMesocyclePageExample.svelte';
-
-  const storyModeEnum = {
-    new: 'new',
-    newWithExisting: 'newWithExisting',
-    newOverlapping: 'newOverlapping',
-    edit: 'edit',
-    static: 'static',
-    completed: 'completed',
-    notFound: 'notFound'
-  } as const;
+  import SBMesocyclePageExample, { MesocyclePageStoryMode } from './SBMesocyclePageExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/MesocyclePage',
@@ -21,24 +11,30 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      storyMode: createEnumArgType(storyModeEnum)
+      storyMode: createEnumArgType(MesocyclePageStoryMode)
     },
     args: {
-      storyMode: 'new'
+      storyMode: MesocyclePageStoryMode.New
     }
   });
 </script>
 
 <Story name="New" />
 
-<Story name="New (After Existing Mesocycle)" args={{ storyMode: 'newWithExisting' }} />
+<Story
+  name="New (After Existing Mesocycle)"
+  args={{ storyMode: MesocyclePageStoryMode.NewWithExisting }}
+/>
 
-<Story name="New (Overlapping with Future Mesocycle)" args={{ storyMode: 'newOverlapping' }} />
+<Story
+  name="New (Overlapping with Future Mesocycle)"
+  args={{ storyMode: MesocyclePageStoryMode.NewOverlapping }}
+/>
 
-<Story name="Edit (Not Started)" args={{ storyMode: 'edit' }} />
+<Story name="Edit (Not Started)" args={{ storyMode: MesocyclePageStoryMode.Edit }} />
 
-<Story name="View (Active)" args={{ storyMode: 'static' }} />
+<Story name="View (Active)" args={{ storyMode: MesocyclePageStoryMode.Static }} />
 
-<Story name="View (Completed)" args={{ storyMode: 'completed' }} />
+<Story name="View (Completed)" args={{ storyMode: MesocyclePageStoryMode.Completed }} />
 
-<Story name="Not Found" args={{ storyMode: 'notFound' }} />
+<Story name="Not Found" args={{ storyMode: MesocyclePageStoryMode.NotFound }} />

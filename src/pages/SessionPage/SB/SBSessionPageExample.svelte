@@ -1,3 +1,23 @@
+<script lang="ts" module>
+  /**
+   * Story modes for the SessionPage Storybook examples.
+   */
+  export enum SessionPageStoryMode {
+    ActiveEarly = 'activeEarly',
+    ActiveMid = 'activeMid',
+    ActivePrevSoreness = 'activePrevSoreness',
+    Deload = 'deload',
+    Recovery = 'recovery',
+    Review = 'review',
+    ViewOnly = 'viewOnly',
+    ViewSorenessEditable = 'viewSorenessEditable',
+    FreeFormEmpty = 'freeFormEmpty',
+    FreeFormMidWorkout = 'freeFormMidWorkout',
+    FreeFormAllDone = 'freeFormAllDone',
+    FreeFormCompleted = 'freeFormCompleted'
+  }
+</script>
+
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
@@ -9,35 +29,39 @@
   import MockData from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
-  type StoryMode =
-    | 'activeEarly'
-    | 'activeMid'
-    | 'activePrevSoreness'
-    | 'deload'
-    | 'recovery'
-    | 'review'
-    | 'viewOnly'
-    | 'viewSorenessEditable';
-
-  let { storyMode = 'activeEarly' as StoryMode }: { storyMode?: StoryMode } = $props();
+  let {
+    storyMode = SessionPageStoryMode.ActiveEarly
+  }: {
+    storyMode?: SessionPageStoryMode;
+  } = $props();
 
   timerService.init();
 
   let sessionId = $state<string | null>(null);
 
-  const completedSessionCounts: Record<StoryMode, number> = {
-    activeEarly: 0,
-    activeMid: 0,
-    deload: 0,
-    recovery: 0,
-    activePrevSoreness: 3,
-    review: 1,
-    viewOnly: 1,
-    viewSorenessEditable: 4
+  const freeFormModes = new Set<SessionPageStoryMode>([
+    SessionPageStoryMode.FreeFormEmpty,
+    SessionPageStoryMode.FreeFormMidWorkout,
+    SessionPageStoryMode.FreeFormAllDone,
+    SessionPageStoryMode.FreeFormCompleted
+  ]);
+
+  const completedSessionCounts: Partial<Record<SessionPageStoryMode, number>> = {
+    [SessionPageStoryMode.ActiveEarly]: 0,
+    [SessionPageStoryMode.ActiveMid]: 0,
+    [SessionPageStoryMode.Deload]: 0,
+    [SessionPageStoryMode.Recovery]: 0,
+    [SessionPageStoryMode.ActivePrevSoreness]: 3,
+    [SessionPageStoryMode.Review]: 1,
+    [SessionPageStoryMode.ViewOnly]: 1,
+    [SessionPageStoryMode.ViewSorenessEditable]: 4
   };
 
   // Modes that navigate to the second microcycle (need exercise overlap with previous session)
-  const secondMicrocycleModes = new Set<StoryMode>(['activePrevSoreness', 'viewSorenessEditable']);
+  const secondMicrocycleModes = new Set<SessionPageStoryMode>([
+    SessionPageStoryMode.ActivePrevSoreness,
+    SessionPageStoryMode.ViewSorenessEditable
+  ]);
 
   $effect(() => {
     const mode = storyMode;
@@ -46,13 +70,39 @@
       MockData.resetAll();
       const baseData = MockData.setupBaseData();
 
+      // Free-form modes don't generate a mesocycle
+      if (freeFormModes.has(mode)) {
+        if (mode === SessionPageStoryMode.FreeFormEmpty) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 0
+          })._id;
+        } else if (mode === SessionPageStoryMode.FreeFormMidWorkout) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 3,
+            loggedSetCount: 2
+          })._id;
+        } else if (mode === SessionPageStoryMode.FreeFormAllDone) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 3,
+            loggedSetCount: 6
+          })._id;
+        } else if (mode === SessionPageStoryMode.FreeFormCompleted) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 3,
+            loggedSetCount: 6,
+            complete: true
+          })._id;
+        }
+        return;
+      }
+
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 3,
         sessionsPerMicrocycle: 3,
         startDate: daysAgo(14),
-        completedSessionCount: completedSessionCounts[mode]
+        completedSessionCount: completedSessionCounts[mode] ?? 0
       });
 
       // Start mesocycle for active modes with no completed sessions
@@ -66,19 +116,23 @@
       }
 
       // Fill late fields for view/prev-soreness modes
-      if (mode === 'viewOnly' || mode === 'activePrevSoreness' || mode === 'viewSorenessEditable') {
+      if (
+        mode === SessionPageStoryMode.ViewOnly ||
+        mode === SessionPageStoryMode.ActivePrevSoreness ||
+        mode === SessionPageStoryMode.ViewSorenessEditable
+      ) {
         MesocycleMapServiceMock.fillLateFields(data);
       }
 
-      if (mode === 'activeMid') {
+      if (mode === SessionPageStoryMode.ActiveMid) {
         MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
       }
 
-      if (mode === 'deload') {
+      if (mode === SessionPageStoryMode.Deload) {
         applyDeloadToFirstSession(data);
       }
 
-      if (mode === 'recovery') {
+      if (mode === SessionPageStoryMode.Recovery) {
         applyRecoveryToFirstSession(data);
       }
 

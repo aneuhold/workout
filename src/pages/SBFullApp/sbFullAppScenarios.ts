@@ -266,37 +266,11 @@ function setupHistoricalDataScenario(baseData: MockBaseData): void {
  * @param baseData The base exercise/calibration/equipment data
  */
 function setupFreeFormWorkoutScenario(baseData: MockBaseData): void {
-  const session = MockData.sessionMapServiceMock.addSession({
-    title: 'March 29 Workout',
-    startTime: daysAgo(0),
-    complete: false,
-    sessionExerciseOrder: []
+  const session = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    exerciseCount: 2,
+    setsPerExercise: 3,
+    loggedSetCount: 2
   });
-
-  const seOrder: UUID[] = [];
-  for (let i = 0; i < 2; i++) {
-    const exercise = baseData.exercises[i];
-    const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
-      workoutSessionId: session._id,
-      workoutExerciseId: exercise._id,
-      setOrder: []
-    });
-    const setIds: UUID[] = [];
-    for (let j = 0; j < 3; j++) {
-      const shouldLog = i === 0 && j < 2;
-      const set = MockData.setMapServiceMock.addSet({
-        workoutExerciseId: exercise._id,
-        workoutSessionId: session._id,
-        workoutSessionExerciseId: se._id,
-        actualReps: shouldLog ? 10 : undefined,
-        actualWeight: shouldLog ? 135 : undefined
-      });
-      setIds.push(set._id);
-    }
-    se.setOrder = setIds;
-    seOrder.push(se._id);
-  }
-  session.sessionExerciseOrder = seOrder;
 
   routeState.navigate(`/session?sessionId=${session._id}`);
 }
