@@ -1,12 +1,20 @@
 import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
+import {
+  WorkoutSessionExerciseSchema,
+  WorkoutSessionSchema,
+  WorkoutSetSchema
+} from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import WorkoutAPIService from '$services/WorkoutAPIService';
+import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
 import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
 import exerciseMapService from './exerciseMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
+import setMapService from './setMapService.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
   constructor() {
@@ -71,6 +79,113 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    */
   getOrderedSetsForSessions(sessions: WorkoutSession[]): WorkoutSet[] {
     return sessions.flatMap((s) => this.getOrderedSetsForSession(s));
+  }
+
+  /**
+   * Formats a date into a human-readable session title (e.g. "March 29 Workout").
+   *
+   * @param date The date to format
+   */
+  getFormattedSessionTitle(date: Date): string {
+    const month = date.toLocaleDateString('en-US', { month: 'long' });
+    const day = date.getDate();
+    return `${month} ${day} Workout`;
+  }
+
+  /**
+   * Creates a new free-form workout session (no microcycle), persists it, and
+   * returns the new session.
+   */
+  createFreeFormSession(): WorkoutSession {
+    const now = new Date();
+    const session = WorkoutSessionSchema.parse({
+      userId: userConfig.get().userId,
+      workoutMicrocycleId: null,
+      title: this.getFormattedSessionTitle(now),
+      startTime: now,
+      complete: false,
+      sessionExerciseOrder: []
+    });
+    this.addDoc(session);
+    return session;
+  }
+
+  /**
+   * Returns true if the session is a free-form session (no microcycle).
+   *
+   * @param session The session to check
+   */
+  isFreeFormSession(session: WorkoutSession): boolean {
+    return session.workoutMicrocycleId == null;
+  }
+
+  /**
+   * Adds exercises to a session. For each exercise ID, creates a
+   * WorkoutSessionExercise with 1 empty WorkoutSet, and appends to the
+   * session's sessionExerciseOrder.
+   *
+   * @param sessionId The session to add exercises to
+   * @param exerciseIds Ordered exercise IDs to add
+   */
+  addExercisesToSession(sessionId: UUID, exerciseIds: UUID[]): void {
+    const session = this.getDoc(sessionId);
+    if (!session) return;
+
+    const userId = session.userId;
+    const newSessionExerciseIds: UUID[] = [];
+    const apiOptions = this.prepareDocsForSave({});
+
+    for (const exerciseId of exerciseIds) {
+      const sessionExercise = WorkoutSessionExerciseSchema.parse({
+        userId,
+        workoutSessionId: sessionId,
+        workoutExerciseId: exerciseId,
+        setOrder: []
+      });
+
+      const set = WorkoutSetSchema.parse({
+        userId,
+        workoutExerciseId: exerciseId,
+        workoutSessionId: sessionId,
+        workoutSessionExerciseId: sessionExercise._id
+      });
+
+      sessionExercise.setOrder = [set._id];
+
+      sessionExerciseMapService.prepareDocsForSave({ insert: [sessionExercise] }, apiOptions);
+      setMapService.prepareDocsForSave({ insert: [set] }, apiOptions);
+
+      newSessionExerciseIds.push(sessionExercise._id);
+    }
+
+    session.sessionExerciseOrder = [...session.sessionExerciseOrder, ...newSessionExerciseIds];
+    this.prepareDocsForSave({ update: [session] }, apiOptions);
+
+    WorkoutAPIService.queryApi(apiOptions);
+  }
+
+  /**
+   * Removes an exercise and all its sets from a session.
+   *
+   * @param sessionId The session containing the exercise
+   * @param sessionExerciseId The session exercise to remove
+   */
+  removeExerciseFromSession(sessionId: UUID, sessionExerciseId: UUID): void {
+    const session = this.getDoc(sessionId);
+    const sessionExercise = sessionExerciseMapService.getDoc(sessionExerciseId);
+    if (!session || !sessionExercise) return;
+
+    const setIds = sessionExercise.setOrder;
+
+    const apiOptions = setMapService.prepareDocsForSave({ delete: [...setIds] });
+    sessionExerciseMapService.prepareDocsForSave({ delete: [sessionExerciseId] }, apiOptions);
+
+    session.sessionExerciseOrder = session.sessionExerciseOrder.filter(
+      (id) => id !== sessionExerciseId
+    );
+    this.prepareDocsForSave({ update: [session] }, apiOptions);
+
+    WorkoutAPIService.queryApi(apiOptions);
   }
 }
 
