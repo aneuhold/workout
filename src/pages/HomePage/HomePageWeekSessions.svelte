@@ -24,8 +24,8 @@
   }: {
     microcycle: WorkoutMicrocycle;
     weekNumber: number;
-    inProgressSessionId: string | null;
-    nextUpSessionId: string | null;
+    inProgressSessionId?: string | null;
+    nextUpSessionId?: string | null;
   } = $props();
 
   const sessions = $derived(microcycleMapService.getOrderedSessionsForMicrocycle(microcycle));

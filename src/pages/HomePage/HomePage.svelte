@@ -6,8 +6,9 @@
 <script lang="ts">
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
-  import HomePageHeroCard from './HomePageHeroCard.svelte';
+  import HomePageHeroCard from './HomePageHeroCard';
   import HomePageMesocycleOverview from './HomePageMesocycleOverview.svelte';
   import HomePagePendingLogs from './HomePagePendingLogs.svelte';
   import HomePageQuickLinks from './HomePageQuickLinks.svelte';
@@ -42,7 +43,7 @@
     getCurrentMicrocycle(microcycles, docs?.sessions ?? [], inProgressSession, nextUpSession)
   );
 
-  const recentSessions = $derived(docs ? getRecentCompletedSessions(docs.sessions) : []);
+  const allRecentSessions = $derived(getRecentCompletedSessions(sessionMapService.allDocs));
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -52,29 +53,30 @@
       sortedMicrocycles={microcycles}
       sessions={docs.sessions}
     />
-    <HomePageHeroCard
-      {activeMesocycle}
-      {microcycles}
-      sessions={docs.sessions}
-      {inProgressSession}
-      {nextUpSession}
-      {pendingLogs}
+  {/if}
+  <HomePageHeroCard
+    {activeMesocycle}
+    {microcycles}
+    sessions={docs?.sessions ?? []}
+    {inProgressSession}
+    {nextUpSession}
+    {pendingLogs}
+  />
+  {#if pendingLogs.length}
+    <HomePagePendingLogs {pendingLogs} />
+  {/if}
+  {#if currentMicrocycleInfo}
+    <HomePageWeekSessions
+      microcycle={currentMicrocycleInfo.microcycle}
+      weekNumber={currentMicrocycleInfo.weekNumber}
+      inProgressSessionId={inProgressSession?._id}
+      nextUpSessionId={nextUpSession?._id}
     />
-    {#if pendingLogs.length}
-      <HomePagePendingLogs {pendingLogs} />
-    {/if}
-
-    {#if currentMicrocycleInfo}
-      <HomePageWeekSessions
-        microcycle={currentMicrocycleInfo.microcycle}
-        weekNumber={currentMicrocycleInfo.weekNumber}
-        inProgressSessionId={inProgressSession?._id ?? null}
-        nextUpSessionId={nextUpSession?._id ?? null}
-      />
-    {/if}
-    {#if recentSessions.length}
-      <HomePageRecentSessions {recentSessions} />
-    {/if}
+  {/if}
+  {#if allRecentSessions.length}
+    <HomePageRecentSessions recentSessions={allRecentSessions} />
+  {/if}
+  {#if activeMesocycle || sessionMapService.freeFormSessions.inProgress}
     <HomePageQuickLinks />
   {:else}
     <HomePageEmptyState />
