@@ -7,10 +7,11 @@ import type {
 } from '@aneuhold/core-ts-db-lib';
 import { CycleType } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
-import type { HomePageSessionBundle } from './homePageUtils';
+import type { HomePageSessionBundle } from '../homePageUtils';
 
 export enum HeroCardAction {
   ContinueSession = 'ContinueSession',
+  FreeFormSession = 'FreeFormSession',
   StartSession = 'StartSession',
   CompleteMicrocycle = 'CompleteMicrocycle',
   StartMesocycle = 'StartMesocycle',
@@ -21,6 +22,12 @@ export enum HeroCardAction {
 export type HeroCardState =
   | {
       action: HeroCardAction.ContinueSession;
+      session: WorkoutSession;
+      sessionExercises: WorkoutSessionExercise[];
+      sets: WorkoutSet[];
+    }
+  | {
+      action: HeroCardAction.FreeFormSession;
       session: WorkoutSession;
       sessionExercises: WorkoutSessionExercise[];
       sets: WorkoutSet[];
@@ -64,6 +71,9 @@ export type HeroCardState =
  * @param pendingReviewBundles Sessions that still need review
  * @param heroSessionExercises Session exercises for the hero session
  * @param heroSessionSets Sets for the hero session
+ * @param freeFormSession The currently in-progress free-form session, if any
+ * @param freeFormExercises Session exercises for the free-form session
+ * @param freeFormSets Sets for the free-form session
  */
 export function getHeroCardState(
   activeMesocycle: WorkoutMesocycle | null,
@@ -73,7 +83,10 @@ export function getHeroCardState(
   nextUpSession: WorkoutSession | null,
   pendingReviewBundles: HomePageSessionBundle[],
   heroSessionExercises: WorkoutSessionExercise[],
-  heroSessionSets: WorkoutSet[]
+  heroSessionSets: WorkoutSet[],
+  freeFormSession: WorkoutSession | null,
+  freeFormExercises: WorkoutSessionExercise[],
+  freeFormSets: WorkoutSet[]
 ): HeroCardState | null {
   // 1. If inProgressSession → ContinueSession
   if (inProgressSession) {
@@ -82,6 +95,16 @@ export function getHeroCardState(
       session: inProgressSession,
       sessionExercises: heroSessionExercises,
       sets: heroSessionSets
+    };
+  }
+
+  // 1.5. Free-form in progress takes priority over all non-session states
+  if (freeFormSession) {
+    return {
+      action: HeroCardAction.FreeFormSession,
+      session: freeFormSession,
+      sessionExercises: freeFormExercises,
+      sets: freeFormSets
     };
   }
 
