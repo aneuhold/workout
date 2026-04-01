@@ -2,6 +2,7 @@ import { CycleType } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/mesocycleMapService.mock';
 import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
+import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
 import { daysAgo } from '$testUtils/dateUtils';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import routeState from './sbFullAppRouteState.svelte';
@@ -216,6 +217,9 @@ function setupDeloadTriggerScenario(baseData: MockBaseData): void {
  * Some exercises are shared across all 3 for continuity; the data includes
  * RSM, soreness, performance scores, and calibration documents.
  *
+ * Also includes several completed free-form sessions spread across the
+ * historical period, plus one in-progress free-form session.
+ *
  * @param baseData The base exercise/calibration/equipment data
  */
 function setupHistoricalDataScenario(baseData: MockBaseData): void {
@@ -255,6 +259,30 @@ function setupHistoricalDataScenario(baseData: MockBaseData): void {
       se.sorenessScore = Math.min(3, mesoIndex);
       se.performanceScore = Math.max(0, 2 - mesoIndex);
     }
+  }
+
+  // Completed free-form sessions spread across the historical period
+  const completedFreeFormConfigs: Array<{
+    daysAgoCount: number;
+    exerciseCount: number;
+    setsPerExercise: number;
+  }> = [
+    { daysAgoCount: 100, exerciseCount: 3, setsPerExercise: 3 },
+    { daysAgoCount: 62, exerciseCount: 2, setsPerExercise: 4 },
+    { daysAgoCount: 30, exerciseCount: 4, setsPerExercise: 3 },
+    { daysAgoCount: 10, exerciseCount: 3, setsPerExercise: 4 }
+  ];
+
+  for (const config of completedFreeFormConfigs) {
+    const startTime = daysAgo(config.daysAgoCount);
+    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+      title: sessionMapService.getFormattedSessionTitle(startTime),
+      startTime,
+      complete: true,
+      exerciseCount: config.exerciseCount,
+      setsPerExercise: config.setsPerExercise,
+      loggedSetCount: config.exerciseCount * config.setsPerExercise
+    });
   }
 }
 

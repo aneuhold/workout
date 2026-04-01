@@ -57,11 +57,15 @@
           title: 'March 28 Workout',
           startTime: daysAgo(1),
           complete: true,
-          exerciseCount: 0
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 9
         });
         MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
           startTime: daysAgo(0),
-          exerciseCount: 0
+          exerciseCount: 2,
+          setsPerExercise: 3,
+          loggedSetCount: 3
         });
         return;
       }
@@ -80,11 +84,15 @@
           title: 'March 27 Workout',
           startTime: daysAgo(2),
           complete: true,
-          exerciseCount: 0
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 9
         });
         MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
           startTime: daysAgo(0),
-          exerciseCount: 0
+          exerciseCount: 2,
+          setsPerExercise: 3,
+          loggedSetCount: 3
         });
         return;
       }
