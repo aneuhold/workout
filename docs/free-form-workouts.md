@@ -50,8 +50,10 @@ The core free-form workout flow is fully functional:
   planned values show as targets.
 - `SessionPageMode` enum currently has: `Active`, `Review`, `View`, `Locked`. A new
   `Planning` value is needed.
-- No drag-and-drop library is installed. The exercise reorder dialog should use
-  up/down arrow buttons.
+- Use `svelte-dnd-action` for the exercise reorder dialog (install via
+  `pnpm add svelte-dnd-action`). It supports Svelte 5, touch/mobile, keyboard
+  accessibility, and uses a `use:dndzone` action that composes cleanly with any
+  markup. ~8.5 KB gzipped, zero dependencies.
 - `enabledPages` store already enables all pages unconditionally — no changes needed.
 
 ### Simplified Data Model Recap
