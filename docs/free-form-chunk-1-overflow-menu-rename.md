@@ -19,10 +19,10 @@ None — this is the first chunk.
   returns this check.
 - Session titles are auto-generated (e.g. "March 29 Workout") and stored in
   `session.title`.
-- The icon library is `@tabler/icons-svelte` — use `IconDotsVertical` for the menu
-  trigger.
-- Use shadcn-svelte `DropdownMenu` for the overflow menu. Reference:
-  https://shadcn-svelte.com/llms.txt
+- Use the shared `OptionsButtonDropdownMenu` component (`src/components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte`)
+  for the overflow menu trigger. It wraps shadcn-svelte `DropdownMenu` with an outline
+  "Options" button trigger, matching the style used on the Mesocycle page. Pass
+  `DropdownMenuItem` children as its default slot.
 - Use shadcn-svelte `AlertDialog` for the delete confirmation (same pattern as
   `SingletonDeleteDialog` in `src/components/singletons/dialogs/SingletonDeleteDialog/`
   and the remove-exercise confirmation in `SessionPageExerciseCard`).
