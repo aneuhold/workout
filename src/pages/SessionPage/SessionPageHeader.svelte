@@ -92,30 +92,35 @@
   }
 </script>
 
-<div class="flex items-center gap-2">
+<div class="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1">
   <Button variant="ghost" size="sm" onclick={() => history.back()}>
     <IconArrowLeft size={16} />
   </Button>
-  <div class="flex min-w-0 flex-1 flex-col">
-    <h1 class="truncate text-xl font-semibold">{title}</h1>
-    {#if description}
-      <p class="text-sm text-muted-foreground">{description}</p>
+  <div class="flex items-center gap-2">
+    <div class="flex flex-1 flex-col">
+      <h1 class="truncate text-xl font-semibold">{title}</h1>
+      {#if description}
+        <p class="text-sm text-muted-foreground">{description}</p>
+      {/if}
+    </div>
+    {#if isFreeForm && session}
+      <OptionsButtonDropdownMenu ariaLabel="Session actions">
+        <DropdownMenuItem onclick={openRenameDialog}>Rename Session</DropdownMenuItem>
+        {#if mode === SessionPageMode.View}
+          <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
+        {/if}
+        <DropdownMenuItem
+          class="text-destructive focus:text-destructive"
+          onclick={() => (deleteDialogOpen = true)}
+        >
+          Delete Session
+        </DropdownMenuItem>
+      </OptionsButtonDropdownMenu>
     {/if}
   </div>
-  {#if isFreeForm && session}
-    <OptionsButtonDropdownMenu ariaLabel="Session actions">
-      <DropdownMenuItem onclick={openRenameDialog}>Rename Session</DropdownMenuItem>
-      {#if mode === SessionPageMode.View}
-        <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
-      {/if}
-      <DropdownMenuItem
-        class="text-destructive focus:text-destructive"
-        onclick={() => (deleteDialogOpen = true)}
-      >
-        Delete Session
-      </DropdownMenuItem>
-    </OptionsButtonDropdownMenu>
-  {/if}
+  <Button variant="outline" size="sm" class="col-start-2 w-fit" onclick={() => goto('/sessions')}>
+    View All Sessions
+  </Button>
 </div>
 
 <!-- Rename Dialog -->
