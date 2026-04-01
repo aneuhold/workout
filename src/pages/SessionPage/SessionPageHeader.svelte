@@ -2,15 +2,17 @@
   @component
 
   Header for the session page with back button, title, and optional description.
-  For free-form sessions, also shows a 3-dot overflow menu with rename, edit, and delete actions.
+  For free-form sessions, also shows a 3-dot overflow menu with rename, reorder, edit, and delete actions.
 -->
 <script lang="ts">
   import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
   import { IconArrowLeft } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-  import WorkoutAPIService from '$services/WorkoutAPIService';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -28,6 +30,7 @@
   import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import Input from '$ui/Input/Input.svelte';
+  import SessionPageReorderDialog from './SessionPageReorderDialog.svelte';
   import { SessionPageMode } from './sessionPageTypes';
 
   let {
@@ -46,7 +49,19 @@
 
   let renameDialogOpen = $state(false);
   let deleteDialogOpen = $state(false);
+  let reorderDialogOpen = $state(false);
   let newTitle = $state('');
+
+  const exerciseOrderItems = $derived.by(() => {
+    if (!session) return [];
+    return session.sessionExerciseOrder.flatMap((seId) => {
+      const se = sessionExerciseMapService.getDoc(seId);
+      if (!se) return [];
+      const exercise = exerciseMapService.getDoc(se.workoutExerciseId);
+      if (!exercise) return [];
+      return [{ id: seId, name: exercise.exerciseName }];
+    });
+  });
 
   const saveDisabled = $derived(!newTitle.trim() || newTitle.trim() === title);
 
@@ -64,10 +79,24 @@
   function handleRename() {
     if (!session || saveDisabled) return;
     const trimmed = newTitle.trim();
-    session.title = trimmed;
-    const apiOptions = sessionMapService.prepareDocsForSave({ update: [session] });
-    WorkoutAPIService.queryApi(apiOptions);
+    sessionMapService.updateDoc(session._id, (doc) => {
+      doc.title = trimmed;
+      return doc;
+    });
     renameDialogOpen = false;
+  }
+
+  /**
+   * Persists the new exercise order to the session.
+   *
+   * @param newOrder The reordered session exercise IDs
+   */
+  function handleReorderSave(newOrder: UUID[]) {
+    if (!session) return;
+    sessionMapService.updateDoc(session._id, (doc) => {
+      doc.sessionExerciseOrder = newOrder;
+      return doc;
+    });
   }
 
   /**
@@ -106,6 +135,14 @@
     {#if isFreeForm && session}
       <OptionsButtonDropdownMenu ariaLabel="Session actions">
         <DropdownMenuItem onclick={openRenameDialog}>Rename Session</DropdownMenuItem>
+        {#if mode === SessionPageMode.Active}
+          <DropdownMenuItem
+            disabled={exerciseOrderItems.length < 2}
+            onclick={() => (reorderDialogOpen = true)}
+          >
+            Reorder Exercises
+          </DropdownMenuItem>
+        {/if}
         {#if mode === SessionPageMode.View}
           <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
         {/if}
@@ -136,6 +173,13 @@
     </DialogFooter>
   </DialogContent>
 </Dialog>
+
+<!-- Reorder Dialog -->
+<SessionPageReorderDialog
+  bind:open={reorderDialogOpen}
+  exerciseOrder={exerciseOrderItems}
+  onSave={handleReorderSave}
+/>
 
 <!-- Delete Confirmation Dialog -->
 <AlertDialog bind:open={deleteDialogOpen}>
