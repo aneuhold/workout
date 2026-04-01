@@ -16,11 +16,15 @@
     IconCheck,
     IconChevronDown,
     IconExternalLink,
+    IconMinus,
     IconPlayerPause,
     IconPlayerPlay,
     IconPlayerStop,
-    IconStopwatch
+    IconPlus,
+    IconStopwatch,
+    IconTrash
   } from '@tabler/icons-svelte';
+  import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -28,6 +32,14 @@
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import setMapService from '$services/documentMapServices/setMapService.svelte';
   import timerService from '$services/TimerService';
+  import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
+  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
+  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
+  import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
+  import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
+  import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
+  import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
+  import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
@@ -50,7 +62,14 @@
     mode,
     expanded,
     allSetsLogged = false,
+    isFreeForm = false,
+    exerciseDone = false,
     onToggle,
+    onDone,
+    onEdit,
+    onAddSet,
+    onRemoveSet,
+    onRemoveExercise,
     previousSessionExercise,
     sorenessLocked = true
   }: {
@@ -59,7 +78,14 @@
     mode: SessionPageMode;
     expanded: boolean;
     allSetsLogged?: boolean;
+    isFreeForm?: boolean;
+    exerciseDone?: boolean;
     onToggle: () => void;
+    onDone?: () => void;
+    onEdit?: () => void;
+    onAddSet?: () => void;
+    onRemoveSet?: (setId: UUID) => void;
+    onRemoveExercise?: () => void;
     previousSessionExercise?: WorkoutSessionExercise;
     sorenessLocked?: boolean;
   } = $props();
@@ -76,6 +102,16 @@
   let repRange = $derived(
     exercise ? WorkoutExerciseService.getRepRangeValues(exercise.repRange) : null
   );
+
+  /** Whether all sets are logged for this exercise (for free-form Done button). */
+  let allExerciseSetsLogged = $derived(
+    sets.length > 0 && sets.every((s) => WorkoutSetService.isCompleted(s))
+  );
+
+  /** Whether the free-form card is in an editable state (not done, or editing). */
+  let freeFormEditable = $derived(isFreeForm && !exerciseDone);
+
+  let confirmRemoveOpen = $state(false);
 
   // Auto-sync computed performance score to the document (no UI, used by downstream checks)
   $effect(() => {
@@ -349,19 +385,37 @@
             {/if}
           </div>
           {#each sets as set, i (set._id)}
-            <SessionPageSetRow
-              {set}
-              setNumber={i + 1}
-              setState={getSetState(set, i)}
-              {mode}
-              onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
-              onEdit={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
-            />
+            <div class="flex items-center gap-1">
+              <div class="flex-1">
+                <SessionPageSetRow
+                  {set}
+                  setNumber={i + 1}
+                  setState={getSetState(set, i)}
+                  {mode}
+                  onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
+                  onEdit={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
+                />
+              </div>
+              {#if freeFormEditable && mode === SessionPageMode.Active && sets.length > 1}
+                <button
+                  class="shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors"
+                  onclick={() => onRemoveSet?.(set._id)}
+                >
+                  <IconMinus size={14} />
+                </button>
+              {/if}
+            </div>
           {/each}
-          {#if hasRirAndReps && mode === SessionPageMode.Active}
+          {#if hasRirAndReps && !isDeload && mode === SessionPageMode.Active}
             <p class="px-2 pt-1 text-xs text-muted-foreground/70">
               Hit target reps first, then keep going until you reach target RIR.
             </p>
+          {/if}
+          {#if freeFormEditable && mode === SessionPageMode.Active}
+            <Button variant="ghost" size="sm" class="self-start" onclick={() => onAddSet?.()}>
+              <IconPlus size={14} />
+              Add Set
+            </Button>
           {/if}
         </div>
 
@@ -418,6 +472,31 @@
                 If you can answer yes to all of these, you are ready for the next set.
               </p>
             </InfoPopover>
+          </div>
+        {/if}
+
+        <!-- Free-form: Done/Edit button + Remove Exercise -->
+        {#if isFreeForm && mode === SessionPageMode.Active}
+          <Separator />
+          <div class="flex flex-col gap-2">
+            {#if exerciseDone}
+              <Button variant="outline" class="w-full" onclick={() => onEdit?.()}>Edit</Button>
+            {:else}
+              <Button class="w-full" disabled={!allExerciseSetsLogged} onclick={() => onDone?.()}>
+                Done
+              </Button>
+            {/if}
+            {#if freeFormEditable}
+              <Button
+                variant="ghost"
+                size="sm"
+                class="text-destructive hover:text-destructive self-start"
+                onclick={() => (confirmRemoveOpen = true)}
+              >
+                <IconTrash size={14} />
+                Remove Exercise
+              </Button>
+            {/if}
           </div>
         {/if}
 
@@ -561,3 +640,21 @@
     </div>
   </div>
 </div>
+
+<!-- Remove Exercise Confirmation -->
+{#if isFreeForm}
+  <AlertDialog bind:open={confirmRemoveOpen}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Remove Exercise</AlertDialogTitle>
+        <AlertDialogDescription>
+          Remove {exercise?.exerciseName ?? 'this exercise'} and all its sets from this session?
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction onclick={() => onRemoveExercise?.()}>Remove</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+{/if}

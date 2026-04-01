@@ -178,6 +178,22 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 
   /**
+   * Deletes a free-form session and all associated session exercises and sets
+   * via cascade deletion.
+   *
+   * @param sessionId The free-form session to delete
+   */
+  deleteFreeFormSession(sessionId: UUID): void {
+    const session = this.getDoc(sessionId);
+    if (!session) return;
+
+    const apiOptions = this.prepareDeleteSessionExercisesWithSets(session.sessionExerciseOrder);
+    this.prepareDocsForSave({ delete: [sessionId] }, apiOptions);
+
+    WorkoutAPIService.queryApi(apiOptions);
+  }
+
+  /**
    * Removes an exercise and all its sets from a session.
    *
    * @param sessionId The session containing the exercise
@@ -185,13 +201,9 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    */
   removeExerciseFromSession(sessionId: UUID, sessionExerciseId: UUID): void {
     const session = this.getDoc(sessionId);
-    const sessionExercise = sessionExerciseMapService.getDoc(sessionExerciseId);
-    if (!session || !sessionExercise) return;
+    if (!session || !sessionExerciseMapService.getDoc(sessionExerciseId)) return;
 
-    const setIds = sessionExercise.setOrder;
-
-    const apiOptions = setMapService.prepareDocsForSave({ delete: [...setIds] });
-    sessionExerciseMapService.prepareDocsForSave({ delete: [sessionExerciseId] }, apiOptions);
+    const apiOptions = this.prepareDeleteSessionExercisesWithSets([sessionExerciseId]);
 
     session.sessionExerciseOrder = session.sessionExerciseOrder.filter(
       (id) => id !== sessionExerciseId
@@ -199,6 +211,21 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
     this.prepareDocsForSave({ update: [session] }, apiOptions);
 
     WorkoutAPIService.queryApi(apiOptions);
+  }
+
+  /**
+   * Builds batch-delete API options for a list of session exercises and all
+   * their associated sets.
+   *
+   * @param sessionExerciseIds The session exercise IDs to delete
+   */
+  private prepareDeleteSessionExercisesWithSets(sessionExerciseIds: UUID[]) {
+    const setIds = sessionExerciseIds.flatMap(
+      (seId) => sessionExerciseMapService.getDoc(seId)?.setOrder ?? []
+    );
+    const apiOptions = setMapService.prepareDocsForSave({ delete: setIds });
+    sessionExerciseMapService.prepareDocsForSave({ delete: sessionExerciseIds }, apiOptions);
+    return apiOptions;
   }
 }
 

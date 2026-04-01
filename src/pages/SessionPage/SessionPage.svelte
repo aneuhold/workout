@@ -18,10 +18,13 @@
   import { goto } from '$app/navigation';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
+  import { exercisePickerDialog } from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
+  import SingletonExercisePickerDialog from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import Button from '$ui/Button/Button.svelte';
   import SessionPageExerciseCard from './SessionPageExerciseCard.svelte';
   import SessionPageHeader from './SessionPageHeader.svelte';
   import SessionPageProgressBar from './SessionPageProgressBar.svelte';
@@ -35,6 +38,7 @@
   } = $props();
 
   let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
+  let isFreeForm = $derived(session ? sessionMapService.isFreeFormSession(session) : false);
   let sessionExercises = $derived(
     session ? sessionMapService.getOrderedSessionExercisesForSession(session) : []
   );
@@ -139,6 +143,48 @@
     return sessionExercises.length;
   });
 
+  // --- Free-form Done state ---
+
+  /** Per-exercise "Done" state (local, not persisted). */
+  let doneExerciseIds = new SvelteSet<UUID>();
+
+  /**
+   * Whether the initial Done state has been derived from persisted data.
+   * This runs once on page load — after that, only the explicit Done button
+   * toggles the state (logging sets does not auto-complete).
+   */
+  let doneStateInitialized = $state(false);
+
+  $effect(() => {
+    if (doneStateInitialized || !isFreeForm || mode !== SessionPageMode.Active) return;
+    if (sessionExercises.length === 0) return;
+    for (const se of sessionExercises) {
+      const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+      if (seSets.length > 0 && seSets.every((s) => WorkoutSetService.isCompleted(s))) {
+        doneExerciseIds.add(se._id);
+      }
+    }
+    doneStateInitialized = true;
+  });
+
+  function isExerciseDone(seId: UUID): boolean {
+    return doneExerciseIds.has(seId);
+  }
+
+  function markExerciseDone(seId: UUID) {
+    doneExerciseIds.add(seId);
+  }
+
+  function markExerciseEditing(seId: UUID) {
+    doneExerciseIds.delete(seId);
+  }
+
+  let allExercisesDone = $derived(
+    isFreeForm &&
+      sessionExercises.length > 0 &&
+      sessionExercises.every((se) => doneExerciseIds.has(se._id))
+  );
+
   // --- Previous session exercise & soreness lock ---
 
   let { previousSessionExerciseMap, sorenessLockedExerciseIds } = $derived.by(() => {
@@ -200,6 +246,14 @@
     }
     if (mode === SessionPageMode.Locked) return SessionPageExerciseCardState.Future;
     if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
+
+    // Free-form active: use Done state
+    if (isFreeForm) {
+      const se = sessionExercises[index];
+      if (isExerciseDone(se._id)) return SessionPageExerciseCardState.Completed;
+      return SessionPageExerciseCardState.Current;
+    }
+
     if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;
     if (index === currentExerciseIndex) return SessionPageExerciseCardState.Current;
     return SessionPageExerciseCardState.Future;
@@ -214,6 +268,13 @@
     if (mode === SessionPageMode.Review) {
       for (const se of exercises) {
         if (!exerciseHasAllSessionMetricsFilled(se) && expandedMap[se._id] === undefined) {
+          expandedMap[se._id] = true;
+        }
+      }
+    } else if (isFreeForm) {
+      // For free-form, expand all non-done exercises by default
+      for (const se of exercises) {
+        if (!isExerciseDone(se._id) && expandedMap[se._id] === undefined) {
           expandedMap[se._id] = true;
         }
       }
@@ -236,15 +297,50 @@
     expandedMap[id] = !isExpanded(id);
   }
 
+  // --- Free-form exercise management ---
+
+  function handleAddExercise() {
+    if (!session) return;
+    const alreadyAdded = sessionExercises.map((se) => se.workoutExerciseId);
+    exercisePickerDialog.open({
+      excludeExerciseIds: alreadyAdded,
+      onConfirm: (exerciseIds) => {
+        sessionMapService.addExercisesToSession(session._id, exerciseIds);
+      }
+    });
+  }
+
+  function handleRemoveExercise(sessionExerciseId: UUID) {
+    if (!session) return;
+    sessionMapService.removeExerciseFromSession(session._id, sessionExerciseId);
+    doneExerciseIds.delete(sessionExerciseId);
+    delete expandedMap[sessionExerciseId];
+  }
+
+  function handleDoneExercise(seId: UUID) {
+    markExerciseDone(seId);
+    expandedMap[seId] = false;
+  }
+
+  function handleEditExercise(seId: UUID) {
+    markExerciseEditing(seId);
+    expandedMap[seId] = true;
+  }
+
   // --- Complete session / review ---
 
   function handleCompleteSession() {
     if (!session) return;
     sessionMapService.updateDoc(session._id, (doc) => {
       doc.complete = true;
-      doc.lastUpdatedDate = new Date();
       return doc;
     });
+
+    // Free-form sessions skip deload check
+    if (isFreeForm) {
+      goto('/');
+      return;
+    }
 
     // Check for early deload recommendation before navigating
     if (mesocycle && microcycle) {
@@ -295,7 +391,13 @@
     <SessionPageHeader title="Session" />
     <p class="text-sm text-muted-foreground">Session not found.</p>
   {:else}
-    <SessionPageHeader title={session.title} description={session.description} />
+    <SessionPageHeader
+      title={session.title}
+      description={session.description}
+      {isFreeForm}
+      {mode}
+      {session}
+    />
 
     {#if mode !== SessionPageMode.Locked}
       <SessionPageProgressBar completed={completedCount} total={totalSets} />
@@ -307,6 +409,15 @@
       </div>
     {/if}
 
+    {#if isFreeForm && sessionExercises.length === 0 && mode === SessionPageMode.Active}
+      <div
+        class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-muted-foreground/30 px-4 py-8"
+      >
+        <p class="text-sm text-muted-foreground">No exercises yet. Add one to get started.</p>
+        <Button variant="outline" onclick={handleAddExercise}>Add Exercise</Button>
+      </div>
+    {/if}
+
     {#each sessionExercises as se, i (se._id)}
       <SessionPageExerciseCard
         sessionExercise={se}
@@ -314,11 +425,22 @@
         {mode}
         expanded={isExpanded(se._id)}
         {allSetsLogged}
+        {isFreeForm}
+        exerciseDone={isExerciseDone(se._id)}
         onToggle={() => toggleExpanded(se._id)}
+        onDone={() => handleDoneExercise(se._id)}
+        onEdit={() => handleEditExercise(se._id)}
+        onAddSet={() => sessionExerciseMapService.addSetToExercise(se._id)}
+        onRemoveSet={(setId) => sessionExerciseMapService.removeSetFromExercise(se._id, setId)}
+        onRemoveExercise={() => handleRemoveExercise(se._id)}
         previousSessionExercise={previousSessionExerciseMap.get(se.workoutExerciseId)}
         sorenessLocked={sorenessLockedExerciseIds.has(se.workoutExerciseId)}
       />
     {/each}
+
+    {#if isFreeForm && sessionExercises.length > 0 && mode === SessionPageMode.Active}
+      <Button variant="outline" class="w-full" onclick={handleAddExercise}>Add Exercise</Button>
+    {/if}
 
     {#if mode !== SessionPageMode.Locked}
       <SessionPageSummaryCard
@@ -326,6 +448,8 @@
         total={totalSets}
         {percent}
         {mode}
+        {isFreeForm}
+        {allExercisesDone}
         {allImmediateSlidersFilled}
         {allLateFieldsFilled}
         onComplete={handleCompleteSession}
@@ -336,3 +460,4 @@
 </div>
 
 <SingletonEditSetDialog />
+<SingletonExercisePickerDialog />
