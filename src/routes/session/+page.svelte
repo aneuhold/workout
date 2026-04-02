@@ -4,6 +4,7 @@
   import { sessionPageInfo } from './pageInfo';
 
   let sessionId = $derived(page.url.searchParams.get('sessionId'));
+  let planning = $derived(page.url.searchParams.get('planningMode') === 'true');
 </script>
 
 <svelte:head>
@@ -11,4 +12,4 @@
   <meta name="description" content={sessionPageInfo.description} />
 </svelte:head>
 
-<SessionPage {sessionId} />
+<SessionPage {sessionId} {planning} />

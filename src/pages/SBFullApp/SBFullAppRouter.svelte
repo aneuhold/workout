@@ -33,13 +33,12 @@
 {:else if routeState.path === navInfo.sessions.url}
   <SessionsPage />
 {:else if routeState.path === navInfo.sessionNew.url}
+  <SessionPage sessionId={null} planning={true} />
+{:else if routeState.path === navInfo.session.url}
   <SessionPage
     sessionId={routeState.searchParams.get('sessionId')}
-    planning={true}
-    plannedDate={routeState.searchParams.get('date')}
+    planning={routeState.searchParams.get('planningMode') === 'true'}
   />
-{:else if routeState.path === navInfo.session.url}
-  <SessionPage sessionId={routeState.searchParams.get('sessionId')} />
 {:else if routeState.path === navInfo.mesocycle.url}
   <MesocyclePage mesocycleId={routeState.searchParams.get('mesocycleId')} />
 {:else if routeState.path === navInfo.mesocycles.url}

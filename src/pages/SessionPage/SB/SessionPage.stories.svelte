@@ -51,3 +51,10 @@
 <Story name="Free-Form (All Done)" args={{ storyMode: SessionPageStoryMode.FreeFormAllDone }} />
 
 <Story name="Free-Form (Completed)" args={{ storyMode: SessionPageStoryMode.FreeFormCompleted }} />
+
+<Story name="Planning (Empty)" args={{ storyMode: SessionPageStoryMode.PlanningEmpty }} />
+
+<Story
+  name="Planning (With Exercises)"
+  args={{ storyMode: SessionPageStoryMode.PlanningWithExercises }}
+/>

@@ -5,12 +5,14 @@
  * - `Review`: Session is complete but some late fields are still null
  * - `View`: Session is complete and all fields are filled
  * - `Locked`: Session cannot be interacted with (prerequisite not met)
+ * - `Planning`: Pre-planning a session (persisted, editing planned values)
  */
 export enum SessionPageMode {
   Active = 'active',
   Review = 'review',
   View = 'view',
-  Locked = 'locked'
+  Locked = 'locked',
+  Planning = 'planning'
 }
 
 /**

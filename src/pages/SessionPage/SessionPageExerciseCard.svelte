@@ -115,6 +115,7 @@
 
   // Auto-sync computed performance score to the document (no UI, used by downstream checks)
   $effect(() => {
+    if (mode === SessionPageMode.Planning) return;
     const score = computedPerformanceScore;
     if (score !== null && score !== sessionExercise.performanceScore) {
       sessionExerciseMapService.updateDoc(sessionExercise._id, (doc) => {
@@ -145,6 +146,7 @@
   // --- Set states ---
 
   function getSetState(set: WorkoutSet, index: number): SessionPageSetState {
+    if (mode === SessionPageMode.Planning) return SessionPageSetState.Current;
     if (mode === SessionPageMode.Locked) return SessionPageSetState.Future;
     if (
       set.actualReps != null &&
@@ -161,6 +163,25 @@
   }
 
   // --- Set logging ---
+
+  /**
+   * Saves planned weight and reps for a set in Planning mode.
+   *
+   * @param set The set to update
+   * @param weight The planned weight value
+   * @param reps The planned reps value
+   */
+  function handlePlannedChange(
+    set: WorkoutSet,
+    weight: number | undefined,
+    reps: number | undefined
+  ) {
+    setMapService.updateDoc(set._id, (doc) => {
+      doc.plannedWeight = weight ?? null;
+      doc.plannedReps = reps ?? null;
+      return doc;
+    });
+  }
 
   function handleLogSet(set: WorkoutSet, weight: number, reps: number, rir: number | null) {
     setMapService.updateDoc(set._id, (doc) => {
@@ -372,14 +393,18 @@
         <div class="flex flex-col gap-1">
           <div
             class="grid items-center gap-1.5 px-2 text-xs text-muted-foreground {mode ===
-            SessionPageMode.Active
-              ? 'grid-cols-12'
-              : 'grid-cols-9'}"
+            SessionPageMode.Planning
+              ? 'grid-cols-7'
+              : mode === SessionPageMode.Active
+                ? 'grid-cols-12'
+                : 'grid-cols-9'}"
           >
             <div class="col-span-1">#</div>
             <div class="col-span-3">Weight</div>
             <div class="col-span-3">Reps</div>
-            <div class="col-span-2">RIR</div>
+            {#if mode !== SessionPageMode.Planning}
+              <div class="col-span-2">RIR</div>
+            {/if}
             {#if mode === SessionPageMode.Active}
               <div class="col-span-3"></div>
             {/if}
@@ -394,9 +419,10 @@
                   {mode}
                   onLog={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
                   onEdit={(weight, reps, rir) => handleLogSet(set, weight, reps, rir)}
+                  onPlannedChange={(weight, reps) => handlePlannedChange(set, weight, reps)}
                 />
               </div>
-              {#if freeFormEditable && mode === SessionPageMode.Active && sets.length > 1}
+              {#if freeFormEditable && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning) && sets.length > 1}
                 <button
                   class="shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors"
                   onclick={() => onRemoveSet?.(set._id)}
@@ -411,7 +437,7 @@
               Hit target reps first, then keep going until you reach target RIR.
             </p>
           {/if}
-          {#if freeFormEditable && mode === SessionPageMode.Active}
+          {#if freeFormEditable && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning)}
             <Button variant="ghost" size="sm" class="self-start" onclick={() => onAddSet?.()}>
               <IconPlus size={14} />
               Add Set
@@ -476,15 +502,17 @@
         {/if}
 
         <!-- Free-form: Done/Edit button + Remove Exercise -->
-        {#if isFreeForm && mode === SessionPageMode.Active}
+        {#if isFreeForm && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning)}
           <Separator />
           <div class="flex flex-col gap-2">
-            {#if exerciseDone}
-              <Button variant="outline" class="w-full" onclick={() => onEdit?.()}>Edit</Button>
-            {:else}
-              <Button class="w-full" disabled={!allExerciseSetsLogged} onclick={() => onDone?.()}>
-                Done
-              </Button>
+            {#if mode === SessionPageMode.Active}
+              {#if exerciseDone}
+                <Button variant="outline" class="w-full" onclick={() => onEdit?.()}>Edit</Button>
+              {:else}
+                <Button class="w-full" disabled={!allExerciseSetsLogged} onclick={() => onDone?.()}>
+                  Done
+                </Button>
+              {/if}
             {/if}
             {#if freeFormEditable}
               <Button
@@ -500,7 +528,7 @@
           </div>
         {/if}
 
-        {#if !isDeload}
+        {#if !isDeload && mode !== SessionPageMode.Planning}
           <!-- Section 3: RSM Sliders -->
           <Separator />
           <div class="flex flex-col gap-3">

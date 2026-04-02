@@ -19,7 +19,8 @@
     allImmediateSlidersFilled = false,
     allLateFieldsFilled = false,
     onComplete,
-    onCompleteReview
+    onCompleteReview,
+    onDonePlanning
   }: {
     completed: number;
     total: number;
@@ -31,6 +32,7 @@
     allLateFieldsFilled?: boolean;
     onComplete: () => void;
     onCompleteReview: () => void;
+    onDonePlanning?: () => void;
   } = $props();
 
   let setsComplete = $derived(completed >= total);
@@ -52,7 +54,9 @@
       </div>
     </div>
 
-    {#if mode === SessionPageMode.Active}
+    {#if mode === SessionPageMode.Planning}
+      <Button class="w-full" onclick={onDonePlanning}>Done Planning</Button>
+    {:else if mode === SessionPageMode.Active}
       <Button class="w-full" disabled={!canComplete} onclick={onComplete}>Complete Session</Button>
       {#if isFreeForm && !allExercisesDone && total > 0}
         <p class="text-center text-xs text-muted-foreground">

@@ -14,7 +14,9 @@
     FreeFormEmpty = 'freeFormEmpty',
     FreeFormMidWorkout = 'freeFormMidWorkout',
     FreeFormAllDone = 'freeFormAllDone',
-    FreeFormCompleted = 'freeFormCompleted'
+    FreeFormCompleted = 'freeFormCompleted',
+    PlanningEmpty = 'planningEmpty',
+    PlanningWithExercises = 'planningWithExercises'
   }
 </script>
 
@@ -39,12 +41,15 @@
   timerService.init();
 
   let sessionId = $state<UUID | null>(null);
+  let planning = $state(false);
 
   const freeFormModes = new Set<SessionPageStoryMode>([
     SessionPageStoryMode.FreeFormEmpty,
     SessionPageStoryMode.FreeFormMidWorkout,
     SessionPageStoryMode.FreeFormAllDone,
-    SessionPageStoryMode.FreeFormCompleted
+    SessionPageStoryMode.FreeFormCompleted,
+    SessionPageStoryMode.PlanningEmpty,
+    SessionPageStoryMode.PlanningWithExercises
   ]);
 
   const completedSessionCounts: Partial<Record<SessionPageStoryMode, number>> = {
@@ -69,6 +74,7 @@
 
     untrack(() => {
       MockData.resetAll();
+      planning = false;
       const baseData = MockData.setupBaseData();
 
       // Free-form modes don't generate a mesocycle
@@ -93,6 +99,17 @@
             loggedSetCount: 6,
             complete: true
           })._id;
+        } else if (mode === SessionPageStoryMode.PlanningEmpty) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 0
+          })._id;
+          planning = true;
+        } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
+          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            exerciseCount: 3,
+            loggedSetCount: 0
+          })._id;
+          planning = true;
         }
         return;
       }
@@ -185,4 +202,4 @@
   }
 </script>
 
-<SessionPage {sessionId} />
+<SessionPage {sessionId} {planning} />

@@ -135,7 +135,7 @@
     {#if isFreeForm && session}
       <OptionsButtonDropdownMenu ariaLabel="Session actions">
         <DropdownMenuItem onclick={openRenameDialog}>Rename Session</DropdownMenuItem>
-        {#if mode === SessionPageMode.Active}
+        {#if mode === SessionPageMode.Active || mode === SessionPageMode.Planning}
           <DropdownMenuItem
             disabled={exerciseOrderItems.length < 2}
             onclick={() => (reorderDialogOpen = true)}

@@ -32,9 +32,11 @@
   import { SessionPageExerciseCardState, SessionPageMode } from './sessionPageTypes';
 
   let {
-    sessionId
+    sessionId,
+    planning = false
   }: {
     sessionId: string | null;
+    planning?: boolean;
   } = $props();
 
   let session = $derived(sessionId ? sessionMapService.getDoc(sessionId as UUID) : undefined);
@@ -90,6 +92,7 @@
   );
 
   let dataMode: SessionPageMode = $derived.by(() => {
+    if (planning) return SessionPageMode.Planning;
     if (!session) return SessionPageMode.Active;
     if (lockReason != null) return SessionPageMode.Locked;
     if (!session.complete) return SessionPageMode.Active;
@@ -115,6 +118,7 @@
   });
 
   let mode: SessionPageMode = $derived.by(() => {
+    if (planning) return SessionPageMode.Planning;
     if (dataMode === SessionPageMode.Locked) return SessionPageMode.Locked;
     if (dataMode === SessionPageMode.Active) return SessionPageMode.Active;
     if (wasInReviewMode && !reviewConfirmed) return SessionPageMode.Review;
@@ -239,6 +243,7 @@
   }
 
   function getCardState(index: number): SessionPageExerciseCardState {
+    if (mode === SessionPageMode.Planning) return SessionPageExerciseCardState.Current;
     if (mode === SessionPageMode.Review) {
       return exerciseHasAllSessionMetricsFilled(sessionExercises[index])
         ? SessionPageExerciseCardState.Completed
@@ -265,7 +270,13 @@
 
   $effect(() => {
     const exercises = sessionExercises;
-    if (mode === SessionPageMode.Review) {
+    if (mode === SessionPageMode.Planning) {
+      for (const se of exercises) {
+        if (expandedMap[se._id] === undefined) {
+          expandedMap[se._id] = true;
+        }
+      }
+    } else if (mode === SessionPageMode.Review) {
       for (const se of exercises) {
         if (!exerciseHasAllSessionMetricsFilled(se) && expandedMap[se._id] === undefined) {
           expandedMap[se._id] = true;
@@ -399,7 +410,7 @@
       {session}
     />
 
-    {#if mode !== SessionPageMode.Locked}
+    {#if mode !== SessionPageMode.Locked && mode !== SessionPageMode.Planning}
       <SessionPageProgressBar completed={completedCount} total={totalSets} />
     {/if}
 
@@ -409,7 +420,7 @@
       </div>
     {/if}
 
-    {#if isFreeForm && sessionExercises.length === 0 && mode === SessionPageMode.Active}
+    {#if isFreeForm && sessionExercises.length === 0 && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning)}
       <div
         class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-muted-foreground/30 px-4 py-8"
       >
@@ -438,7 +449,7 @@
       />
     {/each}
 
-    {#if isFreeForm && sessionExercises.length > 0 && mode === SessionPageMode.Active}
+    {#if isFreeForm && sessionExercises.length > 0 && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning)}
       <Button variant="outline" class="w-full" onclick={handleAddExercise}>Add Exercise</Button>
     {/if}
 
@@ -454,6 +465,7 @@
         {allLateFieldsFilled}
         onComplete={handleCompleteSession}
         onCompleteReview={handleCompleteReview}
+        onDonePlanning={() => goto('/sessions')}
       />
     {/if}
   {/if}
