@@ -20,6 +20,7 @@
 
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
@@ -37,7 +38,7 @@
 
   timerService.init();
 
-  let sessionId = $state<string | null>(null);
+  let sessionId = $state<UUID | null>(null);
 
   const freeFormModes = new Set<SessionPageStoryMode>([
     SessionPageStoryMode.FreeFormEmpty,
