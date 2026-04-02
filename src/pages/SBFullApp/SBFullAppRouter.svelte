@@ -32,6 +32,12 @@
   <HomePage />
 {:else if routeState.path === navInfo.sessions.url}
   <SessionsPage />
+{:else if routeState.path === navInfo.sessionNew.url}
+  <SessionPage
+    sessionId={routeState.searchParams.get('sessionId')}
+    planning={true}
+    plannedDate={routeState.searchParams.get('date')}
+  />
 {:else if routeState.path === navInfo.session.url}
   <SessionPage sessionId={routeState.searchParams.get('sessionId')} />
 {:else if routeState.path === navInfo.mesocycle.url}
