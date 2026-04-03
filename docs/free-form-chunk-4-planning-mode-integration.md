@@ -4,7 +4,10 @@
 
 Add entry points to navigate into Planning mode from the Sessions page and Mesocycles
 page, show planned sessions prominently on the Home page, and distinguish planned
-from in-progress sessions on the Sessions page.
+from in-progress sessions on the Sessions page. Add a start-date editor to the
+session page (inline in Planning mode, modal via options menu otherwise). Add an
+"Edit Targets" option to the session page options menu for incomplete free-form
+sessions.
 
 ## Prerequisites
 
@@ -12,8 +15,13 @@ from in-progress sessions on the Sessions page.
 
 ## Context
 
-- Planning mode is entered via `/session/new` (optionally with
-  `?date=YYYY-MM-DD` and/or `?sessionId=xxx`).
+- Planning mode is activated by a `planningMode=true` query parameter on the
+  existing `/session` route: `/session?sessionId=xxx&planningMode=true`.
+- The `/session/new` route also renders `<SessionPage planning={true}>` for
+  creating brand-new planned sessions.
+- The session is created and persisted immediately (via
+  `sessionMapService.createFreeFormSession()`), so all CRUD operations use the
+  existing map services with auto-save.
 - A "planned" free-form session is one that exists in the database with
   `complete === false`, `workoutMicrocycleId === null`, and has NO actual values
   logged on any set (only `plannedReps`/`plannedWeight`).
@@ -33,11 +41,13 @@ from in-progress sessions on the Sessions page.
 **File:** `src/services/documentMapServices/sessionMapService.svelte.ts`
 
 Add a method like `isPlannedSession(session)` that returns `true` when:
+
 - `session.complete === false`
 - `session.workoutMicrocycleId` is null (it's free-form)
 - None of the session's sets have `actualReps` or `actualWeight` set
 
 Update the `freeFormSessions` derived store to categorize into three groups:
+
 - `planned`: Planned sessions (sorted by `startTime` ascending — nearest date first)
 - `inProgress`: Sessions with at least one actual value logged (sorted by `startTime`
   descending)
@@ -48,84 +58,120 @@ Update the `freeFormSessions` derived store to categorize into three groups:
 **File:** `src/pages/SessionsPage/SessionsPageFreeFormSection.svelte`
 
 - Split the current display into subsections:
-  - **Planned** — shows planned sessions with a "Planned" status badge. Tapping a
-    planned session navigates to `/session/new?sessionId=xxx` (opens in
-    Planning mode for further editing). Add a "Start" button/action on each planned
-    session card that navigates to `/session?sessionId=xxx` (Active mode) and updates
-    `startTime` to now.
   - **In Progress** — same as current behavior (shows progress, "Continue" action).
+  - **Planned** — shows planned sessions with a "Planned" status badge. Tapping a
+    planned session navigates to `/session?sessionId=xxx&planningMode=true` (opens
+    in Planning mode for further editing). Add a "Start" button/action on each planned
+    session card that navigates to `/session?sessionId=xxx` (Active mode).
   - **Completed** — same as current behavior.
 - Add a **"Plan Workout"** button alongside the existing "New Workout" button.
-  Tapping it opens a date picker popover. On date selection, navigate to
-  `/session/new?date=YYYY-MM-DD`.
+  Tapping it navigates directly to `/session/new` (the `/session/new` route renders
+  SessionPage in planning mode, where the user can set the start date inline).
 
-### 3. Add date picker for planned session creation
+### 3. Add start-date editor to the session page
 
-Build a small date picker component or inline it where needed. Use the
-`Calendar` + `Popover` pattern from shadcn-svelte (same pattern as
-`MesocycleConfigCard`).
+**File:** `src/pages/SessionPage/SessionPageHeader.svelte` (options menu item +
+modal), `src/pages/SessionPage/SessionPage.svelte` (inline placement in Planning
+mode)
 
-- Triggered from the "Plan Workout" button on the Sessions page.
-- On date selection, navigate to `/session/new?date=YYYY-MM-DD`.
-- The date defaults to today. The user picks a future (or past) date.
+Build a `SessionPageStartDatePicker` component (or similar) using the `Calendar`
+from shadcn-svelte (same `Calendar` component as `MesocycleConfigCard`). This
+component is shared between the inline and modal usages.
 
-### 4. Add "Plan Free-Form Workout" to Mesocycles page
+**Behavior by mode:**
+
+- **Planning mode:** Render the date picker component inline, directly below the
+  session page header (not inside a modal). The user sees and can change the start
+  date while planning without extra clicks.
+- **Non-Planning free-form modes (Active, Review, View):** Add a "Change Start
+  Date" item to the existing options button dropdown menu in `SessionPageHeader`.
+  Tapping it opens a `Dialog` containing the same date picker component. On save,
+  persist the updated `startTime` to the session document. Not available for
+  mesocycle-based sessions.
+
+### 4. Add "Edit Targets" option to session page options menu
+
+**File:** `src/pages/SessionPage/SessionPageHeader.svelte`
+
+- Add an "Edit Targets" dropdown menu item, visible when `isFreeForm` and
+  `session.complete === false` and `mode !== SessionPageMode.Planning`.
+- On tap: navigate to `/session?sessionId=xxx&planningMode=true`. This lets the
+  user re-enter Planning mode on an in-progress (or planned) session to adjust
+  planned weight/reps without affecting already-logged actual values.
+
+### 5. Add "Plan Free-Form Workout" to Mesocycles page
 
 **File:** `src/pages/MesocyclesPage/MesocyclesPage.svelte`
 
 - Add a "Plan Free-Form Workout" button. Placement: alongside or near the "New"
   mesocycle button, but visually secondary (e.g. `variant="outline"` or similar).
-- On tap: same date picker → navigate to Planning mode flow as the Sessions page
-  (step 3).
+- On tap: navigate directly to `/session/new` (the `/session/new` route renders
+  SessionPage in planning mode, where the user can set the start date inline).
 
-### 5. Show planned session card on Home page
+### 6. Show free-form sessions section on Home page
 
 **Files:**
-- `src/pages/HomePage/HomePageHeroCard/heroCardUtils.ts`
+
 - `src/pages/HomePage/HomePage.svelte`
-- New file: `src/pages/HomePage/HomePagePlannedSessionCard.svelte` (or similar)
+- New file: `src/pages/HomePage/HomePageFreeFormSessions.svelte` (or similar)
 
-- When the user has a planned free-form session (exists in `sessionMapService
-  .freeFormSessions.planned`), show a secondary card **below the hero card** on the
-  home page.
-- The card should display: session title (e.g. "Planned: March 31 Workout"), exercise
-  count, and a "Start" button.
-- **"Start" button behavior:**
-  1. Update `session.startTime` to `new Date()` (now).
-  2. Persist the updated session.
-  3. Navigate to `/session?sessionId=xxx` (Active mode).
-- If there are multiple planned sessions, show only the nearest one (smallest
-  `startTime` in the future, or the most recent past one if all are past).
-- The hero card priority logic in `heroCardUtils.ts` should NOT be affected — this
-  planned session card is a separate element below the hero, not part of the hero
-  card itself.
+Add a "Free-Form Workouts" section to the home page, placed **below the
+`HomePageWeekSessions` section** (the "This Week" mesocycle session list) if it
+exists, or below the hero card otherwise. This section follows the exact same
+visual pattern as `HomePageWeekSessions` and `HomePageRecentSessions`: a text
+label, then a vertical list of `SessionCard` components.
 
-### 6. "Start Planned Session" flow
+**Contents (in order):**
 
-When a planned session is "started" (from the Home page card or the Sessions page):
-1. Update `session.startTime` to `new Date()`.
-2. Persist the session update.
-3. Navigate to `/session?sessionId=xxx` (Active mode).
-4. The session page loads in Active mode with the pre-planned exercises and sets.
+1. The current in-progress free-form session (if one exists) — shown at the top
+   with its existing in-progress status.
+2. Up to 2 upcoming planned free-form sessions (nearest `startTime` first) —
+   shown with a "Planned" status (may require adding a `Planned` value to
+   `SessionStatus` or reusing an appropriate existing status).
+
+Only render this section if there is at least one in-progress or planned free-form
+session to show. Use `SessionCard` for each entry, passing session exercises and
+sets the same way `HomePageWeekSessions` does.
+
+The hero card priority logic in `heroCardUtils.ts` should NOT be affected — this
+is a separate section, not part of the hero card.
+
+### 7. "Start Planned Session" flow
+
+When a planned session is "started" (from the Home page section or the Sessions
+page):
+
+1. Navigate to `/session?sessionId=xxx` (Active mode).
+2. The session page loads in Active mode with the pre-planned exercises and sets.
    Since `plannedReps`/`plannedWeight` are set, the target row in `SessionPageSetRow`
-   should correctly display planned values as targets (the existing
-   `actual ?? planned` fallback handles this).
+   correctly displays planned values as targets (the existing `actual ?? planned`
+   fallback handles this).
+3. The session's `startTime` is not modified — it retains whatever the user set
+   during planning.
 
-This logic should be extracted into a shared helper since it's used from both the
-Home page and the Sessions page.
+This is a simple navigation, so no shared helper is needed.
 
 ## Acceptance Criteria
 
 - Sessions page shows planned, in-progress, and completed free-form sessions in
   separate subsections.
-- "Plan Workout" button on Sessions page opens a date picker and navigates to
-  Planning mode.
-- "Plan Free-Form Workout" button on Mesocycles page does the same.
+- "Plan Workout" button on Sessions page navigates to Planning mode.
+- "Plan Free-Form Workout" button on Mesocycles page navigates to Planning mode.
 - Tapping a planned session on the Sessions page opens it in Planning mode for
   editing.
-- "Start" on a planned session updates `startTime` and navigates to Active mode.
-- Home page shows a planned session card below the hero when planned sessions exist.
+- "Start" on a planned session navigates to Active mode (preserves `startTime`).
+- Home page shows a "Free-Form Workouts" section (below the current week section
+  if present) listing the in-progress free-form session and up to 2 upcoming
+  planned sessions, using the same `SessionCard` pattern as other session lists.
 - Starting a planned session in Active mode shows planned values as targets.
+- In Planning mode, start date is editable inline below the header.
+- In non-Planning free-form modes, "Change Start Date" is available in the options
+  menu and opens a modal with the same date picker.
+- "Edit Targets" option in the options menu opens Planning mode for incomplete
+  free-form sessions, allowing re-editing of planned values even after logging has
+  started.
+- Planning mode is always available via `planningMode=true`, even on sessions that
+  have actual values logged (allows re-editing planned values).
 - `pnpm lint --fix`, `pnpm check`, and `pnpm test` all pass.
 
 ## Edge Cases
@@ -137,10 +183,6 @@ Home page and the Sessions page.
 - **Past planned date:** A planned session whose date has passed should still appear
   in the planned subsection (the user may have planned it and not started it yet).
   It should be at the top of the planned list since it's the most "overdue."
-- **Starting a planned session with 0 exercises:** This shouldn't happen because
-  "Save Planned Session" requires at least 1 exercise. But if it somehow does (e.g.
-  data inconsistency), the Active mode session page handles it gracefully by showing
-  the "Add Exercise" empty state.
-- **Editing a planned session that was already started:** If a session has actual
-  values logged, navigating to `/session/new?sessionId=xxx` should redirect to
-  Active mode (`/session?sessionId=xxx`) instead of opening in Planning mode.
+- **Planned session with 0 exercises:** Still appears in the planned subsection.
+  The session card on the Sessions page should make it visually obvious (e.g.
+  showing "0 exercises") so the user is aware they have an empty planned session.
