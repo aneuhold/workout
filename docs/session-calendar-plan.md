@@ -43,13 +43,15 @@ src/components/WorkoutCalendar/
 
 ## Shared Types (`WorkoutCalendar/shared/workoutCalendarTypes.ts`)
 
-The existing types currently prefixed `MesocycleCalendar*` are generic enough to share as-is, just renamed:
+The existing types currently prefixed `MesocycleCalendar*` are generic enough to share, just renamed:
 
-| Current Name                | Shared Name               | Notes                               |
-| --------------------------- | ------------------------- | ----------------------------------- |
-| `MesocycleCalendarSet`      | `WorkoutCalendarSet`      | Identical — planned/actual set data |
-| `MesocycleCalendarExercise` | `WorkoutCalendarExercise` | Identical — exercise + sets         |
-| `MesocycleCalendarSession`  | `WorkoutCalendarSession`  | Identical — session title/exercises |
+| Current Name                | Shared Name               | Notes                                                           |
+| --------------------------- | ------------------------- | --------------------------------------------------------------- |
+| `MesocycleCalendarSet`      | `WorkoutCalendarSet`      | Identical — planned/actual set data                             |
+| `MesocycleCalendarExercise` | `WorkoutCalendarExercise` | Identical — exercise + sets                                     |
+| `MesocycleCalendarSession`  | `WorkoutCalendarSession`  | Adds `isFreeForm: boolean` (true when `workoutMicrocycleId` is null) |
+
+The new `isFreeForm` flag on `WorkoutCalendarSession` is populated by both util builders. `WorkoutMesocycleCalendar` always sets it to `false` (its sessions always belong to a microcycle). `WorkoutSessionCalendar` sets it based on `session.workoutMicrocycleId == null`. This drives both the free-form dot/checkmark color in the day cell AND the "Free Form" badge in the detail dialog.
 
 A new shared base day-cell type:
 
@@ -121,7 +123,7 @@ type Props = {
 };
 ```
 
-The `workoutCalendarDayCellVariants` tailwind-variants definition stays in this file's module context. New `'today'` and `'outside-month'` variants are added for `WorkoutSessionCalendar`:
+The `workoutCalendarDayCellVariants` tailwind-variants definition stays in this file's module context:
 
 ```ts
 export const workoutCalendarDayCellVariants = tv({
@@ -129,11 +131,10 @@ export const workoutCalendarDayCellVariants = tv({
   variants: {
     visual: {
       completed: 'bg-muted/50 text-muted-foreground',
-      'session-next': 'bg-primary/10 ring-2 ring-primary',
+      today: 'bg-primary/10 ring-2 ring-primary',
       session: 'bg-primary/10 ring-1 ring-primary/40',
       rest: 'bg-muted/40 text-muted-foreground',
       empty: 'bg-muted/20 text-muted-foreground',
-      today: 'bg-primary/10 ring-2 ring-primary',
       'outside-month': 'opacity-30'
     },
     accentLeft: {
@@ -147,34 +148,71 @@ export type WorkoutCalendarDayCellVisual = VariantProps<
 >['visual'];
 ```
 
-**Parent responsibility**: Each calendar computes the `visual` variant for its own cells and passes it down. This keeps the shared cell purely presentational.
+**Note on removed `session-next` variant**: The existing `MesocycleCalendar` has a `'session-next'` visual that highlights the next incomplete session in the mesocycle sequence. This is being removed as part of this refactor — the "next session" highlight was a bug. Only the actual current day gets the primary-ring highlight (`'today'` variant), regardless of which calendar is showing.
 
-- **WorkoutMesocycleCalendar** computes visual as it does today (completed/session-next/session/rest/empty) and passes `accentLeft={day.isCycleStart}`.
-- **WorkoutSessionCalendar** computes visual as: `outside-month` if outside the displayed month, `completed` if all sessions complete, `today` if today and has incomplete sessions, `session` if has incomplete sessions, `empty` otherwise. Never passes `accentLeft`.
+**Parent responsibility**: Each calendar computes the `visual` variant for its own cells and passes it down. This keeps the shared cell purely presentational. The `'today'` variant takes precedence over workout-status variants (`'session'` / `'completed'` / `'empty'`) but not over structural variants (`'rest'` / `'outside-month'`).
+
+- **WorkoutMesocycleCalendar** precedence (first match wins): `rest` → `today` → `completed` → `session` → `empty`. Passes `accentLeft={day.isCycleStart}`.
+- **WorkoutSessionCalendar** precedence (first match wins): `outside-month` → `today` → `completed` → `session` → `empty`. Never passes `accentLeft`.
+
+`'rest'` wins over `'today'` for mesocycle rest days so the user keeps the clear "no workout today" visual. `'outside-month'` wins over `'today'` for trailing/leading days in the session calendar because those dates aren't interactive and shouldn't claim the user's attention.
+
+### Dot/checkmark colors (source indicators)
+
+The dots and checkmarks inside the day cell are colored per session using this priority:
+
+1. **Recovery exercise** (`session.hasRecoveryExercise === true`) → amber (`text-amber-500` / `bg-amber-500/60`)
+2. **Free-form** (`session.isFreeForm === true`) → violet (`text-violet-500` / `bg-violet-500/60`)
+3. **Default mesocycle** → primary (`text-primary` / `bg-primary/60`)
+
+Because free-form sessions skip recovery exercise tracking entirely (see `free-form-workouts.md`), rules 1 and 2 are mutually exclusive in practice. The cell background (`session`/`today`/`completed` variant) stays primary-themed regardless of source — only the per-session dots carry the source color. This mirrors the existing recovery-amber pattern.
+
+If violet doesn't feel right against the app theme, swap it for another distinct Tailwind hue (e.g. `teal`, `indigo`, `sky`). Keep it different from both `primary` and `amber`.
 
 ### `WorkoutCalendarDayDetailDialog.svelte`
 
-Refactored from `MesocycleCalendarDayDetailDialog.svelte`. The dialog content (session list with exercises/sets grid) is identical for both calendars. The only difference is the description line below the date.
+Refactored from `MesocycleCalendarDayDetailDialog.svelte`. The dialog content (session list with exercises/sets grid) is identical for both calendars. The only differences are the description line below the date and whether free-form source badges are shown.
 
 ```ts
+type WorkoutCalendarDayDetailDescription = {
+  /** Primary text — shown in foreground color (e.g. "Cycle 2 of 4" or "2 sessions"). */
+  primary: string;
+  /** Secondary text — shown in muted color (e.g. "Completed", "Projected targets"). */
+  secondary: string;
+};
+
 type Props = {
   /** Formatted date string for the dialog title (e.g. "Monday, March 29, 2026"). */
   formattedDate: string;
-  /** Subtitle shown below the date (e.g. "Cycle 2 of 4 — Projected targets" or "2 sessions — Completed"). */
-  description: string;
+  /** Two-part subtitle rendered as "{primary} — {secondary}" with distinct styling. */
+  description: WorkoutCalendarDayDetailDescription;
   /** Sessions to display in the detail view. */
   sessions: WorkoutCalendarSession[];
+  /**
+   * When true, renders a "Free Form" badge next to the title of any session with
+   * `isFreeForm: true`. WorkoutSessionCalendar passes true; WorkoutMesocycleCalendar
+   * passes false (all its sessions are mesocycle sessions, so the label would be noise).
+   */
+  showSourceLabels?: boolean;
   /** Controls dialog open state. */
   open: boolean; // bindable
 };
 ```
 
-Each parent computes the description string:
+The `primary` text renders in foreground color and the `secondary` in muted color, joined by an em-dash — matching the existing visual treatment. Each parent computes the description object:
 
-- **WorkoutMesocycleCalendar**: `"Cycle 2 of 4 — Completed"` (as it does today)
-- **WorkoutSessionCalendar**: `"2 sessions — Completed"` or `"Free-form — In Progress"` depending on session sources
+- **WorkoutMesocycleCalendar**: `{ primary: "Cycle 2 of 4", secondary: "Completed" }` (matches current visual)
+- **WorkoutSessionCalendar**: `{ primary: "2 sessions", secondary: "Completed" }` or `{ primary: "1 session", secondary: "In Progress" }` etc.
 
-The session rendering (exercise list, set grid with planned/actual, View Session link, recovery badge, RIR badge) stays identical inside this dialog.
+### "View Session" button — visibility change
+
+The existing dialog only shows the "View Session" link for completed sessions. This plan changes that: **the button is shown for every session regardless of state** (completed, in-progress, planned). This fix applies to both calendars, not just `WorkoutSessionCalendar`. The link continues to use `/session?sessionId=${sessionId}`; the session page itself handles routing the user to the correct mode (Planning / Active / Review / View) based on session state.
+
+### Source badge rendering
+
+When `showSourceLabels` is true and `session.isFreeForm === true`, render a small **"Free Form"** badge next to the session title (sibling to the existing "Completed" / "RIR" badges), using the violet hue to match the day-cell dots (e.g. `Badge` with `variant="secondary"` + `class="bg-violet-500/20 text-violet-700 dark:text-violet-300"` — or whatever matches the rest of the app's badge patterns best). Sessions with `isFreeForm: false` show no source badge.
+
+The session rendering (exercise list, set grid with planned/actual, recovery badge, RIR badge) stays identical otherwise.
 
 ## WorkoutSessionCalendar Component Design
 
@@ -266,6 +304,8 @@ The shadcn `Calendar` in `hideGrid` mode already renders both the month/year dro
 
 The `pickerPlaceholder` is the single source of truth for which month is visible. The `Calendar` component's built-in prev/next arrows step it month-by-month; its month/year dropdowns let users jump to any month/year. The `monthGrid` `$derived` rebuilds whenever the placeholder changes, re-rendering the day grid for the new month.
 
+`computeVisual(day)` and `handleDayClick(day)` are local helpers defined inside the component file. `computeDescription(day)` is also local and returns a `WorkoutCalendarDayDetailDescription` object for the dialog based on the selected day's sessions.
+
 ### `workoutSessionCalendarUtils.ts`
 
 **Key function: `buildMonthGrid`**
@@ -307,15 +347,18 @@ The date-helper functions (`isNewMonth`, `formatMonthLabel`, `addDays`) currentl
 
 ### Task 2: Extract shared `WorkoutCalendarDayCell`
 
-1. Create `src/components/WorkoutCalendar/shared/WorkoutCalendarDayCell.svelte` with the generalized props (`dateLabel`, `sessions`, `visual`, `isClickable`, `onDayClick`, `accentLeft`).
+1. Create `src/components/WorkoutCalendar/shared/WorkoutCalendarDayCell.svelte` with a `@component` JSDoc at the top and the generalized props (`dateLabel`, `sessions`, `visual`, `isClickable`, `onDayClick`, `accentLeft`).
 2. Export `workoutCalendarDayCellVariants` and `WorkoutCalendarDayCellVisual` from the module block.
-3. Add the `'today'` and `'outside-month'` visual variants to `workoutCalendarDayCellVariants`.
-4. Keep the session indicator rendering (dots/checkmarks) identical.
+3. Update the visual variants: replace the old `'session-next'` with `'today'`, add `'outside-month'`.
+4. Update the session indicator rendering to use the per-session source priority (recovery-amber → free-form-violet → mesocycle-primary) for dots and checkmarks.
 
 ### Task 3: Extract shared `WorkoutCalendarDayDetailDialog`
 
-1. Create `src/components/WorkoutCalendar/shared/WorkoutCalendarDayDetailDialog.svelte` with parameterized `formattedDate`, `description`, `sessions`, and `open`.
+1. Create `src/components/WorkoutCalendar/shared/WorkoutCalendarDayDetailDialog.svelte` with a `@component` JSDoc at the top and the props (`formattedDate`, `description` object, `sessions`, `showSourceLabels`, `open`).
 2. The exercise/set rendering block moves in verbatim, with `WorkoutCalendarSession`/`WorkoutCalendarExercise`/`WorkoutCalendarSet` type imports.
+3. Render the description as two spans with distinct styling (primary foreground, secondary muted) joined by an em-dash.
+4. **"View Session" button** is now shown for every session regardless of completion state (see earlier section).
+5. When `showSourceLabels` is true, render a "Free Form" badge next to the session title for any session with `isFreeForm: true`.
 
 ### Task 4: Rename and update MesocycleCalendar → WorkoutMesocycleCalendar
 
@@ -330,19 +373,33 @@ The date-helper functions (`isNewMonth`, `formatMonthLabel`, `addDays`) currentl
 2. Delete the no-longer-needed `MesocycleCalendarDayHeaders.svelte`, `MesocycleCalendarDayCell.svelte`, and `MesocycleCalendarDayDetailDialog.svelte` — these are replaced by the shared versions.
 3. Rename types in `workoutMesocycleCalendarTypes.ts`: `MesocycleCalendarDayCell` → `WorkoutMesocycleCalendarDayCell`, `MesocycleCalendarLabelEntry` → `WorkoutMesocycleCalendarLabelEntry`, `MesocycleCalendarWeekRow` → `WorkoutMesocycleCalendarWeekRow`, `MesocycleCalendarData` → `WorkoutMesocycleCalendarData`. Make `WorkoutMesocycleCalendarDayCell` extend the shared `WorkoutCalendarDayCell`.
 4. Update `workoutMesocycleCalendarUtils.ts`: import date helpers from `../shared/workoutCalendarUtils`, import shared types, rename the class/instance (`MesocycleCalendarUtils` → `WorkoutMesocycleCalendarUtils`).
-5. Update `WorkoutMesocycleCalendar.svelte`: import `WorkoutCalendarDayHeaders`, `WorkoutCalendarDayCell`, and `WorkoutCalendarDayDetailDialog` from `../shared/`. Compute the `visual` variant and `accentLeft` for each cell. Compute the `description` prop for the dialog (`"Cycle X of Y — ..."`).
-6. Update `WorkoutMesocycleCalendarLabelRow.svelte` import paths and type name.
-7. Update all imports across the codebase that reference the old `$components/MesocycleCalendar` path or any of the renamed types.
-8. Run `pnpm check`, `pnpm lint --fix`, `pnpm test` — fix any breakage.
+5. Update `WorkoutMesocycleCalendar.svelte`:
+   - Import `WorkoutCalendarDayHeaders`, `WorkoutCalendarDayCell`, and `WorkoutCalendarDayDetailDialog` from `../shared/`.
+   - **Remove the `nextSessionDayIndex` derived value and all logic that computed it** — it's no longer used. Replace with a simple "is today" check on each cell.
+   - Compute the `visual` variant per cell using the precedence documented above (`rest` → `today` → `completed` → `session` → `empty`). Pass `accentLeft={day.isCycleStart}`.
+   - Compute the `description` prop as `{ primary: "Cycle X of Y" | "Deload", secondary: "Completed" | "Projected targets" | "Session details" }`.
+   - Pass `showSourceLabels={false}` to the detail dialog (mesocycle sessions never need source badges).
+   - Preserve all other existing behavior: recovery-exercise amber styling, label row positioning, cycle-start left border, deload detection, empty/rest day handling.
+6. Update `workoutMesocycleCalendarUtils.ts`:
+   - When building sessions, set `isFreeForm: false` on every `WorkoutCalendarSession` (mesocycle sessions always have a microcycle).
+   - Drop the `nextSessionDayIndex` concept entirely if it exists in utils (it lives in the component file today, so likely no util changes needed for this).
+7. Update `WorkoutMesocycleCalendarLabelRow.svelte` import paths and type name.
+8. Update all imports across the codebase that reference the old `$components/MesocycleCalendar` path or any of the renamed types.
+9. Update `SBMesocycleCalendarExample.svelte` and the stories file to use the new names and drop any `nextSessionDayIndex`-related story args.
+10. Run `pnpm check`, `pnpm lint --fix`, `pnpm test` — fix any breakage.
 
 ### Task 5: Build `WorkoutSessionCalendar` components
 
 1. Create `workoutSessionCalendarTypes.ts` with `WorkoutSessionCalendarDayCell` and `WorkoutSessionCalendarMonthGrid`.
-2. Create `workoutSessionCalendarUtils.ts` with `buildMonthGrid` (exported as a singleton instance, same pattern as `workoutMesocycleCalendarUtils`).
-3. Create `WorkoutSessionCalendar.svelte` root component — uses shadcn `Calendar` in `hideGrid` mode for the month/year picker (arrows + dropdowns), binds to `placeholder` to drive the month grid below.
+2. Create `workoutSessionCalendarUtils.ts` with `buildMonthGrid` (exported as a singleton instance, same pattern as `workoutMesocycleCalendarUtils`). The builder populates `isFreeForm` on each `WorkoutCalendarSession` based on `session.workoutMicrocycleId == null`.
+3. Create `WorkoutSessionCalendar.svelte` root component with a `@component` JSDoc at the top:
+   - Uses shadcn `Calendar` in `hideGrid` mode for the month/year picker.
+   - Defines a local `computeVisual(day)` helper that maps a `WorkoutSessionCalendarDayCell` to the correct visual variant (precedence: `outside-month` → `today` → `completed` → `session` → `empty`).
+   - Defines a local `computeDescription(day)` helper producing the `{ primary, secondary }` description object.
+   - Passes `showSourceLabels={true}` to the detail dialog.
 4. Write `workoutSessionCalendarUtils.test.ts` covering:
    - Empty month (no sessions)
-   - Month with sessions from different sources (mesocycle + free-form)
+   - Month with sessions from different sources (mesocycle + free-form) — verify `isFreeForm` flag is set correctly per session
    - Leading/trailing padding days marked as `isOutsideMonth`
    - `isToday` flag accuracy
    - Sessions correctly matched to dates
@@ -366,7 +423,10 @@ The date-helper functions (`isNewMonth`, `formatMonthLabel`, `addDays`) currentl
 
 - `WorkoutMesocycleCalendarLabelRow` stays inside `MesocycleCalendar/` because cycle/month labels above rows are a mesocycle-only concept. `WorkoutSessionCalendar` does not need label rows — month context is provided by the shadcn `Calendar` picker at the top.
 - The `rest` day type is mesocycle-only. `WorkoutSessionCalendar` only has `session` and `empty` day types.
-- The `'session-next'` visual variant is mesocycle-only (highlights the next incomplete session in the mesocycle sequence). `WorkoutSessionCalendar` uses `'today'` instead for the primary highlight.
+- **Removed:** the old `'session-next'` highlight (next incomplete mesocycle session) is dropped from both calendars. Only the actual current day gets the primary-ring highlight via the `'today'` visual variant.
+- **Free-form source distinction:** dots/checkmarks inside day cells use violet for free-form sessions, amber for recovery exercises, primary for default mesocycle sessions. The detail dialog shows a "Free Form" badge next to the session title when `showSourceLabels` is true (WorkoutSessionCalendar only).
+- **"View Session" link** in the detail dialog is now available for every session regardless of state (bug fix — previously shown only for completed sessions).
 - Outside-month days are shown but dimmed (`opacity-30`) and not clickable. This provides calendar context without clutter.
 - `WorkoutSessionCalendar` does not load data itself — it receives props. The parent page/route is responsible for providing the session/exercise/set data. This keeps the component pure and testable.
+- Timezone/DST: session `startTime` values and calendar day cells both use the local timezone and match on `${year}-${month}-${day}` keys. DST transitions never land on month boundaries, and `Date.setDate()` (used by `addDays`) is DST-safe, so no special handling is needed.
 - Where `WorkoutSessionCalendar` is mounted (Sessions page, new route, etc.) is out of scope for this plan.
