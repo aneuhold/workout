@@ -67,6 +67,23 @@ Update the `freeFormSessions` derived store to categorize into three groups:
 - Add a **"Plan Workout"** button alongside the existing "New Workout" button.
   Tapping it navigates directly to `/session/new` (the `/session/new` route renders
   SessionPage in planning mode, where the user can set the start date inline).
+- **Pagination:** Each subsection paginates independently once it exceeds 5 items.
+  Follow the exact same pattern used in
+  `src/pages/MesocyclePage/MesocycleExercisesCard.svelte`:
+  - Declare a shared `const PAGE_SIZE = 5` at the top of the component.
+  - Maintain three separate `$state` page counters, one per subsection (e.g.
+    `inProgressPage`, `plannedPage`, `completedPage`), each defaulting to `1`.
+  - For each subsection, derive `totalPages = Math.ceil(sessions.length / PAGE_SIZE)`,
+    `showPagination = totalPages > 1`, and `paginatedSessions = sessions.slice(
+    (currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)`.
+  - Render the shadcn-svelte `Pagination` component (with `PaginationContent`,
+    `PaginationItem`, `PaginationPrevious`, `PaginationLink`, `PaginationEllipsis`,
+    `PaginationNext`) below each subsection's list, but only when
+    `showPagination` is true. Bind `page` to the subsection's page counter and pass
+    `count={sessions.length}` and `perPage={PAGE_SIZE}`.
+  - If the underlying session list for a subsection shrinks (e.g. a session moves
+    from planned to in-progress) such that `currentPage > totalPages`, reset that
+    subsection's page counter back to `1` via an `$effect`.
 
 ### 3. Add start-date editor to the session page
 
@@ -154,7 +171,8 @@ This is a simple navigation, so no shared helper is needed.
 ## Acceptance Criteria
 
 - Sessions page shows planned, in-progress, and completed free-form sessions in
-  separate subsections.
+  separate subsections, each with independent pagination (5 per page) that mirrors
+  the pattern used in `MesocycleExercisesCard`.
 - "Plan Workout" button on Sessions page navigates to Planning mode.
 - "Plan Free-Form Workout" button on Mesocycles page navigates to Planning mode.
 - Tapping a planned session on the Sessions page opens it in Planning mode for
@@ -178,8 +196,11 @@ This is a simple navigation, so no shared helper is needed.
 
 - **No planned sessions:** The planned subsection and Home page card should not
   render (no empty state needed for the planned subsection specifically).
-- **Multiple planned sessions:** Sessions page shows all of them. Home page shows
-  only the nearest one.
+- **Multiple planned sessions:** Sessions page shows all of them, paginated 5 at
+  a time. Home page shows only the nearest one.
+- **More than 5 sessions in a subsection:** The subsection paginates independently
+  of the other subsections using the shadcn-svelte `Pagination` component (see
+  Task 2).
 - **Past planned date:** A planned session whose date has passed should still appear
   in the planned subsection (the user may have planned it and not started it yet).
   It should be at the top of the planned list since it's the most "overdue."
