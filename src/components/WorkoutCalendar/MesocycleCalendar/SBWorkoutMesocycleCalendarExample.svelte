@@ -106,16 +106,12 @@
 </script>
 
 {#if mesocycle}
-  <div class="p-4">
-    <WorkoutMesocycleCalendar
-      {mesocycle}
-      {microcycles}
-      {sessions}
-      {sessionExercises}
-      {sets}
-      {exercises}
-    />
-  </div>
-{:else}
-  <p class="text-muted-foreground p-4">Generating mesocycle data...</p>
+  <WorkoutMesocycleCalendar
+    {mesocycle}
+    {microcycles}
+    {sessions}
+    {sessionExercises}
+    {sets}
+    {exercises}
+  />
 {/if}
