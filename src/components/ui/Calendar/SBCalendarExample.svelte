@@ -5,10 +5,12 @@
 
   let {
     captionLayout = 'dropdown',
-    numberOfMonths = 1
+    numberOfMonths = 1,
+    hideGrid = false
   }: {
     captionLayout?: ComponentProps<typeof Calendar>['captionLayout'];
     numberOfMonths?: number;
+    hideGrid?: boolean;
   } = $props();
 
   let value = $state<DateValue | undefined>(today(getLocalTimeZone()));
@@ -16,5 +18,5 @@
 </script>
 
 <div class="border rounded-lg inline-block shadow-sm">
-  <Calendar bind:value bind:placeholder {captionLayout} {numberOfMonths} type="single" />
+  <Calendar bind:value bind:placeholder {captionLayout} {numberOfMonths} {hideGrid} type="single" />
 </div>

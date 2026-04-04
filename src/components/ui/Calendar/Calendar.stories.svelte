@@ -14,11 +14,15 @@
       },
       numberOfMonths: {
         control: { type: 'number', min: 1, max: 3 }
+      },
+      hideGrid: {
+        control: { type: 'boolean' }
       }
     },
     args: {
       captionLayout: 'dropdown',
-      numberOfMonths: 1
+      numberOfMonths: 1,
+      hideGrid: false
     }
   });
 </script>
@@ -34,3 +38,6 @@
 
 <!-- Multiple Months -->
 <Story name="Multiple Months" args={{ numberOfMonths: 2 }} />
+
+<!-- Month Year Picker (no day grid) -->
+<Story name="Month Year Picker" args={{ captionLayout: 'dropdown', hideGrid: true }} />
