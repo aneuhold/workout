@@ -16,36 +16,46 @@ export enum MockDefaultMuscleGroup {
 }
 
 export default class MuscleGroupMapServiceMock {
+  static readonly defaultMuscleGroups: Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> = {
+    [MockDefaultMuscleGroup.Chest]: this.createMuscleGroup(MockDefaultMuscleGroup.Chest),
+    [MockDefaultMuscleGroup.Lats]: this.createMuscleGroup(
+      MockDefaultMuscleGroup.Lats,
+      'Largest back muscle; key for pull movements.'
+    ),
+    [MockDefaultMuscleGroup.Quadriceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Quadriceps),
+    [MockDefaultMuscleGroup.Hamstrings]: this.createMuscleGroup(MockDefaultMuscleGroup.Hamstrings),
+    [MockDefaultMuscleGroup.Glutes]: this.createMuscleGroup(MockDefaultMuscleGroup.Glutes),
+    [MockDefaultMuscleGroup.FrontDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.FrontDelts),
+    [MockDefaultMuscleGroup.SideDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.SideDelts),
+    [MockDefaultMuscleGroup.RearDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.RearDelts),
+    [MockDefaultMuscleGroup.Triceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Triceps),
+    [MockDefaultMuscleGroup.Biceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Biceps)
+  };
+
   reset(): void {
     muscleGroupMapService.setMap({});
     muscleGroupMapService.setVolumeCTOs([]);
   }
 
+  addDefaultMuscleGroups(): WorkoutMuscleGroup[] {
+    const docs = Object.values(MuscleGroupMapServiceMock.defaultMuscleGroups);
+    for (const doc of docs) {
+      muscleGroupMapService.addDocWithoutPersist(doc);
+    }
+    return docs;
+  }
+
   addMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
-    const doc = WorkoutMuscleGroupSchema.parse({
-      userId: TestUsers.currentUserCto._id,
-      name,
-      description
-    });
+    const doc = MuscleGroupMapServiceMock.createMuscleGroup(name, description);
     muscleGroupMapService.addDocWithoutPersist(doc);
     return doc;
   }
 
-  addDefaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
-    return {
-      [MockDefaultMuscleGroup.Chest]: this.addMuscleGroup(MockDefaultMuscleGroup.Chest),
-      [MockDefaultMuscleGroup.Lats]: this.addMuscleGroup(
-        MockDefaultMuscleGroup.Lats,
-        'Largest back muscle; key for pull movements.'
-      ),
-      [MockDefaultMuscleGroup.Quadriceps]: this.addMuscleGroup(MockDefaultMuscleGroup.Quadriceps),
-      [MockDefaultMuscleGroup.Hamstrings]: this.addMuscleGroup(MockDefaultMuscleGroup.Hamstrings),
-      [MockDefaultMuscleGroup.Glutes]: this.addMuscleGroup(MockDefaultMuscleGroup.Glutes),
-      [MockDefaultMuscleGroup.FrontDelts]: this.addMuscleGroup(MockDefaultMuscleGroup.FrontDelts),
-      [MockDefaultMuscleGroup.SideDelts]: this.addMuscleGroup(MockDefaultMuscleGroup.SideDelts),
-      [MockDefaultMuscleGroup.RearDelts]: this.addMuscleGroup(MockDefaultMuscleGroup.RearDelts),
-      [MockDefaultMuscleGroup.Triceps]: this.addMuscleGroup(MockDefaultMuscleGroup.Triceps),
-      [MockDefaultMuscleGroup.Biceps]: this.addMuscleGroup(MockDefaultMuscleGroup.Biceps)
-    };
+  static createMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
+    return WorkoutMuscleGroupSchema.parse({
+      userId: TestUsers.currentUserCto._id,
+      name,
+      description
+    });
   }
 }

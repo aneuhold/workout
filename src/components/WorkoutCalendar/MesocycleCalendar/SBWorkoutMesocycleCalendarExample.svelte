@@ -13,13 +13,13 @@
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/mesocycleMapService.mock';
   import MockData from '$testUtils/MockData';
-  import MesocycleCalendar from './MesocycleCalendar.svelte';
+  import WorkoutMesocycleCalendar from './WorkoutMesocycleCalendar.svelte';
 
   let {
     microcycleCount = 4,
     microcycleLengthDays = 7,
     restDays = '0,6',
-    startDate = '2026-02-16',
+    startDate = '2026-04-01',
     completedSessionCount = 0,
     plannedSessionCountPerMicrocycle = 5,
     hasRecoveryExercises = false
@@ -107,7 +107,14 @@
 
 {#if mesocycle}
   <div class="p-4">
-    <MesocycleCalendar {mesocycle} {microcycles} {sessions} {sessionExercises} {sets} {exercises} />
+    <WorkoutMesocycleCalendar
+      {mesocycle}
+      {microcycles}
+      {sessions}
+      {sessionExercises}
+      {sets}
+      {exercises}
+    />
   </div>
 {:else}
   <p class="text-muted-foreground p-4">Generating mesocycle data...</p>

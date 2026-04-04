@@ -12,7 +12,7 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
-  import MesocycleCalendar from '$components/MesocycleCalendar/MesocycleCalendar.svelte';
+  import MesocycleCalendar from '$components/WorkoutCalendar/MesocycleCalendar/WorkoutMesocycleCalendar.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardDescription from '$ui/Card/CardDescription.svelte';

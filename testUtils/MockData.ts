@@ -59,11 +59,10 @@ export default class MockData {
    * calibrations into the mock services.
    */
   static setupBaseData(): MockBaseData {
-    const muscleGroups = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-    const equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-    const exercises = MockData.exerciseMapServiceMock.addDefaultExercises(muscleGroups, equipment);
+    MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
+    const equipmentTypes = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
+    const exercises = MockData.exerciseMapServiceMock.addDefaultExercises();
     const calibrations = MockData.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
-    const equipmentTypes = Object.values(equipment);
     const exerciseCTOs = MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
       calibrations,
       exercises,

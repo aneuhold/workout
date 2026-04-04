@@ -1,11 +1,11 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createNumberArgTypes, createTextArgTypes } from '$storybook/storybookUtil';
-  import SBMesocycleCalendarExample from './SBMesocycleCalendarExample.svelte';
+  import SBWorkoutMesocycleCalendarExample from './SBWorkoutMesocycleCalendarExample.svelte';
 
   const { Story } = defineMeta({
-    title: 'Components/MesocycleCalendar',
-    component: SBMesocycleCalendarExample,
+    title: 'Components/WorkoutMesocycleCalendar',
+    component: SBWorkoutMesocycleCalendarExample,
     argTypes: {
       ...createNumberArgTypes('microcycleCount', 'microcycleLengthDays', 'completedSessionCount'),
       ...createTextArgTypes('restDays', 'startDate'),
@@ -15,7 +15,7 @@
       microcycleCount: 6,
       microcycleLengthDays: 8,
       restDays: '0,6',
-      startDate: '2026-02-15',
+      startDate: '2026-03-29',
       completedSessionCount: 0,
       plannedSessionCountPerMicrocycle: 5,
       hasRecoveryExercises: false
