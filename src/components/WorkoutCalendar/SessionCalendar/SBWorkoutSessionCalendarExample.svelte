@@ -7,7 +7,9 @@
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import { MockDefaultExercise } from '$services/documentMapServices/exerciseMapService.mock';
+  import ExerciseMapServiceMock, {
+    MockDefaultExercise
+  } from '$services/documentMapServices/exerciseMapService.mock';
   import MockData from '$testUtils/MockData';
   import WorkoutSessionCalendar from './WorkoutSessionCalendar.svelte';
 
@@ -38,13 +40,10 @@
       }
 
       const baseData = MockData.setupBaseData();
-      const bench =
-        MockData.exerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
-      const pullUps = MockData.exerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
-      const squat =
-        MockData.exerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
-      const rdl =
-        MockData.exerciseMapServiceMock.defaultExercises[MockDefaultExercise.RomanianDeadlift];
+      const bench = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
+      const pullUps = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
+      const squat = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
+      const rdl = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.RomanianDeadlift];
 
       const now = new Date();
       const yr = now.getFullYear();
