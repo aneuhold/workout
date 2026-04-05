@@ -28,7 +28,7 @@
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/mesocycleMapService.mock';
   import timerService from '$services/TimerService';
-  import { daysAgo } from '$testUtils/dateUtils';
+  import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
   import MockData from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
@@ -106,8 +106,13 @@
           planning = true;
         } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
           sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+            title: 'Upper Body Day',
+            startTime: daysFromNow(2),
             exerciseCount: 3,
-            loggedSetCount: 0
+            setsPerExercise: 3,
+            loggedSetCount: 0,
+            plannedRepsPerSet: 10,
+            plannedWeightPerSet: 135
           })._id;
           planning = true;
         }

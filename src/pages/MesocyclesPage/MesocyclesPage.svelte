@@ -10,6 +10,7 @@
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import MesocyclesPageCurrentCard from './MesocyclesPageCurrentCard.svelte';
   import MesocyclesPageEmptyState from './MesocyclesPageEmptyState.svelte';
@@ -33,10 +34,15 @@
   <!-- Header -->
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-semibold">Mesocycles</h1>
-    <Button size="sm" onclick={() => goto('/mesocycle/new')}>
-      <IconPlus size={14} />
-      New
-    </Button>
+    <div class="flex items-center gap-2">
+      <Button variant="outline" size="sm" onclick={() => sessionMapService.planNewFreeFormSession()}
+        >Plan Free-Form Workout</Button
+      >
+      <Button size="sm" onclick={() => goto('/mesocycle/new')}>
+        <IconPlus size={14} />
+        New Mesocycle
+      </Button>
+    </div>
   </div>
 
   <!-- Current mesocycle or empty state -->

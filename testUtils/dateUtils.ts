@@ -6,3 +6,12 @@
 export function daysAgo(n: number): Date {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 }
+
+/**
+ * Returns a Date that is `n` days from now.
+ *
+ * @param n Number of days in the future
+ */
+export function daysFromNow(n: number): Date {
+  return new Date(Date.now() + n * 24 * 60 * 60 * 1000);
+}

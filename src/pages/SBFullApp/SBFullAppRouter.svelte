@@ -32,8 +32,6 @@
   <HomePage />
 {:else if routeState.path === navInfo.sessions.url}
   <SessionsPage />
-{:else if routeState.path === navInfo.sessionNew.url}
-  <SessionPage sessionId={null} planning={true} />
 {:else if routeState.path === navInfo.session.url}
   <SessionPage
     sessionId={routeState.searchParams.get('sessionId')}

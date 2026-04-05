@@ -69,3 +69,10 @@
   name="Free-Form + Active Mesocycle"
   args={{ storyMode: HomePageStoryMode.FreeFormWithMesocycle }}
 />
+
+<Story name="Free-Form Planned" args={{ storyMode: HomePageStoryMode.FreeFormPlanned }} />
+
+<Story
+  name="Free-Form In Progress + Planned"
+  args={{ storyMode: HomePageStoryMode.FreeFormInProgressAndPlanned }}
+/>

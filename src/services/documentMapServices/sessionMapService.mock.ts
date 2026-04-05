@@ -19,6 +19,10 @@ export type AddMockFreeFormSessionInfo = {
   exerciseCount: number;
   setsPerExercise?: number;
   loggedSetCount?: number;
+  /** When set, each set gets this planned rep count (no actual values needed). */
+  plannedRepsPerSet?: number;
+  /** When set, each set gets this planned weight (no actual values needed). */
+  plannedWeightPerSet?: number;
 };
 
 export default class SessionMapServiceMock {
@@ -79,6 +83,8 @@ export default class SessionMapServiceMock {
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: se._id,
+          plannedReps: config.plannedRepsPerSet,
+          plannedWeight: config.plannedWeightPerSet,
           actualReps: shouldLog ? 10 : undefined,
           actualWeight: shouldLog ? 135 : undefined
         });

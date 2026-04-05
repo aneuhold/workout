@@ -5,7 +5,6 @@ import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
 import { mesocyclePageInfo } from '$routes/mesocycle/pageInfo';
 import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
 import { homePageInfo } from '$routes/pageInfo';
-import { sessionNewPageInfo } from '$routes/session/new/pageInfo';
 import { sessionPageInfo } from '$routes/session/pageInfo';
 import { sessionsPageInfo } from '$routes/sessions/pageInfo';
 import { settingsPageInfo } from '$routes/settings/pageInfo';
@@ -45,7 +44,6 @@ const navInfo = {
   home: homePageInfo,
   sessions: sessionsPageInfo,
   session: sessionPageInfo,
-  sessionNew: sessionNewPageInfo,
   library: libraryPageInfo,
   exercise: exercisePageInfo,
   analytics: analyticsPageInfo,

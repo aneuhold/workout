@@ -27,7 +27,7 @@
       View Analytics
     </Button>
   </div>
-  {#if !sessionMapService.freeFormSessions.inProgress}
+  {#if sessionMapService.freeFormSessions.inProgress.length === 0}
     <Button variant="ghost" class="text-muted-foreground" onclick={handleStartFreeForm}>
       <IconBarbell size={16} />
       Start Free-Form Workout

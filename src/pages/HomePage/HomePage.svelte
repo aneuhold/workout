@@ -8,6 +8,7 @@
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
+  import HomePageFreeFormSessions from './HomePageFreeFormSessions.svelte';
   import HomePageHeroCard from './HomePageHeroCard';
   import HomePageMesocycleOverview from './HomePageMesocycleOverview.svelte';
   import HomePagePendingLogs from './HomePagePendingLogs.svelte';
@@ -73,10 +74,13 @@
       nextUpSessionId={nextUpSession?._id}
     />
   {/if}
+  {#if sessionMapService.freeFormSessions.inProgress.length > 0 || sessionMapService.freeFormSessions.planned.length > 0}
+    <HomePageFreeFormSessions />
+  {/if}
   {#if allRecentSessions.length}
     <HomePageRecentSessions recentSessions={allRecentSessions} />
   {/if}
-  {#if activeMesocycle || sessionMapService.freeFormSessions.inProgress}
+  {#if activeMesocycle || sessionMapService.freeFormSessions.inProgress.length > 0}
     <HomePageQuickLinks />
   {:else}
     <HomePageEmptyState />
