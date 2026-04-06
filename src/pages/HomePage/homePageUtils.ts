@@ -99,18 +99,17 @@ export function getPendingReviewSessions(sessions: WorkoutSession[]): HomePageSe
  * Returns the last N fully-completed (no review needed) sessions,
  * most-recent first.
  *
- * @param sessions All sessions for the active mesocycle
+ * @param sessions All sessions to consider
  * @param limit Maximum number of sessions to return
  */
 export function getRecentCompletedSessions(
   sessions: WorkoutSession[],
   limit = 3
 ): HomePageSessionBundle[] {
-  const completed = sessions.filter((s) => s.complete && sessionHasAllMetricsFilled(s));
-
-  return completed
-    .slice(-limit)
-    .reverse()
+  return sessions
+    .filter((s) => s.complete && sessionHasAllMetricsFilled(s))
+    .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
+    .slice(0, limit)
     .map((session) => ({
       session,
       sessionExercises: sessionMapService.getOrderedSessionExercisesForSession(session),

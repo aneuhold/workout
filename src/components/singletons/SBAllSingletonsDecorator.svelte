@@ -13,6 +13,7 @@
   import SingletonEquipmentFormDialog from './dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import SingletonMoveSessionsDialog from './dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
   import SingletonMuscleGroupFormDialog from './dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
+  import SingletonRescheduleMesocycleDialog from './dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
 
   let { children }: { children?: Snippet } = $props();
 </script>
@@ -25,3 +26,4 @@
 <SingletonEquipmentFormDialog />
 <SingletonMoveSessionsDialog />
 <SingletonMuscleGroupFormDialog />
+<SingletonRescheduleMesocycleDialog />

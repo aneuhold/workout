@@ -1,37 +1,34 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { userEvent, within } from 'storybook/test';
-  import SBSingletonMoveSessionsDialogExample from './SBSingletonMoveSessionsDialogExample.svelte';
-
-  const storyModeEnum = {
-    late: 'late',
-    severelyLate: 'severelyLate',
-    error: 'error'
-  } as const;
+  import { createEnumArgType } from '$storybook/storybookUtil';
+  import SBSingletonMoveSessionsDialogExample, {
+    MoveSessionsStoryMode
+  } from './SBSingletonMoveSessionsDialogExample.svelte';
 
   const { Story } = defineMeta({
     tags: ['!autodocs'],
     title: 'Singletons/MoveSessionsDialog',
     component: SBSingletonMoveSessionsDialogExample,
     argTypes: {
-      storyMode: {
-        control: { type: 'select' },
-        options: Object.values(storyModeEnum)
-      }
+      storyMode: createEnumArgType(MoveSessionsStoryMode)
     },
     args: {
-      storyMode: 'late'
+      storyMode: MoveSessionsStoryMode.Late
     }
   });
 </script>
 
-<Story name="Late (No Deload)" args={{ storyMode: 'late' }} />
+<Story name="Late (No Deload)" args={{ storyMode: MoveSessionsStoryMode.Late }} />
 
-<Story name="Severely Late (With Deload Offer)" args={{ storyMode: 'severelyLate' }} />
+<Story
+  name="Severely Late (With Deload Offer)"
+  args={{ storyMode: MoveSessionsStoryMode.SeverelyLate }}
+/>
 
 <Story
   name="Error State"
-  args={{ storyMode: 'error' }}
+  args={{ storyMode: MoveSessionsStoryMode.Error }}
   play={async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const openButton = canvas.getByTestId('open-dialog-button');

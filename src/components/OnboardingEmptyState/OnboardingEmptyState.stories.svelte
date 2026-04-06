@@ -1,32 +1,38 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBOnboardingEmptyStateExample from './SBOnboardingEmptyStateExample.svelte';
-
-  const storyModeEnum = {
-    noCalibrations: 'noCalibrations',
-    fewCalibrations: 'fewCalibrations',
-    readyWithButton: 'readyWithButton',
-    readyWithoutButton: 'readyWithoutButton'
-  } as const;
+  import SBOnboardingEmptyStateExample, {
+    OnboardingStoryMode
+  } from './SBOnboardingEmptyStateExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Components/OnboardingEmptyState',
     tags: ['!autodocs'],
     component: SBOnboardingEmptyStateExample,
     argTypes: {
-      storyMode: createEnumArgType(storyModeEnum)
+      storyMode: createEnumArgType(OnboardingStoryMode)
     },
     args: {
-      storyMode: 'noCalibrations'
+      storyMode: OnboardingStoryMode.HomePageReady
     }
   });
 </script>
 
-<Story name="No Calibrations" args={{ storyMode: 'noCalibrations' }} />
+<Story
+  name="Home Page (No Calibrations)"
+  args={{ storyMode: OnboardingStoryMode.HomePageNoCalibrations }}
+/>
 
-<Story name="Few Calibrations" args={{ storyMode: 'fewCalibrations' }} />
+<Story
+  name="Home Page (Few Calibrations)"
+  args={{ storyMode: OnboardingStoryMode.HomePageFewCalibrations }}
+/>
 
-<Story name="Ready With Button" args={{ storyMode: 'readyWithButton' }} />
+<Story name="Home Page (Ready)" args={{ storyMode: OnboardingStoryMode.HomePageReady }} />
 
-<Story name="Ready Without Button" args={{ storyMode: 'readyWithoutButton' }} />
+<Story name="Sessions Page (Ready)" args={{ storyMode: OnboardingStoryMode.SessionsPageReady }} />
+
+<Story
+  name="Mesocycles Page (Ready)"
+  args={{ storyMode: OnboardingStoryMode.MesocyclesPageReady }}
+/>

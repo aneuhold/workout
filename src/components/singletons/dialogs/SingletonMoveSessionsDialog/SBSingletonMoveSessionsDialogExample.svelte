@@ -4,6 +4,14 @@
   Storybook wrapper that opens the SingletonMoveSessionsDialog with
   configurable parameters via buttons.
 -->
+<script lang="ts" module>
+  export enum MoveSessionsStoryMode {
+    Late = 'late',
+    SeverelyLate = 'severelyLate',
+    Error = 'error'
+  }
+</script>
+
 <script lang="ts">
   import { WorkoutSessionSchema } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
@@ -12,9 +20,7 @@
   import { moveSessionsDialog } from './SingletonMoveSessionsDialog.svelte';
   import SingletonMoveSessionsDialog from './SingletonMoveSessionsDialog.svelte';
 
-  type StoryMode = 'late' | 'severelyLate' | 'error';
-
-  let { storyMode = 'late' }: { storyMode?: StoryMode } = $props();
+  let { storyMode = MoveSessionsStoryMode.Late }: { storyMode?: MoveSessionsStoryMode } = $props();
 
   const mockSession = WorkoutSessionSchema.parse({
     userId: TestUsers.currentUserCto._id,
@@ -22,10 +28,10 @@
     startTime: new Date()
   });
 
-  const daysLateMap: Record<StoryMode, number> = {
-    late: 2,
-    severelyLate: 5,
-    error: 2
+  const daysLateMap: Record<MoveSessionsStoryMode, number> = {
+    [MoveSessionsStoryMode.Late]: 2,
+    [MoveSessionsStoryMode.SeverelyLate]: 5,
+    [MoveSessionsStoryMode.Error]: 2
   };
 
   function openDialog() {
@@ -43,7 +49,7 @@
       hasFutureMesocycles: true,
       onMove: async () => {
         await new Promise((resolve, reject) =>
-          setTimeout(storyMode === 'error' ? reject : resolve, 1500)
+          setTimeout(storyMode === MoveSessionsStoryMode.Error ? reject : resolve, 1500)
         );
       },
       onSkip: () => {},
@@ -55,9 +61,9 @@
 <div class="flex flex-col gap-3 p-4">
   <h3 class="text-sm font-medium">Move Sessions Dialog</h3>
   <Button onclick={openDialog} data-testid="open-dialog-button">
-    Open Dialog ({storyMode === 'late'
+    Open Dialog ({storyMode === MoveSessionsStoryMode.Late
       ? '2 Days Late'
-      : storyMode === 'severelyLate'
+      : storyMode === MoveSessionsStoryMode.SeverelyLate
         ? '5 Days Late'
         : 'Error on Confirm'})
   </Button>

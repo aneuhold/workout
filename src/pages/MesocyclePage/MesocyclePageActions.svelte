@@ -7,11 +7,16 @@
 -->
 <script lang="ts">
   import type { WorkoutMesocycle, WorkoutMicrocycle } from '@aneuhold/core-ts-db-lib';
-  import { CycleType } from '@aneuhold/core-ts-db-lib';
-  import { IconMoon, IconSquareX, IconTrash } from '@tabler/icons-svelte';
+  import { CycleType, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
+  import { type DateValue, getLocalTimeZone } from '@internationalized/date';
+  import { IconCalendarEvent, IconMoon, IconSquareX, IconTrash } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
+  import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
+  import { rescheduleMesocycleDialog } from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -23,11 +28,9 @@
   import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
-  import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
-  import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
-  import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
   import Input from '$ui/Input/Input.svelte';
+  import { getMesocycleDurationDays, getRescheduleDisabledDateMatcher } from './mesocyclePageUtils';
 
   let {
     mesocycle,
@@ -67,6 +70,34 @@
   }
 
   /**
+   * Opens the reschedule dialog for this mesocycle.
+   */
+  function handleReschedule() {
+    const microcycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycle._id);
+    const currentStart = WorkoutMesocycleService.getProjectedStartDate(mesocycle, microcycles);
+    if (!currentStart) return;
+
+    const durationDays = getMesocycleDurationDays(mesocycle, microcycles);
+    const tz = getLocalTimeZone();
+    const disabledMatcher = getRescheduleDisabledDateMatcher(
+      mesocycle._id,
+      durationDays,
+      mesocycleMapService.allDocs,
+      (id) => microcycleMapService.getOrderedMicrocyclesForMesocycle(id)
+    );
+
+    rescheduleMesocycleDialog.open({
+      currentStartDate: currentStart,
+      mesocycleDurationDays: durationDays,
+      isDateDisabled: (dateValue: DateValue) => disabledMatcher(dateValue.toDate(tz)),
+      onReschedule: (newStartDate: Date) => {
+        const delta = DateService.getCalendarDaysBetween(currentStart, newStartDate);
+        mesocycleMapService.moveMesocycle(mesocycle._id, delta, false);
+      }
+    });
+  }
+
+  /**
    * Ends the mesocycle immediately.
    */
   function handleEndMesocycle() {
@@ -87,48 +118,38 @@
   }
 </script>
 
-<DropdownMenu>
-  <DropdownMenuTrigger>
-    {#snippet child({ props })}
-      <Button {...props} variant="outline" size="sm" aria-label="Mesocycle actions">Options</Button>
-    {/snippet}
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="end">
-    {#if isActive && mesocycle.cycleType !== CycleType.FreeForm}
-      <DropdownMenuItem onclick={handleStartDeload}>
-        <IconMoon size={16} />
-        Start Deload
-      </DropdownMenuItem>
-    {/if}
-    {#if isActive}
-      <DropdownMenuItem
-        class="text-destructive focus:text-destructive"
-        onclick={() => (endMesocycleDialogOpen = true)}
-      >
-        <IconSquareX size={16} />
-        End Mesocycle
-      </DropdownMenuItem>
-    {/if}
-    {#if isFuture}
-      <DropdownMenuItem
-        class="text-destructive focus:text-destructive"
-        onclick={() => (deleteMesocycleDialogOpen = true)}
-      >
-        <IconTrash size={16} />
-        Delete Mesocycle
-      </DropdownMenuItem>
-    {/if}
-    {#if isCompleted}
-      <DropdownMenuItem
-        class="text-destructive focus:text-destructive"
-        onclick={() => (deleteCompletedDialogOpen = true)}
-      >
-        <IconTrash size={16} />
-        Delete Mesocycle
-      </DropdownMenuItem>
-    {/if}
-  </DropdownMenuContent>
-</DropdownMenu>
+<OptionsButtonDropdownMenu ariaLabel="Mesocycle actions">
+  {#if isActive || isFuture}
+    <DropdownMenuItem onclick={handleReschedule}>
+      <IconCalendarEvent size={16} />
+      Reschedule
+    </DropdownMenuItem>
+  {/if}
+  {#if isActive && mesocycle.cycleType !== CycleType.FreeForm}
+    <DropdownMenuItem onclick={handleStartDeload}>
+      <IconMoon size={16} />
+      Start Deload
+    </DropdownMenuItem>
+  {/if}
+  {#if isActive}
+    <DropdownMenuItem
+      class="text-destructive focus:text-destructive"
+      onclick={() => (endMesocycleDialogOpen = true)}
+    >
+      <IconSquareX size={16} />
+      End Mesocycle
+    </DropdownMenuItem>
+  {/if}
+  {#if isFuture || isCompleted}
+    <DropdownMenuItem
+      class="text-destructive focus:text-destructive"
+      onclick={() => (deleteMesocycleDialogOpen = true)}
+    >
+      <IconTrash size={16} />
+      Delete Mesocycle
+    </DropdownMenuItem>
+  {/if}
+</OptionsButtonDropdownMenu>
 
 <!-- End Mesocycle Confirmation Dialog -->
 <AlertDialog bind:open={endMesocycleDialogOpen}>

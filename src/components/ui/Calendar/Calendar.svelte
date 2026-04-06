@@ -33,6 +33,7 @@
     monthFormat: monthFormatProp,
     yearFormat = 'numeric',
     day,
+    hideGrid = false,
     disableDaysOutsideMonth = false,
     ...restProps
   }: WithoutChildrenOrChild<CalendarPrimitive.RootProps> & {
@@ -43,6 +44,10 @@
     monthFormat?: CalendarPrimitive.MonthSelectProps['monthFormat'];
     yearFormat?: CalendarPrimitive.YearSelectProps['yearFormat'];
     day?: Snippet<[{ day: DateValue; outsideMonth: boolean }]>;
+    /**
+     * If true, the calendar grid will be hidden.
+     */
+    hideGrid?: boolean;
   } = $props();
 
   const monthFormat = $derived.by(() => {
@@ -73,13 +78,27 @@ get along at the moment. So this is casted to never.
 >
   {#snippet children({ months, weekdays })}
     <CalendarMonths>
-      <CalendarNav>
-        <CalendarPrevButton variant={buttonVariant} />
-        <CalendarNextButton variant={buttonVariant} />
-      </CalendarNav>
+      <!--
+        CalendarNav is absolutely positioned and spans the full width of CalendarMonths,
+        placing prev/next buttons at the outer edges. This works for multi-month layouts
+        where a single nav pair must bracket N side-by-side month columns.
+
+        When hideGrid is true the container shrinks to just the caption width, so the
+        absolute buttons overlap the dropdowns. Instead, the buttons are rendered inline
+        inside CalendarHeader (justify-between) so the layout is [<] [caption] [>].
+      -->
+      {#if !hideGrid}
+        <CalendarNav>
+          <CalendarPrevButton variant={buttonVariant} />
+          <CalendarNextButton variant={buttonVariant} />
+        </CalendarNav>
+      {/if}
       {#each months as month, monthIndex (month)}
         <CalendarMonth>
-          <CalendarHeader>
+          <CalendarHeader class={hideGrid ? 'justify-between' : ''}>
+            {#if hideGrid}
+              <CalendarPrevButton variant={buttonVariant} />
+            {/if}
             <CalendarCaption
               {captionLayout}
               months={monthsProp}
@@ -91,36 +110,41 @@ get along at the moment. So this is casted to never.
               {locale}
               {monthIndex}
             />
+            {#if hideGrid}
+              <CalendarNextButton variant={buttonVariant} />
+            {/if}
           </CalendarHeader>
-          <CalendarGrid>
-            <CalendarGridHead>
-              <CalendarGridRow class="select-none">
-                {#each weekdays as weekday (weekday)}
-                  <CalendarHeadCell>
-                    {weekday.slice(0, 2)}
-                  </CalendarHeadCell>
-                {/each}
-              </CalendarGridRow>
-            </CalendarGridHead>
-            <CalendarGridBody>
-              {#each month.weeks as weekDates (weekDates)}
-                <CalendarGridRow class="mt-2 w-full">
-                  {#each weekDates as date (date)}
-                    <CalendarCell {date} month={month.value}>
-                      {#if day}
-                        {@render day({
-                          day: date,
-                          outsideMonth: !isEqualMonth(date, month.value as DateValue)
-                        })}
-                      {:else}
-                        <CalendarDay />
-                      {/if}
-                    </CalendarCell>
+          {#if !hideGrid}
+            <CalendarGrid>
+              <CalendarGridHead>
+                <CalendarGridRow class="select-none">
+                  {#each weekdays as weekday (weekday)}
+                    <CalendarHeadCell>
+                      {weekday.slice(0, 2)}
+                    </CalendarHeadCell>
                   {/each}
                 </CalendarGridRow>
-              {/each}
-            </CalendarGridBody>
-          </CalendarGrid>
+              </CalendarGridHead>
+              <CalendarGridBody>
+                {#each month.weeks as weekDates (weekDates)}
+                  <CalendarGridRow class="mt-2 w-full">
+                    {#each weekDates as date (date)}
+                      <CalendarCell {date} month={month.value}>
+                        {#if day}
+                          {@render day({
+                            day: date,
+                            outsideMonth: !isEqualMonth(date, month.value as DateValue)
+                          })}
+                        {:else}
+                          <CalendarDay />
+                        {/if}
+                      </CalendarCell>
+                    {/each}
+                  </CalendarGridRow>
+                {/each}
+              </CalendarGridBody>
+            </CalendarGrid>
+          {/if}
         </CalendarMonth>
       {/each}
     </CalendarMonths>

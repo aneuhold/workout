@@ -1,13 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBSessionsPageExample from './SBSessionsPageExample.svelte';
-
-  const storyModeEnum = {
-    default: 'default',
-    allComplete: 'allComplete',
-    review: 'review'
-  } as const;
+  import SBSessionsPageExample, { SessionsPageStoryMode } from './SBSessionsPageExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/SessionsPage',
@@ -17,16 +11,29 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      storyMode: createEnumArgType(storyModeEnum)
+      storyMode: createEnumArgType(SessionsPageStoryMode)
     },
     args: {
-      storyMode: 'default'
+      storyMode: SessionsPageStoryMode.Default
     }
   });
 </script>
 
 <Story name="Default" />
 
-<Story name="All Complete" args={{ storyMode: 'allComplete' }} />
+<Story name="All Complete" args={{ storyMode: SessionsPageStoryMode.AllComplete }} />
 
-<Story name="Review Needed" args={{ storyMode: 'review' }} />
+<Story name="Review Needed" args={{ storyMode: SessionsPageStoryMode.Review }} />
+
+<Story name="Free-Form Only" args={{ storyMode: SessionsPageStoryMode.FreeFormOnly }} />
+
+<Story
+  name="Free-Form + Mesocycle"
+  args={{ storyMode: SessionsPageStoryMode.FreeFormWithMesocycle }}
+/>
+
+<Story name="Planned Sessions" args={{ storyMode: SessionsPageStoryMode.PlannedSessions }} />
+
+<Story name="Mixed Free-Form" args={{ storyMode: SessionsPageStoryMode.MixedFreeForm }} />
+
+<Story name="Paginated Free-Form" args={{ storyMode: SessionsPageStoryMode.PaginatedFreeForm }} />

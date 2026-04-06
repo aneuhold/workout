@@ -41,6 +41,8 @@
 
 <Story name="Fresh Start" args={{ scenario: FullAppScenario.FreshStart }} />
 
+<Story name="Free-Form Workout" args={{ scenario: FullAppScenario.FreeFormWorkout }} />
+
 <Story name="All Complete" args={{ scenario: FullAppScenario.AllComplete }} />
 
 <Story name="Review Pending" args={{ scenario: FullAppScenario.ReviewPending }} />

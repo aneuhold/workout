@@ -11,8 +11,7 @@
   $effect(() => {
     untrack(() => {
       MockData.equipmentTypeMapServiceMock.reset();
-      const eq = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-      equipment = Object.values(eq);
+      equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
     });
 
     return () => {

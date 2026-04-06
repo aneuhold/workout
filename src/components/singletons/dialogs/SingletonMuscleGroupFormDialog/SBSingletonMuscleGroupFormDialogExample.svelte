@@ -11,8 +11,7 @@
   $effect(() => {
     untrack(() => {
       MockData.muscleGroupMapServiceMock.reset();
-      const mg = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-      muscleGroups = Object.values(mg);
+      muscleGroups = MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
     });
 
     return () => {

@@ -5,7 +5,7 @@
  * - `Review` - complete === true, has null late fields on non-deload exercises
  * - `InProgress` - complete === false, at least one set with actualReps != null
  * - `NextUp` - first incomplete session with no logged sets
- * - `Upcoming` - remaining incomplete sessions
+ * - `Upcoming` - remaining incomplete sessions (including planned free-form sessions)
  */
 export enum SessionStatus {
   Completed = 'completed',

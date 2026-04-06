@@ -26,7 +26,8 @@
     setState,
     mode,
     onLog,
-    onEdit
+    onEdit,
+    onPlannedChange
   }: {
     set: WorkoutSet;
     setNumber: number;
@@ -34,6 +35,7 @@
     mode: SessionPageMode;
     onLog: (weight: number, reps: number, rir: number | null) => void;
     onEdit: (weight: number, reps: number, rir: number | null) => void;
+    onPlannedChange?: (weight: number | undefined, reps: number | undefined) => void;
   } = $props();
 
   let weight = $derived<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
@@ -91,7 +93,8 @@
   );
 
   let isDisabled = $derived(
-    setState === SessionPageSetState.Completed || mode !== SessionPageMode.Active
+    setState === SessionPageSetState.Completed ||
+      (mode !== SessionPageMode.Active && mode !== SessionPageMode.Planning)
   );
 
   let isActive = $derived(mode === SessionPageMode.Active);
@@ -102,9 +105,11 @@
 </script>
 
 <div
-  class="grid items-center gap-1.5 rounded-lg px-2 py-1.5 {isActive
-    ? 'grid-cols-12'
-    : 'grid-cols-9'} {rowClass}"
+  class="grid items-center gap-1.5 rounded-lg px-2 py-1.5 {mode === SessionPageMode.Planning
+    ? 'grid-cols-7'
+    : isActive
+      ? 'grid-cols-12'
+      : 'grid-cols-9'} {rowClass}"
 >
   <!-- Set number -->
   <div class="col-span-1">
@@ -122,7 +127,16 @@
           : (set.plannedWeight ?? '—')}
       </span>
     {:else}
-      <Input type="number" bind:value={weight} placeholder="lb" class="h-7 text-sm" min={0} />
+      <Input
+        type="number"
+        bind:value={weight}
+        placeholder="lb"
+        class="h-7 text-sm"
+        min={0}
+        onchange={() => {
+          if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
+        }}
+      />
     {/if}
   </div>
 
@@ -137,31 +151,42 @@
           : (set.plannedReps ?? '—')}
       </span>
     {:else}
-      <Input type="number" bind:value={reps} placeholder="reps" class="h-7 text-sm" min={0} />
+      <Input
+        type="number"
+        bind:value={reps}
+        placeholder="reps"
+        class="h-7 text-sm"
+        min={0}
+        onchange={() => {
+          if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
+        }}
+      />
     {/if}
   </div>
 
   <!-- RIR -->
-  <div class="col-span-2">
-    {#if set.plannedRir == null}
-      <span class="text-sm text-muted-foreground">&mdash;</span>
-    {:else if isDisabled}
-      <span
-        class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
-      >
-        {setState === SessionPageSetState.Completed ? (set.rir ?? '—') : (set.plannedRir ?? '—')}
-      </span>
-    {:else}
-      <Input
-        type="number"
-        bind:value={rir}
-        placeholder="RIR"
-        class="h-7 text-sm"
-        min={0}
-        max={10}
-      />
-    {/if}
-  </div>
+  {#if mode !== SessionPageMode.Planning}
+    <div class="col-span-2">
+      {#if set.plannedRir == null}
+        <span class="text-sm text-muted-foreground">&mdash;</span>
+      {:else if isDisabled}
+        <span
+          class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
+        >
+          {setState === SessionPageSetState.Completed ? (set.rir ?? '—') : (set.plannedRir ?? '—')}
+        </span>
+      {:else}
+        <Input
+          type="number"
+          bind:value={rir}
+          placeholder="RIR"
+          class="h-7 text-sm"
+          min={0}
+          max={10}
+        />
+      {/if}
+    </div>
+  {/if}
 
   <!-- Action (Active mode only) -->
   {#if isActive}
@@ -177,7 +202,7 @@
   {/if}
 </div>
 
-{#if hasTargets && mode !== SessionPageMode.Locked}
+{#if hasTargets && mode !== SessionPageMode.Locked && mode !== SessionPageMode.Planning}
   <div class="grid gap-1.5 px-2 pb-0.5 {isActive ? 'grid-cols-12' : 'grid-cols-9'}">
     <div class="col-span-1"></div>
     <div class="{isActive ? 'col-span-11' : 'col-span-8'} text-xs text-muted-foreground">

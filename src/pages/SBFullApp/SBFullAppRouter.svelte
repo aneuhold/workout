@@ -33,7 +33,10 @@
 {:else if routeState.path === navInfo.sessions.url}
   <SessionsPage />
 {:else if routeState.path === navInfo.session.url}
-  <SessionPage sessionId={routeState.searchParams.get('sessionId')} />
+  <SessionPage
+    sessionId={routeState.searchParams.get('sessionId')}
+    planning={routeState.searchParams.get('planningMode') === 'true'}
+  />
 {:else if routeState.path === navInfo.mesocycle.url}
   <MesocyclePage mesocycleId={routeState.searchParams.get('mesocycleId')} />
 {:else if routeState.path === navInfo.mesocycles.url}

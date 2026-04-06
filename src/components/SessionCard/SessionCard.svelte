@@ -54,9 +54,19 @@
   const isHighlighted = $derived(
     status === SessionStatus.InProgress || status === SessionStatus.NextUp
   );
+
+  const sessionHref = $derived(`/session?sessionId=${session._id}`);
+
+  const formattedStartDate = $derived(
+    session.startTime.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  );
 </script>
 
-<a href="/session?sessionId={session._id}" class="block">
+<a href={sessionHref} class="block">
   <Card
     size="sm"
     class="cursor-pointer transition-colors {isHighlighted
@@ -94,6 +104,8 @@
             </div>
           {:else if status === SessionStatus.Completed}
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{formattedStartDate}</span>
+              <span>·</span>
               <span>{exerciseCount} exercises</span>
               <span>·</span>
               <span>{totalSets} sets</span>

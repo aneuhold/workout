@@ -1,18 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBSessionPageExample from './SBSessionPageExample.svelte';
-
-  const storyModes = {
-    activeEarly: 'activeEarly',
-    activeMid: 'activeMid',
-    activePrevSoreness: 'activePrevSoreness',
-    deload: 'deload',
-    recovery: 'recovery',
-    review: 'review',
-    viewOnly: 'viewOnly',
-    viewSorenessEditable: 'viewSorenessEditable'
-  };
+  import SBSessionPageExample, { SessionPageStoryMode } from './SBSessionPageExample.svelte';
 
   const { Story } = defineMeta({
     title: 'Pages/SessionPage',
@@ -22,26 +11,50 @@
       layout: 'fullscreen'
     },
     argTypes: {
-      storyMode: createEnumArgType(storyModes)
+      storyMode: createEnumArgType(SessionPageStoryMode)
     },
     args: {
-      storyMode: 'activeEarly'
+      storyMode: SessionPageStoryMode.ActiveEarly
     }
   });
 </script>
 
-<Story name="Active (Early)" args={{ storyMode: 'activeEarly' }} />
+<Story name="Active (Early)" args={{ storyMode: SessionPageStoryMode.ActiveEarly }} />
 
-<Story name="Active (Mid-Session)" args={{ storyMode: 'activeMid' }} />
+<Story name="Active (Mid-Session)" args={{ storyMode: SessionPageStoryMode.ActiveMid }} />
 
-<Story name="Active (Previous Soreness)" args={{ storyMode: 'activePrevSoreness' }} />
+<Story
+  name="Active (Previous Soreness)"
+  args={{ storyMode: SessionPageStoryMode.ActivePrevSoreness }}
+/>
 
-<Story name="Deload Session" args={{ storyMode: 'deload' }} />
+<Story name="Deload Session" args={{ storyMode: SessionPageStoryMode.Deload }} />
 
-<Story name="Recovery Exercises" args={{ storyMode: 'recovery' }} />
+<Story name="Recovery Exercises" args={{ storyMode: SessionPageStoryMode.Recovery }} />
 
-<Story name="Post-Session Review" args={{ storyMode: 'review' }} />
+<Story name="Post-Session Review" args={{ storyMode: SessionPageStoryMode.Review }} />
 
-<Story name="View Only" args={{ storyMode: 'viewOnly' }} />
+<Story name="View Only" args={{ storyMode: SessionPageStoryMode.ViewOnly }} />
 
-<Story name="View (Soreness Editable)" args={{ storyMode: 'viewSorenessEditable' }} />
+<Story
+  name="View (Soreness Editable)"
+  args={{ storyMode: SessionPageStoryMode.ViewSorenessEditable }}
+/>
+
+<Story name="Free-Form (Empty)" args={{ storyMode: SessionPageStoryMode.FreeFormEmpty }} />
+
+<Story
+  name="Free-Form (Mid-Workout)"
+  args={{ storyMode: SessionPageStoryMode.FreeFormMidWorkout }}
+/>
+
+<Story name="Free-Form (All Done)" args={{ storyMode: SessionPageStoryMode.FreeFormAllDone }} />
+
+<Story name="Free-Form (Completed)" args={{ storyMode: SessionPageStoryMode.FreeFormCompleted }} />
+
+<Story name="Planning (Empty)" args={{ storyMode: SessionPageStoryMode.PlanningEmpty }} />
+
+<Story
+  name="Planning (With Exercises)"
+  args={{ storyMode: SessionPageStoryMode.PlanningWithExercises }}
+/>

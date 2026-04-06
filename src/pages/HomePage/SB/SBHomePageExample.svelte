@@ -1,26 +1,34 @@
+<script lang="ts" module>
+  export enum HomePageStoryMode {
+    Default = 'default',
+    AllComplete = 'allComplete',
+    AllCompleteBlocked = 'allCompleteBlocked',
+    Review = 'review',
+    InProgress = 'inProgress',
+    InProgressReview = 'inProgressReview',
+    MicrocycleComplete = 'microcycleComplete',
+    MicrocycleCompleteBlocked = 'microcycleCompleteBlocked',
+    MicrocycleCompleteDeload = 'microcycleCompleteDeload',
+    MesocycleStart = 'mesocycleStart',
+    LateSession = 'lateSession',
+    SeverelyLateSession = 'severelyLateSession',
+    FreeFormEmpty = 'freeFormEmpty',
+    FreeFormInProgress = 'freeFormInProgress',
+    FreeFormWithMesocycle = 'freeFormWithMesocycle',
+    FreeFormPlanned = 'freeFormPlanned',
+    FreeFormInProgressAndPlanned = 'freeFormInProgressAndPlanned'
+  }
+</script>
+
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-  import { daysAgo } from '$testUtils/dateUtils';
+  import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
   import MockData from '$testUtils/MockData';
   import HomePage from '../HomePage.svelte';
 
-  type StoryMode =
-    | 'default'
-    | 'allComplete'
-    | 'allCompleteBlocked'
-    | 'review'
-    | 'inProgress'
-    | 'inProgressReview'
-    | 'microcycleComplete'
-    | 'microcycleCompleteBlocked'
-    | 'microcycleCompleteDeload'
-    | 'mesocycleStart'
-    | 'lateSession'
-    | 'severelyLateSession';
-
-  let { storyMode = 'default' }: { storyMode?: StoryMode } = $props();
+  let { storyMode = HomePageStoryMode.Default }: { storyMode?: HomePageStoryMode } = $props();
 
   $effect(() => {
     const mode = storyMode;
@@ -30,7 +38,7 @@
 
       const baseData = MockData.setupBaseData();
 
-      if (mode === 'allComplete') {
+      if (mode === HomePageStoryMode.AllComplete) {
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -42,7 +50,7 @@
         return;
       }
 
-      if (mode === 'allCompleteBlocked') {
+      if (mode === HomePageStoryMode.AllCompleteBlocked) {
         // All sessions complete but reviews NOT filled — blocks mesocycle completion
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -54,7 +62,7 @@
         return;
       }
 
-      if (mode === 'review') {
+      if (mode === HomePageStoryMode.Review) {
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -66,7 +74,7 @@
         return;
       }
 
-      if (mode === 'inProgress') {
+      if (mode === HomePageStoryMode.InProgress) {
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -79,7 +87,7 @@
         return;
       }
 
-      if (mode === 'inProgressReview') {
+      if (mode === HomePageStoryMode.InProgressReview) {
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -101,7 +109,7 @@
         return;
       }
 
-      if (mode === 'microcycleComplete') {
+      if (mode === HomePageStoryMode.MicrocycleComplete) {
         // 6-microcycle mesocycle, 2 microcycles complete with reviews filled
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -114,7 +122,7 @@
         return;
       }
 
-      if (mode === 'microcycleCompleteBlocked') {
+      if (mode === HomePageStoryMode.MicrocycleCompleteBlocked) {
         // Same as microcycleComplete but reviews NOT filled — shows blocked state
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -126,7 +134,7 @@
         return;
       }
 
-      if (mode === 'microcycleCompleteDeload') {
+      if (mode === HomePageStoryMode.MicrocycleCompleteDeload) {
         // 6 microcycles, 3 complete with reviews filled. Performance drops in
         // microcycles 2 and 3 trigger the consecutive-drop deload rule when
         // the user clicks "Advance to Next Microcycle".
@@ -149,7 +157,7 @@
         return;
       }
 
-      if (mode === 'mesocycleStart') {
+      if (mode === HomePageStoryMode.MesocycleStart) {
         // Mesocycle exists with generated microcycles, but no sessions started
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -161,7 +169,7 @@
         return;
       }
 
-      if (mode === 'lateSession') {
+      if (mode === HomePageStoryMode.LateSession) {
         // Next session is 1 day late
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -174,7 +182,7 @@
         return;
       }
 
-      if (mode === 'severelyLateSession') {
+      if (mode === HomePageStoryMode.SeverelyLateSession) {
         // Next session is 4+ days late (started 25 days ago, 8 completed)
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
@@ -184,6 +192,95 @@
           completedSessionCount: 8
         });
         MesocycleMapServiceMock.fillLateFields(data);
+        return;
+      }
+
+      if (mode === HomePageStoryMode.FreeFormEmpty) {
+        // No mesocycle, no free-form sessions — just base data
+        return;
+      }
+
+      if (mode === HomePageStoryMode.FreeFormInProgress) {
+        // No mesocycle, one free-form session in progress with 2 exercises
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          exerciseCount: 2,
+          setsPerExercise: 1,
+          loggedSetCount: 1
+        });
+        return;
+      }
+
+      if (mode === HomePageStoryMode.FreeFormPlanned) {
+        // No mesocycle — two upcoming planned free-form sessions
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'Upper Body Day',
+          startTime: daysFromNow(1),
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 0,
+          plannedRepsPerSet: 10,
+          plannedWeightPerSet: 135
+        });
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'Lower Body Day',
+          startTime: daysFromNow(3),
+          exerciseCount: 4,
+          setsPerExercise: 2,
+          loggedSetCount: 0,
+          plannedRepsPerSet: 8,
+          plannedWeightPerSet: 185
+        });
+        return;
+      }
+
+      if (mode === HomePageStoryMode.FreeFormInProgressAndPlanned) {
+        // One session in progress + two planned — home section shows all three
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'Push Day',
+          startTime: daysAgo(0),
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 4
+        });
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'Pull Day',
+          startTime: daysFromNow(2),
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 0,
+          plannedRepsPerSet: 10,
+          plannedWeightPerSet: 135
+        });
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'Leg Day',
+          startTime: daysFromNow(4),
+          exerciseCount: 4,
+          setsPerExercise: 2,
+          loggedSetCount: 0,
+          plannedRepsPerSet: 8,
+          plannedWeightPerSet: 185
+        });
+        return;
+      }
+
+      if (mode === HomePageStoryMode.FreeFormWithMesocycle) {
+        // Active mesocycle with no session currently in progress + free-form in progress.
+        // The free-form hero card takes priority over the "Next Up" mesocycle recommendation.
+        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+          title: 'Hypertrophy Block',
+          cycleType: CycleType.MuscleGain,
+          microcycleCount: 4,
+          startDate: daysAgo(11),
+          completedSessionCount: 8
+        });
+        MesocycleMapServiceMock.fillLateFields(data);
+        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          title: 'March 28 Workout',
+          startTime: daysAgo(1),
+          exerciseCount: 3,
+          setsPerExercise: 3,
+          loggedSetCount: 4
+        });
         return;
       }
 

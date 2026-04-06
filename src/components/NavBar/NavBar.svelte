@@ -15,6 +15,7 @@
     IconStopwatch
   } from '@tabler/icons-svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import { navBarItems } from '$util/navInfo';
 
   let { currentPath }: { currentPath: string } = $props();
@@ -29,8 +30,15 @@
   };
 
   function getHref(itemUrl: string): string {
-    if (itemUrl === '/sessions' && mesocycleMapService.activeAndNextSessions.inProgressSession) {
-      return `/session?sessionId=${mesocycleMapService.activeAndNextSessions.inProgressSession._id}`;
+    if (itemUrl === '/sessions') {
+      const mesocycleSession = mesocycleMapService.activeAndNextSessions.inProgressSession;
+      if (mesocycleSession) {
+        return `/session?sessionId=${mesocycleSession._id}`;
+      }
+      const freeFormSession = sessionMapService.freeFormSessions.inProgress.at(0) ?? null;
+      if (freeFormSession) {
+        return `/session?sessionId=${freeFormSession._id}`;
+      }
     }
     return itemUrl;
   }

@@ -2,13 +2,15 @@ import { CycleType } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/mesocycleMapService.mock';
 import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-import { daysAgo } from '$testUtils/dateUtils';
+import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import routeState from './sbFullAppRouteState.svelte';
 
 export enum FullAppScenario {
   MidTraining = 'midTraining',
   FreshStart = 'freshStart',
+  FreeFormWorkout = 'freeFormWorkout',
   AllComplete = 'allComplete',
   ReviewPending = 'reviewPending',
   MesocycleStart = 'mesocycleStart',
@@ -42,11 +44,66 @@ export function setupScenario(scenario: FullAppScenario): void {
       data.microcycles[0].completedDate = new Date();
       MesocycleMapServiceMock.fillLateFields(data);
       MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+      // Completed free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Full Body — 5 days ago',
+        startTime: daysAgo(5),
+        complete: true,
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 9
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Full Body — 12 days ago',
+        startTime: daysAgo(12),
+        complete: true,
+        exerciseCount: 2,
+        setsPerExercise: 4,
+        loggedSetCount: 8
+      });
+      // In-progress free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Push Day',
+        startTime: daysAgo(0),
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 4
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Accessory Work',
+        startTime: daysAgo(1),
+        exerciseCount: 2,
+        setsPerExercise: 3,
+        loggedSetCount: 1
+      });
+      // Planned free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Pull Day',
+        startTime: daysFromNow(2),
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 0,
+        plannedRepsPerSet: 10,
+        plannedWeightPerSet: 135
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Leg Day',
+        startTime: daysFromNow(5),
+        exerciseCount: 4,
+        setsPerExercise: 2,
+        loggedSetCount: 0,
+        plannedRepsPerSet: 8,
+        plannedWeightPerSet: 185
+      });
       break;
     }
 
     case FullAppScenario.FreshStart:
       // Base data only — exercises, equipment, muscle groups. No mesocycle.
+      break;
+
+    case FullAppScenario.FreeFormWorkout:
+      setupFreeFormWorkoutScenario(baseData);
       break;
 
     case FullAppScenario.AllComplete: {
@@ -211,6 +268,9 @@ function setupDeloadTriggerScenario(baseData: MockBaseData): void {
  * Some exercises are shared across all 3 for continuity; the data includes
  * RSM, soreness, performance scores, and calibration documents.
  *
+ * Also includes several completed free-form sessions spread across the
+ * historical period, plus one in-progress free-form session.
+ *
  * @param baseData The base exercise/calibration/equipment data
  */
 function setupHistoricalDataScenario(baseData: MockBaseData): void {
@@ -251,4 +311,45 @@ function setupHistoricalDataScenario(baseData: MockBaseData): void {
       se.performanceScore = Math.max(0, 2 - mesoIndex);
     }
   }
+
+  // Completed free-form sessions spread across the historical period
+  const completedFreeFormConfigs: Array<{
+    daysAgoCount: number;
+    exerciseCount: number;
+    setsPerExercise: number;
+  }> = [
+    { daysAgoCount: 100, exerciseCount: 3, setsPerExercise: 3 },
+    { daysAgoCount: 62, exerciseCount: 2, setsPerExercise: 4 },
+    { daysAgoCount: 30, exerciseCount: 4, setsPerExercise: 3 },
+    { daysAgoCount: 10, exerciseCount: 3, setsPerExercise: 4 }
+  ];
+
+  for (const config of completedFreeFormConfigs) {
+    const startTime = daysAgo(config.daysAgoCount);
+    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+      title: sessionMapService.getFormattedSessionTitle(startTime),
+      startTime,
+      complete: true,
+      exerciseCount: config.exerciseCount,
+      setsPerExercise: config.setsPerExercise,
+      loggedSetCount: config.exerciseCount * config.setsPerExercise
+    });
+  }
+}
+
+/**
+ * Sets up a free-form workout scenario: no mesocycle, one in-progress
+ * free-form session with 2 exercises (first exercise partially logged),
+ * and navigates to that session.
+ *
+ * @param baseData The base exercise/calibration/equipment data
+ */
+function setupFreeFormWorkoutScenario(baseData: MockBaseData): void {
+  const session = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    exerciseCount: 2,
+    setsPerExercise: 3,
+    loggedSetCount: 2
+  });
+
+  routeState.navigate(`/session?sessionId=${session._id}`);
 }

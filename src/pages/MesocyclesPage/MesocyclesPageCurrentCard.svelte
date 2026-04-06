@@ -15,7 +15,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { IconChevronRight } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
-  import MesocycleCalendar from '$components/MesocycleCalendar/MesocycleCalendar.svelte';
+  import MesocycleCalendar from '$components/WorkoutCalendar/MesocycleCalendar/WorkoutMesocycleCalendar.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';

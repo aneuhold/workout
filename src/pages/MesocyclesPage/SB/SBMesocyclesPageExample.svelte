@@ -1,3 +1,10 @@
+<script lang="ts" module>
+  export enum MesocyclesPageStoryMode {
+    Default = 'default',
+    NoActive = 'noActive'
+  }
+</script>
+
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
@@ -6,11 +13,8 @@
   import MockData from '$testUtils/MockData';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
-  let {
-    storyMode = 'default'
-  }: {
-    storyMode?: 'default' | 'noActive';
-  } = $props();
+  let { storyMode = MesocyclesPageStoryMode.Default }: { storyMode?: MesocyclesPageStoryMode } =
+    $props();
 
   function daysAgo(n: number): Date {
     return DateService.addDays(new Date(), -n);
@@ -28,7 +32,7 @@
 
       const baseData = MockData.setupBaseData();
 
-      if (mode === 'default') {
+      if (mode === MesocyclesPageStoryMode.Default) {
         // Active mesocycle (started ~3 weeks ago, 8 completed sessions)
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
