@@ -7,12 +7,16 @@
 -->
 <script lang="ts">
   import type { WorkoutMesocycle, WorkoutMicrocycle } from '@aneuhold/core-ts-db-lib';
-  import { CycleType } from '@aneuhold/core-ts-db-lib';
-  import { IconMoon, IconSquareX, IconTrash } from '@tabler/icons-svelte';
+  import { CycleType, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
+  import { type DateValue, getLocalTimeZone } from '@internationalized/date';
+  import { IconCalendarEvent, IconMoon, IconSquareX, IconTrash } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
+  import { rescheduleMesocycleDialog } from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -26,6 +30,7 @@
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import Input from '$ui/Input/Input.svelte';
+  import { getMesocycleDurationDays, getRescheduleDisabledDateMatcher } from './mesocyclePageUtils';
 
   let {
     mesocycle,
@@ -65,6 +70,34 @@
   }
 
   /**
+   * Opens the reschedule dialog for this mesocycle.
+   */
+  function handleReschedule() {
+    const microcycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(mesocycle._id);
+    const currentStart = WorkoutMesocycleService.getProjectedStartDate(mesocycle, microcycles);
+    if (!currentStart) return;
+
+    const durationDays = getMesocycleDurationDays(mesocycle, microcycles);
+    const tz = getLocalTimeZone();
+    const disabledMatcher = getRescheduleDisabledDateMatcher(
+      mesocycle._id,
+      durationDays,
+      mesocycleMapService.allDocs,
+      (id) => microcycleMapService.getOrderedMicrocyclesForMesocycle(id)
+    );
+
+    rescheduleMesocycleDialog.open({
+      currentStartDate: currentStart,
+      mesocycleDurationDays: durationDays,
+      isDateDisabled: (dateValue: DateValue) => disabledMatcher(dateValue.toDate(tz)),
+      onReschedule: (newStartDate: Date) => {
+        const delta = DateService.getCalendarDaysBetween(currentStart, newStartDate);
+        mesocycleMapService.moveMesocycle(mesocycle._id, delta, false);
+      }
+    });
+  }
+
+  /**
    * Ends the mesocycle immediately.
    */
   function handleEndMesocycle() {
@@ -86,6 +119,12 @@
 </script>
 
 <OptionsButtonDropdownMenu ariaLabel="Mesocycle actions">
+  {#if isActive || isFuture}
+    <DropdownMenuItem onclick={handleReschedule}>
+      <IconCalendarEvent size={16} />
+      Reschedule
+    </DropdownMenuItem>
+  {/if}
   {#if isActive && mesocycle.cycleType !== CycleType.FreeForm}
     <DropdownMenuItem onclick={handleStartDeload}>
       <IconMoon size={16} />
