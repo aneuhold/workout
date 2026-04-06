@@ -31,3 +31,9 @@
   name="Free-Form + Mesocycle"
   args={{ storyMode: SessionsPageStoryMode.FreeFormWithMesocycle }}
 />
+
+<Story name="Planned Sessions" args={{ storyMode: SessionsPageStoryMode.PlannedSessions }} />
+
+<Story name="Mixed Free-Form" args={{ storyMode: SessionsPageStoryMode.MixedFreeForm }} />
+
+<Story name="Paginated Free-Form" args={{ storyMode: SessionsPageStoryMode.PaginatedFreeForm }} />

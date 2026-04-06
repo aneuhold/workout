@@ -164,7 +164,7 @@ export function deriveCardState(
   currentExerciseIndex: number,
   isExerciseDone: (seId: UUID) => boolean
 ): SessionPageExerciseCardState {
-  if (mode === SessionPageMode.Planning) return SessionPageExerciseCardState.Current;
+  if (mode === SessionPageMode.Planning) return SessionPageExerciseCardState.Future;
   if (mode === SessionPageMode.Review) {
     return exerciseHasAllSessionMetricsFilled(sessionExercises[index])
       ? SessionPageExerciseCardState.Completed

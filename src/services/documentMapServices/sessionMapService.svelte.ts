@@ -2,10 +2,12 @@ import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuho
 import {
   WorkoutSessionExerciseSchema,
   WorkoutSessionSchema,
-  WorkoutSetSchema
+  WorkoutSetSchema,
+  WorkoutSetService
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
+import { goto } from '$app/navigation';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -18,16 +20,37 @@ import setMapService from './setMapService.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
   /**
-   * Free-form sessions (no microcycle) categorized into in-progress and
-   * completed, sorted by startTime descending.
+   * Free-form sessions (no microcycle) categorized into planned, in-progress,
+   * and completed.
+   *
+   * - `planned`: incomplete sessions with no completed sets, sorted by
+   *   startTime ascending (nearest date first).
+   * - `inProgress`: incomplete sessions with at least one completed set, sorted
+   *   by startTime descending.
+   * - `completed`: complete sessions, sorted by startTime descending.
    */
   readonly freeFormSessions = $derived.by(() => {
-    const freeForm = this.allDocs.filter((s) => s.workoutMicrocycleId == null);
-    const inProgress = freeForm.find((s) => !s.complete) ?? null;
-    const completed = freeForm
-      .filter((s) => s.complete)
-      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-    return { inProgress, completed };
+    const planned: WorkoutSession[] = [];
+    const inProgress: WorkoutSession[] = [];
+    const completed: WorkoutSession[] = [];
+    for (const s of this.allDocs) {
+      if (!this.isFreeFormSession(s)) continue;
+      if (s.complete) {
+        completed.push(s);
+      } else if (
+        this.getOrderedSetsForSession(s).some((set) => WorkoutSetService.isCompleted(set))
+      ) {
+        inProgress.push(s);
+      } else {
+        planned.push(s);
+      }
+    }
+
+    planned.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    inProgress.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+    completed.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+
+    return { planned, inProgress, completed };
   });
 
   constructor() {
@@ -121,6 +144,15 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
     });
     this.addDoc(session);
     return session;
+  }
+
+  /**
+   * Creates a new free-form session and navigates to it in planning mode so the
+   * user can configure exercises and targets before the workout begins.
+   */
+  planNewFreeFormSession(): void {
+    const session = this.createFreeFormSession();
+    void goto(`/session?sessionId=${session._id}&planningMode=true`);
   }
 
   /**

@@ -3,7 +3,7 @@ import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/mesocycleMapService.mock';
 import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
 import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-import { daysAgo } from '$testUtils/dateUtils';
+import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import routeState from './sbFullAppRouteState.svelte';
 
@@ -44,6 +44,57 @@ export function setupScenario(scenario: FullAppScenario): void {
       data.microcycles[0].completedDate = new Date();
       MesocycleMapServiceMock.fillLateFields(data);
       MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+      // Completed free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Full Body — 5 days ago',
+        startTime: daysAgo(5),
+        complete: true,
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 9
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Full Body — 12 days ago',
+        startTime: daysAgo(12),
+        complete: true,
+        exerciseCount: 2,
+        setsPerExercise: 4,
+        loggedSetCount: 8
+      });
+      // In-progress free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Push Day',
+        startTime: daysAgo(0),
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 4
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Accessory Work',
+        startTime: daysAgo(1),
+        exerciseCount: 2,
+        setsPerExercise: 3,
+        loggedSetCount: 1
+      });
+      // Planned free-form sessions
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Pull Day',
+        startTime: daysFromNow(2),
+        exerciseCount: 3,
+        setsPerExercise: 3,
+        loggedSetCount: 0,
+        plannedRepsPerSet: 10,
+        plannedWeightPerSet: 135
+      });
+      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        title: 'Leg Day',
+        startTime: daysFromNow(5),
+        exerciseCount: 4,
+        setsPerExercise: 2,
+        loggedSetCount: 0,
+        plannedRepsPerSet: 8,
+        plannedWeightPerSet: 185
+      });
       break;
     }
 

@@ -18,6 +18,7 @@
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import SessionPageReorderDialog from '../SessionPageReorderDialog.svelte';
   import { SessionPageMode } from '../sessionPageTypes';
+  import SessionPageHeaderChangeStartDateDialog from './SessionPageHeaderChangeStartDateDialog.svelte';
   import SessionPageHeaderDeleteDialog from './SessionPageHeaderDeleteDialog.svelte';
   import SessionPageHeaderRenameDialog from './SessionPageHeaderRenameDialog.svelte';
 
@@ -38,6 +39,15 @@
   let renameDialogOpen = $state(false);
   let deleteDialogOpen = $state(false);
   let reorderDialogOpen = $state(false);
+  let changeStartDateDialogOpen = $state(false);
+
+  const formattedStartDate = $derived(
+    session?.startTime.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }) ?? ''
+  );
 
   const exerciseOrderItems = $derived.by(() => {
     if (!session) return [];
@@ -80,8 +90,13 @@
     <IconArrowLeft size={16} />
   </Button>
   <div class="flex items-center gap-2">
-    <div class="flex flex-1 flex-col">
-      <h1 class="truncate text-xl font-semibold">{title}</h1>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="flex flex-wrap items-baseline gap-x-2">
+        <h1 class="text-xl font-semibold">{title}</h1>
+        {#if session}
+          <span class="shrink-0 text-sm text-muted-foreground">{formattedStartDate}</span>
+        {/if}
+      </div>
       {#if description}
         <p class="text-sm text-muted-foreground">{description}</p>
       {/if}
@@ -101,6 +116,18 @@
         {#if mode === SessionPageMode.View}
           <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
         {/if}
+        {#if mode !== SessionPageMode.Planning}
+          <DropdownMenuItem onclick={() => (changeStartDateDialogOpen = true)}>
+            Change Start Date
+          </DropdownMenuItem>
+        {/if}
+        {#if mode !== SessionPageMode.Planning && !session.complete}
+          <DropdownMenuItem
+            onclick={() => goto(`/session?sessionId=${session._id}&planningMode=true`)}
+          >
+            Edit Targets
+          </DropdownMenuItem>
+        {/if}
         <DropdownMenuItem
           class="text-destructive focus:text-destructive"
           onclick={() => (deleteDialogOpen = true)}
@@ -118,6 +145,7 @@
 {#if session}
   <SessionPageHeaderRenameDialog bind:open={renameDialogOpen} {session} />
   <SessionPageHeaderDeleteDialog bind:open={deleteDialogOpen} {session} />
+  <SessionPageHeaderChangeStartDateDialog bind:open={changeStartDateDialogOpen} {session} />
 {/if}
 
 <SessionPageReorderDialog

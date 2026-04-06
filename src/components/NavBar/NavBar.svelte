@@ -35,7 +35,7 @@
       if (mesocycleSession) {
         return `/session?sessionId=${mesocycleSession._id}`;
       }
-      const freeFormSession = sessionMapService.freeFormSessions.inProgress;
+      const freeFormSession = sessionMapService.freeFormSessions.inProgress.at(0) ?? null;
       if (freeFormSession) {
         return `/session?sessionId=${freeFormSession._id}`;
       }

@@ -39,7 +39,8 @@
   const mesocycleTitle = $derived(activeMesocycle?.title || 'Untitled Mesocycle');
 
   const hasFreeForm = $derived(
-    sessionMapService.freeFormSessions.inProgress != null ||
+    sessionMapService.freeFormSessions.inProgress.length > 0 ||
+      sessionMapService.freeFormSessions.planned.length > 0 ||
       sessionMapService.freeFormSessions.completed.length > 0
   );
 
