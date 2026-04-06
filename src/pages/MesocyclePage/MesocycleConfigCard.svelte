@@ -228,24 +228,31 @@
 
     <div class="flex flex-col items-start gap-1.5">
       <Label>Start Date</Label>
-      <Popover bind:open={popoverOpen}>
-        <PopoverTrigger>
-          <Button variant="outline" {disabled} data-testid="start-date-trigger">
-            <IconCalendar size={16} />
-            {formattedDate}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent class="p-0">
-          <Calendar
-            type="single"
-            bind:value={calendarValue}
-            {isDateDisabled}
-            onValueChange={() => {
-              popoverOpen = false;
-            }}
-          />
-        </PopoverContent>
-      </Popover>
+      {#if disabled}
+        <Button variant="outline" disabled data-testid="start-date-trigger">
+          <IconCalendar size={16} />
+          {formattedDate}
+        </Button>
+      {:else}
+        <Popover bind:open={popoverOpen}>
+          <PopoverTrigger>
+            <Button variant="outline" data-testid="start-date-trigger">
+              <IconCalendar size={16} />
+              {formattedDate}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="p-0">
+            <Calendar
+              type="single"
+              bind:value={calendarValue}
+              {isDateDisabled}
+              onValueChange={() => {
+                popoverOpen = false;
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      {/if}
       {#if startDateHelperText}
         <span class="text-xs text-muted-foreground">{startDateHelperText}</span>
       {/if}
