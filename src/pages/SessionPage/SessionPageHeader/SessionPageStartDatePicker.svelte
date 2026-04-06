@@ -5,7 +5,7 @@
   a Popover, following the same pattern as MesocycleConfigCard.
 -->
 <script lang="ts">
-  import { type DateValue, fromDate, getLocalTimeZone } from '@internationalized/date';
+  import { fromDate, getLocalTimeZone } from '@internationalized/date';
   import { IconCalendar } from '@tabler/icons-svelte';
   import Button from '$ui/Button/Button.svelte';
   import Calendar from '$ui/Calendar/Calendar.svelte';
@@ -22,26 +22,12 @@
   } = $props();
 
   const tz = getLocalTimeZone();
-  let calendarValue = $state<DateValue | undefined>(undefined);
+  const calendarValue = $derived(fromDate(startTime, tz));
   let popoverOpen = $state(false);
-
-  // Initialize calendarValue from the startTime prop on first use.
-  // Uses $effect.pre so it runs before the DOM update.
-  $effect.pre(() => {
-    if (!calendarValue) {
-      calendarValue = fromDate(startTime, tz);
-    }
-  });
 
   const formattedDate = $derived(
     startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   );
-
-  $effect(() => {
-    if (calendarValue) {
-      onstartTimeChange(calendarValue.toDate(tz));
-    }
-  });
 </script>
 
 <div class="flex flex-col items-start gap-1">
@@ -56,9 +42,12 @@
     <PopoverContent class="p-0">
       <Calendar
         type="single"
-        bind:value={calendarValue}
-        onValueChange={() => {
+        value={calendarValue}
+        onValueChange={(value) => {
           popoverOpen = false;
+          if (value) {
+            onstartTimeChange(value.toDate(tz));
+          }
         }}
       />
     </PopoverContent>
