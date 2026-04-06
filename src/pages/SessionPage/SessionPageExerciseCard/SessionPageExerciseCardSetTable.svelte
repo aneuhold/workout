@@ -51,8 +51,8 @@
         : 'grid-cols-9'}"
   >
     <div class="col-span-1">#</div>
-    <div class="col-span-3">Weight</div>
-    <div class="col-span-3">Reps</div>
+    <div class="col-span-3">{mode === SessionPageMode.Planning ? 'Target Wt' : 'Weight'}</div>
+    <div class="col-span-3">{mode === SessionPageMode.Planning ? 'Target Reps' : 'Reps'}</div>
     {#if mode !== SessionPageMode.Planning}
       <div class="col-span-2">RIR</div>
     {/if}

@@ -17,7 +17,7 @@ export function getSetState(
   mode: SessionPageMode,
   sets: WorkoutSet[]
 ): SessionPageSetState {
-  if (mode === SessionPageMode.Planning) return SessionPageSetState.Current;
+  if (mode === SessionPageMode.Planning) return SessionPageSetState.Future;
   if (mode === SessionPageMode.Locked) return SessionPageSetState.Future;
   if (WorkoutSetService.isCompleted(set)) {
     return SessionPageSetState.Completed;
