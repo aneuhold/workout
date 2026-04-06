@@ -15,6 +15,7 @@
   import MesocyclesPageCurrentCard from './MesocyclesPageCurrentCard.svelte';
   import MesocyclesPageEmptyState from './MesocyclesPageEmptyState.svelte';
   import MesocyclesPageMesoCard from './MesocyclesPageMesoCard.svelte';
+  import MesocyclesPageSessionCalendarCard from './MesocyclesPageSessionCalendarCard.svelte';
 
   const {
     active: currentMesocycle,
@@ -58,6 +59,9 @@
   {:else if futureMesocycles.length === 0 && pastMesocycles.length === 0}
     <MesocyclesPageEmptyState />
   {/if}
+
+  <!-- Session calendar -->
+  <MesocyclesPageSessionCalendarCard />
 
   <!-- Future mesocycles -->
   {#if futureMesocycles.length > 0}
