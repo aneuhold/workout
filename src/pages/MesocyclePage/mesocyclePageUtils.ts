@@ -5,6 +5,7 @@ import type {
   WorkoutMuscleGroupVolumeCTO
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleSchema, WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
+import { DateService } from '@aneuhold/core-ts-lib';
 import type { UUID } from 'crypto';
 import mesocycleMapService, {
   type MesocycleChildDocs
@@ -148,4 +149,56 @@ export function getDefaultNewMesocycleStartDate(
     existingMesocycles,
     mesocycleToMicrocyclesMap
   );
+}
+
+/**
+ * Computes the total duration of a mesocycle in calendar days. Uses the
+ * actual microcycle date range when microcycles are available, falling back
+ * to the planned config otherwise.
+ *
+ * @param mesocycle The mesocycle document
+ * @param microcycles Ordered microcycles for the mesocycle
+ */
+export function getMesocycleDurationDays(
+  mesocycle: WorkoutMesocycle,
+  microcycles: WorkoutMicrocycle[]
+): number {
+  if (microcycles.length > 0) {
+    const firstMicro = microcycles[0];
+    const lastMicro = microcycles[microcycles.length - 1];
+    return DateService.getCalendarDaysBetween(firstMicro.startDate, lastMicro.endDate);
+  }
+  return (mesocycle.plannedMicrocycleCount ?? 0) * mesocycle.plannedMicrocycleLengthInDays;
+}
+
+/**
+ * Returns a date matcher function that disables dates which would cause the
+ * rescheduled mesocycle to overlap with any other mesocycle (including
+ * completed ones).
+ *
+ * @param mesocycleId The ID of the mesocycle being rescheduled (skipped in overlap check)
+ * @param durationDays The duration of the mesocycle in calendar days
+ * @param allMesocycles All mesocycles to check against
+ * @param getMicrocyclesForMesocycle Function that returns ordered microcycles for a mesocycle ID
+ */
+export function getRescheduleDisabledDateMatcher(
+  mesocycleId: UUID,
+  durationDays: number,
+  allMesocycles: WorkoutMesocycle[],
+  getMicrocyclesForMesocycle: (id: UUID) => WorkoutMicrocycle[]
+): (date: Date) => boolean {
+  return (date: Date): boolean => {
+    const candidateEnd = DateService.addDays(date, durationDays);
+    for (const m of allMesocycles) {
+      if (m._id === mesocycleId) continue;
+      const microcycles = getMicrocyclesForMesocycle(m._id);
+      const mStart = WorkoutMesocycleService.getProjectedStartDate(m, microcycles);
+      const mEnd = WorkoutMesocycleService.getProjectedEndDate(m, microcycles);
+      if (!mStart || !mEnd) continue;
+      if (date.getTime() < mEnd.getTime() && candidateEnd.getTime() > mStart.getTime()) {
+        return true;
+      }
+    }
+    return false;
+  };
 }
