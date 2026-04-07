@@ -138,7 +138,7 @@ describe('Unit Tests', () => {
   });
 
   describe('endMesocycle', () => {
-    it('should set completedDate on the mesocycle', () => {
+    it('should set completedDate to the last completed session date', () => {
       const baseData = MockData.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -147,16 +147,17 @@ describe('Unit Tests', () => {
         sessionsPerMicrocycle
       });
 
+      const completedSessions = data.sessions.filter((s) => s.complete);
+      const expectedDate = new Date(
+        Math.max(...completedSessions.map((s) => new Date(s.startTime).getTime()))
+      );
+
       const queryApiSpy = vi.spyOn(WorkoutAPIService, 'queryApi');
-      const before = Date.now();
       mesocycleMapService.endMesocycle(data.mesocycle._id);
-      const after = Date.now();
 
       const updatedMesocycle = mesocycleMapService.getDoc(data.mesocycle._id);
       expect(updatedMesocycle?.completedDate).toBeDefined();
-      const completedTime = updatedMesocycle?.completedDate?.getTime() ?? 0;
-      expect(completedTime).toBeGreaterThanOrEqual(before);
-      expect(completedTime).toBeLessThanOrEqual(after);
+      expect(updatedMesocycle?.completedDate?.getTime()).toBe(expectedDate.getTime());
 
       expect(queryApiSpy).toHaveBeenCalledOnce();
     });

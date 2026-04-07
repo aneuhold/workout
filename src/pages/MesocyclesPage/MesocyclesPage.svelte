@@ -33,9 +33,9 @@
 
 <div class="flex flex-col gap-4 p-4">
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-wrap items-center justify-between gap-2">
     <h1 class="text-xl font-semibold">Mesocycles</h1>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
       <Button variant="outline" size="sm" onclick={() => sessionMapService.planNewFreeFormSession()}
         >Plan Free-Form Workout</Button
       >
