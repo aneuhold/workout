@@ -191,6 +191,7 @@ export function getRescheduleDisabledDateMatcher(
     const candidateEnd = DateService.addDays(date, durationDays);
     for (const m of allMesocycles) {
       if (m._id === mesocycleId) continue;
+      if (m.completedDate != null) continue;
       const microcycles = getMicrocyclesForMesocycle(m._id);
       const mStart = WorkoutMesocycleService.getProjectedStartDate(m, microcycles);
       const mEnd = WorkoutMesocycleService.getProjectedEndDate(m, microcycles);

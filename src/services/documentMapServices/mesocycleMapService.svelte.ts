@@ -209,7 +209,8 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
 
   /**
    * Ends a mesocycle immediately, removing all incomplete sessions and their
-   * children. Sets the mesocycle's completedDate to the current date.
+   * children. Sets the mesocycle's completedDate to the last completed
+   * session's date (or now if no sessions were completed).
    *
    * @param mesocycleId The ID of the mesocycle to end.
    */
@@ -248,8 +249,16 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       return mcSessions.length > 0 && mcSessions.every((s) => incompleteSessionIds.has(s._id));
     });
 
+    // Use the latest completed session's start time as the completion date so the
+    // displayed date range matches actual training, not when the user tapped "End".
+    const completedSessions = docs.sessions.filter((s) => s.complete);
+    const lastCompletedDate =
+      completedSessions.length > 0
+        ? new Date(Math.max(...completedSessions.map((s) => new Date(s.startTime).getTime())))
+        : new Date();
+
     // Mutate the mesocycle in the store directly, then send the full doc as an update
-    mesocycle.completedDate = new Date();
+    mesocycle.completedDate = lastCompletedDate;
     const apiOptions = this.prepareDocsForSave({ update: [mesocycle] });
     this.batchChildDocSaves(apiOptions, {
       delete: {
