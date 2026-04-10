@@ -8,8 +8,6 @@ Use `pnpm` for all package management:
 
 - Dev server: `pnpm dev`
 - Build: `pnpm build`
-- Preview: `pnpm preview`
-- Storybook: `pnpm storybook`
 - Check: `pnpm check` (TypeScript + circular dependency check)
 - Lint: `pnpm lint` (ESLint)
 - Test: `pnpm test` (Vitest)
