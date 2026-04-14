@@ -367,7 +367,7 @@ class SessionPageService {
 
   /** Completes the session, checks for early deload recommendation, and navigates away. */
   handleCompleteSession(): void {
-    const { session, isFreeForm, mesocycle, microcycle } = this;
+    const { session, isFreeForm, sessionExercises, mesocycle, microcycle } = this;
     if (!session) return;
 
     sessionMapService.updateDoc(session._id, (doc) => {
@@ -376,6 +376,14 @@ class SessionPageService {
     });
 
     if (isFreeForm) {
+      // Auto-generate calibrations from the session's best sets so newly
+      // performed exercises stop showing the "not calibrated" warning.
+      // Mesocycle sessions defer this to mesocycleMapService.endMesocycle so
+      // all calibrations land in one batch at the end of the cycle.
+      sessionMapService.generateAutoCalibrationsForCompletedFreeFormSession(
+        session.userId,
+        sessionExercises
+      );
       void goto('/');
       return;
     }

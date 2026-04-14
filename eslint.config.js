@@ -6,7 +6,8 @@ export default [
   ...storybook.configs['flat/recommended'],
   {
     rules: {
-      // Extra rules here / overrides
+      // Disabling this because we have a bunch of dynamic routes
+      'svelte/no-navigation-without-resolve': 'off'
     }
   }
 ];
