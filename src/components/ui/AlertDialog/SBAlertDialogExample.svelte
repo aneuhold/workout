@@ -13,7 +13,7 @@
 
   let {
     triggerText = 'Open Dialog',
-    triggerVariant = 'outline' as ButtonVariant,
+    triggerVariant = 'outline',
     title = 'Are you absolutely sure?',
     description = 'This action cannot be undone.',
     showDescription = true,

@@ -1,9 +1,13 @@
 <script lang="ts">
   import { page } from '$app/state';
   import SessionPage from '$pages/SessionPage/SessionPage.svelte';
+  import { isUUID } from '$util/isUUID';
   import { sessionPageInfo } from './pageInfo';
 
-  let sessionId = $derived(page.url.searchParams.get('sessionId'));
+  let sessionId = $derived.by(() => {
+    const raw = page.url.searchParams.get('sessionId');
+    return isUUID(raw) ? raw : null;
+  });
   let planning = $derived(page.url.searchParams.get('planningMode') === 'true');
 </script>
 

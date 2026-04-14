@@ -35,6 +35,7 @@ if (process.env.VITEST) {
     // This is a crazy type because process.stderr.write can take different argument types
     return originalStderrWrite(
       chunk,
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       ...(args as [BufferEncoding?, ((err?: Error | null) => void)?])
     );
   };

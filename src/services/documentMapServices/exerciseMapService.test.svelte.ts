@@ -6,6 +6,7 @@ import {
   type WorkoutSet,
   WorkoutSetSchema
 } from '@aneuhold/core-ts-db-lib';
+import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MockData from '$testUtils/MockData';
@@ -255,7 +256,7 @@ describe('exerciseMapService CTO update methods', () => {
         const originalSets = sessionSets.filter(
           (s) => s.workoutSessionExerciseId === originalSE._id
         );
-        const newSetIds: string[] = [];
+        const newSetIds: UUID[] = [];
         for (const os of originalSets) {
           const deloadSet = WorkoutSetSchema.parse({
             ...os,
@@ -267,7 +268,7 @@ describe('exerciseMapService CTO update methods', () => {
           deloadSets.push(deloadSet);
           newSetIds.push(deloadSet._id);
         }
-        dse.setOrder = newSetIds as unknown as typeof dse.setOrder;
+        dse.setOrder = newSetIds;
       }
 
       exerciseMapService.updateCTOsForCompletedSession(deloadSessionExercises, deloadSets);

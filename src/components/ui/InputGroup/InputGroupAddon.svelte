@@ -42,7 +42,7 @@
   data-align={align}
   class={cn(inputGroupAddonVariants({ align }), className)}
   onclick={(e) => {
-    if ((e.target as HTMLElement).closest('button')) {
+    if (e.target instanceof HTMLElement && e.target.closest('button')) {
       return;
     }
     e.currentTarget.parentElement?.querySelector('input')?.focus();

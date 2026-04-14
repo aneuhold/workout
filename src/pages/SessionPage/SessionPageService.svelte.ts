@@ -33,7 +33,7 @@ import {
 class SessionPageService {
   // --- Private mutable state ---
 
-  #sessionId = $state<string | null>(null);
+  #sessionId = $state<UUID | null>(null);
   #planning = $state(false);
   #expandedMap = $state<Record<string, boolean | undefined>>({});
   #doneExerciseIds = new SvelteSet<UUID>();
@@ -43,9 +43,7 @@ class SessionPageService {
 
   // --- Session data (derived in dependency order) ---
 
-  session = $derived(
-    this.#sessionId ? sessionMapService.getDoc(this.#sessionId as UUID) : undefined
-  );
+  session = $derived(this.#sessionId ? sessionMapService.getDoc(this.#sessionId) : undefined);
 
   isFreeForm = $derived(this.session ? sessionMapService.isFreeFormSession(this.session) : false);
 
@@ -238,7 +236,7 @@ class SessionPageService {
    * @param sessionId The session ID to load, or null
    * @param planning Whether the page is in planning mode
    */
-  init(sessionId: string | null, planning: boolean): void {
+  init(sessionId: UUID | null, planning: boolean): void {
     if (sessionId !== this.#sessionId) {
       for (const key of Object.keys(this.#expandedMap)) {
         delete this.#expandedMap[key];

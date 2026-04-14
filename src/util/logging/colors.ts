@@ -29,11 +29,8 @@ export const getConsoleFormatForTag = (tag: string): ConsoleFormat => {
 };
 
 const isNodeRuntime = (): boolean => {
-  const nodeProcess = (globalThis as unknown as { process?: unknown }).process as
-    | { versions?: { node?: string } }
-    | undefined;
-
-  return Boolean(nodeProcess?.versions?.node);
+  if (typeof process === 'undefined') return false;
+  return Boolean(process.versions.node);
 };
 
 const pickDeterministicColorCode = (tag: string): number => {

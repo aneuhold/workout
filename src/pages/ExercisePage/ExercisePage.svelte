@@ -16,7 +16,7 @@
     exerciseId,
     isNew
   }: {
-    exerciseId: string | null;
+    exerciseId: UUID | null;
     isNew: boolean;
   } = $props();
 
@@ -26,7 +26,7 @@
     exerciseId ? exerciseMapService.allDocs.find((e) => e._id === exerciseId) : undefined
   );
 
-  let cto = $derived(exerciseId ? exerciseMapService.getCTO(exerciseId as UUID) : undefined);
+  let cto = $derived(exerciseId ? exerciseMapService.getCTO(exerciseId) : undefined);
 
   // --- Mode ---
 

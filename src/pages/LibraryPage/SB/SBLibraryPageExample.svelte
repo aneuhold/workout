@@ -22,7 +22,7 @@
         // Remove calibration and CTO for Dumbbell Lateral Raise so the library
         // shows at least one uncalibrated exercise with the warning state
         const lateralRaise = exerciseMapService.allDocs.find(
-          (e) => e.exerciseName === (MockDefaultExercise.DumbbellLateralRaise as string)
+          (e) => e.exerciseName === MockDefaultExercise.DumbbellLateralRaise.toString()
         );
         if (lateralRaise) {
           const filteredCalMap: DocumentMap<WorkoutExerciseCalibration> = {};

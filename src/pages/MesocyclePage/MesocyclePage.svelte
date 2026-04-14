@@ -44,19 +44,15 @@
   let {
     mesocycleId
   }: {
-    mesocycleId?: string | null;
+    mesocycleId?: UUID | null;
   } = $props();
 
   // --- Data ---
 
-  const mesocycle = $derived(
-    mesocycleId ? mesocycleMapService.getDoc(mesocycleId as UUID) : undefined
-  );
+  const mesocycle = $derived(mesocycleId ? mesocycleMapService.getDoc(mesocycleId) : undefined);
 
   const associatedDocs = $derived(
-    mesocycleId
-      ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycleId as UUID)
-      : null
+    mesocycleId ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycleId) : null
   );
 
   // --- Mode ---

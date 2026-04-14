@@ -60,7 +60,8 @@
   let errorMessage = $state('');
 
   function handleInput(event: Event) {
-    const raw = (event.target as HTMLInputElement).value;
+    if (!(event.target instanceof HTMLInputElement)) return;
+    const raw = event.target.value;
     displayValue = raw;
 
     if (type === 'number') {
