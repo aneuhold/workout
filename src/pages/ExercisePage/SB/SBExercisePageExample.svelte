@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type DocumentMap, type WorkoutExerciseCalibration } from '@aneuhold/core-ts-db-lib';
+  import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -19,7 +20,7 @@
     noFatigueGuess?: boolean;
   } = $props();
 
-  let exerciseId = $state<string | null>(null);
+  let exerciseId = $state<UUID | null>(null);
 
   $effect(() => {
     const creating = isNew;
@@ -50,7 +51,7 @@
       );
 
       if (missing) {
-        exerciseId = 'non-existent-id';
+        exerciseId = '00000000-0000-0000-0000-000000000000';
       } else if (noCal) {
         const exercise = exercises[0];
         exerciseId = exercise._id;

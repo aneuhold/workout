@@ -20,8 +20,14 @@
   import SessionsPage from '$pages/SessionsPage/SessionsPage.svelte';
   import SettingsPage from '$pages/SettingsPage/SettingsPage.svelte';
   import TimerPage from '$pages/TimerPage/TimerPage.svelte';
+  import { isUUID } from '$util/isUUID';
   import navInfo from '$util/navInfo';
   import routeState from './sbFullAppRouteState.svelte';
+
+  function uuidParam(name: string) {
+    const raw = routeState.searchParams.get(name);
+    return isUUID(raw) ? raw : null;
+  }
 </script>
 
 {#if routeState.path === navInfo.mesocycleNew.url}
@@ -34,15 +40,15 @@
   <SessionsPage />
 {:else if routeState.path === navInfo.session.url}
   <SessionPage
-    sessionId={routeState.searchParams.get('sessionId')}
+    sessionId={uuidParam('sessionId')}
     planning={routeState.searchParams.get('planningMode') === 'true'}
   />
 {:else if routeState.path === navInfo.mesocycle.url}
-  <MesocyclePage mesocycleId={routeState.searchParams.get('mesocycleId')} />
+  <MesocyclePage mesocycleId={uuidParam('mesocycleId')} />
 {:else if routeState.path === navInfo.mesocycles.url}
   <MesocyclesPage />
 {:else if routeState.path === navInfo.exercise.url}
-  <ExercisePage exerciseId={routeState.searchParams.get('exerciseId')} isNew={false} />
+  <ExercisePage exerciseId={uuidParam('exerciseId')} isNew={false} />
 {:else if routeState.path === navInfo.library.url}
   <LibraryPage initialTab={routeState.searchParams.get('tab')} />
 {:else if routeState.path === navInfo.settings.url}

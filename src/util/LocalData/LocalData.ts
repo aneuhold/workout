@@ -101,9 +101,9 @@ export default class LocalData {
   static setAndGetMesocycleMap(
     newMap: DocumentMap<WorkoutMesocycle>
   ): DocumentMap<WorkoutMesocycle> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.mesocycleMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutMesocycle>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.mesocycleMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get mesocycleMap(): DocumentMap<WorkoutMesocycle> | null {
@@ -115,9 +115,9 @@ export default class LocalData {
   static setAndGetMicrocycleMap(
     newMap: DocumentMap<WorkoutMicrocycle>
   ): DocumentMap<WorkoutMicrocycle> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.microcycleMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutMicrocycle>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.microcycleMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get microcycleMap(): DocumentMap<WorkoutMicrocycle> | null {
@@ -127,9 +127,9 @@ export default class LocalData {
   }
 
   static setAndGetSessionMap(newMap: DocumentMap<WorkoutSession>): DocumentMap<WorkoutSession> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.sessionMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutSession>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.sessionMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get sessionMap(): DocumentMap<WorkoutSession> | null {
@@ -139,12 +139,9 @@ export default class LocalData {
   static setAndGetSessionExerciseMap(
     newMap: DocumentMap<WorkoutSessionExercise>
   ): DocumentMap<WorkoutSessionExercise> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.sessionExerciseMap, stringifiedMap);
-    return JSON.parse(
-      stringifiedMap,
-      DateService.dateReviver
-    ) as DocumentMap<WorkoutSessionExercise>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.sessionExerciseMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get sessionExerciseMap(): DocumentMap<WorkoutSessionExercise> | null {
@@ -154,9 +151,9 @@ export default class LocalData {
   }
 
   static setAndGetSetMap(newMap: DocumentMap<WorkoutSet>): DocumentMap<WorkoutSet> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.setMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutSet>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.setMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get setMap(): DocumentMap<WorkoutSet> | null {
@@ -164,9 +161,9 @@ export default class LocalData {
   }
 
   static setAndGetExerciseMap(newMap: DocumentMap<WorkoutExercise>): DocumentMap<WorkoutExercise> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.exerciseMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutExercise>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.exerciseMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get exerciseMap(): DocumentMap<WorkoutExercise> | null {
@@ -176,12 +173,9 @@ export default class LocalData {
   static setAndGetExerciseCalibrationMap(
     newMap: DocumentMap<WorkoutExerciseCalibration>
   ): DocumentMap<WorkoutExerciseCalibration> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.exerciseCalibrationMap, stringifiedMap);
-    return JSON.parse(
-      stringifiedMap,
-      DateService.dateReviver
-    ) as DocumentMap<WorkoutExerciseCalibration>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.exerciseCalibrationMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get exerciseCalibrationMap(): DocumentMap<WorkoutExerciseCalibration> | null {
@@ -193,9 +187,9 @@ export default class LocalData {
   static setAndGetMuscleGroupMap(
     newMap: DocumentMap<WorkoutMuscleGroup>
   ): DocumentMap<WorkoutMuscleGroup> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.muscleGroupMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutMuscleGroup>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.muscleGroupMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get muscleGroupMap(): DocumentMap<WorkoutMuscleGroup> | null {
@@ -207,9 +201,9 @@ export default class LocalData {
   static setAndGetEquipmentTypeMap(
     newMap: DocumentMap<WorkoutEquipmentType>
   ): DocumentMap<WorkoutEquipmentType> {
-    const stringifiedMap = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.equipmentTypeMap, stringifiedMap);
-    return JSON.parse(stringifiedMap, DateService.dateReviver) as DocumentMap<WorkoutEquipmentType>;
+    const stringified = JSON.stringify(newMap);
+    this.storeValue(LocalData.storedKeyNames.equipmentTypeMap, stringified);
+    return LocalData.parseRevived(stringified);
   }
 
   static get equipmentTypeMap(): DocumentMap<WorkoutEquipmentType> | null {
@@ -247,6 +241,17 @@ export default class LocalData {
   }
 
   /**
+   * Deep-clones a serialized payload by parsing it with the date reviver.
+   * Centralizes the unavoidable cast for the localStorage system boundary.
+   *
+   * @param stringified The JSON string previously produced by JSON.stringify.
+   */
+  private static parseRevived<T>(stringified: string): T {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    return JSON.parse(stringified, DateService.dateReviver) as T;
+  }
+
+  /**
    * Gets a stored object with some basic validation. This should be setup
    * to use type guards.
    *
@@ -260,9 +265,9 @@ export default class LocalData {
       currentlyStoredValue !== 'undefined' &&
       typeof currentlyStoredValue === 'string'
     ) {
-      const jsonObject: unknown = JSON.parse(currentlyStoredValue, DateService.dateReviver);
-      if (typeof jsonObject === 'object') {
-        return jsonObject as ObjectType;
+      const parsed = LocalData.parseRevived<ObjectType>(currentlyStoredValue);
+      if (typeof parsed === 'object') {
+        return parsed;
       }
     }
     return null;

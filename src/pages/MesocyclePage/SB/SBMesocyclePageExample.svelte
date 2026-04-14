@@ -13,6 +13,7 @@
 <script lang="ts">
   import { CycleType, DocumentService } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
+  import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
   import MockData from '$testUtils/MockData';
@@ -28,7 +29,7 @@
     return DateService.addDays(new Date(), n);
   }
 
-  let mesocycleId = $state<string | null>(null);
+  let mesocycleId = $state<UUID | null>(null);
 
   $effect(() => {
     const mode = storyMode;
