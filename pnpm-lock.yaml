@@ -16,11 +16,11 @@ importers:
         version: 4.8.3
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.32
-        version: 3.0.32
+        specifier: ^3.0.33
+        version: 3.0.33
       '@aneuhold/core-ts-db-lib':
-        specifier: ^5.0.4
-        version: 5.0.4
+        specifier: ^5.0.5
+        version: 5.0.5
       '@aneuhold/core-ts-lib':
         specifier: ^2.4.3
         version: 2.4.3
@@ -242,11 +242,11 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.32':
-    resolution: {integrity: sha512-PQktAN5/F6/NgLyoAIUY02aRx7x71qOCRn3fttw7ZcfacI9/CDcho2FGQxgv9l5POq57clv4pEeOY6ssFqvVOQ==}
+  '@aneuhold/core-ts-api-lib@3.0.33':
+    resolution: {integrity: sha512-BJQ1/U2SaFKlxuAVQ0b6qHpLogg1l5lN8NKBfiOLg2oiRpzGsKpUX0Rw+Ai+TdPHyQ+L1QB+Iz4SJZeApHywyA==}
 
-  '@aneuhold/core-ts-db-lib@5.0.4':
-    resolution: {integrity: sha512-UNoVNbRVN9SPhU3XWqBxqOQXPjGVWrkbSLVM3+NkxxhJ1NWJeLZgwwRoWmprpvNAm/uEJgAbYyAF/2r/MoRh/g==}
+  '@aneuhold/core-ts-db-lib@5.0.5':
+    resolution: {integrity: sha512-rQbIThd5YDwgvMyNxRLt9sWX3orHLN95tU/1jWnyqYoYKuatn1IxSvU7Fjf9etKxBpM9s8Y+LcXSLmmJrGOoMQ==}
 
   '@aneuhold/core-ts-lib@2.4.3':
     resolution: {integrity: sha512-mwFWlrwa+lVO1QiABjkLCSziVBORxEQyyEdcPRgM2AXbP03Ce/gP9xASXAZAg0ZCzwRUV6jdhVXfYX5/yZqtwA==}
@@ -5708,12 +5708,12 @@ packages:
     peerDependencies:
       postcss: ^8.2.9
 
-  postcss@8.5.6:
-    resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
+  postcss@8.5.10:
+    resolution: {integrity: sha512-pMMHxBOZKFU6HgAZ4eyGnwXF/EvPGGqUr0MnZ5+99485wwW41kW91A4LOGxSHhgugZmSChL5AlElNdwlNgcnLQ==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.9:
-    resolution: {integrity: sha512-7a70Nsot+EMX9fFU3064K/kdHWZqGVY+BADLyXc8Dfv+mTLLVl6JzJpPaCZ2kQL9gIJvKXSLMHhqdRRjwQeFtw==}
+  postcss@8.5.6:
+    resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
   postgres-array@2.0.0:
@@ -6326,8 +6326,8 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
-  stdin-discarder@0.3.1:
-    resolution: {integrity: sha512-reExS1kSGoElkextOcPkel4NE99S0BWxjUHQeDFnR8S993JxpPX7KU4MNmO19NXhlJp+8dmdCbKQVNgLJh2teA==}
+  stdin-discarder@0.3.2:
+    resolution: {integrity: sha512-eCPu1qRxPVkl5605OTWF8Wz40b4Mf45NY5LQmVPQ599knfs5QhASUm9GbJ5BDMDOXgrnh0wyEdvzmL//YMlw0A==}
     engines: {node: '>=18'}
 
   steno@0.4.4:
@@ -7281,13 +7281,13 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.32':
+  '@aneuhold/core-ts-api-lib@3.0.33':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 5.0.4
+      '@aneuhold/core-ts-db-lib': 5.0.5
       '@aneuhold/core-ts-lib': 2.4.3
       bson: 7.2.0
 
-  '@aneuhold/core-ts-db-lib@5.0.4':
+  '@aneuhold/core-ts-db-lib@5.0.5':
     dependencies:
       '@aneuhold/core-ts-lib': 2.4.3
       uuid: 13.0.0
@@ -11377,9 +11377,9 @@ snapshots:
       esutils: 2.0.3
       globals: 16.5.0
       known-css-properties: 0.37.0
-      postcss: 8.5.9
-      postcss-load-config: 3.1.4(postcss@8.5.9)
-      postcss-safe-parser: 7.0.1(postcss@8.5.9)
+      postcss: 8.5.10
+      postcss-load-config: 3.1.4(postcss@8.5.10)
+      postcss-safe-parser: 7.0.1(postcss@8.5.10)
       semver: 7.7.4
       svelte-eslint-parser: 1.6.0(svelte@5.50.0)
     optionalDependencies:
@@ -13219,7 +13219,7 @@ snapshots:
       is-interactive: 2.0.0
       is-unicode-supported: 2.1.0
       log-symbols: 7.0.1
-      stdin-discarder: 0.3.1
+      stdin-discarder: 0.3.2
       string-width: 8.2.0
 
   os-browserify@0.3.0: {}
@@ -13425,20 +13425,20 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss-load-config@3.1.4(postcss@8.5.9):
+  postcss-load-config@3.1.4(postcss@8.5.10):
     dependencies:
       lilconfig: 2.1.0
       yaml: 1.10.3
     optionalDependencies:
-      postcss: 8.5.9
+      postcss: 8.5.10
 
-  postcss-safe-parser@7.0.1(postcss@8.5.9):
+  postcss-safe-parser@7.0.1(postcss@8.5.10):
     dependencies:
-      postcss: 8.5.9
+      postcss: 8.5.10
 
-  postcss-scss@4.0.9(postcss@8.5.9):
+  postcss-scss@4.0.9(postcss@8.5.10):
     dependencies:
-      postcss: 8.5.9
+      postcss: 8.5.10
 
   postcss-selector-parser@7.1.1:
     dependencies:
@@ -13452,13 +13452,13 @@ snapshots:
       postcss: 8.5.6
       quote-unquote: 1.0.0
 
-  postcss@8.5.6:
+  postcss@8.5.10:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postcss@8.5.9:
+  postcss@8.5.6:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
@@ -14233,7 +14233,7 @@ snapshots:
 
   stdin-discarder@0.2.2: {}
 
-  stdin-discarder@0.3.1: {}
+  stdin-discarder@0.3.2: {}
 
   steno@0.4.4:
     dependencies:
@@ -14429,8 +14429,8 @@ snapshots:
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
       espree: 10.4.0
-      postcss: 8.5.9
-      postcss-scss: 4.0.9(postcss@8.5.9)
+      postcss: 8.5.10
+      postcss-scss: 4.0.9(postcss@8.5.10)
       postcss-selector-parser: 7.1.1
       semver: 7.7.4
     optionalDependencies:
