@@ -43,6 +43,13 @@ export default class LocalData {
     equipmentTypeMap: `${this.PREFIX}equipmentTypeMap`
   };
 
+  /**
+   * Static initializer to cleanup old versions on module load.
+   */
+  static {
+    LocalData.cleanupOldVersions();
+  }
+
   private static storeValue(key: string, value: string) {
     if (this.localStorageAvailable) {
       window.localStorage.setItem(key, value);
@@ -238,6 +245,26 @@ export default class LocalData {
       return [];
     }
     return result;
+  }
+
+  /**
+   * Removes localStorage entries from previous prefix versions so they don't
+   * pile up when the prefix is bumped. Identifies legacy keys by the `v<n>-`
+   * shape; anything outside that pattern is left alone.
+   */
+  private static cleanupOldVersions(): void {
+    if (!this.localStorageAvailable) return;
+    const legacyKeyPattern = /^v\d+-/;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && legacyKeyPattern.test(key) && !key.startsWith(this.PREFIX)) {
+        keysToRemove.push(key);
+      }
+    }
+    for (const key of keysToRemove) {
+      window.localStorage.removeItem(key);
+    }
   }
 
   /**
