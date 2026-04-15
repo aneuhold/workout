@@ -84,7 +84,9 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
         bestCalibration: calibration,
         bestSet: null,
         lastSessionExercise: null,
-        lastSessionSets: []
+        lastSessionSets: [],
+        lastAccumulationSessionExercise: null,
+        lastAccumulationSessionSets: []
       });
       return;
     }
@@ -130,8 +132,9 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
   /**
    * Updates CTOs for exercises involved in a completed session. For each
-   * exercise, updates lastSessionExercise, lastSessionSets, and checks sets
-   * against bestSet. Caller passes data to avoid circular imports.
+   * exercise, updates lastSession* (any cycle type), lastAccumulationSession*
+   * (non-deload only), and checks sets against bestSet. Caller passes data to
+   * avoid circular imports.
    *
    * @param sessionExercises The session exercises from the completed session
    * @param sessionSets The sets from the completed session
@@ -157,18 +160,26 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       if (!cto) continue;
 
       const seSets = setsBySessionExerciseId.get(se._id);
+      const orderedSets = se.setOrder
+        .map((setId) => seSets?.find((s) => s._id === setId))
+        .filter((s): s is WorkoutSet => s != null);
 
-      // Skip deload exercises for lastSessionExercise/lastSessionSets — halved
-      // weights/reps are not meaningful progression baselines.
+      // Always update lastSession* if the new session exercise is more recent.
+      // This tracks the literal latest performance regardless of cycle type.
+      if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
+        cto.lastSessionExercise = se;
+        cto.lastSessionSets = orderedSets;
+      }
+
+      // Only update lastAccumulationSession* for non-deload exercises, since
+      // deload weights/reps are not meaningful progression baselines.
       if (!WorkoutSessionExerciseService.isDeloadExercise(seSets ?? [])) {
-        // Update lastSessionExercise if more recent
-        if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
-          cto.lastSessionExercise = se;
-
-          // Update lastSessionSets from setOrder (preserving order)
-          cto.lastSessionSets = se.setOrder
-            .map((setId) => seSets?.find((s) => s._id === setId))
-            .filter((s): s is WorkoutSet => s != null);
+        if (
+          !cto.lastAccumulationSessionExercise ||
+          se.createdDate > cto.lastAccumulationSessionExercise.createdDate
+        ) {
+          cto.lastAccumulationSessionExercise = se;
+          cto.lastAccumulationSessionSets = orderedSets;
         }
       }
 

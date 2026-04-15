@@ -106,7 +106,7 @@
   <Separator />
   <ExercisePageTrainingQuality
     initialFatigueGuess={exercise.initialFatigueGuess}
-    lastSessionExercise={cto?.lastSessionExercise ?? null}
+    lastAccumulationSessionExercise={cto?.lastAccumulationSessionExercise ?? null}
   />
 
   <!-- Section G: Actions -->

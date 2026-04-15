@@ -53,7 +53,11 @@ export type AddMockExerciseInfo = {
 
 type DerivedExerciseCTOFields = Pick<
   WorkoutExerciseCTO,
-  'bestSet' | 'lastSessionExercise' | 'lastSessionSets'
+  | 'bestSet'
+  | 'lastSessionExercise'
+  | 'lastSessionSets'
+  | 'lastAccumulationSessionExercise'
+  | 'lastAccumulationSessionSets'
 >;
 
 export default class ExerciseMapServiceMock {
@@ -323,9 +327,9 @@ export default class ExerciseMapServiceMock {
    * Builds exercise CTOs from calibrations, exercises, and equipment types,
    * and sets them on the exercise map service.
    *
-   * If session/set map services are populated, bestSet, lastSessionExercise,
-   * and lastSessionSets are derived automatically from those services. Otherwise,
-   * those fields default to null/empty.
+   * If session/set map services are populated, bestSet, lastSession*, and
+   * lastAccumulationSession* fields are derived automatically from those
+   * services. Otherwise, those fields default to null/empty.
    *
    * @param calibrations The calibrations to build CTOs from
    * @param exercises The exercises to match calibrations against
@@ -353,7 +357,9 @@ export default class ExerciseMapServiceMock {
         bestCalibration: cal,
         bestSet: derived?.bestSet ?? null,
         lastSessionExercise: derived?.lastSessionExercise ?? null,
-        lastSessionSets: derived?.lastSessionSets
+        lastSessionSets: derived?.lastSessionSets,
+        lastAccumulationSessionExercise: derived?.lastAccumulationSessionExercise ?? null,
+        lastAccumulationSessionSets: derived?.lastAccumulationSessionSets
       });
     });
     exerciseMapService.setExerciseCTOs(exerciseCTOs);
@@ -361,14 +367,16 @@ export default class ExerciseMapServiceMock {
   }
 
   /**
-   * Derives bestSet, lastSessionExercise, and lastSessionSets per exercise
+   * Derives bestSet, lastSession*, and lastAccumulationSession* per exercise
    * from the already-populated session, session exercise, and set map services.
    *
    * Uses intermediary maps keyed by exercise ID for efficient lookup:
    * - Best set: the completed set with the highest 1RM per exercise
    * - Last session exercise: the most recently created session exercise per
-   *   exercise (from completed sessions only)
-   * - Last session sets: all sets from that last session exercise's setOrder
+   *   exercise (from completed sessions, any cycle type)
+   * - Last accumulation session exercise: same as above, but excluding deload
+   *   sessions
+   * - Sets arrays: all sets from each variant's setOrder
    */
   private static deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
     const completedSessionIds = new Set<UUID>();
@@ -399,39 +407,53 @@ export default class ExerciseMapServiceMock {
       }
     }
 
-    // Find last session exercise per exercise (most recent from completed sessions)
-    const exerciseToLastSessionExerciseMap = new Map<UUID, WorkoutSessionExercise>();
+    // Find last session exercise (any cycle type) and last accumulation session
+    // exercise (non-deload) per exercise (most recent from completed sessions).
+    const exerciseToLastSEMap = new Map<UUID, WorkoutSessionExercise>();
+    const exerciseToLastAccumulationSEMap = new Map<UUID, WorkoutSessionExercise>();
 
     for (const se of sessionExerciseMapService.allDocs) {
       if (!completedSessionIds.has(se.workoutSessionId)) continue;
-      // Skip deload exercises — halved weights/reps are not meaningful progression baselines
       const seSets = setMapService.allDocs.filter((s) => s.workoutSessionExerciseId === se._id);
+
+      const currentLatest = exerciseToLastSEMap.get(se.workoutExerciseId);
+      if (!currentLatest || se.createdDate > currentLatest.createdDate) {
+        exerciseToLastSEMap.set(se.workoutExerciseId, se);
+      }
+
+      // Skip deload exercises for the accumulation variant
       if (WorkoutSessionExerciseService.isDeloadExercise(seSets)) continue;
-      const current = exerciseToLastSessionExerciseMap.get(se.workoutExerciseId);
-      if (!current || se.createdDate > current.createdDate) {
-        exerciseToLastSessionExerciseMap.set(se.workoutExerciseId, se);
+      const currentAccum = exerciseToLastAccumulationSEMap.get(se.workoutExerciseId);
+      if (!currentAccum || se.createdDate > currentAccum.createdDate) {
+        exerciseToLastAccumulationSEMap.set(se.workoutExerciseId, se);
       }
     }
+
+    const resolveSetsForSE = (se: WorkoutSessionExercise | null): WorkoutSet[] => {
+      if (!se) return [];
+      return se.setOrder
+        .map((setId) => setMapService.getDoc(setId))
+        .filter((s): s is WorkoutSet => s != null);
+    };
 
     // Build result map
     const result = new Map<UUID, DerivedExerciseCTOFields>();
     const allExerciseIds = new Set([
       ...bestSetByExercise.keys(),
-      ...exerciseToLastSessionExerciseMap.keys()
+      ...exerciseToLastSEMap.keys(),
+      ...exerciseToLastAccumulationSEMap.keys()
     ]);
 
     for (const exerciseId of allExerciseIds) {
-      const lastSE = exerciseToLastSessionExerciseMap.get(exerciseId) ?? null;
-      const lastSessionSets = lastSE
-        ? lastSE.setOrder
-            .map((setId) => setMapService.getDoc(setId))
-            .filter((s): s is WorkoutSet => s != null)
-        : [];
+      const lastSE = exerciseToLastSEMap.get(exerciseId) ?? null;
+      const lastAccumulationSE = exerciseToLastAccumulationSEMap.get(exerciseId) ?? null;
 
       result.set(exerciseId, {
         bestSet: bestSetByExercise.get(exerciseId) ?? null,
         lastSessionExercise: lastSE,
-        lastSessionSets
+        lastSessionSets: resolveSetsForSE(lastSE),
+        lastAccumulationSessionExercise: lastAccumulationSE,
+        lastAccumulationSessionSets: resolveSetsForSE(lastAccumulationSE)
       });
     }
 

@@ -46,6 +46,8 @@ describe('exerciseMapService CTO update methods', () => {
       expect(cto?.bestSet).toBeNull();
       expect(cto?.lastSessionExercise).toBeNull();
       expect(cto?.lastSessionSets).toEqual([]);
+      expect(cto?.lastAccumulationSessionExercise).toBeNull();
+      expect(cto?.lastAccumulationSessionSets).toEqual([]);
     });
 
     it('should replace bestCalibration when new cal has higher 1RM', () => {
@@ -200,7 +202,7 @@ describe('exerciseMapService CTO update methods', () => {
       expect(updatedCount).toBe(uniqueExerciseIds.size);
     });
 
-    it('should not overwrite lastSessionExercise/lastSessionSets for deload exercises', () => {
+    it('should preserve lastAccumulationSessionExercise but update lastSessionExercise for deload exercises', () => {
       const baseData = MockData.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -225,19 +227,19 @@ describe('exerciseMapService CTO update methods', () => {
       );
       const sessionSets = data.sets.filter((s) => s.workoutSessionId === completedSession._id);
 
-      // Run a normal update first to populate lastSessionExercise
+      // Run a normal update first to populate both lastSession* and lastAccumulationSession*
       exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sessionSets);
 
-      // Snapshot current CTO values
-      const snapshotBefore = new SvelteMap<
+      // Snapshot the accumulation variant so we can assert it's preserved
+      const accumulationBefore = new SvelteMap<
         string,
         { lastSE: WorkoutSessionExercise | null; lastSets: WorkoutSet[] }
       >();
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
-        snapshotBefore.set(se.workoutExerciseId, {
-          lastSE: cto?.lastSessionExercise ?? null,
-          lastSets: cto?.lastSessionSets ?? []
+        accumulationBefore.set(se.workoutExerciseId, {
+          lastSE: cto?.lastAccumulationSessionExercise ?? null,
+          lastSets: cto?.lastAccumulationSessionSets ?? []
         });
       }
 
@@ -273,14 +275,25 @@ describe('exerciseMapService CTO update methods', () => {
 
       exerciseMapService.updateCTOsForCompletedSession(deloadSessionExercises, deloadSets);
 
-      // Assert: lastSessionExercise/lastSessionSets unchanged
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
-        const before = snapshotBefore.get(se.workoutExerciseId);
-        expect(cto?.lastSessionExercise?._id).toBe(before?.lastSE?._id);
-        const ctoSetIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
-        const beforeSetIds = before?.lastSets.map((s) => s._id) ?? [];
-        expect(ctoSetIds).toEqual(beforeSetIds);
+        const accumBefore = accumulationBefore.get(se.workoutExerciseId);
+
+        // Accumulation variant should be unchanged — still the older non-deload session
+        expect(cto?.lastAccumulationSessionExercise?._id).toBe(accumBefore?.lastSE?._id);
+        const accumIds = cto?.lastAccumulationSessionSets.map((s) => s._id) ?? [];
+        const accumBeforeIds = accumBefore?.lastSets.map((s) => s._id) ?? [];
+        expect(accumIds).toEqual(accumBeforeIds);
+
+        // True-latest variant should now point at the newer deload session exercise
+        const matchingDeloadSE = deloadSessionExercises.find(
+          (dse) => dse.workoutExerciseId === se.workoutExerciseId
+        );
+        expect(matchingDeloadSE).toBeDefined();
+        if (!matchingDeloadSE) continue;
+        expect(cto?.lastSessionExercise?._id).toBe(matchingDeloadSE._id);
+        const latestIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
+        expect(latestIds).toEqual(matchingDeloadSE.setOrder);
       }
     });
 

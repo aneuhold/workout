@@ -18,23 +18,30 @@
 
   let {
     initialFatigueGuess,
-    lastSessionExercise
+    lastAccumulationSessionExercise
   }: {
     initialFatigueGuess: Fatigue | undefined;
-    lastSessionExercise: WorkoutSessionExercise | null;
+    lastAccumulationSessionExercise: WorkoutSessionExercise | null;
   } = $props();
 
   let rsmTotal = $derived(
-    lastSessionExercise ? WorkoutSFRService.getRsmTotal(lastSessionExercise.rsm) : null
+    lastAccumulationSessionExercise
+      ? WorkoutSFRService.getRsmTotal(lastAccumulationSessionExercise.rsm)
+      : null
   );
 
   let fatigueTotal = $derived(
-    lastSessionExercise ? WorkoutSFRService.getFatigueTotal(lastSessionExercise.fatigue) : null
+    lastAccumulationSessionExercise
+      ? WorkoutSFRService.getFatigueTotal(lastAccumulationSessionExercise.fatigue)
+      : null
   );
 
   let sfr = $derived(
-    lastSessionExercise
-      ? WorkoutSFRService.getSFR(lastSessionExercise.rsm, lastSessionExercise.fatigue)
+    lastAccumulationSessionExercise
+      ? WorkoutSFRService.getSFR(
+          lastAccumulationSessionExercise.rsm,
+          lastAccumulationSessionExercise.fatigue
+        )
       : null
   );
 
@@ -50,7 +57,9 @@
   );
 
   let sessionDateStr = $derived(
-    lastSessionExercise ? new Date(lastSessionExercise.createdDate).toLocaleDateString() : null
+    lastAccumulationSessionExercise
+      ? new Date(lastAccumulationSessionExercise.createdDate).toLocaleDateString()
+      : null
   );
 </script>
 
@@ -64,7 +73,7 @@
     </InfoPopover>
   </div>
 
-  {#if lastSessionExercise}
+  {#if lastAccumulationSessionExercise}
     <!-- Date source -->
     <span class="text-xs text-muted-foreground">From session on {sessionDateStr}</span>
 
@@ -113,15 +122,17 @@
       <div class="grid grid-cols-3 gap-2 text-center text-sm">
         <div>
           <span class="text-xs text-muted-foreground">Mind-Muscle</span>
-          <p class="font-medium">{lastSessionExercise.rsm?.mindMuscleConnection ?? '—'}</p>
+          <p class="font-medium">
+            {lastAccumulationSessionExercise.rsm?.mindMuscleConnection ?? '—'}
+          </p>
         </div>
         <div>
           <span class="text-xs text-muted-foreground">Pump</span>
-          <p class="font-medium">{lastSessionExercise.rsm?.pump ?? '—'}</p>
+          <p class="font-medium">{lastAccumulationSessionExercise.rsm?.pump ?? '—'}</p>
         </div>
         <div>
           <span class="text-xs text-muted-foreground">Disruption</span>
-          <p class="font-medium">{lastSessionExercise.rsm?.disruption ?? '—'}</p>
+          <p class="font-medium">{lastAccumulationSessionExercise.rsm?.disruption ?? '—'}</p>
         </div>
       </div>
     </div>
@@ -147,17 +158,19 @@
         <div>
           <span class="text-xs text-muted-foreground">Joint</span>
           <p class="font-medium">
-            {lastSessionExercise.fatigue?.jointAndTissueDisruption ?? '—'}
+            {lastAccumulationSessionExercise.fatigue?.jointAndTissueDisruption ?? '—'}
           </p>
         </div>
         <div>
           <span class="text-xs text-muted-foreground">Effort</span>
-          <p class="font-medium">{lastSessionExercise.fatigue?.perceivedEffort ?? '—'}</p>
+          <p class="font-medium">
+            {lastAccumulationSessionExercise.fatigue?.perceivedEffort ?? '—'}
+          </p>
         </div>
         <div>
           <span class="text-xs text-muted-foreground">Unused</span>
           <p class="font-medium">
-            {lastSessionExercise.fatigue?.unusedMusclePerformance ?? '—'}
+            {lastAccumulationSessionExercise.fatigue?.unusedMusclePerformance ?? '—'}
           </p>
         </div>
       </div>
@@ -168,7 +181,7 @@
       <div class="flex items-center gap-1.5">
         <div>
           <span class="text-xs text-muted-foreground">Soreness</span>
-          <p class="font-medium">{lastSessionExercise.sorenessScore ?? '—'}/3</p>
+          <p class="font-medium">{lastAccumulationSessionExercise.sorenessScore ?? '—'}/3</p>
         </div>
         <InfoPopover>
           <p class="mb-1 font-medium">Soreness Score (0–3)</p>
@@ -183,7 +196,7 @@
       <div class="flex items-center gap-1.5">
         <div>
           <span class="text-xs text-muted-foreground">Performance</span>
-          <p class="font-medium">{lastSessionExercise.performanceScore ?? '—'}/3</p>
+          <p class="font-medium">{lastAccumulationSessionExercise.performanceScore ?? '—'}/3</p>
         </div>
         <InfoPopover>
           <p class="mb-1 font-medium">Performance Score (0–3)</p>
