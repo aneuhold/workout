@@ -262,13 +262,11 @@
           ? 'col-span-6'
           : 'col-span-8'} flex gap-3 text-xs text-muted-foreground"
     >
-      {#if lastSet}<span
-          >Last: {lastSet.actualWeight ?? lastSet.plannedWeight}lb x {lastSet.actualReps ??
-            lastSet.plannedReps}</span
+      {#if lastSet?.actualWeight && lastSet.actualReps}<span
+          >Last: {lastSet.actualWeight}lb x {lastSet.actualReps}</span
         >{/if}
-      {#if bestSet}<span
-          >Best: {bestSet.actualWeight ?? bestSet.plannedWeight}lb x {bestSet.actualReps ??
-            bestSet.plannedReps}</span
+      {#if bestSet?.actualWeight && bestSet.actualReps}<span
+          >Best: {bestSet.actualWeight}lb x {bestSet.actualReps}</span
         >{/if}
     </div>
   </div>
