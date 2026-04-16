@@ -420,9 +420,9 @@ class SessionPageService {
     this.#reviewConfirmed = true;
   }
 
-  /** Navigates to the sessions list (used in planning mode). */
+  /** Just goes back, in case they came from a current session, or the session page. */
   handleDonePlanning(): void {
-    void goto('/sessions');
+    history.back();
   }
 }
 
