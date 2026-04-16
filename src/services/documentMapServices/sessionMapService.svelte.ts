@@ -19,8 +19,10 @@ import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
 import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
 import exerciseMapService from './exerciseMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
@@ -70,7 +72,6 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 
   override updateDoc(docId: UUID, mutator: Updater<WorkoutSession>): void {
-    const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
     const wasComplete = this.getDoc(docId)?.complete ?? false;
     super.updateDoc(docId, mutator, ctoGet);
     const session = this.getDoc(docId);

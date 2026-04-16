@@ -16,8 +16,10 @@ import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
 import equipmentTypeMapService from './equipmentTypeMapService.svelte';
 
 class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise> {
@@ -59,6 +61,33 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       map[cto._id] = cto;
     }
     this.exerciseCTOMapState = map;
+  }
+
+  /**
+   * Persists a newly created exercise and seeds a matching CTO in local
+   * state so downstream features (best set tracking, auto-calibration
+   * generation, last-session lookups) find a CTO for the exercise without
+   * waiting for the server round-trip. No-op if the exercise's equipment
+   * type can't be resolved.
+   *
+   * @param exercise The new exercise to persist
+   */
+  createNewExercise(exercise: WorkoutExercise): void {
+    const equipmentType = equipmentTypeMapService.getDoc(exercise.workoutEquipmentTypeId);
+    if (!equipmentType) return;
+
+    this.addDoc(exercise, ctoGet);
+
+    this.exerciseCTOMapState[exercise._id] = WorkoutExerciseCTOSchema.parse({
+      ...exercise,
+      equipmentType,
+      bestCalibration: null,
+      bestSet: null,
+      lastSessionExercise: null,
+      lastSessionSets: [],
+      lastAccumulationSessionExercise: null,
+      lastAccumulationSessionSets: []
+    });
   }
 
   /**
@@ -202,7 +231,6 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   }
 
   override deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
-    const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
     super.deleteDoc(docId, get ?? ctoGet);
     this.removeCTO(docId);
   }

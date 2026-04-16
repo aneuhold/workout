@@ -1,7 +1,9 @@
 import {
   DocumentService,
+  ExerciseRepRange,
   WorkoutExerciseCalibrationSchema,
   WorkoutExerciseCalibrationService,
+  WorkoutExerciseSchema,
   type WorkoutSessionExercise,
   type WorkoutSet,
   WorkoutSetSchema
@@ -99,6 +101,69 @@ describe('exerciseMapService CTO update methods', () => {
 
       const updatedCTO = exerciseMapService.getCTO(exercise._id);
       expect(updatedCTO?.bestCalibration?._id).toBe(originalCalId);
+    });
+  });
+
+  describe('createNewExercise', () => {
+    it('should seed a CTO with null best fields for a brand-new exercise', () => {
+      const baseData = MockData.setupBaseData();
+      const equipmentType = baseData.equipmentTypes[0];
+
+      const newExercise = WorkoutExerciseSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        exerciseName: 'Totally New Exercise',
+        workoutEquipmentTypeId: equipmentType._id,
+        repRange: ExerciseRepRange.Medium,
+        primaryMuscleGroups: [],
+        secondaryMuscleGroups: [],
+        initialFatigueGuess: {}
+      });
+
+      expect(exerciseMapService.getCTO(newExercise._id)).toBeUndefined();
+
+      exerciseMapService.createNewExercise(newExercise);
+
+      const cto = exerciseMapService.getCTO(newExercise._id);
+      expect(cto).toBeDefined();
+      expect(cto?._id).toBe(newExercise._id);
+      expect(cto?.equipmentType._id).toBe(equipmentType._id);
+      expect(cto?.bestCalibration).toBeNull();
+      expect(cto?.bestSet).toBeNull();
+      expect(cto?.lastSessionExercise).toBeNull();
+      expect(cto?.lastSessionSets).toEqual([]);
+      expect(cto?.lastAccumulationSessionExercise).toBeNull();
+      expect(cto?.lastAccumulationSessionSets).toEqual([]);
+      expect(exerciseMapService.getDoc(newExercise._id)).toBeDefined();
+    });
+
+    it('should allow updateCTOBestSet to take effect on the seeded CTO', () => {
+      const baseData = MockData.setupBaseData();
+      const equipmentType = baseData.equipmentTypes[0];
+
+      const newExercise = WorkoutExerciseSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        exerciseName: 'First-Time Exercise',
+        workoutEquipmentTypeId: equipmentType._id,
+        repRange: ExerciseRepRange.Heavy,
+        primaryMuscleGroups: [],
+        secondaryMuscleGroups: [],
+        initialFatigueGuess: {}
+      });
+
+      exerciseMapService.createNewExercise(newExercise);
+
+      const loggedSet = WorkoutSetSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        workoutExerciseId: newExercise._id,
+        workoutSessionExerciseId: DocumentService.generateID(),
+        workoutSessionId: DocumentService.generateID(),
+        actualWeight: 225,
+        actualReps: 5
+      });
+
+      exerciseMapService.updateCTOBestSet(loggedSet);
+
+      expect(exerciseMapService.getCTO(newExercise._id)?.bestSet?._id).toBe(loggedSet._id);
     });
   });
 

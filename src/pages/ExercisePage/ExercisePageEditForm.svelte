@@ -148,7 +148,7 @@
 
     if (isNew) {
       const doc = WorkoutExerciseSchema.parse(formData);
-      exerciseMapService.addDoc(doc);
+      exerciseMapService.createNewExercise(doc);
       goto(`/exercise?exerciseId=${doc._id}`, { replaceState: true });
     } else if (exercise) {
       const parsed = WorkoutExerciseSchema.parse({ ...formData, _id: exercise._id });

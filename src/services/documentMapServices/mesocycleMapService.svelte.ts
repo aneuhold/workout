@@ -19,8 +19,10 @@ import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
 import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
 import exerciseMapService from './exerciseMapService.svelte';
 import microcycleMapService from './microcycleMapService.svelte';
@@ -280,7 +282,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       exerciseCalibrationMapService.prepareDocsForSave(
         {
           insert: newCalibrations,
-          get: { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } }
+          get: ctoGet
         },
         apiOptions
       );

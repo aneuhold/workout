@@ -3,11 +3,11 @@ import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
 import exerciseMapService from './exerciseMapService.svelte';
-
-const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
 
 class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   constructor() {
