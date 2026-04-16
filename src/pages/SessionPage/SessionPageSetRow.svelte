@@ -18,14 +18,15 @@
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
-  import { SessionPageMode, SessionPageSetState, type SetPreview } from './sessionPageTypes';
+  import { SessionPageMode, SessionPageSetState } from './sessionPageTypes';
 
   let {
     set,
     setNumber,
     setState,
     mode,
-    preview,
+    bestSet,
+    lastSet,
     onRemove,
     onLog,
     onEdit,
@@ -35,7 +36,8 @@
     setNumber: number;
     setState: SessionPageSetState;
     mode: SessionPageMode;
-    preview?: SetPreview;
+    bestSet?: WorkoutSet;
+    lastSet?: WorkoutSet;
     onRemove?: () => void;
     onLog: (weight: number, reps: number, rir: number | null) => void;
     onEdit: (weight: number, reps: number, rir: number | null) => void;
@@ -232,7 +234,7 @@
   </div>
 {/if}
 
-{#if showPreviewLines && (preview?.best || preview?.last)}
+{#if showPreviewLines && (bestSet || lastSet)}
   <div
     class="grid gap-1.5 px-2 pb-0.5 {isActive
       ? 'grid-cols-12'
@@ -248,8 +250,14 @@
           ? 'col-span-6'
           : 'col-span-8'} flex gap-3 text-xs text-muted-foreground"
     >
-      {#if preview.last}<span>Last: {preview.last.weight}lb x {preview.last.reps}</span>{/if}
-      {#if preview.best}<span>Best: {preview.best.weight}lb x {preview.best.reps}</span>{/if}
+      {#if lastSet}<span
+          >Last: {lastSet.actualWeight ?? lastSet.plannedWeight}lb x {lastSet.actualReps ??
+            lastSet.plannedReps}</span
+        >{/if}
+      {#if bestSet}<span
+          >Best: {bestSet.actualWeight ?? bestSet.plannedWeight}lb x {bestSet.actualReps ??
+            bestSet.plannedReps}</span
+        >{/if}
     </div>
   </div>
 {/if}

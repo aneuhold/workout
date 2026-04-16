@@ -9,7 +9,7 @@
   import type { UUID } from 'crypto';
   import Button from '$ui/Button/Button.svelte';
   import SessionPageSetRow from '../SessionPageSetRow.svelte';
-  import { SessionPageMode, type SetPreview } from '../sessionPageTypes';
+  import { SessionPageMode } from '../sessionPageTypes';
   import { getSetState } from './exerciseCardUtils';
 
   let {
@@ -18,7 +18,8 @@
     isDeload,
     mode,
     freeFormEditable,
-    setPreviews = [],
+    bestSets = [],
+    lastSets = [],
     onAddSet,
     onRemoveSet,
     onLogSet,
@@ -30,7 +31,8 @@
     isDeload: boolean;
     mode: SessionPageMode;
     freeFormEditable: boolean;
-    setPreviews?: SetPreview[];
+    bestSets?: WorkoutSet[];
+    lastSets?: WorkoutSet[];
     onAddSet?: () => void;
     onRemoveSet?: (setId: UUID) => void;
     onLogSet: (set: WorkoutSet, weight: number, reps: number, rir: number | null) => void;
@@ -68,7 +70,8 @@
       setNumber={i + 1}
       setState={getSetState(set, i, mode, sets)}
       {mode}
-      preview={setPreviews[i]}
+      bestSet={bestSets[i]}
+      lastSet={lastSets[i]}
       onRemove={freeFormEditable && sets.length > 1 ? () => onRemoveSet?.(set._id) : undefined}
       onLog={(weight, reps, rir) => onLogSet(set, weight, reps, rir)}
       onEdit={(weight, reps, rir) => onEditSet(set, weight, reps, rir)}

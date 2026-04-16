@@ -40,6 +40,7 @@
   // --- Per-exercise derived state ---
 
   let exercise = $derived(exerciseMapService.getDoc(sessionExercise.workoutExerciseId));
+  let exerciseCTO = $derived(exerciseMapService.getCTO(sessionExercise.workoutExerciseId));
   let sets = $derived(
     sessionExercise.setOrder
       .map((id) => setMapService.getDoc(id))
@@ -59,6 +60,13 @@
 
   let mode = $derived(sessionPageService.mode);
   let isFreeForm = $derived(sessionPageService.isFreeForm);
+  let bestSets = $derived.by((): WorkoutSet[] => {
+    if (!isFreeForm || !exerciseCTO?.bestSet) return [];
+    const se = sessionExerciseMapService.getDoc(exerciseCTO.bestSet.workoutSessionExerciseId);
+    if (!se) return [];
+    return sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
+  });
+  let lastSets = $derived(isFreeForm ? (exerciseCTO?.lastSessionSets ?? []) : []);
   let allSetsLogged = $derived(sessionPageService.allSetsLogged);
   let cardState = $derived(sessionPageService.getCardState(index));
   let expanded = $derived(sessionPageService.isExpanded(sessionExercise._id));
@@ -159,6 +167,8 @@
           {isDeload}
           {mode}
           {freeFormEditable}
+          {bestSets}
+          {lastSets}
           onAddSet={() => sessionExerciseMapService.addSetToExercise(sessionExercise._id)}
           onRemoveSet={(setId) =>
             sessionExerciseMapService.removeSetFromExercise(sessionExercise._id, setId)}
