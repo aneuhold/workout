@@ -44,9 +44,21 @@
     onPlannedChange?: (weight: number | undefined, reps: number | undefined) => void;
   } = $props();
 
-  let weight = $derived<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
-  let reps = $derived<number | undefined>(set.actualReps ?? set.plannedReps ?? undefined);
-  let rir = $derived<number | undefined>(set.rir ?? set.plannedRir ?? undefined);
+  let weight = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedWeight ?? undefined)
+      : (set.actualWeight ?? set.plannedWeight ?? undefined)
+  );
+  let reps = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedReps ?? undefined)
+      : (set.actualReps ?? set.plannedReps ?? undefined)
+  );
+  let rir = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedRir ?? undefined)
+      : (set.rir ?? set.plannedRir ?? undefined)
+  );
 
   let dialogOpen = $state(false);
 
