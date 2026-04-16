@@ -1,11 +1,14 @@
 import {
   DocumentService,
+  ExerciseRepRange,
   WorkoutExerciseCalibrationSchema,
   WorkoutExerciseCalibrationService,
+  WorkoutExerciseSchema,
   type WorkoutSessionExercise,
   type WorkoutSet,
   WorkoutSetSchema
 } from '@aneuhold/core-ts-db-lib';
+import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MockData from '$testUtils/MockData';
@@ -45,6 +48,8 @@ describe('exerciseMapService CTO update methods', () => {
       expect(cto?.bestSet).toBeNull();
       expect(cto?.lastSessionExercise).toBeNull();
       expect(cto?.lastSessionSets).toEqual([]);
+      expect(cto?.lastAccumulationSessionExercise).toBeNull();
+      expect(cto?.lastAccumulationSessionSets).toEqual([]);
     });
 
     it('should replace bestCalibration when new cal has higher 1RM', () => {
@@ -96,6 +101,69 @@ describe('exerciseMapService CTO update methods', () => {
 
       const updatedCTO = exerciseMapService.getCTO(exercise._id);
       expect(updatedCTO?.bestCalibration?._id).toBe(originalCalId);
+    });
+  });
+
+  describe('createNewExercise', () => {
+    it('should seed a CTO with null best fields for a brand-new exercise', () => {
+      const baseData = MockData.setupBaseData();
+      const equipmentType = baseData.equipmentTypes[0];
+
+      const newExercise = WorkoutExerciseSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        exerciseName: 'Totally New Exercise',
+        workoutEquipmentTypeId: equipmentType._id,
+        repRange: ExerciseRepRange.Medium,
+        primaryMuscleGroups: [],
+        secondaryMuscleGroups: [],
+        initialFatigueGuess: {}
+      });
+
+      expect(exerciseMapService.getCTO(newExercise._id)).toBeUndefined();
+
+      exerciseMapService.createNewExercise(newExercise);
+
+      const cto = exerciseMapService.getCTO(newExercise._id);
+      expect(cto).toBeDefined();
+      expect(cto?._id).toBe(newExercise._id);
+      expect(cto?.equipmentType._id).toBe(equipmentType._id);
+      expect(cto?.bestCalibration).toBeNull();
+      expect(cto?.bestSet).toBeNull();
+      expect(cto?.lastSessionExercise).toBeNull();
+      expect(cto?.lastSessionSets).toEqual([]);
+      expect(cto?.lastAccumulationSessionExercise).toBeNull();
+      expect(cto?.lastAccumulationSessionSets).toEqual([]);
+      expect(exerciseMapService.getDoc(newExercise._id)).toBeDefined();
+    });
+
+    it('should allow updateCTOBestSet to take effect on the seeded CTO', () => {
+      const baseData = MockData.setupBaseData();
+      const equipmentType = baseData.equipmentTypes[0];
+
+      const newExercise = WorkoutExerciseSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        exerciseName: 'First-Time Exercise',
+        workoutEquipmentTypeId: equipmentType._id,
+        repRange: ExerciseRepRange.Heavy,
+        primaryMuscleGroups: [],
+        secondaryMuscleGroups: [],
+        initialFatigueGuess: {}
+      });
+
+      exerciseMapService.createNewExercise(newExercise);
+
+      const loggedSet = WorkoutSetSchema.parse({
+        userId: TestUsers.currentUserCto._id,
+        workoutExerciseId: newExercise._id,
+        workoutSessionExerciseId: DocumentService.generateID(),
+        workoutSessionId: DocumentService.generateID(),
+        actualWeight: 225,
+        actualReps: 5
+      });
+
+      exerciseMapService.updateCTOBestSet(loggedSet);
+
+      expect(exerciseMapService.getCTO(newExercise._id)?.bestSet?._id).toBe(loggedSet._id);
     });
   });
 
@@ -199,7 +267,7 @@ describe('exerciseMapService CTO update methods', () => {
       expect(updatedCount).toBe(uniqueExerciseIds.size);
     });
 
-    it('should not overwrite lastSessionExercise/lastSessionSets for deload exercises', () => {
+    it('should preserve lastAccumulationSessionExercise but update lastSessionExercise for deload exercises', () => {
       const baseData = MockData.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -224,19 +292,19 @@ describe('exerciseMapService CTO update methods', () => {
       );
       const sessionSets = data.sets.filter((s) => s.workoutSessionId === completedSession._id);
 
-      // Run a normal update first to populate lastSessionExercise
+      // Run a normal update first to populate both lastSession* and lastAccumulationSession*
       exerciseMapService.updateCTOsForCompletedSession(sessionExercises, sessionSets);
 
-      // Snapshot current CTO values
-      const snapshotBefore = new SvelteMap<
+      // Snapshot the accumulation variant so we can assert it's preserved
+      const accumulationBefore = new SvelteMap<
         string,
         { lastSE: WorkoutSessionExercise | null; lastSets: WorkoutSet[] }
       >();
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
-        snapshotBefore.set(se.workoutExerciseId, {
-          lastSE: cto?.lastSessionExercise ?? null,
-          lastSets: cto?.lastSessionSets ?? []
+        accumulationBefore.set(se.workoutExerciseId, {
+          lastSE: cto?.lastAccumulationSessionExercise ?? null,
+          lastSets: cto?.lastAccumulationSessionSets ?? []
         });
       }
 
@@ -255,7 +323,7 @@ describe('exerciseMapService CTO update methods', () => {
         const originalSets = sessionSets.filter(
           (s) => s.workoutSessionExerciseId === originalSE._id
         );
-        const newSetIds: string[] = [];
+        const newSetIds: UUID[] = [];
         for (const os of originalSets) {
           const deloadSet = WorkoutSetSchema.parse({
             ...os,
@@ -267,19 +335,30 @@ describe('exerciseMapService CTO update methods', () => {
           deloadSets.push(deloadSet);
           newSetIds.push(deloadSet._id);
         }
-        dse.setOrder = newSetIds as unknown as typeof dse.setOrder;
+        dse.setOrder = newSetIds;
       }
 
       exerciseMapService.updateCTOsForCompletedSession(deloadSessionExercises, deloadSets);
 
-      // Assert: lastSessionExercise/lastSessionSets unchanged
       for (const se of sessionExercises) {
         const cto = exerciseMapService.getCTO(se.workoutExerciseId);
-        const before = snapshotBefore.get(se.workoutExerciseId);
-        expect(cto?.lastSessionExercise?._id).toBe(before?.lastSE?._id);
-        const ctoSetIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
-        const beforeSetIds = before?.lastSets.map((s) => s._id) ?? [];
-        expect(ctoSetIds).toEqual(beforeSetIds);
+        const accumBefore = accumulationBefore.get(se.workoutExerciseId);
+
+        // Accumulation variant should be unchanged — still the older non-deload session
+        expect(cto?.lastAccumulationSessionExercise?._id).toBe(accumBefore?.lastSE?._id);
+        const accumIds = cto?.lastAccumulationSessionSets.map((s) => s._id) ?? [];
+        const accumBeforeIds = accumBefore?.lastSets.map((s) => s._id) ?? [];
+        expect(accumIds).toEqual(accumBeforeIds);
+
+        // True-latest variant should now point at the newer deload session exercise
+        const matchingDeloadSE = deloadSessionExercises.find(
+          (dse) => dse.workoutExerciseId === se.workoutExerciseId
+        );
+        expect(matchingDeloadSE).toBeDefined();
+        if (!matchingDeloadSE) continue;
+        expect(cto?.lastSessionExercise?._id).toBe(matchingDeloadSE._id);
+        const latestIds = cto?.lastSessionSets.map((s) => s._id) ?? [];
+        expect(latestIds).toEqual(matchingDeloadSE.setOrder);
       }
     });
 

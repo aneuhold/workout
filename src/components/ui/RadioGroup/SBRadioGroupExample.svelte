@@ -13,7 +13,7 @@
   let {
     value = $bindable('option-1'),
     disabled = false,
-    orientation = 'vertical' as 'vertical' | 'horizontal',
+    orientation = 'vertical',
     complex = false
   }: {
     value?: string;

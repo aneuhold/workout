@@ -61,6 +61,7 @@
 Discriminated Unions + Destructing (required for bindable) do not
 get along at the moment. So this is casted to never.
 -->
+<!-- eslint-disable @typescript-eslint/consistent-type-assertions -->
 <CalendarPrimitive.Root
   bind:value={value as never}
   bind:ref
@@ -133,7 +134,7 @@ get along at the moment. So this is casted to never.
                         {#if day}
                           {@render day({
                             day: date,
-                            outsideMonth: !isEqualMonth(date, month.value as DateValue)
+                            outsideMonth: !isEqualMonth(date, month.value)
                           })}
                         {:else}
                           <CalendarDay />

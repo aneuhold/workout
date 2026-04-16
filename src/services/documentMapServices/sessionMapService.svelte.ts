@@ -1,19 +1,29 @@
-import type { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
+import type {
+  WorkoutExerciseCTO,
+  WorkoutSession,
+  WorkoutSessionExercise,
+  WorkoutSet
+} from '@aneuhold/core-ts-db-lib';
 import {
+  WorkoutExerciseCalibrationService,
   WorkoutSessionExerciseSchema,
   WorkoutSessionSchema,
   WorkoutSetSchema,
   WorkoutSetService
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
+import { SvelteSet } from 'svelte/reactivity';
 import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
+import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
 import exerciseMapService from './exerciseMapService.svelte';
 import sessionExerciseMapService from './sessionExerciseMapService.svelte';
 import setMapService from './setMapService.svelte';
@@ -62,7 +72,6 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 
   override updateDoc(docId: UUID, mutator: Updater<WorkoutSession>): void {
-    const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
     const wasComplete = this.getDoc(docId)?.complete ?? false;
     super.updateDoc(docId, mutator, ctoGet);
     const session = this.getDoc(docId);
@@ -162,6 +171,45 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    */
   isFreeFormSession(session: WorkoutSession): boolean {
     return session.workoutMicrocycleId == null;
+  }
+
+  /**
+   * Inserts auto-calibrations for any exercises in a just-completed free-form
+   * session whose best set produces a higher 1RM than their current best
+   * calibration. Updates each affected CTO's `bestCalibration` locally so the
+   * calibration warning clears immediately without waiting for a refetch.
+   * Mesocycle sessions defer this to mesocycleMapService.endMesocycle.
+   *
+   * @param userId Owner of the new calibration documents.
+   * @param sessionExercises Exercises from the just-completed session.
+   */
+  generateAutoCalibrationsForCompletedFreeFormSession(
+    userId: UUID,
+    sessionExercises: WorkoutSessionExercise[]
+  ): void {
+    const seenExerciseIds = new SvelteSet<UUID>();
+    const exerciseCTOs: WorkoutExerciseCTO[] = [];
+    for (const se of sessionExercises) {
+      if (seenExerciseIds.has(se.workoutExerciseId)) continue;
+      seenExerciseIds.add(se.workoutExerciseId);
+      const cto = exerciseMapService.getCTO(se.workoutExerciseId);
+      if (cto) exerciseCTOs.push(cto);
+    }
+
+    const newCalibrations = WorkoutExerciseCalibrationService.generateAutoCalibrations(
+      exerciseCTOs,
+      userId,
+      new Date()
+    );
+    if (newCalibrations.length === 0) return;
+
+    exerciseCalibrationMapService.addManyDocs(newCalibrations, {
+      exerciseCTOs: { all: true },
+      muscleGroupVolumeCTOs: { all: true }
+    });
+    for (const cal of newCalibrations) {
+      exerciseMapService.updateCTOBestCalibration(cal);
+    }
   }
 
   /**

@@ -28,7 +28,7 @@ import type { Action } from 'svelte/action';
  */
 export const clickOutside: Action<HTMLElement, () => void> = (node, callbackFunction) => {
   const handleClick = (event: MouseEvent) => {
-    if (!node.contains(event.target as Node)) {
+    if (event.target instanceof Node && !node.contains(event.target)) {
       callbackFunction();
     }
   };

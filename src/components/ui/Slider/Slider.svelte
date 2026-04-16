@@ -15,6 +15,7 @@
 Discriminated Unions + Destructing (required for bindable) do not
 get along, so we shut typescript up by casting `value` to `never`.
 -->
+<!-- eslint-disable @typescript-eslint/consistent-type-assertions -->
 <SliderPrimitive.Root
   bind:ref
   bind:value={value as never}

@@ -43,3 +43,13 @@ export default function createWorkoutPersistToDb<T extends BaseDocument>(key: Wo
     WorkoutAPIService.queryApi(options);
   };
 }
+
+/**
+ * Standard `get` options that request refreshed exercise and muscle-group
+ * volume CTOs after a mutation. Shared by every document map service whose
+ * writes can affect CTO-derived fields.
+ */
+export const ctoGet: ProjectWorkoutPrimaryEndpointOptions['get'] = {
+  exerciseCTOs: { all: true },
+  muscleGroupVolumeCTOs: { all: true }
+};

@@ -29,7 +29,7 @@
   } from '$services/documentMapServices/mesocycleMapService.mock';
   import timerService from '$services/TimerService';
   import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData from '$testUtils/MockData';
+  import MockData, { type MockBaseData } from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
   let {
@@ -84,11 +84,13 @@
             exerciseCount: 0
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormMidWorkout) {
+          addPriorSessionPreviewData(baseData);
           sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 2
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormAllDone) {
+          addPriorSessionPreviewData(baseData);
           sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6
@@ -105,6 +107,7 @@
           })._id;
           planning = true;
         } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
+          addPriorSessionPreviewData(baseData);
           sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
             title: 'Upper Body Day',
             startTime: daysFromNow(2),
@@ -170,6 +173,26 @@
       });
     };
   });
+
+  /**
+   * Creates a completed prior session and recomputes exercise CTOs so that Best/Last
+   * preview lines are populated in free-form session stories.
+   *
+   * @param baseData The base mock data used for session and CTO creation
+   */
+  function addPriorSessionPreviewData(baseData: MockBaseData): void {
+    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+      exerciseCount: 3,
+      setsPerExercise: 3,
+      loggedSetCount: 9,
+      complete: true
+    });
+    MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      baseData.calibrations,
+      baseData.exercises,
+      baseData.equipmentTypes
+    );
+  }
 
   /**
    * Flags the first two session exercises in the first session as recovery exercises.

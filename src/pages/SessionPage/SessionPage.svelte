@@ -5,6 +5,7 @@
   Initializes the SessionPageService and renders the page layout.
 -->
 <script lang="ts">
+  import type { UUID } from 'crypto';
   import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import SingletonExercisePickerDialog from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
@@ -21,7 +22,7 @@
     sessionId,
     planning = false
   }: {
-    sessionId: string | null;
+    sessionId: UUID | null;
     planning?: boolean;
   } = $props();
 

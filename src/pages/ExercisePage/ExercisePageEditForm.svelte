@@ -55,8 +55,8 @@
   let formEquipmentId = $state<string>('');
   let formRepRange = $state<string>(ExerciseRepRange.Medium);
   let formProgressionType = $state<string>(ExerciseProgressionType.Rep);
-  let formPrimary = new SvelteSet<string>();
-  let formSecondary = new SvelteSet<string>();
+  let formPrimary = new SvelteSet<UUID>();
+  let formSecondary = new SvelteSet<UUID>();
   let formRestSeconds = $state<number | undefined>(undefined);
   let formNotes = $state('');
   let formJointFatigue = $state<number[]>([0]);
@@ -110,7 +110,7 @@
 
   // --- Muscle group toggle (cycles: unselected -> primary -> secondary -> unselected) ---
 
-  function toggleMuscleGroup(id: string) {
+  function toggleMuscleGroup(id: UUID) {
     if (formPrimary.has(id)) {
       formPrimary.delete(id);
       formSecondary.add(id);
@@ -148,7 +148,7 @@
 
     if (isNew) {
       const doc = WorkoutExerciseSchema.parse(formData);
-      exerciseMapService.addDoc(doc);
+      exerciseMapService.createNewExercise(doc);
       goto(`/exercise?exerciseId=${doc._id}`, { replaceState: true });
     } else if (exercise) {
       const parsed = WorkoutExerciseSchema.parse({ ...formData, _id: exercise._id });
@@ -284,14 +284,14 @@
         {#if formPrimary.size > 0}
           <span
             >Primary: {[...formPrimary]
-              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id))
               .join(', ')}</span
           >
         {/if}
         {#if formSecondary.size > 0}
           <span
             >Secondary: {[...formSecondary]
-              .map((id) => muscleGroupMapService.getMuscleGroupName(id as UUID))
+              .map((id) => muscleGroupMapService.getMuscleGroupName(id))
               .join(', ')}</span
           >
         {/if}

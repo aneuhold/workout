@@ -13,8 +13,9 @@ export type UserConfig = {
 };
 
 function createUserConfigStore() {
+  const ANONYMOUS_USER_ID: UUID = '00000000-0000-0000-0000-000000000000';
   let currentConfig: UserConfig = {
-    userId: '' as UUID,
+    userId: '00000000-0000-0000-0000-000000000000',
     username: '',
     accessToken: null,
     refreshTokenString: null
@@ -60,7 +61,7 @@ function createUserConfigStore() {
      */
     clear: () => {
       updateUserConfig(() => ({
-        userId: '' as UUID,
+        userId: ANONYMOUS_USER_ID,
         username: '',
         accessToken: null,
         refreshTokenString: null

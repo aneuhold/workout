@@ -1,30 +1,28 @@
 <script lang="ts">
-  import { type ChartConfig, THEMES } from './ChartUtils.js';
+  import { CHART_THEME_SELECTORS, type ChartConfig, ChartTheme } from './ChartUtils.js';
 
   let { id, config }: { id: string; config: ChartConfig } = $props();
 
   const colorConfig = $derived(
-    Object.entries(config).filter(([, config]) => config.theme || config.color)
+    Object.entries(config).filter(([, itemConfig]) => itemConfig.theme || itemConfig.color)
   );
 
   const themeContents = $derived.by(() => {
     if (!colorConfig.length) return;
 
-    const themeContents = [];
-    for (let [_theme, prefix] of Object.entries(THEMES)) {
-      let content = `${prefix} [data-chart=${id}] {\n`;
-      const color = colorConfig.map(([key, itemConfig]) => {
-        const theme = _theme as 'light' | 'dark';
-        const color = itemConfig.theme?.[theme] || itemConfig.color;
-        return color ? `\t--color-${key}: ${color};` : null;
-      });
+    return Object.values(ChartTheme)
+      .map((theme) => {
+        const cssVars = colorConfig
+          .map(([colorKey, itemConfig]) => {
+            const color = itemConfig.theme?.[theme] ?? itemConfig.color;
+            return color ? `\t--color-${colorKey}: ${color};` : null;
+          })
+          .filter((line): line is string => line !== null)
+          .join('\n');
 
-      content += color.join('\n') + '\n}';
-
-      themeContents.push(content);
-    }
-
-    return themeContents.join('\n');
+        return `${CHART_THEME_SELECTORS[theme]} [data-chart=${id}] {\n${cssVars}\n}`;
+      })
+      .join('\n');
   });
 </script>
 

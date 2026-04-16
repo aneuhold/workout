@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
   import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
-  import { IconMinus, IconPlus } from '@tabler/icons-svelte';
+  import { IconPlus } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import Button from '$ui/Button/Button.svelte';
   import SessionPageSetRow from '../SessionPageSetRow.svelte';
@@ -18,6 +18,8 @@
     isDeload,
     mode,
     freeFormEditable,
+    bestSets = [],
+    lastSets = [],
     onAddSet,
     onRemoveSet,
     onLogSet,
@@ -29,6 +31,8 @@
     isDeload: boolean;
     mode: SessionPageMode;
     freeFormEditable: boolean;
+    bestSets?: WorkoutSet[];
+    lastSets?: WorkoutSet[];
     onAddSet?: () => void;
     onRemoveSet?: (setId: UUID) => void;
     onLogSet: (set: WorkoutSet, weight: number, reps: number, rir: number | null) => void;
@@ -44,10 +48,10 @@
 <div class="flex flex-col gap-1">
   <div
     class="grid items-center gap-1.5 px-2 text-xs text-muted-foreground {mode ===
-    SessionPageMode.Planning
-      ? 'grid-cols-7'
-      : mode === SessionPageMode.Active
-        ? 'grid-cols-12'
+    SessionPageMode.Active
+      ? 'grid-cols-12'
+      : mode === SessionPageMode.Planning
+        ? 'grid-cols-7'
         : 'grid-cols-9'}"
   >
     <div class="col-span-1">#</div>
@@ -61,27 +65,18 @@
     {/if}
   </div>
   {#each sets as set, i (set._id)}
-    <div class="flex items-center gap-1">
-      <div class="flex-1">
-        <SessionPageSetRow
-          {set}
-          setNumber={i + 1}
-          setState={getSetState(set, i, mode, sets)}
-          {mode}
-          onLog={(weight, reps, rir) => onLogSet(set, weight, reps, rir)}
-          onEdit={(weight, reps, rir) => onEditSet(set, weight, reps, rir)}
-          onPlannedChange={(weight, reps) => onPlannedChange(set, weight, reps)}
-        />
-      </div>
-      {#if freeFormEditable && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning) && sets.length > 1}
-        <button
-          class="shrink-0 p-1 text-muted-foreground transition-colors hover:text-destructive"
-          onclick={() => onRemoveSet?.(set._id)}
-        >
-          <IconMinus size={14} />
-        </button>
-      {/if}
-    </div>
+    <SessionPageSetRow
+      {set}
+      setNumber={i + 1}
+      setState={getSetState(set, i, mode, sets)}
+      {mode}
+      bestSet={bestSets[i]}
+      lastSet={lastSets[i]}
+      onRemove={freeFormEditable && sets.length > 1 ? () => onRemoveSet?.(set._id) : undefined}
+      onLog={(weight, reps, rir) => onLogSet(set, weight, reps, rir)}
+      onEdit={(weight, reps, rir) => onEditSet(set, weight, reps, rir)}
+      onPlannedChange={(weight, reps) => onPlannedChange(set, weight, reps)}
+    />
   {/each}
   {#if hasRirAndReps && !isDeload && mode === SessionPageMode.Active}
     <p class="px-2 pt-1 text-xs text-muted-foreground/70">

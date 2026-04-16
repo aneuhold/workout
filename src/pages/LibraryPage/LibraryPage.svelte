@@ -56,10 +56,12 @@
   }
 
   function parseLibraryTab(value: string | null): LibraryTab {
-    if (value && Object.values(LibraryTab).includes(value as LibraryTab)) {
-      return value as LibraryTab;
+    const isLibraryTabValue = (value: string | null): value is LibraryTab =>
+      typeof value === 'string' && value in LibraryTab;
+    if (!isLibraryTabValue(value)) {
+      return LibraryTab.All;
     }
-    return LibraryTab.All;
+    return value;
   }
 
   let searchQuery = $state('');

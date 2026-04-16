@@ -20,7 +20,9 @@
   let selectedMode = $derived(userPrefersMode.current);
 
   function handleModeChange(value: string) {
-    setMode(value as 'light' | 'dark' | 'system');
+    if (value === 'light' || value === 'dark' || value === 'system') {
+      setMode(value);
+    }
   }
 </script>
 

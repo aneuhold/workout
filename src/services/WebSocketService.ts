@@ -96,20 +96,16 @@ export default class WebSocketService {
    * @param body the body to revive
    */
   private static reviveDates(body: unknown) {
-    if (body === null || typeof body !== 'object') {
+    const bodyIsObject = (body: unknown): body is Record<string, unknown> =>
+      body !== null && typeof body === 'object';
+    if (!bodyIsObject(body)) {
       return;
     }
 
-    const keys = Object.keys(body);
-    if (keys.length === 0) {
-      return;
-    }
-    const bodyAsRecord = body as Record<string, unknown>;
-    for (const key of Object.keys(bodyAsRecord)) {
-      const value = bodyAsRecord[key];
+    for (const [key, value] of Object.entries(body)) {
       const revivedValue = DateService.dateReviver(key, value);
       if (revivedValue !== value) {
-        bodyAsRecord[key] = revivedValue;
+        body[key] = revivedValue;
       } else if (typeof value === 'object') {
         this.reviveDates(value);
       }

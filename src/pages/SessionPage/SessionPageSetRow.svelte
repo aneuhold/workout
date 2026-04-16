@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
   import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
-  import { IconPencil } from '@tabler/icons-svelte';
+  import { IconMinus, IconPencil } from '@tabler/icons-svelte';
   import { editSetDialog } from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
@@ -25,6 +25,9 @@
     setNumber,
     setState,
     mode,
+    bestSet,
+    lastSet,
+    onRemove,
     onLog,
     onEdit,
     onPlannedChange
@@ -33,14 +36,29 @@
     setNumber: number;
     setState: SessionPageSetState;
     mode: SessionPageMode;
+    bestSet?: WorkoutSet;
+    lastSet?: WorkoutSet;
+    onRemove?: () => void;
     onLog: (weight: number, reps: number, rir: number | null) => void;
     onEdit: (weight: number, reps: number, rir: number | null) => void;
     onPlannedChange?: (weight: number | undefined, reps: number | undefined) => void;
   } = $props();
 
-  let weight = $derived<number | undefined>(set.actualWeight ?? set.plannedWeight ?? undefined);
-  let reps = $derived<number | undefined>(set.actualReps ?? set.plannedReps ?? undefined);
-  let rir = $derived<number | undefined>(set.rir ?? set.plannedRir ?? undefined);
+  let weight = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedWeight ?? undefined)
+      : (set.actualWeight ?? set.plannedWeight ?? undefined)
+  );
+  let reps = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedReps ?? undefined)
+      : (set.actualReps ?? set.plannedReps ?? undefined)
+  );
+  let rir = $derived<number | undefined>(
+    mode === SessionPageMode.Planning
+      ? (set.plannedRir ?? undefined)
+      : (set.rir ?? set.plannedRir ?? undefined)
+  );
 
   let dialogOpen = $state(false);
 
@@ -102,103 +120,119 @@
   let hasTargets = $derived(
     set.plannedWeight != null || set.plannedReps != null || set.plannedRir != null
   );
+
+  let showPreviewLines = $derived(
+    mode === SessionPageMode.Planning || (mode === SessionPageMode.Active && !hasTargets)
+  );
 </script>
 
-<div
-  class="grid items-center gap-1.5 rounded-lg px-2 py-1.5 {mode === SessionPageMode.Planning
-    ? 'grid-cols-7'
-    : isActive
+<div class="flex items-center gap-1">
+  <div
+    class="grid flex-1 items-center gap-1.5 rounded-lg px-2 py-1.5 {isActive
       ? 'grid-cols-12'
-      : 'grid-cols-9'} {rowClass}"
->
-  <!-- Set number -->
-  <div class="col-span-1">
-    <span class="text-sm font-medium {numberClass}">{setNumber}</span>
-  </div>
+      : mode === SessionPageMode.Planning
+        ? 'grid-cols-7'
+        : 'grid-cols-9'} {rowClass}"
+  >
+    <!-- Set number -->
+    <div class="col-span-1">
+      <span class="text-sm font-medium {numberClass}">{setNumber}</span>
+    </div>
 
-  <!-- Weight -->
-  <div class="col-span-3">
-    {#if isDisabled}
-      <span
-        class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
-      >
-        {setState === SessionPageSetState.Completed
-          ? (set.actualWeight ?? '—')
-          : (set.plannedWeight ?? '—')}
-      </span>
-    {:else}
-      <Input
-        type="number"
-        bind:value={weight}
-        placeholder="lb"
-        class="h-7 text-sm"
-        min={0}
-        onchange={() => {
-          if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
-        }}
-      />
-    {/if}
-  </div>
-
-  <!-- Reps -->
-  <div class="col-span-3">
-    {#if isDisabled}
-      <span
-        class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
-      >
-        {setState === SessionPageSetState.Completed
-          ? (set.actualReps ?? '—')
-          : (set.plannedReps ?? '—')}
-      </span>
-    {:else}
-      <Input
-        type="number"
-        bind:value={reps}
-        placeholder="reps"
-        class="h-7 text-sm"
-        min={0}
-        onchange={() => {
-          if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
-        }}
-      />
-    {/if}
-  </div>
-
-  <!-- RIR -->
-  {#if mode !== SessionPageMode.Planning}
-    <div class="col-span-2">
-      {#if set.plannedRir == null}
-        <span class="text-sm text-muted-foreground">&mdash;</span>
-      {:else if isDisabled}
+    <!-- Weight -->
+    <div class="col-span-3">
+      {#if isDisabled}
         <span
           class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
         >
-          {setState === SessionPageSetState.Completed ? (set.rir ?? '—') : (set.plannedRir ?? '—')}
+          {setState === SessionPageSetState.Completed
+            ? (set.actualWeight ?? '—')
+            : (set.plannedWeight ?? '—')}
         </span>
       {:else}
         <Input
           type="number"
-          bind:value={rir}
-          placeholder="RIR"
+          bind:value={weight}
+          placeholder="lb"
           class="h-7 text-sm"
           min={0}
-          max={10}
+          onchange={() => {
+            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
+          }}
         />
       {/if}
     </div>
-  {/if}
 
-  <!-- Action (Active mode only) -->
-  {#if isActive}
-    <div class="col-span-3 flex justify-end">
-      {#if setState === SessionPageSetState.Completed}
-        <Button variant="secondary" size="icon-xs" onclick={handleEditClick}>
-          <IconPencil size={12} />
-        </Button>
-      {:else if setState === SessionPageSetState.Current}
-        <Button size="sm" disabled={!canLog} onclick={handleLogClick}>Log</Button>
+    <!-- Reps -->
+    <div class="col-span-3">
+      {#if isDisabled}
+        <span
+          class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
+        >
+          {setState === SessionPageSetState.Completed
+            ? (set.actualReps ?? '—')
+            : (set.plannedReps ?? '—')}
+        </span>
+      {:else}
+        <Input
+          type="number"
+          bind:value={reps}
+          placeholder="reps"
+          class="h-7 text-sm"
+          min={0}
+          onchange={() => {
+            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
+          }}
+        />
       {/if}
     </div>
+
+    <!-- RIR -->
+    {#if mode !== SessionPageMode.Planning}
+      <div class="col-span-2">
+        {#if set.plannedRir == null}
+          <span class="text-sm text-muted-foreground">&mdash;</span>
+        {:else if isDisabled}
+          <span
+            class="text-sm {setState === SessionPageSetState.Future ? 'text-muted-foreground' : ''}"
+          >
+            {setState === SessionPageSetState.Completed
+              ? (set.rir ?? '—')
+              : (set.plannedRir ?? '—')}
+          </span>
+        {:else}
+          <Input
+            type="number"
+            bind:value={rir}
+            placeholder="RIR"
+            class="h-7 text-sm"
+            min={0}
+            max={10}
+          />
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Action column (active only) -->
+    {#if isActive}
+      <div class="col-span-3 flex items-center justify-end">
+        {#if setState === SessionPageSetState.Completed}
+          <Button variant="secondary" size="icon-xs" onclick={handleEditClick}>
+            <IconPencil size={12} />
+          </Button>
+        {:else if setState === SessionPageSetState.Current}
+          <Button size="sm" disabled={!canLog} onclick={handleLogClick}>Log</Button>
+        {/if}
+      </div>
+    {/if}
+  </div>
+  {#if onRemove}
+    <button
+      class="shrink-0 p-1 text-muted-foreground transition-colors hover:text-destructive"
+      onclick={onRemove}
+    >
+      <IconMinus size={12} />
+    </button>
   {/if}
 </div>
 
@@ -208,6 +242,32 @@
     <div class="{isActive ? 'col-span-11' : 'col-span-8'} text-xs text-muted-foreground">
       Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'}{#if set.plannedRir != null}
         @ {set.plannedRir} RIR{/if}
+    </div>
+  </div>
+{/if}
+
+{#if showPreviewLines && (bestSet || lastSet)}
+  <div
+    class="grid gap-1.5 px-2 pb-0.5 {isActive
+      ? 'grid-cols-12'
+      : mode === SessionPageMode.Planning
+        ? 'grid-cols-7'
+        : 'grid-cols-9'}"
+  >
+    <div class="col-span-1"></div>
+    <div
+      class="{isActive
+        ? 'col-span-11'
+        : mode === SessionPageMode.Planning
+          ? 'col-span-6'
+          : 'col-span-8'} flex gap-3 text-xs text-muted-foreground"
+    >
+      {#if lastSet?.actualWeight && lastSet.actualReps}<span
+          >Last: {lastSet.actualWeight}lb x {lastSet.actualReps}</span
+        >{/if}
+      {#if bestSet?.actualWeight && bestSet.actualReps}<span
+          >Best: {bestSet.actualWeight}lb x {bestSet.actualReps}</span
+        >{/if}
     </div>
   </div>
 {/if}

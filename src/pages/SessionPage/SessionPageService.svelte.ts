@@ -33,7 +33,7 @@ import {
 class SessionPageService {
   // --- Private mutable state ---
 
-  #sessionId = $state<string | null>(null);
+  #sessionId = $state<UUID | null>(null);
   #planning = $state(false);
   #expandedMap = $state<Record<string, boolean | undefined>>({});
   #doneExerciseIds = new SvelteSet<UUID>();
@@ -43,9 +43,7 @@ class SessionPageService {
 
   // --- Session data (derived in dependency order) ---
 
-  session = $derived(
-    this.#sessionId ? sessionMapService.getDoc(this.#sessionId as UUID) : undefined
-  );
+  session = $derived(this.#sessionId ? sessionMapService.getDoc(this.#sessionId) : undefined);
 
   isFreeForm = $derived(this.session ? sessionMapService.isFreeFormSession(this.session) : false);
 
@@ -238,7 +236,7 @@ class SessionPageService {
    * @param sessionId The session ID to load, or null
    * @param planning Whether the page is in planning mode
    */
-  init(sessionId: string | null, planning: boolean): void {
+  init(sessionId: UUID | null, planning: boolean): void {
     if (sessionId !== this.#sessionId) {
       for (const key of Object.keys(this.#expandedMap)) {
         delete this.#expandedMap[key];
@@ -367,7 +365,7 @@ class SessionPageService {
 
   /** Completes the session, checks for early deload recommendation, and navigates away. */
   handleCompleteSession(): void {
-    const { session, isFreeForm, mesocycle, microcycle } = this;
+    const { session, isFreeForm, sessionExercises, mesocycle, microcycle } = this;
     if (!session) return;
 
     sessionMapService.updateDoc(session._id, (doc) => {
@@ -376,6 +374,14 @@ class SessionPageService {
     });
 
     if (isFreeForm) {
+      // Auto-generate calibrations from the session's best sets so newly
+      // performed exercises stop showing the "not calibrated" warning.
+      // Mesocycle sessions defer this to mesocycleMapService.endMesocycle so
+      // all calibrations land in one batch at the end of the cycle.
+      sessionMapService.generateAutoCalibrationsForCompletedFreeFormSession(
+        session.userId,
+        sessionExercises
+      );
       void goto('/');
       return;
     }
@@ -414,9 +420,9 @@ class SessionPageService {
     this.#reviewConfirmed = true;
   }
 
-  /** Navigates to the sessions list (used in planning mode). */
+  /** Just goes back, in case they came from a current session, or the session page. */
   handleDonePlanning(): void {
-    void goto('/sessions');
+    history.back();
   }
 }
 

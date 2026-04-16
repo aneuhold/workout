@@ -16,8 +16,10 @@ import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import createWorkoutPersistToDb, {
+  createWorkoutPrepareForSave,
+  ctoGet
+} from '$util/workoutPersistenceUtils';
 import equipmentTypeMapService from './equipmentTypeMapService.svelte';
 
 class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise> {
@@ -62,6 +64,33 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   }
 
   /**
+   * Persists a newly created exercise and seeds a matching CTO in local
+   * state so downstream features (best set tracking, auto-calibration
+   * generation, last-session lookups) find a CTO for the exercise without
+   * waiting for the server round-trip. No-op if the exercise's equipment
+   * type can't be resolved.
+   *
+   * @param exercise The new exercise to persist
+   */
+  createNewExercise(exercise: WorkoutExercise): void {
+    const equipmentType = equipmentTypeMapService.getDoc(exercise.workoutEquipmentTypeId);
+    if (!equipmentType) return;
+
+    this.addDoc(exercise, ctoGet);
+
+    this.exerciseCTOMapState[exercise._id] = WorkoutExerciseCTOSchema.parse({
+      ...exercise,
+      equipmentType,
+      bestCalibration: null,
+      bestSet: null,
+      lastSessionExercise: null,
+      lastSessionSets: [],
+      lastAccumulationSessionExercise: null,
+      lastAccumulationSessionSets: []
+    });
+  }
+
+  /**
    * Updates the CTO's bestCalibration for the given calibration's exercise.
    * Creates a minimal CTO if none exists. Replaces the existing bestCalibration
    * only if the new one has a higher 1RM.
@@ -84,7 +113,9 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
         bestCalibration: calibration,
         bestSet: null,
         lastSessionExercise: null,
-        lastSessionSets: []
+        lastSessionSets: [],
+        lastAccumulationSessionExercise: null,
+        lastAccumulationSessionSets: []
       });
       return;
     }
@@ -130,8 +161,9 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
   /**
    * Updates CTOs for exercises involved in a completed session. For each
-   * exercise, updates lastSessionExercise, lastSessionSets, and checks sets
-   * against bestSet. Caller passes data to avoid circular imports.
+   * exercise, updates lastSession* (any cycle type), lastAccumulationSession*
+   * (non-deload only), and checks sets against bestSet. Caller passes data to
+   * avoid circular imports.
    *
    * @param sessionExercises The session exercises from the completed session
    * @param sessionSets The sets from the completed session
@@ -157,18 +189,26 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       if (!cto) continue;
 
       const seSets = setsBySessionExerciseId.get(se._id);
+      const orderedSets = se.setOrder
+        .map((setId) => seSets?.find((s) => s._id === setId))
+        .filter((s): s is WorkoutSet => s != null);
 
-      // Skip deload exercises for lastSessionExercise/lastSessionSets — halved
-      // weights/reps are not meaningful progression baselines.
+      // Always update lastSession* if the new session exercise is more recent.
+      // This tracks the literal latest performance regardless of cycle type.
+      if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
+        cto.lastSessionExercise = se;
+        cto.lastSessionSets = orderedSets;
+      }
+
+      // Only update lastAccumulationSession* for non-deload exercises, since
+      // deload weights/reps are not meaningful progression baselines.
       if (!WorkoutSessionExerciseService.isDeloadExercise(seSets ?? [])) {
-        // Update lastSessionExercise if more recent
-        if (!cto.lastSessionExercise || se.createdDate > cto.lastSessionExercise.createdDate) {
-          cto.lastSessionExercise = se;
-
-          // Update lastSessionSets from setOrder (preserving order)
-          cto.lastSessionSets = se.setOrder
-            .map((setId) => seSets?.find((s) => s._id === setId))
-            .filter((s): s is WorkoutSet => s != null);
+        if (
+          !cto.lastAccumulationSessionExercise ||
+          se.createdDate > cto.lastAccumulationSessionExercise.createdDate
+        ) {
+          cto.lastAccumulationSessionExercise = se;
+          cto.lastAccumulationSessionSets = orderedSets;
         }
       }
 
@@ -191,7 +231,6 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   }
 
   override deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
-    const ctoGet = { exerciseCTOs: { all: true }, muscleGroupVolumeCTOs: { all: true } };
     super.deleteDoc(docId, get ?? ctoGet);
     this.removeCTO(docId);
   }
