@@ -16,11 +16,11 @@ importers:
         version: 4.8.3
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.33
-        version: 3.0.33
+        specifier: ^3.0.34
+        version: 3.0.34
       '@aneuhold/core-ts-db-lib':
-        specifier: ^5.0.5
-        version: 5.0.5
+        specifier: ^5.0.6
+        version: 5.0.6
       '@aneuhold/core-ts-lib':
         specifier: ^2.4.3
         version: 2.4.3
@@ -242,11 +242,11 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.33':
-    resolution: {integrity: sha512-BJQ1/U2SaFKlxuAVQ0b6qHpLogg1l5lN8NKBfiOLg2oiRpzGsKpUX0Rw+Ai+TdPHyQ+L1QB+Iz4SJZeApHywyA==}
+  '@aneuhold/core-ts-api-lib@3.0.34':
+    resolution: {integrity: sha512-NezN6XpmuNFblDObyOh7bw7iP5JpVQQNUlDQKWBJZQOIWFZ/M18CFzU3hZUR5cN0qNmVic6L+FRBDFQYFQgc4g==}
 
-  '@aneuhold/core-ts-db-lib@5.0.5':
-    resolution: {integrity: sha512-rQbIThd5YDwgvMyNxRLt9sWX3orHLN95tU/1jWnyqYoYKuatn1IxSvU7Fjf9etKxBpM9s8Y+LcXSLmmJrGOoMQ==}
+  '@aneuhold/core-ts-db-lib@5.0.6':
+    resolution: {integrity: sha512-jOeVoetaZ3UeqB37CuIiD1A5rSujSqZtTVk7kcanVCz1szDMGLD2SQK/5kyQtCGm+tdypOrvbG9/6wZUt8nzDA==}
 
   '@aneuhold/core-ts-lib@2.4.3':
     resolution: {integrity: sha512-mwFWlrwa+lVO1QiABjkLCSziVBORxEQyyEdcPRgM2AXbP03Ce/gP9xASXAZAg0ZCzwRUV6jdhVXfYX5/yZqtwA==}
@@ -1219,8 +1219,8 @@ packages:
     peerDependencies:
       svelte: ^3.0.0 || ^4.0.0 || ^5.0.0
 
-  '@next/eslint-plugin-next@16.2.3':
-    resolution: {integrity: sha512-nE/b9mht28XJxjTwKs/yk7w4XTaU3t40UHVAky6cjiijdP/SEy3hGsnQMPxmXPTpC7W4/97okm6fngKnvCqVaA==}
+  '@next/eslint-plugin-next@16.2.4':
+    resolution: {integrity: sha512-tOX826JJ96gYK/go18sPUgMq9FK1tqxBFfUCEufJb5XIkWFFmpgU7mahJANKGkHs7F41ir3tReJ3Lv5La0RvhA==}
 
   '@noble/ciphers@1.3.0':
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
@@ -3778,11 +3778,11 @@ packages:
       eslint-config-prettier:
         optional: true
 
-  eslint-plugin-react-hooks@7.0.1:
-    resolution: {integrity: sha512-O0d0m04evaNzEPoSW+59Mezf8Qt0InfgGIBJnpC0h3NH/WjUAR7BIKUfysC6todmtiZ/A0oUVS8Gce0WhBrHsA==}
+  eslint-plugin-react-hooks@7.1.0:
+    resolution: {integrity: sha512-LDicyhrRFrIaheDYryeM2W8gWyZXnAs4zIr2WVPiOSeTmIu2RjR4x/9N0xLaRWZ+9hssBDGo3AadcohuzAvSvg==}
     engines: {node: '>=18'}
     peerDependencies:
-      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0 || ^10.0.0
 
   eslint-plugin-react-refresh@0.5.2:
     resolution: {integrity: sha512-hmgTH57GfzoTFjVN0yBwTggnsVUF2tcqi7RJZHqi9lIezSs4eFyAMktA68YD4r5kNw1mxyY4dmkyoFDb3FIqrA==}
@@ -6854,8 +6854,8 @@ packages:
     resolution: {integrity: sha512-25MjzPLJG8mfPe4jtR8+3B8PCfBl0D2DRDnsP+KJPn8yBbUiO/GJaw2dyGOiVA7ZTyAWKDnN0WvmmIs+Ibj4+g==}
     engines: {node: '>=18'}
 
-  verdaccio@6.5.0:
-    resolution: {integrity: sha512-PFsGVvSyS47ZAt58MiL+5hX0jexgv20rrhEL2qEF5wGV9OLP9Cbm67aN5+PJT3pdQyghGk2Yq4/SVNwCmB/oHA==}
+  verdaccio@6.5.1:
+    resolution: {integrity: sha512-bCaAmlFhqokqiJAHOa5PW6+wo5o8hUROIXjSPbjBO5n6DDOYncHWK4b/FnrAKRT6k+FDXcpOvwftKJOTNj5XSQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -7281,13 +7281,13 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.33':
+  '@aneuhold/core-ts-api-lib@3.0.34':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 5.0.5
+      '@aneuhold/core-ts-db-lib': 5.0.6
       '@aneuhold/core-ts-lib': 2.4.3
       bson: 7.2.0
 
-  '@aneuhold/core-ts-db-lib@5.0.5':
+  '@aneuhold/core-ts-db-lib@5.0.6':
     dependencies:
       '@aneuhold/core-ts-lib': 2.4.3
       uuid: 13.0.0
@@ -7298,7 +7298,7 @@ snapshots:
   '@aneuhold/eslint-config@2.0.4(@angular/cli@21.0.3(@types/node@25.2.1))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(svelte@5.50.0)(typescript@5.9.3)':
     dependencies:
       '@eslint/js': 10.0.1(eslint@9.39.2(jiti@2.6.1))
-      '@next/eslint-plugin-next': 16.2.3
+      '@next/eslint-plugin-next': 16.2.4
       '@stylistic/eslint-plugin-js': 4.4.1(eslint@9.39.2(jiti@2.6.1))
       '@stylistic/eslint-plugin-ts': 4.4.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/eslint-plugin': 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
@@ -7310,7 +7310,7 @@ snapshots:
       eslint-plugin-jsdoc: 62.9.0(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-prefer-arrow: 1.2.3(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-prettier: 5.5.5(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
-      eslint-plugin-react-hooks: 7.0.1(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-react-hooks: 7.1.0(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-react-refresh: 0.5.2(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-simple-import-sort: 12.1.1(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-svelte: 3.17.0(eslint@9.39.2(jiti@2.6.1))(svelte@5.50.0)
@@ -7338,7 +7338,7 @@ snapshots:
       fs-extra: 11.3.4
       js-yaml: 4.1.1
       proper-lockfile: 4.1.2
-      verdaccio: 6.5.0(encoding@0.1.13)(typanion@3.14.0)
+      verdaccio: 6.5.1(encoding@0.1.13)(typanion@3.14.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - encoding
@@ -8325,7 +8325,7 @@ snapshots:
     dependencies:
       svelte: 5.50.0
 
-  '@next/eslint-plugin-next@16.2.3':
+  '@next/eslint-plugin-next@16.2.4':
     dependencies:
       fast-glob: 3.3.1
 
@@ -11341,7 +11341,7 @@ snapshots:
     optionalDependencies:
       eslint-config-prettier: 10.1.8(eslint@9.39.2(jiti@2.6.1))
 
-  eslint-plugin-react-hooks@7.0.1(eslint@9.39.2(jiti@2.6.1)):
+  eslint-plugin-react-hooks@7.1.0(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/parser': 7.29.2
@@ -14841,7 +14841,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  verdaccio@6.5.0(encoding@0.1.13)(typanion@3.14.0):
+  verdaccio@6.5.1(encoding@0.1.13)(typanion@3.14.0):
     dependencies:
       '@cypress/request': 3.0.10
       '@verdaccio/auth': 8.0.0-next-8.37

@@ -49,6 +49,8 @@
     }) ?? ''
   );
 
+  const hasMenuItems = $derived(!!session && (isFreeForm || !session.complete));
+
   const exerciseOrderItems = $derived.by(() => {
     if (!session) return [];
     return session.sessionExerciseOrder.flatMap((seId) => {
@@ -101,39 +103,44 @@
         <p class="text-sm text-muted-foreground">{description}</p>
       {/if}
     </div>
-    {#if isFreeForm && session}
+    {#if hasMenuItems && session}
       <OptionsButtonDropdownMenu ariaLabel="Session actions">
-        <DropdownMenuItem onclick={() => (renameDialogOpen = true)}>Rename Session</DropdownMenuItem
-        >
-        {#if mode === SessionPageMode.Active || mode === SessionPageMode.Planning}
+        {#if isFreeForm}
+          <DropdownMenuItem onclick={() => (renameDialogOpen = true)}>
+            Rename Session
+          </DropdownMenuItem>
+          {#if mode === SessionPageMode.Active || mode === SessionPageMode.Planning}
+            <DropdownMenuItem
+              disabled={exerciseOrderItems.length < 2}
+              onclick={() => (reorderDialogOpen = true)}
+            >
+              Reorder Exercises
+            </DropdownMenuItem>
+          {/if}
+          {#if mode === SessionPageMode.View}
+            <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
+          {/if}
+          {#if mode !== SessionPageMode.Planning}
+            <DropdownMenuItem onclick={() => (changeStartDateDialogOpen = true)}>
+              Change Start Date
+            </DropdownMenuItem>
+          {/if}
+          {#if mode !== SessionPageMode.Planning && !session.complete}
+            <DropdownMenuItem
+              onclick={() => goto(`/session?sessionId=${session._id}&planningMode=true`)}
+            >
+              Edit Targets
+            </DropdownMenuItem>
+          {/if}
+        {/if}
+        {#if !session.complete}
           <DropdownMenuItem
-            disabled={exerciseOrderItems.length < 2}
-            onclick={() => (reorderDialogOpen = true)}
+            class="text-destructive focus:text-destructive"
+            onclick={() => (deleteDialogOpen = true)}
           >
-            Reorder Exercises
+            Delete Session
           </DropdownMenuItem>
         {/if}
-        {#if mode === SessionPageMode.View}
-          <DropdownMenuItem onclick={handleEditSession}>Edit Session</DropdownMenuItem>
-        {/if}
-        {#if mode !== SessionPageMode.Planning}
-          <DropdownMenuItem onclick={() => (changeStartDateDialogOpen = true)}>
-            Change Start Date
-          </DropdownMenuItem>
-        {/if}
-        {#if mode !== SessionPageMode.Planning && !session.complete}
-          <DropdownMenuItem
-            onclick={() => goto(`/session?sessionId=${session._id}&planningMode=true`)}
-          >
-            Edit Targets
-          </DropdownMenuItem>
-        {/if}
-        <DropdownMenuItem
-          class="text-destructive focus:text-destructive"
-          onclick={() => (deleteDialogOpen = true)}
-        >
-          Delete Session
-        </DropdownMenuItem>
       </OptionsButtonDropdownMenu>
     {/if}
   </div>

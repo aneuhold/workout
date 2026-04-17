@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
   WorkoutExerciseCTO,
   WorkoutSession,
@@ -258,19 +259,26 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 
   /**
-   * Deletes a free-form session and all associated session exercises and sets
-   * via cascade deletion.
+   * Deletes an incomplete session and all associated session exercises and sets
+   * via cascade deletion. Completed sessions are refused. Callers who also need
+   * to prune the owning microcycle's `sessionOrder` should pass the apiOptions
+   * returned by `microcycleMapService.pruneSessionFromMicrocycle` so both
+   * mutations land in a single API call.
    *
-   * @param sessionId The free-form session to delete
+   * @param sessionId The session to delete
+   * @param apiOptions Optional existing API options to extend.
    */
-  deleteFreeFormSession(sessionId: UUID): void {
+  deleteSession(sessionId: UUID, apiOptions?: ProjectWorkoutPrimaryEndpointOptions): void {
     const session = this.getDoc(sessionId);
-    if (!session) return;
+    if (!session || session.complete) return;
 
-    const apiOptions = this.prepareDeleteSessionExercisesWithSets(session.sessionExerciseOrder);
-    this.prepareDocsForSave({ delete: [sessionId] }, apiOptions);
+    const options = this.prepareDeleteSessionExercisesWithSets(
+      session.sessionExerciseOrder,
+      apiOptions
+    );
+    this.prepareDocsForSave({ delete: [sessionId] }, options);
 
-    WorkoutAPIService.queryApi(apiOptions);
+    WorkoutAPIService.queryApi(options);
   }
 
   /**
@@ -298,14 +306,18 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    * their associated sets.
    *
    * @param sessionExerciseIds The session exercise IDs to delete
+   * @param apiOptions Optional existing API options to extend.
    */
-  private prepareDeleteSessionExercisesWithSets(sessionExerciseIds: UUID[]) {
+  private prepareDeleteSessionExercisesWithSets(
+    sessionExerciseIds: UUID[],
+    apiOptions?: ProjectWorkoutPrimaryEndpointOptions
+  ) {
     const setIds = sessionExerciseIds.flatMap(
       (seId) => sessionExerciseMapService.getDoc(seId)?.setOrder ?? []
     );
-    const apiOptions = setMapService.prepareDocsForSave({ delete: setIds });
-    sessionExerciseMapService.prepareDocsForSave({ delete: sessionExerciseIds }, apiOptions);
-    return apiOptions;
+    const options = setMapService.prepareDocsForSave({ delete: setIds }, apiOptions);
+    sessionExerciseMapService.prepareDocsForSave({ delete: sessionExerciseIds }, options);
+    return options;
   }
 }
 
