@@ -1,3 +1,4 @@
+import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type { WorkoutMicrocycle, WorkoutSession } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
@@ -56,6 +57,33 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    */
   compareMicrocyclesByStartDate(a: WorkoutMicrocycle, b: WorkoutMicrocycle): number {
     return a.startDate.getTime() - b.startDate.getTime();
+  }
+
+  /**
+   * Queues an update that removes a session ID from its owning microcycle's
+   * `sessionOrder`. A no-op when the session has no microcycle or the
+   * microcycle isn't in the store. We intentionally do not delete an emptied
+   * microcycle here — unlike `initiateEarlyDeload`,
+   * `WorkoutMesocycleService.cleanUpIncompleteMicrocycles` treats an empty
+   * `sessionOrder` as incomplete and sweeps it on the next advance, avoiding
+   * mid-mesocycle index gaps from piecemeal deletion.
+   *
+   * @param sessionId Session being removed.
+   * @param apiOptions Optional existing API options to extend.
+   */
+  prepareDeleteSessionFromMicrocycle(
+    sessionId: UUID,
+    apiOptions?: ProjectWorkoutPrimaryEndpointOptions
+  ): ProjectWorkoutPrimaryEndpointOptions {
+    const options = apiOptions ?? {};
+    const session = sessionMapService.getDoc(sessionId);
+    if (!session?.workoutMicrocycleId) return options;
+
+    const microcycle = this.getDoc(session.workoutMicrocycleId);
+    if (!microcycle) return options;
+
+    microcycle.sessionOrder = microcycle.sessionOrder.filter((id) => id !== sessionId);
+    return this.prepareDocsForSave({ update: [microcycle] }, options);
   }
 }
 
