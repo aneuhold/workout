@@ -33,7 +33,8 @@
 </script>
 
 <script lang="ts">
-  import { IconSearch, IconX } from '@tabler/icons-svelte';
+  import { IconPlus, IconSearch, IconX } from '@tabler/icons-svelte';
+  import { goto } from '$app/navigation';
   import CircleWithText from '$components/CircleWithText/CircleWithText.svelte';
   import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
@@ -91,6 +92,11 @@
 
   function handleCancel() {
     open = false;
+  }
+
+  async function handleNewExercise() {
+    open = false;
+    await goto('/exercise/new');
   }
 </script>
 
@@ -166,6 +172,10 @@
     </div>
 
     <DialogFooter>
+      <Button variant="outline" onclick={handleNewExercise}>
+        <IconPlus size={16} />
+        New Exercise
+      </Button>
       <Button variant="outline" onclick={handleCancel}>Cancel</Button>
       <Button disabled={selectedExerciseIds.length === 0} onclick={handleConfirm}>
         Add {selectedExerciseIds.length || ''} Exercise{selectedExerciseIds.length !== 1 ? 's' : ''}

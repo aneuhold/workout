@@ -33,6 +33,7 @@
   import Slider from '$ui/Slider/Slider.svelte';
   import Textarea from '$ui/Textarea/Textarea.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
+  import { cn } from '$util/svelte-shadcn-util';
 
   let {
     exercise,
@@ -104,6 +105,19 @@
     formName.trim().length > 0 && formEquipmentId.length > 0 && formPrimary.size > 0
   );
 
+  // --- Validation UX ---
+
+  let validationAttempted = $state(false);
+  let nameFieldRef = $state<HTMLDivElement | null>(null);
+  let equipmentFieldRef = $state<HTMLDivElement | null>(null);
+  let muscleGroupFieldRef = $state<HTMLDivElement | null>(null);
+
+  $effect(() => {
+    if (formIsValid && validationAttempted) {
+      validationAttempted = false;
+    }
+  });
+
   // --- Helpers ---
 
   const { jointDescriptions, effortDescriptions, unusedMuscleDescriptions } = sharedTextConstants;
@@ -124,7 +138,19 @@
   // --- Save ---
 
   function handleSave() {
-    if (!formIsValid) return;
+    if (!formIsValid) {
+      validationAttempted = true;
+      const firstInvalidRef =
+        formName.trim().length === 0
+          ? nameFieldRef
+          : formEquipmentId.length === 0
+            ? equipmentFieldRef
+            : formPrimary.size === 0
+              ? muscleGroupFieldRef
+              : null;
+      firstInvalidRef?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     const userId = $currentUserId;
 
     const fatigueGuess = {
@@ -179,9 +205,17 @@
 >
   <p class="text-xs text-muted-foreground">* Required</p>
 
-  <div class="flex flex-col gap-1.5">
+  <div
+    bind:this={nameFieldRef}
+    class={cn(
+      'flex flex-col gap-1.5',
+      validationAttempted &&
+        formName.trim().length === 0 &&
+        'rounded-lg p-2 ring-2 ring-amber-500/50'
+    )}
+  >
     <Label for="ex-name">Exercise Name *</Label>
-    <Input id="ex-name" placeholder="e.g. Barbell Bench Press" bind:value={formName} required />
+    <Input id="ex-name" placeholder="e.g. Barbell Bench Press" bind:value={formName} />
     <TipBox>
       Be ultra-specific to more accurately track progression. Include tempo, angle, grip-type,
       rep-type, etc. Example: "Barbell Curl - 3s Down, 1s Hold, Normal Up - Shoulder Width
@@ -189,7 +223,15 @@
     </TipBox>
   </div>
 
-  <div class="flex flex-col gap-1.5">
+  <div
+    bind:this={equipmentFieldRef}
+    class={cn(
+      'flex flex-col gap-1.5',
+      validationAttempted &&
+        formEquipmentId.length === 0 &&
+        'rounded-lg p-2 ring-2 ring-amber-500/50'
+    )}
+  >
     <Label>Equipment *</Label>
     <Select bind:value={formEquipmentId} type="single">
       <SelectTrigger>
@@ -237,7 +279,22 @@
       </Select>
     </div>
     <div class="flex flex-col gap-1.5">
-      <Label>Progression</Label>
+      <div class="flex items-center gap-2">
+        <Label>Progression</Label>
+        <InfoPopover>
+          <p class="mb-2 font-medium">How this exercise progresses week to week.</p>
+          <ul class="flex flex-col gap-1.5 text-sm">
+            <li>
+              <strong>Rep:</strong> Adds 2 reps each week. Once you pass the top of the rep range, bump
+              the weight up by the smallest increment.
+            </li>
+            <li>
+              <strong>Load:</strong> Adds a little weight each week — the smallest increment available,
+              or 2% of your current load, whichever is bigger.
+            </li>
+          </ul>
+        </InfoPopover>
+      </div>
       <Select bind:value={formProgressionType} type="single">
         <SelectTrigger>{formProgressionType}</SelectTrigger>
         <SelectContent>
@@ -249,7 +306,13 @@
   </div>
 
   <!-- Muscle groups -->
-  <div class="flex flex-col gap-3 rounded-lg border border-border p-3">
+  <div
+    bind:this={muscleGroupFieldRef}
+    class={cn(
+      'flex flex-col gap-3 rounded-lg border border-border p-3',
+      validationAttempted && formPrimary.size === 0 && 'ring-2 ring-amber-500/50'
+    )}
+  >
     <div class="flex flex-col gap-1">
       <Label>Muscle Groups *</Label>
       <p class="text-xs text-muted-foreground">
@@ -389,7 +452,7 @@
   <Separator />
 
   <div class="flex gap-2">
-    <Button type="submit" disabled={!formIsValid}>Save</Button>
+    <Button type="submit">Save</Button>
     <Button variant="outline" type="button" onclick={onCancel}>Cancel</Button>
   </div>
 </form>
