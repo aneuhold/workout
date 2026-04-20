@@ -3,8 +3,8 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
-  import { calibrationFormDialog } from './SingletonCalibrationFormDialog.svelte';
   import SingletonCalibrationFormDialog from './SingletonCalibrationFormDialog.svelte';
+  import { calibrationFormDialog } from './SingletonCalibrationFormDialog.svelte';
 
   let exercises = $state<WorkoutExercise[]>([]);
 

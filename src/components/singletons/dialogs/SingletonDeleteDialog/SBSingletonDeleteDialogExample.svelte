@@ -5,8 +5,8 @@
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
-  import { deleteDialog } from './SingletonDeleteDialog.svelte';
   import SingletonDeleteDialog from './SingletonDeleteDialog.svelte';
+  import { deleteDialog } from './SingletonDeleteDialog.svelte';
 
   let exercises = $state<{ _id: UUID; exerciseName: string }[]>([]);
   let muscleGroups = $state<{ _id: UUID; name: string }[]>([]);

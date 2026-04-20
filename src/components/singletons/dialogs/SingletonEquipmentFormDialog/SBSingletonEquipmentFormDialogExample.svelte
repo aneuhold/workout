@@ -3,8 +3,8 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
-  import { equipmentFormDialog } from './SingletonEquipmentFormDialog.svelte';
   import SingletonEquipmentFormDialog from './SingletonEquipmentFormDialog.svelte';
+  import { equipmentFormDialog } from './SingletonEquipmentFormDialog.svelte';
 
   let equipment = $state<WorkoutEquipmentType[]>([]);
 

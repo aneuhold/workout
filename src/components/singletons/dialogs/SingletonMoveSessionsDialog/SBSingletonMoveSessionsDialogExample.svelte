@@ -17,8 +17,8 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import TestUsers from '$testUtils/TestUsers';
   import Button from '$ui/Button/Button.svelte';
-  import { moveSessionsDialog } from './SingletonMoveSessionsDialog.svelte';
   import SingletonMoveSessionsDialog from './SingletonMoveSessionsDialog.svelte';
+  import { moveSessionsDialog } from './SingletonMoveSessionsDialog.svelte';
 
   let { storyMode = MoveSessionsStoryMode.Late }: { storyMode?: MoveSessionsStoryMode } = $props();
 

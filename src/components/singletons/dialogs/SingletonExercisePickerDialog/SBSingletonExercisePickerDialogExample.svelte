@@ -2,8 +2,8 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
-  import { exercisePickerDialog } from './SingletonExercisePickerDialog.svelte';
   import SingletonExercisePickerDialog from './SingletonExercisePickerDialog.svelte';
+  import { exercisePickerDialog } from './SingletonExercisePickerDialog.svelte';
 
   let selectedIds = $state<string[]>([]);
 
