@@ -3,8 +3,8 @@
   import { untrack } from 'svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
-  import { muscleGroupFormDialog } from './SingletonMuscleGroupFormDialog.svelte';
   import SingletonMuscleGroupFormDialog from './SingletonMuscleGroupFormDialog.svelte';
+  import { muscleGroupFormDialog } from './SingletonMuscleGroupFormDialog.svelte';
 
   let muscleGroups = $state<WorkoutMuscleGroup[]>([]);
 
