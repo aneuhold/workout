@@ -80,8 +80,8 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     // TypeScript where it says that $state.snapshot returns a map of Snapshot<T> instead of T,
     // even though the docs say it should return T. This is a workaround for now. An alternative
     // is to setup an app.d.ts file, but the below seems shorter.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const snapshot = $state.snapshot(this.mapState) as unknown as DocumentMap<T>;
+
+    const snapshot = $state.snapshot(this.mapState);
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const map = new Map<UUID, T>();
     Object.values(snapshot).forEach((doc) => {
