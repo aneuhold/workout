@@ -17,6 +17,7 @@
   import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import SingletonMoveSessionsDialog from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
+  import SingletonMuscleGroupDefaultsDialog from '$components/singletons/dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
@@ -91,6 +92,7 @@ at some point.
     <SingletonDeloadDialog />
     <SingletonEquipmentFormDialog />
     <SingletonMoveSessionsDialog />
+    <SingletonMuscleGroupDefaultsDialog />
     <SingletonMuscleGroupFormDialog />
     <SingletonRescheduleMesocycleDialog />
   {/if}
