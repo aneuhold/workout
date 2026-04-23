@@ -4,14 +4,21 @@ import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import {
+  createWorkoutPersistToDb,
+  createWorkoutPrepareForSave
+} from '$util/workoutPersistenceUtils';
 import setMapService from './setMapService.svelte';
 
 class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutSessionExercise> {
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetSessionExerciseMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.sessionExerciseMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutSessionExercise>(
+          LocalData.storedKeyNames.sessionExerciseMap
+        ),
       persistToDb: createWorkoutPersistToDb('sessionExercises'),
       prepareForSave: createWorkoutPrepareForSave('sessionExercises')
     });

@@ -1,16 +1,5 @@
 import type { ProjectWorkoutPrimaryEndpointOptions, Translations } from '@aneuhold/core-ts-api-lib';
-import type {
-  DocumentMap,
-  WorkoutEquipmentType,
-  WorkoutExercise,
-  WorkoutExerciseCalibration,
-  WorkoutMesocycle,
-  WorkoutMicrocycle,
-  WorkoutMuscleGroup,
-  WorkoutSession,
-  WorkoutSessionExercise,
-  WorkoutSet
-} from '@aneuhold/core-ts-db-lib';
+import type { BaseDocument, DocumentMap } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { browser } from '$app/environment';
 import type { UserConfig } from '$stores/local/userConfig/userConfig';
@@ -24,7 +13,7 @@ export default class LocalData {
 
   private static localStorageAvailable = browser;
 
-  private static storedKeyNames = {
+  static storedKeyNames = {
     password: `${this.PREFIX}password`,
     username: `${this.PREFIX}username`,
     translations: `${this.PREFIX}translations`,
@@ -103,120 +92,47 @@ export default class LocalData {
     return this.getStoredObject<UserConfig>(LocalData.storedKeyNames.userConfig);
   }
 
-  // Workout document map getters/setters
-
-  static setAndGetMesocycleMap(
-    newMap: DocumentMap<WorkoutMesocycle>
-  ): DocumentMap<WorkoutMesocycle> {
+  /**
+   * Persists a document map under the given key and returns a deep-cloned,
+   * date-revived copy so the caller holds a parsed snapshot ready to store
+   * directly in reactive state.
+   *
+   * @param key The storage key to persist under (from `storedKeyNames`)
+   * @param newMap The document map to persist
+   */
+  static setAndGetDocumentMap<T extends BaseDocument>(
+    key: string,
+    newMap: DocumentMap<T>
+  ): DocumentMap<T> {
     const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.mesocycleMap, stringified);
+    this.storeValue(key, stringified);
     return LocalData.parseRevived(stringified);
   }
 
-  static get mesocycleMap(): DocumentMap<WorkoutMesocycle> | null {
-    return this.getStoredObject<DocumentMap<WorkoutMesocycle>>(
-      LocalData.storedKeyNames.mesocycleMap
-    );
+  /**
+   * Reads a previously persisted document map for the given key, or `null`
+   * if no cached value is found.
+   *
+   * @param key The storage key to read from (from `storedKeyNames`)
+   */
+  static getDocumentMap<T extends BaseDocument>(key: string): DocumentMap<T> | null {
+    return this.getStoredObject<DocumentMap<T>>(key);
   }
 
-  static setAndGetMicrocycleMap(
-    newMap: DocumentMap<WorkoutMicrocycle>
-  ): DocumentMap<WorkoutMicrocycle> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.microcycleMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get microcycleMap(): DocumentMap<WorkoutMicrocycle> | null {
-    return this.getStoredObject<DocumentMap<WorkoutMicrocycle>>(
-      LocalData.storedKeyNames.microcycleMap
-    );
-  }
-
-  static setAndGetSessionMap(newMap: DocumentMap<WorkoutSession>): DocumentMap<WorkoutSession> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.sessionMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get sessionMap(): DocumentMap<WorkoutSession> | null {
-    return this.getStoredObject<DocumentMap<WorkoutSession>>(LocalData.storedKeyNames.sessionMap);
-  }
-
-  static setAndGetSessionExerciseMap(
-    newMap: DocumentMap<WorkoutSessionExercise>
-  ): DocumentMap<WorkoutSessionExercise> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.sessionExerciseMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get sessionExerciseMap(): DocumentMap<WorkoutSessionExercise> | null {
-    return this.getStoredObject<DocumentMap<WorkoutSessionExercise>>(
-      LocalData.storedKeyNames.sessionExerciseMap
-    );
-  }
-
-  static setAndGetSetMap(newMap: DocumentMap<WorkoutSet>): DocumentMap<WorkoutSet> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.setMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get setMap(): DocumentMap<WorkoutSet> | null {
-    return this.getStoredObject<DocumentMap<WorkoutSet>>(LocalData.storedKeyNames.setMap);
-  }
-
-  static setAndGetExerciseMap(newMap: DocumentMap<WorkoutExercise>): DocumentMap<WorkoutExercise> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.exerciseMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get exerciseMap(): DocumentMap<WorkoutExercise> | null {
-    return this.getStoredObject<DocumentMap<WorkoutExercise>>(LocalData.storedKeyNames.exerciseMap);
-  }
-
-  static setAndGetExerciseCalibrationMap(
-    newMap: DocumentMap<WorkoutExerciseCalibration>
-  ): DocumentMap<WorkoutExerciseCalibration> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.exerciseCalibrationMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get exerciseCalibrationMap(): DocumentMap<WorkoutExerciseCalibration> | null {
-    return this.getStoredObject<DocumentMap<WorkoutExerciseCalibration>>(
-      LocalData.storedKeyNames.exerciseCalibrationMap
-    );
-  }
-
-  static setAndGetMuscleGroupMap(
-    newMap: DocumentMap<WorkoutMuscleGroup>
-  ): DocumentMap<WorkoutMuscleGroup> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.muscleGroupMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get muscleGroupMap(): DocumentMap<WorkoutMuscleGroup> | null {
-    return this.getStoredObject<DocumentMap<WorkoutMuscleGroup>>(
-      LocalData.storedKeyNames.muscleGroupMap
-    );
-  }
-
-  static setAndGetEquipmentTypeMap(
-    newMap: DocumentMap<WorkoutEquipmentType>
-  ): DocumentMap<WorkoutEquipmentType> {
-    const stringified = JSON.stringify(newMap);
-    this.storeValue(LocalData.storedKeyNames.equipmentTypeMap, stringified);
-    return LocalData.parseRevived(stringified);
-  }
-
-  static get equipmentTypeMap(): DocumentMap<WorkoutEquipmentType> | null {
-    return this.getStoredObject<DocumentMap<WorkoutEquipmentType>>(
-      LocalData.storedKeyNames.equipmentTypeMap
-    );
+  /**
+   * Wipes every cached workout document map. Intended for logout so a
+   * different user signing in on the same browser doesn't see (or hydrate)
+   * the previous session's data. Targets every key whose stored name ends
+   * in `Map` — the naming convention shared by all workout-map entries in
+   * {@link storedKeyNames}.
+   */
+  static clearWorkoutMaps(): void {
+    if (!this.localStorageAvailable) return;
+    for (const key of Object.values(LocalData.storedKeyNames)) {
+      if (key.endsWith('Map')) {
+        window.localStorage.removeItem(key);
+      }
+    }
   }
 
   static set currentApiRequest(newApiRequest: ProjectWorkoutPrimaryEndpointOptions | undefined) {

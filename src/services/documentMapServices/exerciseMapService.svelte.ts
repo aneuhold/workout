@@ -1,6 +1,7 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type {
   DocumentMap,
+  WorkoutEquipmentType,
   WorkoutExercise,
   WorkoutExerciseCalibration,
   WorkoutExerciseCTO,
@@ -16,7 +17,8 @@ import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb, {
+import {
+  createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
@@ -35,7 +37,10 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetExerciseMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.exerciseMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutExercise>(LocalData.storedKeyNames.exerciseMap),
       persistToDb: createWorkoutPersistToDb('exercises'),
       prepareForSave: createWorkoutPrepareForSave('exercises')
     });
@@ -78,16 +83,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
     this.addDoc(exercise, ctoGet);
 
-    this.exerciseCTOMapState[exercise._id] = WorkoutExerciseCTOSchema.parse({
-      ...exercise,
-      equipmentType,
-      bestCalibration: null,
-      bestSet: null,
-      lastSessionExercise: null,
-      lastSessionSets: [],
-      lastAccumulationSessionExercise: null,
-      lastAccumulationSessionSets: []
-    });
+    this.exerciseCTOMapState[exercise._id] = this.buildMinimalCTO(exercise, equipmentType, null);
   }
 
   /**
@@ -107,16 +103,11 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       if (!exercise) return;
       const equipmentType = equipmentTypeMapService.getDoc(exercise.workoutEquipmentTypeId);
       if (!equipmentType) return;
-      this.exerciseCTOMapState[exerciseId] = WorkoutExerciseCTOSchema.parse({
-        ...exercise,
+      this.exerciseCTOMapState[exerciseId] = this.buildMinimalCTO(
+        exercise,
         equipmentType,
-        bestCalibration: calibration,
-        bestSet: null,
-        lastSessionExercise: null,
-        lastSessionSets: [],
-        lastAccumulationSessionExercise: null,
-        lastAccumulationSessionSets: []
-      });
+        calibration
+      );
       return;
     }
 
@@ -233,6 +224,32 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   override deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     super.deleteDoc(docId, get ?? ctoGet);
     this.removeCTO(docId);
+  }
+
+  /**
+   * Produces a fresh CTO with only the fields available locally populated.
+   * Session/calibration history is empty; the next server fetch fills in the
+   * rest.
+   *
+   * @param exercise The exercise the CTO wraps
+   * @param equipmentType The exercise's resolved equipment type
+   * @param bestCalibration Seed value for `bestCalibration` (null when unknown)
+   */
+  private buildMinimalCTO(
+    exercise: WorkoutExercise,
+    equipmentType: WorkoutEquipmentType,
+    bestCalibration: WorkoutExerciseCalibration | null
+  ): WorkoutExerciseCTO {
+    return WorkoutExerciseCTOSchema.parse({
+      ...exercise,
+      equipmentType,
+      bestCalibration,
+      bestSet: null,
+      lastSessionExercise: null,
+      lastSessionSets: [],
+      lastAccumulationSessionExercise: null,
+      lastAccumulationSessionSets: []
+    });
   }
 }
 
