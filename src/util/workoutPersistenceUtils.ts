@@ -35,7 +35,7 @@ export function createWorkoutPrepareForSave<T extends BaseDocument>(key: Workout
  *
  * @param key The API key name for this document type (e.g. 'mesocycles')
  */
-export default function createWorkoutPersistToDb<T extends BaseDocument>(key: WorkoutApiKey) {
+export function createWorkoutPersistToDb<T extends BaseDocument>(key: WorkoutApiKey) {
   const prepareForSave = createWorkoutPrepareForSave<T>(key);
   return (info: DocumentInsertOrUpdateInfo<T>) => {
     const options: ProjectWorkoutPrimaryEndpointOptions = {};

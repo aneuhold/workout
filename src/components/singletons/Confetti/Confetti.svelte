@@ -76,7 +76,7 @@
   <div class="confettiContainer">
     <div
       class="confetti"
-      style={`left: ${$confettiSettings.centerX}px; top: ${$confettiSettings.centerY}px;`}
+      style="--confetti-x: {$confettiSettings.centerX}px; --confetti-y: {$confettiSettings.centerY}px;"
       use:confetti={{
         stageWidth: window.innerWidth,
         stageHeight: window.innerHeight,
@@ -97,5 +97,7 @@
   }
   .confetti {
     position: absolute;
+    left: var(--confetti-x);
+    top: var(--confetti-y);
   }
 </style>

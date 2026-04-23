@@ -6,12 +6,11 @@
 -->
 <script lang="ts">
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
-  import { IconChevronDown, IconPencil, IconTrash } from '@tabler/icons-svelte';
+  import { IconPencil, IconTrash } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
-  import { slide } from 'svelte/transition';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
-  import Separator from '$ui/Separator/Separator.svelte';
+  import LibraryPageCard from './LibraryPageCard.svelte';
 
   let {
     equipmentType,
@@ -47,81 +46,61 @@
   let weightSummary = $derived(weightOptionsSummary(equipmentType));
 </script>
 
-<div
-  class="bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl text-sm ring-1 ring-foreground/10"
->
-  <button
-    class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
-    onclick={onToggle}
-  >
-    <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-      {#if showTypeLabel}
-        <span class="text-xs text-muted-foreground">Equipment</span>
-      {/if}
-      <span class="font-medium">{equipmentType.title}</span>
-      {#if equipmentType.description}
-        <span class="text-xs text-muted-foreground">{equipmentType.description}</span>
-      {/if}
-      <span class="text-xs text-muted-foreground">
-        Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
-      </span>
-    </div>
-    <IconChevronDown
-      size={16}
-      class="shrink-0 text-muted-foreground transition-transform duration-200
-        {expanded ? 'rotate-180' : ''}"
-    />
-  </button>
+<LibraryPageCard typeLabel={showTypeLabel ? 'Equipment' : null} {expanded} {onToggle}>
+  {#snippet header()}
+    <span class="font-medium">{equipmentType.title}</span>
+    {#if equipmentType.description}
+      <span class="text-xs text-muted-foreground">{equipmentType.description}</span>
+    {/if}
+    <span class="text-xs text-muted-foreground">
+      Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
+    </span>
+  {/snippet}
 
-  {#if expanded}
-    <div transition:slide={{ duration: 200 }}>
-      <Separator />
-      <div class="flex flex-col gap-3 px-3 py-3">
-        {#if linkedExercises.length > 0}
-          <div>
-            <span class="text-xs text-muted-foreground">Used by</span>
-            <ul class="mt-1 flex flex-col gap-0.5">
-              {#each linkedExercises as exercise (exercise._id)}
-                <li>
-                  <Button
-                    variant="link"
-                    class="h-auto p-0"
-                    onclick={() => onExerciseClick(exercise._id)}
-                  >
-                    {exercise.exerciseName}
-                  </Button>
-                </li>
-              {/each}
-            </ul>
-          </div>
-        {:else}
-          <p class="text-xs text-muted-foreground">No exercises use this equipment yet.</p>
-        {/if}
-
-        {#if weightSummary}
-          <div>
-            <span class="text-xs text-muted-foreground">Weight Options</span>
-            <p class="mt-0.5">{weightSummary}</p>
-          </div>
-        {/if}
-
-        <div class="flex gap-2">
-          <Button variant="outline" size="sm" onclick={onEdit}>
-            <IconPencil size={14} />
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            disabled={linkedExercises.length > 0}
-            title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
-            onclick={onDelete}
-          >
-            <IconTrash size={14} />
-            Delete
-          </Button>
-        </div>
+  {#snippet body()}
+    {#if linkedExercises.length > 0}
+      <div>
+        <span class="text-xs text-muted-foreground">Used by</span>
+        <ul class="mt-1 flex flex-col gap-0.5">
+          {#each linkedExercises as exercise (exercise._id)}
+            <li>
+              <Button
+                variant="link"
+                class="h-auto p-0"
+                onclick={() => onExerciseClick(exercise._id)}
+              >
+                {exercise.exerciseName}
+              </Button>
+            </li>
+          {/each}
+        </ul>
       </div>
+    {:else}
+      <p class="text-xs text-muted-foreground">No exercises use this equipment yet.</p>
+    {/if}
+
+    {#if weightSummary}
+      <div>
+        <span class="text-xs text-muted-foreground">Weight Options</span>
+        <p class="mt-0.5">{weightSummary}</p>
+      </div>
+    {/if}
+
+    <div class="flex gap-2">
+      <Button variant="outline" size="sm" onclick={onEdit}>
+        <IconPencil size={14} />
+        Edit
+      </Button>
+      <Button
+        variant="destructive"
+        size="sm"
+        disabled={linkedExercises.length > 0}
+        title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
+        onclick={onDelete}
+      >
+        <IconTrash size={14} />
+        Delete
+      </Button>
     </div>
-  {/if}
-</div>
+  {/snippet}
+</LibraryPageCard>

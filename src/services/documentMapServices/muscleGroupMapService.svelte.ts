@@ -8,8 +8,10 @@ import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb from '$util/workoutPersistenceUtils';
-import { createWorkoutPrepareForSave } from '$util/workoutPersistenceUtils';
+import {
+  createWorkoutPersistToDb,
+  createWorkoutPrepareForSave
+} from '$util/workoutPersistenceUtils';
 
 class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscleGroup> {
   /** Keyed by muscle group ID (same as the CTO's `_id`). */
@@ -24,7 +26,10 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
 
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetMuscleGroupMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.muscleGroupMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutMuscleGroup>(LocalData.storedKeyNames.muscleGroupMap),
       persistToDb: createWorkoutPersistToDb('muscleGroups'),
       prepareForSave: createWorkoutPrepareForSave('muscleGroups')
     });

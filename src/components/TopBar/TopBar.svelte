@@ -21,6 +21,7 @@
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
   import { formatTime } from '$util/formatTime';
+  import LocalData from '$util/LocalData/LocalData';
   import SyncIndicator from './SyncIndicator.svelte';
 
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
@@ -44,6 +45,7 @@
 
     // Clear local state
     userConfig.clear();
+    LocalData.clearWorkoutMaps();
     loginState.set(LoginState.LoggedOut);
 
     // Prevent Google auto-sign-in on next visit

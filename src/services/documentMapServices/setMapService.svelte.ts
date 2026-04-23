@@ -3,7 +3,8 @@ import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb, {
+import {
+  createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
@@ -12,7 +13,10 @@ import exerciseMapService from './exerciseMapService.svelte';
 class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetSetMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.setMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutSet>(LocalData.storedKeyNames.setMap),
       persistToDb: createWorkoutPersistToDb('sets'),
       prepareForSave: createWorkoutPrepareForSave('sets')
     });

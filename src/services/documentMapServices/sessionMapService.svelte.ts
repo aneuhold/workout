@@ -20,7 +20,8 @@ import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb, {
+import {
+  createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
@@ -66,7 +67,10 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
 
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetSessionMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.sessionMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutSession>(LocalData.storedKeyNames.sessionMap),
       persistToDb: createWorkoutPersistToDb('sessions'),
       prepareForSave: createWorkoutPrepareForSave('sessions')
     });

@@ -20,6 +20,7 @@
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
+  import { hydrateAllDocumentMaps } from '$services/documentMapServices/hydrateAll';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
@@ -41,10 +42,7 @@
   });
 
   onMount(() => {
-    // Initialize services from LocalData. Not sure if this is the best place, but it does solve
-    // the loop issue where services depend upon each other and LocalData needs to be loaded first.
-    // TODO: Initialize workout services from LocalData when needed
-    // Without this, the layout fluctuates a lot when the page is starting up.
+    hydrateAllDocumentMaps();
     mounted = true;
     timerService.init();
   });
