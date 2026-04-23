@@ -20,8 +20,8 @@
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
-  import { hydrateAllDocumentMaps } from '$services/documentMapServices/hydrateAll';
   import timerService from '$services/TimerService';
+  import WorkoutHydrationService from '$services/WorkoutHydrationService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -42,7 +42,7 @@
   });
 
   onMount(() => {
-    hydrateAllDocumentMaps();
+    WorkoutHydrationService.hydrateDocumentMaps();
     mounted = true;
     timerService.init();
   });
