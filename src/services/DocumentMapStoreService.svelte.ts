@@ -26,6 +26,12 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
     options: ProjectWorkoutPrimaryEndpointOptions,
     info: DocumentInsertOrUpdateInfo<T>
   ) => void;
+  /**
+   * Reads a cached map from local storage. If provided, `hydrate()` uses it
+   * to populate the reactive state on startup before any API data arrives.
+   * Return `null` if nothing is cached.
+   */
+  loadFromLocalData?: () => DocumentMap<T> | null;
 }
 
 /**
@@ -192,6 +198,19 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   public setMap(newMap: DocumentMap<T>): void {
     this.mapState = newMap;
     this.config.persistToLocalData(this.mapState);
+  }
+
+  /**
+   * Populates the reactive state from local-storage cache, if available,
+   * without re-persisting. Intended to run once on app startup so the UI
+   * can show the last-known-good data before the API responds.
+   */
+  public hydrate(): void {
+    if (!this.config.loadFromLocalData) return;
+    const cached = this.config.loadFromLocalData();
+    if (cached) {
+      this.mapState = cached;
+    }
   }
 
   /**

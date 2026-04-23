@@ -16,7 +16,8 @@ import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb, {
+import {
+  createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
@@ -35,7 +36,10 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetExerciseMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.exerciseMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutExercise>(LocalData.storedKeyNames.exerciseMap),
       persistToDb: createWorkoutPersistToDb('exercises'),
       prepareForSave: createWorkoutPrepareForSave('exercises')
     });

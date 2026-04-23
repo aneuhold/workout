@@ -19,7 +19,8 @@ import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
-import createWorkoutPersistToDb, {
+import {
+  createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
@@ -46,7 +47,10 @@ export type MesocycleAssociatedDocs = MesocycleChildDocs & {
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
   constructor() {
     super({
-      persistToLocalData: (map) => LocalData.setAndGetMesocycleMap(map),
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.mesocycleMap, map),
+      loadFromLocalData: () =>
+        LocalData.getDocumentMap<WorkoutMesocycle>(LocalData.storedKeyNames.mesocycleMap),
       persistToDb: createWorkoutPersistToDb('mesocycles'),
       prepareForSave: createWorkoutPrepareForSave('mesocycles')
     });
