@@ -35,6 +35,9 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
     )
   );
 
+  /** Whether the user has any exercises defined. */
+  readonly hasAny: boolean = $derived(this.allDocs.length > 0);
+
   constructor() {
     super({
       persistToLocalData: (map) =>

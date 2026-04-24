@@ -7,6 +7,7 @@
 <script lang="ts">
   import { IconBarbell, IconCalendar, IconChartBar } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
 
@@ -28,7 +29,12 @@
     </Button>
   </div>
   {#if sessionMapService.freeFormSessions.inProgress.length === 0}
-    <Button variant="ghost" class="text-muted-foreground" onclick={handleStartFreeForm}>
+    <Button
+      variant="ghost"
+      class="text-muted-foreground"
+      disabled={!exerciseMapService.hasAny}
+      onclick={handleStartFreeForm}
+    >
       <IconBarbell size={16} />
       Start Free-Form Workout
     </Button>

@@ -29,6 +29,13 @@
       ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(currentMesocycle._id)
       : null
   );
+
+  const showEmptyState = $derived(
+    !(currentMesocycle && currentDocs) &&
+      futureMesocycles.length === 0 &&
+      pastMesocycles.length === 0 &&
+      sessionMapService.allDocs.length === 0
+  );
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -36,10 +43,19 @@
   <div class="flex flex-wrap items-center justify-between gap-2">
     <h1 class="text-xl font-semibold">Mesocycles</h1>
     <div class="flex flex-wrap items-center gap-2">
-      <Button variant="outline" size="sm" onclick={() => sessionMapService.planNewFreeFormSession()}
-        >Plan Free-Form Workout</Button
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!exerciseMapService.hasAny}
+        onclick={() => sessionMapService.planNewFreeFormSession()}
       >
-      <Button size="sm" onclick={() => goto('/mesocycle/new')}>
+        Plan Free-Form Workout
+      </Button>
+      <Button
+        size="sm"
+        disabled={!exerciseMapService.hasAny}
+        onclick={() => goto('/mesocycle/new')}
+      >
         <IconPlus size={14} />
         New Mesocycle
       </Button>
@@ -56,12 +72,14 @@
       sets={currentDocs.sets}
       exercises={allExercises}
     />
-  {:else if futureMesocycles.length === 0 && pastMesocycles.length === 0}
+  {:else if showEmptyState}
     <MesocyclesPageEmptyState />
   {/if}
 
   <!-- Session calendar -->
-  <MesocyclesPageSessionCalendarCard />
+  {#if !showEmptyState}
+    <MesocyclesPageSessionCalendarCard />
+  {/if}
 
   <!-- Future mesocycles -->
   {#if futureMesocycles.length > 0}

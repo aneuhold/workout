@@ -13,10 +13,30 @@
       storyMode: createEnumArgType(OnboardingStoryMode)
     },
     args: {
-      storyMode: OnboardingStoryMode.HomePageReady
+      storyMode: OnboardingStoryMode.ChecklistFreshStart
     }
   });
 </script>
+
+<Story
+  name="Checklist — Fresh Start"
+  args={{ storyMode: OnboardingStoryMode.ChecklistFreshStart }}
+/>
+
+<Story
+  name="Checklist — Muscle Groups Added"
+  args={{ storyMode: OnboardingStoryMode.ChecklistMuscleGroupsAdded }}
+/>
+
+<Story
+  name="Checklist — Equipment Added"
+  args={{ storyMode: OnboardingStoryMode.ChecklistEquipmentAdded }}
+/>
+
+<Story
+  name="Checklist — Exercises Added"
+  args={{ storyMode: OnboardingStoryMode.ChecklistExercisesAdded }}
+/>
 
 <Story
   name="Home Page (No Calibrations)"
