@@ -7,7 +7,7 @@
 <script lang="ts" module>
   let open = $state(false);
 
-  export const DEFAULT_MUSCLE_GROUPS = [
+  const DEFAULT_MUSCLE_GROUPS = [
     'Chest',
     'Back',
     'Shoulders',

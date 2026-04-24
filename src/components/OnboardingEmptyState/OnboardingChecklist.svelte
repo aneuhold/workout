@@ -23,47 +23,45 @@
   type Step = {
     label: string;
     actionLabel: string;
-    done: boolean;
     action: () => void;
   };
-
-  let muscleGroupDone = $derived(muscleGroupMapService.allDocs.length > 0);
-  let equipmentDone = $derived(equipmentTypeMapService.allDocs.length > 0);
-  let exerciseDone = $derived(exerciseMapService.allDocs.length > 0);
 
   function startFreeFormSession() {
     const session = sessionMapService.createFreeFormSession();
     void goto(`/session?sessionId=${session._id}`);
   }
 
-  let steps: Step[] = $derived([
+  const steps: Step[] = [
     {
       label: 'Create a muscle group',
       actionLabel: 'Add muscle group',
-      done: muscleGroupDone,
       action: () => muscleGroupDefaultsDialog.open()
     },
     {
       label: 'Add an equipment type',
       actionLabel: 'Add equipment',
-      done: equipmentDone,
       action: () => equipmentFormDialog.openNew()
     },
     {
       label: 'Create your first exercise',
       actionLabel: 'Create exercise',
-      done: exerciseDone,
       action: () => void goto('/exercise/new')
     },
     {
       label: 'Start a free-form workout',
       actionLabel: 'Start workout',
-      done: false,
       action: startFreeFormSession
     }
+  ];
+
+  let doneFlags = $derived([
+    muscleGroupMapService.allDocs.length > 0,
+    equipmentTypeMapService.allDocs.length > 0,
+    exerciseMapService.allDocs.length > 0,
+    false
   ]);
 
-  let currentStepIndex = $derived(steps.findIndex((s) => !s.done));
+  let currentStepIndex = $derived(doneFlags.indexOf(false));
 </script>
 
 <Card class="w-full max-w-md">
@@ -73,22 +71,23 @@
   </CardHeader>
   <CardContent class="flex flex-col gap-2">
     {#each steps as step, i (step.label)}
+      {@const done = doneFlags[i]}
       {@const isCurrent = i === currentStepIndex}
       <div
         class={cn(
           'flex items-center gap-3 rounded-md border p-3',
-          step.done && 'opacity-60',
+          done && 'opacity-60',
           isCurrent && 'bg-primary/5 ring-1 ring-primary animate-fade-in-up'
         )}
       >
         <div
           class={cn(
             'flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium',
-            step.done && 'bg-primary text-primary-foreground border-primary',
+            done && 'bg-primary text-primary-foreground border-primary',
             isCurrent && 'border-primary text-primary'
           )}
         >
-          {#if step.done}
+          {#if done}
             <IconCheck size={14} />
           {:else}
             {i + 1}
@@ -97,7 +96,7 @@
         <span
           class={cn(
             'flex-1 text-sm',
-            step.done ? 'text-muted-foreground line-through' : 'text-foreground'
+            done ? 'text-muted-foreground line-through' : 'text-foreground'
           )}
         >
           {step.label}

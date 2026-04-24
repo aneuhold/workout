@@ -10,7 +10,7 @@
   import type { Snippet } from 'svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import setMapService from '$services/documentMapServices/setMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import OnboardingChecklist from './OnboardingChecklist.svelte';
   import { shouldShowOnboardingChecklist } from './onboardingEmptyStateUtils';
@@ -34,7 +34,7 @@
   );
 
   let showChecklist = $derived(
-    shouldShowOnboardingChecklist(mesocycleMapService.allDocs, setMapService.allDocs)
+    shouldShowOnboardingChecklist(mesocycleMapService.allDocs, sessionMapService.allDocs)
   );
 </script>
 

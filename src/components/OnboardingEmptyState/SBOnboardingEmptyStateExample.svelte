@@ -34,48 +34,44 @@
     OnboardingStoryMode.ChecklistExercisesAdded
   ]);
 
-  $effect(() => {
-    const mode = storyMode;
-
-    untrack(() => {
-      MockData.resetAll();
-
-      if (mode === OnboardingStoryMode.ChecklistFreshStart) return;
-
-      if (mode === OnboardingStoryMode.ChecklistMuscleGroupsAdded) {
+  function setupChecklistMode(mode: OnboardingStoryMode): void {
+    switch (mode) {
+      case OnboardingStoryMode.ChecklistFreshStart:
+        return;
+      case OnboardingStoryMode.ChecklistMuscleGroupsAdded:
         MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
         return;
-      }
-
-      if (mode === OnboardingStoryMode.ChecklistEquipmentAdded) {
+      case OnboardingStoryMode.ChecklistEquipmentAdded:
         MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
         MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
         return;
-      }
-
-      if (mode === OnboardingStoryMode.ChecklistExercisesAdded) {
+      case OnboardingStoryMode.ChecklistExercisesAdded:
         MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
         MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
         MockData.exerciseMapServiceMock.addDefaultExercises();
         return;
-      }
+    }
+  }
 
-      // All remaining (calibration-branch) modes need the checklist gate to
-      // close. Base data + a completed free-form session provides both the
-      // exercises needed and the "completed set" that exits checklist mode.
-      const baseData = MockData.setupBaseData();
-      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
-        complete: true,
-        exerciseCount: 1,
-        setsPerExercise: 1,
-        loggedSetCount: 1
-      });
+  function setupCalibrationMode(mode: OnboardingStoryMode): void {
+    // Calibration-branch modes need the checklist gate to close. Base data
+    // plus a free-form session provides both the exercises and the session
+    // that exits checklist mode.
+    const baseData = MockData.setupBaseData();
+    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+      complete: true,
+      exerciseCount: 1,
+      setsPerExercise: 1,
+      loggedSetCount: 1
+    });
 
-      if (mode === OnboardingStoryMode.HomePageNoCalibrations) {
+    switch (mode) {
+      case OnboardingStoryMode.HomePageNoCalibrations:
         // setupBaseData adds 12 calibrations; drop them all to hit the
         // 0-calibration branch.
         MockData.exerciseCalibrationMapServiceMock.reset();
-      } else if (mode === OnboardingStoryMode.HomePageFewCalibrations) {
+        return;
+      case OnboardingStoryMode.HomePageFewCalibrations: {
         const firstTwo = baseData.calibrations.slice(0, 2);
         MockData.exerciseCalibrationMapServiceMock.reset();
         for (const cal of firstTwo) {
@@ -85,6 +81,20 @@
             weight: cal.weight
           });
         }
+        return;
+      }
+    }
+  }
+
+  $effect(() => {
+    const mode = storyMode;
+
+    untrack(() => {
+      MockData.resetAll();
+      if (checklistModes.has(mode)) {
+        setupChecklistMode(mode);
+      } else {
+        setupCalibrationMode(mode);
       }
     });
 
