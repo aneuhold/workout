@@ -29,6 +29,13 @@
       ? mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(currentMesocycle._id)
       : null
   );
+
+  const showEmptyState = $derived(
+    !(currentMesocycle && currentDocs) &&
+      futureMesocycles.length === 0 &&
+      pastMesocycles.length === 0 &&
+      sessionMapService.allDocs.length === 0
+  );
 </script>
 
 <div class="flex flex-col gap-4 p-4">
@@ -56,12 +63,14 @@
       sets={currentDocs.sets}
       exercises={allExercises}
     />
-  {:else if futureMesocycles.length === 0 && pastMesocycles.length === 0}
+  {:else if showEmptyState}
     <MesocyclesPageEmptyState />
   {/if}
 
   <!-- Session calendar -->
-  <MesocyclesPageSessionCalendarCard />
+  {#if !showEmptyState}
+    <MesocyclesPageSessionCalendarCard />
+  {/if}
 
   <!-- Future mesocycles -->
   {#if futureMesocycles.length > 0}

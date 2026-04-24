@@ -12,6 +12,7 @@
   import SingletonDeloadDialog from './dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import SingletonEquipmentFormDialog from './dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import SingletonMoveSessionsDialog from './dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
+  import SingletonMuscleGroupDefaultsDialog from './dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
   import SingletonMuscleGroupFormDialog from './dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from './dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
 
@@ -25,5 +26,6 @@
 <SingletonDeloadDialog />
 <SingletonEquipmentFormDialog />
 <SingletonMoveSessionsDialog />
+<SingletonMuscleGroupDefaultsDialog />
 <SingletonMuscleGroupFormDialog />
 <SingletonRescheduleMesocycleDialog />

@@ -9,6 +9,7 @@ import routeState from './sbFullAppRouteState.svelte';
 
 export enum FullAppScenario {
   MidTraining = 'midTraining',
+  CompletelyFresh = 'completelyFresh',
   FreshStart = 'freshStart',
   FreeFormWorkout = 'freeFormWorkout',
   AllComplete = 'allComplete',
@@ -27,6 +28,13 @@ export enum FullAppScenario {
  */
 export function setupScenario(scenario: FullAppScenario): void {
   MockData.resetAll();
+
+  if (scenario === FullAppScenario.CompletelyFresh) {
+    // Brand-new user: no muscle groups, equipment, exercises, or mesocycles.
+    // Exercises the onboarding checklist in OnboardingEmptyState.
+    return;
+  }
+
   const baseData = MockData.setupBaseData();
 
   switch (scenario) {

@@ -39,6 +39,8 @@
 
 <Story name="Mid-Training" args={{ scenario: FullAppScenario.MidTraining }} />
 
+<Story name="Completely Fresh" args={{ scenario: FullAppScenario.CompletelyFresh }} />
+
 <Story name="Fresh Start" args={{ scenario: FullAppScenario.FreshStart }} />
 
 <Story name="Free-Form Workout" args={{ scenario: FullAppScenario.FreeFormWorkout }} />
