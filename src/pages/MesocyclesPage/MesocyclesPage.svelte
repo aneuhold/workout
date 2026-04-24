@@ -43,10 +43,19 @@
   <div class="flex flex-wrap items-center justify-between gap-2">
     <h1 class="text-xl font-semibold">Mesocycles</h1>
     <div class="flex flex-wrap items-center gap-2">
-      <Button variant="outline" size="sm" onclick={() => sessionMapService.planNewFreeFormSession()}
-        >Plan Free-Form Workout</Button
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!exerciseMapService.hasAny}
+        onclick={() => sessionMapService.planNewFreeFormSession()}
       >
-      <Button size="sm" onclick={() => goto('/mesocycle/new')}>
+        Plan Free-Form Workout
+      </Button>
+      <Button
+        size="sm"
+        disabled={!exerciseMapService.hasAny}
+        onclick={() => goto('/mesocycle/new')}
+      >
         <IconPlus size={14} />
         New Mesocycle
       </Button>

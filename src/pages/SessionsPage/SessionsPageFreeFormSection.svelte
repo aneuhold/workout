@@ -12,6 +12,7 @@
   import { goto } from '$app/navigation';
   import SessionCard from '$components/SessionCard/SessionCard.svelte';
   import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
+  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Pagination from '$ui/Pagination/Pagination.svelte';
@@ -97,12 +98,18 @@
       <Button
         variant="outline"
         size="sm"
+        disabled={!exerciseMapService.hasAny}
         onclick={() => sessionMapService.planNewFreeFormSession()}
       >
         <IconCalendar size={14} />
         Plan New Workout
       </Button>
-      <Button variant="outline" size="sm" onclick={handleStartFreeForm}>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!exerciseMapService.hasAny}
+        onclick={handleStartFreeForm}
+      >
         <IconPlus size={14} />
         Start New Workout
       </Button>
