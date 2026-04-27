@@ -22,7 +22,7 @@
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
     "generate:icons": "ICON=docs/officialAssets/logo-icon-circle.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.33.2",
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {
@@ -35,6 +35,7 @@
     "@aneuhold/core-ts-lib": "^2.4.4",
     "@aneuhold/eslint-config": "^2.0.5",
     "@aneuhold/local-npm-registry": "^0.2.32",
+    "@capacitor/cli": "^8.3.1",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
