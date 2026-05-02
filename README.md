@@ -53,3 +53,24 @@ To create a production version of the app:
 ```bash
 pnpm build
 ```
+
+<details>
+<summary><h3 style="display: inline">Android Development</h3></summary>
+
+#### Commands
+
+- `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
+- `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`. Use this to verify the prod build path on-device against the prod backend.
+- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config).
+
+#### Testing on an emulator / debugging
+
+1. If you want to test on your actual device, then plug it in first to the laptop at this point.
+2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the options in `scriptsComments`.
+3. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
+
+![alt text](docs/images/chrome-inspect-devices.png)
+
+4. Interact with the app on the emulator / your phone while watching DevTools — JS errors, failed requests, and `console.*` output all surface there.
+
+</details>
