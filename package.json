@@ -5,6 +5,7 @@
     "dev": "vite dev",
     "dev:android": "pnpm cap sync android && pnpm cap run android",
     "open:android": "pnpm cap open android",
+    "reload:android": "pnpm build && pnpm dev:android",
     "build": "vite build",
     "build:sb": "storybook build",
     "preview": "pnpm build && vite preview --port 5173",

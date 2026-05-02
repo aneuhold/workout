@@ -53,3 +53,23 @@ To create a production version of the app:
 ```bash
 pnpm build
 ```
+
+<details>
+<summary><h3 style="display: inline">Android Development</h3></summary>
+
+#### Commands
+
+- `pnpm dev:android` — runs `pnpm build`, syncs the build into the Android project (`cap sync android`), then launches it on a running emulator or connected device (`cap run android`).
+- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config).
+
+#### Testing on an emulator / debugging
+
+1. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator.
+2. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
+
+![alt text](docs/images/chrome-inspect-devices.png)
+
+3. Interact with the app on the emulator while watching DevTools — JS errors, failed requests, and `console.*` output all surface there.
+4. After making code changes, run `pnpm reload:android` to rebuild and reinstall
+
+</details>
