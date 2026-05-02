@@ -30,6 +30,7 @@
     // Below this point are the includes for this specific project. Everything
     // above comes from .svelte-kit/tsconfig.json
     "./.storybook/**/*.ts",
-    "./testUtils/**/*.ts"
+    "./testUtils/**/*.ts",
+    "./capacitor.config.ts"
   ]
 }

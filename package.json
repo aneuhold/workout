@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
+    "dev:android": "pnpm cap sync android && pnpm cap run android",
+    "open:android": "pnpm cap open android",
     "build": "vite build",
     "build:sb": "storybook build",
     "preview": "pnpm build && vite preview --port 5173",
