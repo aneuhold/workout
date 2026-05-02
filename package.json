@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "concurrently --kill-others --names vite,android \"vite dev --host\" \"pnpm cap run android --live-reload --port 5173 --target-name 'Pixel 10 Pro XL'\"",
+    "dev:android": "concurrently --kill-others --names vite,android \"vite dev --host\" \"pnpm cap run android --live-reload --port 5173 --target-name 'OnePlus IN2025'\"",
     "open:android": "pnpm cap open android",
     "build": "vite build",
     "build:sb": "storybook build",
@@ -26,7 +26,7 @@
     "generate:icons": "ICON=docs/officialAssets/logo-icon-circle.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
   "scriptsComments": {
-    "dev:android": "This does a couple things. 'vite dev --host' will use 0.0.0.0 instead of localhost, which exposes the dev server to the local network. Which is needed for the Android emulator to see it. 'cap run android --target-name is to avoid the interactive prompt to select the emulator. This is a little fragile, but seemed like an okay solution at the time."
+    "dev:android": "This does a couple things. 'vite dev --host' will use 0.0.0.0 instead of localhost, which exposes the dev server to the local network. Which is needed for the Android emulator to see it. 'cap run android --target-name is to avoid the interactive prompt to select the emulator. This is a little fragile, but seemed like an okay solution at the time. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025'"
   },
   "packageManager": "pnpm@10.33.2",
   "type": "module",
