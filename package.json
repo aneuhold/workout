@@ -35,6 +35,7 @@
     "@aneuhold/core-ts-lib": "^2.4.4",
     "@aneuhold/eslint-config": "^2.0.5",
     "@aneuhold/local-npm-registry": "^0.2.32",
+    "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
