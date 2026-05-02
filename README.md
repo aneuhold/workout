@@ -65,11 +65,12 @@ pnpm build
 
 #### Testing on an emulator / debugging
 
-1. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator.
-2. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
+1. If you want to test on your actual device, then plug it in first to the laptop at this point.
+2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the options in `scriptsComments`.
+3. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
 
 ![alt text](docs/images/chrome-inspect-devices.png)
 
-3. Interact with the app on the emulator while watching DevTools — JS errors, failed requests, and `console.*` output all surface there.
+4. Interact with the app on the emulator / your phone while watching DevTools — JS errors, failed requests, and `console.*` output all surface there.
 
 </details>
