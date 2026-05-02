@@ -59,7 +59,8 @@ pnpm build
 
 #### Commands
 
-- `pnpm dev:android` — runs `pnpm build`, syncs the build into the Android project (`cap sync android`), then launches it on a running emulator or connected device (`cap run android`).
+- `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
+- `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`. Use this to verify the prod build path on-device against the prod backend.
 - `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config).
 
 #### Testing on an emulator / debugging
@@ -70,6 +71,5 @@ pnpm build
 ![alt text](docs/images/chrome-inspect-devices.png)
 
 3. Interact with the app on the emulator while watching DevTools — JS errors, failed requests, and `console.*` output all surface there.
-4. After making code changes, run `pnpm reload:android` to rebuild and reinstall
 
 </details>

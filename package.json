@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "pnpm cap sync android && pnpm cap run android",
+    "dev:android": "concurrently --kill-others --names vite,android \"vite dev --host\" \"pnpm cap run android --live-reload --port 5173 --target-name 'Pixel 10 Pro XL'\"",
     "open:android": "pnpm cap open android",
-    "reload:android": "pnpm build && pnpm dev:android",
     "build": "vite build",
     "build:sb": "storybook build",
+    "build:android": "pnpm build && pnpm cap sync android",
     "preview": "pnpm build && vite preview --port 5173",
     "lint": "eslint --cache",
     "test": "vitest run",
@@ -25,6 +25,9 @@
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
     "generate:icons": "ICON=docs/officialAssets/logo-icon-circle.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
+  "scriptsComments": {
+    "dev:android": "This does a couple things. 'vite dev --host' will use 0.0.0.0 instead of localhost, which exposes the dev server to the local network. Which is needed for the Android emulator to see it. 'cap run android --target-name is to avoid the interactive prompt to select the emulator. This is a little fragile, but seemed like an okay solution at the time."
+  },
   "packageManager": "pnpm@10.33.2",
   "type": "module",
   "license": "BUSL-1.1",
@@ -40,6 +43,7 @@
     "@aneuhold/local-npm-registry": "^0.2.32",
     "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
@@ -64,6 +68,7 @@
     "@typescript-eslint/parser": "^8.59.0",
     "bits-ui": "^2.15.5",
     "clsx": "^2.1.1",
+    "concurrently": "^9.2.1",
     "d3-scale": "^4.0.2",
     "eslint": "^9.0.0",
     "eslint-plugin-storybook": "10.2.7",
