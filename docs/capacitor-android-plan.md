@@ -17,9 +17,6 @@ The app is well-positioned because:
 The notable mismatches to resolve:
 
 - **System-feature access** should go through Capacitor plugins rather than fragile WebView shims. Covers Sentry native crashes, hardware back button, status bar / splash, persistent storage, wake locks, etc. (Step 3.)
-- **Safe areas / viewport-fit**: not currently styled for a native chrome. (Step 4.)
-- **Google Sign-In** currently uses Google's officially-rendered button via `google.accounts.id.renderButton`, which doesn't survive a Capacitor WebView reliably. Replace with a custom-branded button that drives GIS on web and the social-login plugin on native. (Step 5.)
-- **One claim still worth verifying firsthand** — WebSocket cleartext rules — is at the bottom under "Verify yourself."
 
 ---
 
@@ -68,67 +65,6 @@ Docs:
 
 ---
 
-## Step 4 — Style for native chrome (safe areas, viewport-fit)
-
-**Why**: A bare WebView on Android draws under the status bar and the gesture nav bar, clipping your TopBar/NavBar. Status-bar styling itself is handled by the plugin in Step 3; this step is the CSS side.
-
-- Add `viewport-fit=cover` to the meta viewport in `src/app.html` (current value: `width=device-width, initial-scale=1`).
-- Audit `src/components/TopBar` / `NavBar` (or equivalent) for hardcoded `top: 0` / `bottom: 0`. Add `env(safe-area-inset-top|bottom)` padding via [`env()` CSS variables](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/env).
-
-Docs:
-
-- [`viewport-fit=cover` and safe areas (WebKit)](https://webkit.org/blog/7929/designing-websites-for-iphone-x/)
-- [`env(safe-area-inset-*)` (MDN)](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/env)
-
----
-
-## Step 5 — Custom Google Sign-In button + unified auth via `@capgo/capacitor-social-login`
-
-**Why**: The current login flow renders Google's official button via [`google.accounts.id.renderButton`](https://developers.google.com/identity/gsi/web/reference/js-reference#google.accounts.id.renderButton) in `src/components/Login/Login.svelte` (the `<div bind:this={googleButtonRef}>` slot), driven by `src/services/GoogleGISService.ts`. Inside a Capacitor WebView the GIS popup is unreliable: Google may return `disallowed_useragent`, or the popup gets routed to a Custom Tab and the `window.opener` / `postMessage` callback never reaches the app.
-
-The fix is to own the button visual and route the click through [`@capgo/capacitor-social-login`](https://github.com/Cap-go/capacitor-social-login). The plugin has a real web implementation (its `GoogleSocialLogin` provider runs an OAuth2 popup that returns the same `idToken` JWT) and native implementations on Android (Credential Manager) and iOS (Google Sign-In SDK). One library, one `signIn()` call, no platform branching in our service code.
-
-The returned `idToken` feeds the existing `APIService.validateUser({ googleCredentialToken, ... })` call in `Login.svelte` unchanged. Backend wiring stays as-is.
-
-### Custom icons folder
-
-Establish a new pattern: `src/components/ui/icons/` holds Svelte components that render a single inline SVG each. First entry is `GoogleLogo.svelte` (the official "G" mark used by the sign-in button). Includes a Storybook story that lists every icon in the folder.
-
-### Custom button component
-
-Build `src/components/GoogleSignInButton/GoogleSignInButton.svelte` styled per [Google's brand guidelines for Sign-In with Google](https://developers.google.com/identity/branding-guidelines):
-
-- Uses `<GoogleLogo />` from the new icons folder.
-- "Continue with Google" wording — the app has no separate sign-up flow, so logging in is signing up.
-- Light + dark variants via the existing `mode-watcher` store.
-- Delegates the click to a callback prop. The button doesn't know what auth runs.
-
-### Auth service
-
-Replace `src/services/GoogleGISService.ts` with a thin service whose public surface is `initialize()`, `signIn()` (returns an ID token), and `logout()`. All three call directly into `SocialLogin.{initialize,login,logout}` from `@capgo/capacitor-social-login`. No GIS script loading, no `renderButton`, no platform branching — the plugin handles all of that.
-
-`SocialLogin.initialize({ google: { webClientId: GOOGLE_CLIENT_ID, mode: 'online' } })` is called once at app start (in `+layout.svelte`).
-
-### Login.svelte / TopBar.svelte changes
-
-- Drop the `googleButtonRef` div and the `onMount` that calls `renderButton`.
-- Render `<GoogleSignInButton onclick={handleGoogleSignIn} />`.
-- `handleGoogleSignIn` calls the new service's `signIn()` and feeds the returned `idToken` into the existing `handleGoogleCallback` body.
-- Replace the `disableAutoSelect()` call in TopBar's logout handler with the new service's `logout()`.
-
-### Trade-off
-
-You lose Google's auto-handling of locale, exact pixel rendering, and any future GIS button updates. In exchange, the button is identical across web and native, you stop fighting WebView popup quirks, and there's a single code path through a maintained Capacitor plugin.
-
-Docs:
-
-- [Google branding guidelines for Sign-In](https://developers.google.com/identity/branding-guidelines)
-- [`@capgo/capacitor-social-login`](https://github.com/Cap-go/capacitor-social-login)
-- [Capgo social-login Google setup](https://capgo.app/docs/plugins/social-login/google/general/)
-- [Verifying Google ID tokens server-side](https://developers.google.com/identity/sign-in/web/backend-auth)
-
----
-
 ## Validation checkpoints
 
 After each step, the repo's required checks must pass before considering it done:
@@ -139,18 +75,6 @@ After each step, the repo's required checks must pass before considering it done
 - `pnpm build` produces a clean `build/` directory (Capacitor will refuse to sync otherwise)
 - `npx cap sync android` completes with zero errors
 - `npx cap run android` launches the app on an emulator with the back button working and at least one workout session round-trip succeeding
-
----
-
-## Verify on-device
-
-### socket.io / WebSocket cleartext + origin
-
-Android 9+ blocks cleartext (`ws://`) traffic, so `socket.io-client` must use `wss://`. The backend is already TLS in prod, so this should be a non-issue. Confirm once the app is running on-device that the WebSocket actually connects.
-
-If you do hit it, see:
-
-- [Android cleartext traffic (`usesCleartextTraffic`)](https://developer.android.com/privacy-and-security/security-config#CleartextTrafficPermitted)
 
 ---
 
