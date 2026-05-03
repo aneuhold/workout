@@ -29,9 +29,7 @@
 
   const showTimerHighlight = $derived(timerService.isActive && currentPath !== '/timer');
 
-  const logoSrc = $derived(
-    !showTimerHighlight && mode.current === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'
-  );
+  const logoSrc = $derived(mode.current === 'dark' ? '/logo-dark.svg' : '/logo-light.svg');
 
   const initials = $derived(
     username
@@ -59,61 +57,65 @@
 </script>
 
 <header
-  class="[view-transition-name:match-element] z-40 flex h-(--top-nav-height) items-center justify-between px-4
-    {showTimerHighlight
-    ? 'fixed inset-x-0 top-0 bg-primary text-primary-foreground animate-timer-pulse'
-    : 'bg-sidebar text-sidebar-foreground md:fixed md:inset-x-0 md:top-0'}"
+  class="[view-transition-name:match-element] z-40 flex h-(--top-nav-height) items-center bg-sidebar text-sidebar-foreground
+    {showTimerHighlight ? 'fixed inset-x-0 top-0' : 'md:fixed md:inset-x-0 md:top-0'}"
 >
-  <!-- Left: Logo + App title -->
-  <div class="flex items-center gap-2">
-    <img src={logoSrc} alt="MesoPro logo" class="h-7" />
+  <!-- Logo: always sits in the sidebar bg -->
+  <img src={logoSrc} alt="MesoPro logo" class="h-7 pr-1 pl-4" />
+
+  <!-- Everything to the right of the logo. When the timer is active, this wraps
+       into a left-rounded tab carrying the highlight, so the logo column stays
+       consistent across pages. -->
+  <div
+    class="flex h-full flex-1 items-center justify-between pl-1 pr-4 {showTimerHighlight
+      ? 'rounded-l-xl bg-primary text-primary-foreground animate-timer-pulse'
+      : ''}"
+  >
     <span class="text-lg font-semibold">MesoPro</span>
-  </div>
 
-  <!-- Center: Timer display (only when active) -->
-  {#if showTimerHighlight}
-    <div class="flex items-center gap-1.5">
-      <IconStopwatch size={18} stroke={1.5} />
-      <span class="font-mono text-sm">{formatTime(timerService.remainingSeconds)}</span>
+    {#if showTimerHighlight}
+      <div class="flex items-center gap-1.5">
+        <IconStopwatch size={18} stroke={1.5} />
+        <span class="font-mono text-sm">{formatTime(timerService.remainingSeconds)}</span>
+      </div>
+    {/if}
+
+    <div class="flex items-center gap-2">
+      <SyncIndicator timerHighlight={showTimerHighlight} />
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="icon"
+              class="rounded-full"
+              aria-label="User menu"
+            >
+              <Avatar>
+                <AvatarFallback>
+                  {#if initials}
+                    {initials}
+                  {:else}
+                    <IconUser size={14} stroke={1.5} />
+                  {/if}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          {/snippet}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onclick={() => goto('/settings')}>
+            <IconSettings size={16} />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onclick={handleLogout}>
+            <IconLogout size={16} />
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-  {/if}
-
-  <!-- Right: Sync indicator + Avatar dropdown -->
-  <div class="flex items-center gap-2">
-    <SyncIndicator timerHighlight={showTimerHighlight} />
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        {#snippet child({ props })}
-          <Button
-            {...props}
-            variant="ghost"
-            size="icon"
-            class="rounded-full"
-            aria-label="User menu"
-          >
-            <Avatar>
-              <AvatarFallback>
-                {#if initials}
-                  {initials}
-                {:else}
-                  <IconUser size={14} stroke={1.5} />
-                {/if}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        {/snippet}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onclick={() => goto('/settings')}>
-          <IconSettings size={16} />
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onclick={handleLogout}>
-          <IconLogout size={16} />
-          Logout
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   </div>
 </header>
