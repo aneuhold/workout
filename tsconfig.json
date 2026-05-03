@@ -31,6 +31,7 @@
     // above comes from .svelte-kit/tsconfig.json
     "./.storybook/**/*.ts",
     "./testUtils/**/*.ts",
-    "./capacitor.config.ts"
+    "./capacitor.config.ts",
+    "./scripts/**/*.ts"
   ]
 }
