@@ -12,6 +12,7 @@
   } from '@aneuhold/core-ts-api-lib';
   import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
+  import { onMount } from 'svelte';
   import GoogleSignInButton from '$components/GoogleSignInButton/GoogleSignInButton.svelte';
   import googleAuthService from '$services/GoogleAuthService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
@@ -38,6 +39,12 @@
   let processingCredentials = $derived($loginState === LoginState.ProcessingCredentials);
   let invalidCredentials = $state(false);
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
+
+  onMount(() => {
+    // This happens here because if it happens inline with sign-in, it captures the URL of the popup
+    // for some reason and doesn't return the user to the app after completion.
+    void googleAuthService.init();
+  });
 
   /**
    * Triggers Google sign-in and forwards the returned ID token to the
