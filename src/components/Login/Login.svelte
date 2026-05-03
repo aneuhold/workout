@@ -13,7 +13,7 @@
   import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
-  import GoogleSignInButton from '$components/GoogleSignInButton/GoogleSignInButton.svelte';
+  import GoogleSignInButton from '$components/GoogleSignInButton';
   import googleAuthService from '$services/GoogleAuthService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
   import { password } from '$stores/local/password';
@@ -47,13 +47,12 @@
   });
 
   /**
-   * Triggers Google sign-in and forwards the returned ID token to the
-   * backend for validation. No-op if the user cancels the popup.
+   * Receives the Google ID token from `GoogleSignInButton` and forwards it
+   * to the backend for validation.
+   *
+   * @param idToken - The Google-issued ID token JWT.
    */
-  async function handleGoogleSignIn() {
-    const idToken = await googleAuthService.signIn();
-    if (!idToken) return;
-
+  async function handleGoogleIdToken(idToken: string) {
     $loginState = LoginState.ProcessingCredentials;
     const result = await APIService.validateUser({
       googleCredentialToken: idToken,
@@ -127,7 +126,7 @@
       <CardDescription>Enter your credentials to continue.</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-4">
-      <GoogleSignInButton onclick={handleGoogleSignIn} disabled={processingCredentials} />
+      <GoogleSignInButton onIdToken={handleGoogleIdToken} disabled={processingCredentials} />
       <div class="flex items-center gap-4">
         <Separator class="flex-1" />
         <span class="text-muted-foreground text-sm">or</span>

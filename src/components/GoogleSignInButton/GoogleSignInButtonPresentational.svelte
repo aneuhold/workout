@@ -1,11 +1,14 @@
 <!--
   @component
 
-  Custom-branded "Continue with Google" button. Styled per Google's
-  Sign in with Google brand guidelines. The hex colors below are kept
-  inline (rather than promoted to CSS custom properties in `global.css`)
-  because they apply only to this button per Google's guidelines — they
-  must not be reused as a theme palette.
+  Presentational "Continue with Google" button. Owns visuals only — no
+  service calls, no error state. Wrapped by `GoogleSignInButton.svelte`,
+  which adds the sign-in business logic.
+
+  Styled per Google's Sign in with Google brand guidelines. The hex colors
+  below are kept inline (rather than promoted to CSS custom properties in
+  `global.css`) because they apply only to this button per Google's
+  guidelines — they must not be reused as a theme palette.
   https://developers.google.com/identity/branding-guidelines
 -->
 <script lang="ts">
