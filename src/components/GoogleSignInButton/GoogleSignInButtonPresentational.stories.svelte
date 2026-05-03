@@ -1,10 +1,10 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import GoogleSignInButton from './GoogleSignInButton.svelte';
+  import GoogleSignInButtonPresentational from './GoogleSignInButtonPresentational.svelte';
 
   const { Story } = defineMeta({
-    title: 'Components/GoogleSignInButton',
-    component: GoogleSignInButton,
+    title: 'Components/GoogleSignInButtonPresentational',
+    component: GoogleSignInButtonPresentational,
     args: {
       onclick: () => alert('Sign-in clicked'),
       disabled: false

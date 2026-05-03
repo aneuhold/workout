@@ -2,7 +2,11 @@
   @component
 
   Official Google "G" mark, used inside the Sign in with Google button.
-  Colors are baked in per Google's brand guidelines and must not be themed.
+  The fill colors are inlined (rather than promoted to CSS custom properties
+  in `global.css`) because they are dictated by Google's Sign-In branding
+  guidelines and apply only to this mark — they must not be reused as a
+  theme palette or swapped for dark mode.
+  https://developers.google.com/identity/branding-guidelines
 -->
 <script lang="ts">
   import type { SVGAttributes } from 'svelte/elements';

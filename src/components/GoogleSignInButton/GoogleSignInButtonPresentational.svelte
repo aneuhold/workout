@@ -2,7 +2,10 @@
   @component
 
   Custom-branded "Continue with Google" button. Styled per Google's
-  Sign in with Google brand guidelines:
+  Sign in with Google brand guidelines. The hex colors below are kept
+  inline (rather than promoted to CSS custom properties in `global.css`)
+  because they apply only to this button per Google's guidelines — they
+  must not be reused as a theme palette.
   https://developers.google.com/identity/branding-guidelines
 -->
 <script lang="ts">

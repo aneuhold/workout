@@ -20,7 +20,10 @@ class GoogleAuthService {
   private initPromise: Promise<void> | undefined;
 
   /**
-   * Idempotent initialize. Safe to call multiple times; only runs once.
+   * Idempotent initialize. Safe to call multiple times; only runs once on
+   * success. On failure the cached promise is cleared so the next call retries
+   * — without this, a single transient init error would brick sign-in for the
+   * rest of the session.
    */
   init(): Promise<void> {
     if (!this.initPromise) {
@@ -29,6 +32,9 @@ class GoogleAuthService {
           webClientId: GOOGLE_CLIENT_ID,
           mode: 'online'
         }
+      }).catch((e: unknown) => {
+        this.initPromise = undefined;
+        throw e;
       });
     }
     return this.initPromise;
@@ -36,8 +42,9 @@ class GoogleAuthService {
 
   /**
    * Triggers the Google sign-in flow and returns the ID token JWT.
-   * Returns `null` if the user cancels the popup / dialog.
-   * Throws on non-cancel failures (network, misconfiguration, etc.).
+   * Returns `null` only when the user cancels the popup / dialog.
+   * Throws on every other failure (network, misconfiguration, unexpected
+   * response shape) so callers can surface an error to the user.
    */
   async signIn(): Promise<string | null> {
     await this.init();
@@ -48,7 +55,7 @@ class GoogleAuthService {
       });
       if (result.responseType !== 'online') {
         log.error('Unexpected offline response from Google sign-in', result);
-        return null;
+        throw new Error(`Unexpected Google sign-in response type: ${result.responseType}`);
       }
       return result.idToken;
     } catch (e) {
