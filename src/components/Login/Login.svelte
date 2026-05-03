@@ -12,8 +12,8 @@
   } from '@aneuhold/core-ts-api-lib';
   import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
-  import { onMount } from 'svelte';
-  import googleGISService from '$services/GoogleGISService';
+  import GoogleSignInButton from '$components/GoogleSignInButton/GoogleSignInButton.svelte';
+  import googleAuthService from '$services/GoogleAuthService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
   import { password } from '$stores/local/password';
   import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -38,26 +38,18 @@
   let processingCredentials = $derived($loginState === LoginState.ProcessingCredentials);
   let invalidCredentials = $state(false);
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
-  let googleButtonRef: HTMLDivElement | undefined = $state();
-
-  onMount(async () => {
-    if (googleButtonRef) {
-      await googleGISService.renderButton(googleButtonRef, (response) => {
-        void handleGoogleCallback(response);
-      });
-    }
-  });
 
   /**
-   * Handles the Google Sign-In callback by sending the credential token
-   * to the backend for validation.
-   *
-   * @param response - The Google credential response.
+   * Triggers Google sign-in and forwards the returned ID token to the
+   * backend for validation. No-op if the user cancels the popup.
    */
-  async function handleGoogleCallback(response: google.accounts.id.CredentialResponse) {
+  async function handleGoogleSignIn() {
+    const idToken = await googleAuthService.signIn();
+    if (!idToken) return;
+
     $loginState = LoginState.ProcessingCredentials;
     const result = await APIService.validateUser({
-      googleCredentialToken: response.credential,
+      googleCredentialToken: idToken,
       project: ProjectName.Workout
     });
     handleLoginResult(result);
@@ -128,7 +120,7 @@
       <CardDescription>Enter your credentials to continue.</CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-4">
-      <div class="flex justify-center" bind:this={googleButtonRef}></div>
+      <GoogleSignInButton onclick={handleGoogleSignIn} disabled={processingCredentials} />
       <div class="flex items-center gap-4">
         <Separator class="flex-1" />
         <span class="text-muted-foreground text-sm">or</span>
