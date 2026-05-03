@@ -1,12 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync } from 'fs';
 
-/** Polished gradient-bg circle — used for PWA launcher icons. */
-const ICONS_SOURCE_SVG = 'docs/officialAssets/logo-dark-icon-circle-gradient-background.svg';
-
-/** Solid-bg circle — favicon stays crisp at 16-32px where gradients smear. */
-const FAVICON_SOURCE_SVG = 'docs/officialAssets/logo-dark-icon-circle.svg';
-
+const SOURCE_SVG = 'docs/officialAssets/logo-dark-icon-circle-gradient-background.svg';
 const OUTPUT_DIR = 'static/icons';
 const FAVICON_PATH = 'static/favicon.png';
 
@@ -17,20 +12,20 @@ const ICON_SIZES = [48, 72, 96, 128, 144, 168, 192];
 const FAVICON_SIZE = 128;
 
 /**
- * Renders an SVG to a square PNG using rsvg-convert (librsvg). ImageMagick's
- * built-in MSVG renderer mishandles the brand SVGs' userSpaceOnUse gradients.
+ * Renders the source SVG to a square PNG at the given size using rsvg-convert
+ * (librsvg). ImageMagick's built-in MSVG renderer mishandles the brand SVGs'
+ * userSpaceOnUse gradients.
  *
- * @param sourceSvg - Path to the source SVG
  * @param size - Pixel dimension (width and height) of the PNG to produce
  * @param outputPath - Destination path for the PNG
  */
-const renderSvgToPng = (sourceSvg: string, size: number, outputPath: string): void => {
+const renderIconAtSize = (size: number, outputPath: string): void => {
   execFileSync('rsvg-convert', [
     '-w',
     String(size),
     '-h',
     String(size),
-    sourceSvg,
+    SOURCE_SVG,
     '-o',
     outputPath
   ]);
@@ -38,19 +33,17 @@ const renderSvgToPng = (sourceSvg: string, size: number, outputPath: string): vo
 };
 
 /**
- * Generates all PWA launcher icons from the gradient-bg SVG and renders a
- * separate favicon from the solid-bg SVG so it stays legible at small sizes.
+ * Generates all PWA launcher icon sizes plus the favicon from the source SVG.
  */
 const generateIcons = (): void => {
   mkdirSync(OUTPUT_DIR, { recursive: true });
+  console.log(`Source: ${SOURCE_SVG}`);
 
-  console.log(`PWA icons from: ${ICONS_SOURCE_SVG}`);
   for (const size of ICON_SIZES) {
-    renderSvgToPng(ICONS_SOURCE_SVG, size, `${OUTPUT_DIR}/${size}.png`);
+    renderIconAtSize(size, `${OUTPUT_DIR}/${size}.png`);
   }
 
-  console.log(`Favicon from:   ${FAVICON_SOURCE_SVG}`);
-  renderSvgToPng(FAVICON_SOURCE_SVG, FAVICON_SIZE, FAVICON_PATH);
+  renderIconAtSize(FAVICON_SIZE, FAVICON_PATH);
 };
 
 generateIcons();
