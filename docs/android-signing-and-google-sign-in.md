@@ -40,6 +40,8 @@ keytool -genkey -v \
 
 **Back up the file + passwords to a password manager immediately.** Losing the upload key requires Google support to reset.
 
+Password is currently held in password manager for the existing one created 5/3/2026.
+
 ## End-to-end sequence for shipping
 
 1. **Local dev**: create an Android OAuth client (e.g. `Android Debug Client - <your machine>`) with your debug keystore SHA-1. Sign-In works in `pnpm dev:android`.
