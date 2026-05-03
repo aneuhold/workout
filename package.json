@@ -9,6 +9,7 @@
     "build:sb": "storybook build",
     "build:android": "pnpm build && pnpm cap sync android",
     "preview": "pnpm build && vite preview --port 5173",
+    "preview:android": "pnpm build:android && pnpm cap run android",
     "lint": "eslint --cache",
     "test": "vitest run",
     "check": "svelte-check && pnpm check:circular",
