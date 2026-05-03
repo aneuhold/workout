@@ -7,6 +7,7 @@
 <script lang="ts">
   import { APIService } from '@aneuhold/core-ts-api-lib';
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
+  import { mode } from 'mode-watcher';
   import { goto } from '$app/navigation';
   import googleAuthService from '$services/GoogleAuthService';
   import timerService from '$services/TimerService';
@@ -27,6 +28,10 @@
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
 
   const showTimerHighlight = $derived(timerService.isActive && currentPath !== '/timer');
+
+  const logoSrc = $derived(
+    !showTimerHighlight && mode.current === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'
+  );
 
   const initials = $derived(
     username
@@ -61,11 +66,7 @@
 >
   <!-- Left: Logo + App title -->
   <div class="flex items-center gap-2">
-    <img
-      src="/logo.svg"
-      alt="MesoPro logo"
-      class="h-7 {showTimerHighlight ? 'brightness-0 invert dark:invert' : ''}"
-    />
+    <img src={logoSrc} alt="MesoPro logo" class="h-7" />
     <span class="text-lg font-semibold">MesoPro</span>
   </div>
 
