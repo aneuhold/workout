@@ -24,12 +24,10 @@
     "sub:eslint-config": "local-npm subscribe @aneuhold/eslint-config",
     "unsub:core-ts-api-lib": "local-npm unsubscribe @aneuhold/core-ts-api-lib",
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
-    "generate:icons": "ICON=docs/officialAssets/icon.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'PWA icons generated' && pnpm generate:android-assets",
-    "generate:android-assets": "npx @capacitor/assets generate --android --assetPath docs/officialAssets --iconBackgroundColor '#009869' --iconBackgroundColorDark '#009869' --splashBackgroundColor '#000' --splashBackgroundColorDark '#000'"
+    "generate:icons": "ICON=docs/officialAssets/logo-icon-circle.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
   "scriptsComments": {
-    "dev:android": "Vite binds to localhost only (vs using --host, which binds to 0.0.0.0). '--forwardPorts 5173:5173' tells Capacitor to run 'adb reverse tcp:5173 tcp:5173' so the device's localhost:5173 forwards to the Mac's. '--host localhost' pins the live-reload URL so the WebView origin is http://localhost:5173 which is already in the backend's CORS allowlist, so we can hit prod without running gcloud-backend locally in hot-reload mode. '--target-name' avoids the interactive emulator prompt. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025', 'Pixel 6'",
-    "generate:android-assets": "Uses @capacitor/assets Easy Mode: a single docs/officialAssets/icon.svg drives both the adaptive launcher icon (foreground + brand-green background) and the splash (logo on black). Splash plugin runtime config is a separate concern — this script only writes resources into android/app/src/main/res/."
+    "dev:android": "Vite binds to localhost only (vs using --host, which binds to 0.0.0.0). '--forwardPorts 5173:5173' tells Capacitor to run 'adb reverse tcp:5173 tcp:5173' so the device's localhost:5173 forwards to the Mac's. '--host localhost' pins the live-reload URL so the WebView origin is http://localhost:5173 which is already in the backend's CORS allowlist, so we can hit prod without running gcloud-backend locally in hot-reload mode. '--target-name' avoids the interactive emulator prompt. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025', 'Pixel 6'"
   },
   "packageManager": "pnpm@10.33.2",
   "type": "module",
@@ -45,7 +43,6 @@
     "@aneuhold/eslint-config": "^2.0.5",
     "@aneuhold/local-npm-registry": "^0.2.32",
     "@capacitor/android": "^8.3.1",
-    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
     "@capgo/capacitor-social-login": "^8.3.20",
@@ -98,8 +95,5 @@
     "vite": "^7.3.1",
     "vite-plugin-node-polyfills": "^0.26.0",
     "vitest": "^4.1.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["sharp"]
   }
 }
