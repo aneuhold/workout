@@ -1,19 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#ffffff" />
+  <defs>
+    <!-- Subtle dark spotlight: faint center glow, dark at the corners.
+         At favicon scale the gradient effectively flattens to the edge tone. -->
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#103028" />
+      <stop offset="100%" stop-color="#06120f" />
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)" />
   <g transform="translate(256,256) scale(0.045,-0.045) translate(-6100,-3700)" stroke="none">
     <defs>
-      <!-- Bold green gradient for the M letterform (light at top → deep at bottom) -->
+      <!-- Soft mint gradient for the M letterform (lighter "bar" feel). -->
       <linearGradient id="mGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5500" x2="0" y2="1900">
+        <stop offset="0%" stop-color="#cef0d8" />
+        <stop offset="100%" stop-color="#2bba85" />
+      </linearGradient>
+      <!-- Bold green gradient for the dumbbell (richer, "darker plates" feel). -->
+      <linearGradient id="dumbbellGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5400" x2="0" y2="2700">
         <stop offset="0%" stop-color="#1bb27c" />
         <stop offset="45%" stop-color="#009869" />
         <stop offset="100%" stop-color="#00533a" />
-      </linearGradient>
-      <!-- Vertical mint gradient for the dumbbell. Matches the M's lighting
-           direction (lighter at top → richer at bottom) but uses a lighter
-           palette so the dumbbell recedes behind the letterform. -->
-      <linearGradient id="dumbbellGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5400" x2="0" y2="2700">
-        <stop offset="0%" stop-color="#cef0d8" />
-        <stop offset="100%" stop-color="#2bba85" />
       </linearGradient>
     </defs>
     <!-- Top of M -->

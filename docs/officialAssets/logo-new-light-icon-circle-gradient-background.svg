@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#ffffff" />
+  <defs>
+    <!-- Subtle light vignette: pure white center, faint mint edge.
+         Mirrors the dark icon's spotlight but inverted for light surfaces. -->
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#bfdbcb" />
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)" />
   <g transform="translate(256,256) scale(0.045,-0.045) translate(-6100,-3700)" stroke="none">
     <defs>
       <!-- Bold green gradient for the M letterform (light at top → deep at bottom) -->
