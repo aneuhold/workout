@@ -44,7 +44,7 @@ Controls the splash that's shown while the WebView boots. Use [`@capacitor/splas
 
 ### Icon + splash asset generation — `@capacitor/assets`
 
-Generate adaptive launcher icons and splash variants from a single source SVG with [`@capacitor/assets`](https://github.com/ionic-team/capacitor-assets). Source: `docs/officialAssets/logo-icon-circle.svg`. Extends or replaces the existing `generate:icons` script. ([Android adaptive icons reference](https://developer.android.com/develop/ui/views/launch/icon_design_adaptive).)
+Generate adaptive launcher icons and splash variants from a single source SVG with [`@capacitor/assets`](https://github.com/ionic-team/capacitor-assets). Source: `docs/officialAssets/icon.svg`. Extends or replaces the existing `generate:icons` script. ([Android adaptive icons reference](https://developer.android.com/develop/ui/views/launch/icon_design_adaptive).)
 
 ### Persistent storage — `@capacitor/preferences`
 
