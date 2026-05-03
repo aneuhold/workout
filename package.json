@@ -43,6 +43,7 @@
     "@aneuhold/eslint-config": "^2.0.5",
     "@aneuhold/local-npm-registry": "^0.2.32",
     "@capacitor/android": "^8.3.1",
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
     "@capgo/capacitor-social-login": "^8.3.20",
