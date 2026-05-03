@@ -1,8 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { ASSETS_DIR, renderSvgToPng } from './generate-icons-utils';
-
-const ANDROID_RES_PATH = 'android/app/src/main/res';
+import { ASSETS_DIR } from './generate-icons-utils';
 
 /**
  * Single-source-of-truth for Android asset generation. Drives `@capacitor/assets`
@@ -23,33 +21,6 @@ function createAndroidAssetsSettings() {
     splashCanvasSize,
     /** Logo footprint inside the splash canvas. */
     splashLogoSize,
-    /**
-     * Adaptive icon densities (108dp scaled per density). cap-assets ships its
-     * foreground/background PNGs at the *legacy* launcher size (48dp safe-zone)
-     * and wraps them in `<inset android:inset="16.7%">`. That's correct for a
-     * loose logo, but our source SVGs are complete branded icons designed to
-     * fill the entire 108dp frame — the inset shrinks them into the safe zone
-     * and the launcher fills the resulting transparent ring with a default tint.
-     *
-     * We fix this by re-rendering the foreground/background PNGs at the proper
-     * 108dp adaptive size and rewriting the launcher XMLs to drop the inset, so
-     * the icon fills the OS mask edge-to-edge.
-     */
-    adaptiveIconDensities: [
-      { density: 'ldpi', size: 81 },
-      { density: 'mdpi', size: 108 },
-      { density: 'hdpi', size: 162 },
-      { density: 'xhdpi', size: 216 },
-      { density: 'xxhdpi', size: 324 },
-      { density: 'xxxhdpi', size: 432 }
-    ],
-    /** Replacement adaptive-icon XML written after cap-assets runs. */
-    adaptiveIconXml: `<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@mipmap/ic_launcher_background"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-</adaptive-icon>
-`,
     sources: {
       iconOnly: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       iconForeground: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
@@ -88,39 +59,6 @@ const buildSplashWrapperSvg = (sourceSvgPath: string, backgroundColor: string): 
   <svg x="${splashLogoOffset}" y="${splashLogoOffset}" width="${splashLogoSize}" height="${splashLogoSize}" viewBox="0 0 512 512">${innerContent}</svg>
 </svg>
 `;
-};
-
-/**
- * Rewrites cap-assets's adaptive icon outputs so the icon fills the entire
- * 108dp frame: re-renders foreground + background PNGs at the proper
- * adaptive sizes, and replaces the inset-wrapping launcher XMLs.
- */
-const fixAdaptiveIconLayers = (): void => {
-  const foregroundSrc = `${ANDROID_ASSETS_SETTINGS.outputDir}/icon-foreground.svg`;
-  const backgroundSrc = `${ANDROID_ASSETS_SETTINGS.outputDir}/icon-background.svg`;
-
-  for (const { density, size } of ANDROID_ASSETS_SETTINGS.adaptiveIconDensities) {
-    renderSvgToPng(
-      foregroundSrc,
-      size,
-      `${ANDROID_RES_PATH}/mipmap-${density}/ic_launcher_foreground.png`
-    );
-    renderSvgToPng(
-      backgroundSrc,
-      size,
-      `${ANDROID_RES_PATH}/mipmap-${density}/ic_launcher_background.png`
-    );
-  }
-
-  writeFileSync(
-    `${ANDROID_RES_PATH}/mipmap-anydpi-v26/ic_launcher.xml`,
-    ANDROID_ASSETS_SETTINGS.adaptiveIconXml
-  );
-  writeFileSync(
-    `${ANDROID_RES_PATH}/mipmap-anydpi-v26/ic_launcher_round.xml`,
-    ANDROID_ASSETS_SETTINGS.adaptiveIconXml
-  );
-  console.log('  rewrote adaptive icon layers (no inset, 108dp-sized PNGs)');
 };
 
 /**
@@ -184,6 +122,4 @@ export const generateCapacitorAndroidAssets = (): void => {
     ],
     { stdio: 'inherit' }
   );
-
-  fixAdaptiveIconLayers();
 };
