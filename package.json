@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'Pixel 6'\"",
+    "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'OnePlus IN2025'\"",
     "open:android": "pnpm cap open android",
     "build": "vite build",
     "build:sb": "storybook build",
@@ -33,7 +33,7 @@
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {
-    "@sentry/sveltekit": "^10.49.0",
+    "@sentry/sveltekit": "^10.43.0",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
@@ -42,14 +42,19 @@
     "@aneuhold/core-ts-lib": "^2.4.4",
     "@aneuhold/eslint-config": "^2.0.5",
     "@aneuhold/local-npm-registry": "^0.2.32",
+    "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor/android": "^8.3.1",
+    "@capacitor/app": "^8.1.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@capgo/capacitor-social-login": "^8.3.20",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
+    "@sentry/capacitor": "^4.0.0",
     "@storybook/addon-docs": "^10.2.7",
     "@storybook/addon-links": "^10.2.7",
     "@storybook/addon-svelte-csf": "^5.1.2",

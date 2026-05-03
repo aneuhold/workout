@@ -1,15 +1,18 @@
+import { Capacitor } from '@capacitor/core';
+import { KeepAwake } from '@capacitor-community/keep-awake';
+
 /**
- * Screen Wake Lock API service. Keeps the screen awake while the timer runs.
- * Silently no-ops if the browser doesn't support the Wake Lock API.
- *
- * See the docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API) for more info.
+ * Keeps the screen awake while the timer runs. On native platforms this
+ * delegates to `@capacitor-community/keep-awake`; on web it uses the
+ * [Screen Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API)
+ * and silently no-ops if the browser doesn't support it.
  */
 class WakeLockService {
   private lock: WakeLockSentinel | null = null;
   private shouldBeActive = false;
 
   constructor() {
-    if (typeof document !== 'undefined') {
+    if (typeof document !== 'undefined' && !this.isNative) {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && this.shouldBeActive) {
           this.acquireLock();
@@ -25,13 +28,25 @@ class WakeLockService {
 
   async release(): Promise<void> {
     this.shouldBeActive = false;
+    if (this.isNative) {
+      await KeepAwake.allowSleep();
+      return;
+    }
     if (this.lock) {
       await this.lock.release();
       this.lock = null;
     }
   }
 
+  private get isNative(): boolean {
+    return Capacitor.isNativePlatform();
+  }
+
   private async acquireLock(): Promise<void> {
+    if (this.isNative) {
+      await KeepAwake.keepAwake();
+      return;
+    }
     if (!('wakeLock' in navigator)) return;
     try {
       this.lock = await navigator.wakeLock.request('screen');

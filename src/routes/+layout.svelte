@@ -21,6 +21,7 @@
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
+  import nativePlatformService from '$services/NativePlatformService.svelte';
   import timerService from '$services/TimerService';
   import WorkoutHydrationService from '$services/WorkoutHydrationService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -46,6 +47,7 @@
     WorkoutHydrationService.hydrateDocumentMaps();
     mounted = true;
     timerService.init();
+    nativePlatformService.init();
   });
 
   const handleVisibilityChange = () => {
