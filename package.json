@@ -3,12 +3,13 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "concurrently --kill-others --names vite,android \"vite dev --host\" \"pnpm cap run android --live-reload --port 5173 --target-name 'OnePlus IN2025'\"",
+    "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'Pixel 6'\"",
     "open:android": "pnpm cap open android",
     "build": "vite build",
     "build:sb": "storybook build",
     "build:android": "pnpm build && pnpm cap sync android",
     "preview": "pnpm build && vite preview --port 5173",
+    "preview:android": "pnpm build:android && pnpm cap run android",
     "lint": "eslint --cache",
     "test": "vitest run",
     "check": "svelte-check && pnpm check:circular",
@@ -26,7 +27,7 @@
     "generate:icons": "ICON=docs/officialAssets/logo-icon-circle.svg && for size in 48 72 96 128 144 168 192; do magick -background none \"$ICON\" -resize ${size}x${size} static/icons/${size}.png; done && cp static/icons/128.png static/favicon.png && echo 'Icons generated from logo-icon SVG'"
   },
   "scriptsComments": {
-    "dev:android": "This does a couple things. 'vite dev --host' will use 0.0.0.0 instead of localhost, which exposes the dev server to the local network. Which is needed for the Android emulator to see it. 'cap run android --target-name is to avoid the interactive prompt to select the emulator. This is a little fragile, but seemed like an okay solution at the time. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025'"
+    "dev:android": "Vite binds to localhost only (vs using --host, which binds to 0.0.0.0). '--forwardPorts 5173:5173' tells Capacitor to run 'adb reverse tcp:5173 tcp:5173' so the device's localhost:5173 forwards to the Mac's. '--host localhost' pins the live-reload URL so the WebView origin is http://localhost:5173 which is already in the backend's CORS allowlist, so we can hit prod without running gcloud-backend locally in hot-reload mode. '--target-name' avoids the interactive emulator prompt. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025', 'Pixel 6'"
   },
   "packageManager": "pnpm@10.33.2",
   "type": "module",
@@ -44,6 +45,7 @@
     "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
+    "@capgo/capacitor-social-login": "^8.3.20",
     "@fontsource-variable/inter": "^5.2.8",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
@@ -62,7 +64,6 @@
     "@testing-library/svelte": "^5.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/d3-scale": "^4.0.9",
-    "@types/google.accounts": "^0.0.18",
     "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",

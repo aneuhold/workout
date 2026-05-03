@@ -39,6 +39,9 @@ importers:
       '@capacitor/core':
         specifier: ^8.3.1
         version: 8.3.1
+      '@capgo/capacitor-social-login':
+        specifier: ^8.3.20
+        version: 8.3.20(@capacitor/core@8.3.1)
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -93,9 +96,6 @@ importers:
       '@types/d3-scale':
         specifier: ^4.0.9
         version: 4.0.9
-      '@types/google.accounts':
-        specifier: ^0.0.18
-        version: 0.0.18
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
@@ -540,6 +540,11 @@ packages:
 
   '@capacitor/core@8.3.1':
     resolution: {integrity: sha512-UF8ItlHguU1Z6GXfPTeT2gakf+ctNI8pAS1kwSBQlsJMlfD4OPoto/SmKnOxKCQvnF4WRcdWeg6C0zREUNaAQg==}
+
+  '@capgo/capacitor-social-login@8.3.20':
+    resolution: {integrity: sha512-baduDIczWQK1QJ1RBcFuiM1VGdAmkMwspAWQGqRi2UFjVdbElBMgTUUsm/4jDmmOVi5doXPuBr3N1VaSBrPiyQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@csstools/color-helpers@6.0.2':
     resolution: {integrity: sha512-LMGQLS9EuADloEFkcTBR3BwV/CGHV7zyDxVRtVDTwdI2Ca4it0CCVTT9wCkxSgokjE5Ho41hEPgb8OEUwoXr6Q==}
@@ -2371,9 +2376,6 @@ packages:
 
   '@types/fs-extra@8.1.5':
     resolution: {integrity: sha512-0dzKcwO+S8s2kuF5Z9oUWatQJj5Uq/iqphEtE3GQJVRRYm/tD1LglU2UnXi2A8jLq5umkGouOXOR9y0n613ZwQ==}
-
-  '@types/google.accounts@0.0.18':
-    resolution: {integrity: sha512-yHaPznll97ZnMJlPABHyeiIlLn3u6gQaUjA5k/O9lrrpgFB9VT10CKPLuKM0qTHMl50uXpW5sIcG+utm8jMOHw==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -7901,6 +7903,11 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@capgo/capacitor-social-login@8.3.20(@capacitor/core@8.3.1)':
+    dependencies:
+      '@capacitor/core': 8.3.1
+      tslib: 2.8.1
+
   '@csstools/color-helpers@6.0.2': {}
 
   '@csstools/css-calc@3.2.0(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)':
@@ -9696,8 +9703,6 @@ snapshots:
   '@types/fs-extra@8.1.5':
     dependencies:
       '@types/node': 25.6.0
-
-  '@types/google.accounts@0.0.18': {}
 
   '@types/json-schema@7.0.15': {}
 

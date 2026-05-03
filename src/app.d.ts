@@ -1,9 +1,6 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 
-// Reference to make it so globally, google is recognized
-/// <reference types="google.accounts" />
-
 declare global {
   namespace App {
     // interface Error {}

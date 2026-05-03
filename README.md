@@ -46,16 +46,10 @@ Icons are from [Tabler here](https://tabler.io/icons). Just import them from the
 
 The reason that the `pageInfo.ts` files are separate and not done in the module context is that the module context is only available once the component is loaded for the first time. Because pageInfo is needed everywhere, it needs to be a separate file.
 
-### Building
-
-To create a production version of the app:
-
-```bash
-pnpm build
-```
-
 <details>
 <summary><h3 style="display: inline">Android Development</h3></summary>
+
+For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-google-sign-in.md).
 
 #### Commands
 

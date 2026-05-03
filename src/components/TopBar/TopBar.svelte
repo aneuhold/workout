@@ -8,7 +8,7 @@
   import { APIService } from '@aneuhold/core-ts-api-lib';
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
-  import googleGISService from '$services/GoogleGISService';
+  import googleAuthService from '$services/GoogleAuthService';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -48,8 +48,8 @@
     LocalData.clearWorkoutMaps();
     loginState.set(LoginState.LoggedOut);
 
-    // Prevent Google auto-sign-in on next visit
-    googleGISService.disableAutoSelect();
+    // Sign out of Google so the next sign-in prompts for account selection
+    await googleAuthService.logout();
   }
 </script>
 

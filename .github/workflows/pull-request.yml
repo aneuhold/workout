@@ -23,6 +23,13 @@ jobs:
           node-version: 'lts/*'
           cache: 'pnpm'
 
+      - name: Check enableLocalOverride is not enabled
+        run: |
+          if grep -E "enableLocalOverride\s*=\s*true" src/util/localOverride.ts; then
+            echo "::error::enableLocalOverride is set to true in src/util/localOverride.ts. Set it back to false before merging."
+            exit 1
+          fi
+
       - name: Install dependencies
         run: pnpm install
 
