@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import * as SentryCapacitor from '@sentry/capacitor';
 import * as Sentry from '@sentry/sveltekit';
 import { captureConsoleIntegration, handleErrorWithSentry } from '@sentry/sveltekit';
 import localOverride from '$util/localOverride';
@@ -15,7 +17,7 @@ const initalizeSentry =
  * of truth because it is always called on startup and when logging in.
  */
 if (initalizeSentry) {
-  Sentry.init({
+  const sentryOptions = {
     dsn: 'https://d2be0b33224daa1b4da3c30d5163f89a@o4507319328702464.ingest.us.sentry.io/4510925034618880',
     tracesSampleRate: 1.0,
     tracePropagationTargets: ['https://api.antonneuhold.com'],
@@ -32,7 +34,13 @@ if (initalizeSentry) {
         levels: ['error']
       })
     ]
-  });
+  };
+
+  if (Capacitor.isNativePlatform()) {
+    SentryCapacitor.init(sentryOptions, Sentry.init);
+  } else {
+    Sentry.init(sentryOptions);
+  }
 }
 
 // If you have a custom error handler, pass it to `handleErrorWithSentry`

@@ -41,7 +41,7 @@
     />
 
     <Button
-      variant="outline"
+      variant="ghost"
       size="lg"
       class="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 mt-4 cursor-pointer font-mono text-lg"
       onclick={() => timerService.stop()}
@@ -58,7 +58,7 @@
     <div class="grid grid-cols-3 gap-3">
       {#each presets as preset (preset.seconds)}
         <Button
-          variant="outline"
+          variant="default"
           size="lg"
           class="cursor-pointer font-mono text-lg"
           onclick={() => timerService.start(preset.seconds)}
