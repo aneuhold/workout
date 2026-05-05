@@ -1,9 +1,9 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="47 45 510 290"
+  viewBox="0 0 510 290"
   preserveAspectRatio="xMidYMid meet"
 >
-  <g transform="translate(0,360) scale(0.05,-0.05)" stroke="none">
+  <g transform="translate(-47,315) scale(0.05,-0.05)" stroke="none">
     <defs>
       <!-- Soft mint gradient for the M letterform (lighter "bar" feel). -->
       <linearGradient id="mGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5500" x2="0" y2="1900">

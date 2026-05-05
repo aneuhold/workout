@@ -1,9 +1,9 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="47 -65 510 510"
+  viewBox="0 0 510 510"
   preserveAspectRatio="xMidYMid meet"
 >
-  <g transform="translate(0,360) scale(0.05,-0.05)" stroke="none">
+  <g transform="translate(-47,425) scale(0.05,-0.05)" stroke="none">
     <defs>
       <!-- Bold green gradient for the M letterform (light at top → deep at bottom) -->
       <linearGradient id="mGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5500" x2="0" y2="1900">
