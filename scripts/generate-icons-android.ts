@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import svg2vectordrawable from 'svg2vectordrawable/src/svg-to-vectordrawable';
 import { ASSETS_DIR } from './generate-icons-utils';
 
 /**
@@ -15,6 +16,8 @@ function createAndroidAssetsSettings() {
   const splashLogoSize = Math.round(splashCanvasSize * 0.37);
   return {
     outputDir: 'android/capacitor-assets',
+    /** Android resource root where generated XML resources land. */
+    resDir: 'android/app/src/main/res',
     /** Icon canvas size required by `@capacitor/assets` Custom Mode (≥1024). */
     iconCanvasSize: 1024,
     /** Splash canvas size required by `@capacitor/assets` Custom Mode. */
@@ -25,7 +28,10 @@ function createAndroidAssetsSettings() {
       iconOnly: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       iconForeground: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       splashLogoLight: `${ASSETS_DIR}/logo-light-icon-circle-gradient-background.svg`,
-      splashLogoDark: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`
+      splashLogoDark: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
+      /** Source for the Android 12+ splash icon (windowSplashScreenAnimatedIcon). */
+      splashIconLight: `${ASSETS_DIR}/logo-light-square.svg`,
+      splashIconDark: `${ASSETS_DIR}/logo-dark-square.svg`
     },
     colors: {
       iconBackground: '#06120f',
@@ -62,12 +68,99 @@ const buildSplashWrapperSvg = (sourceSvgPath: string, backgroundColor: string): 
 };
 
 /**
+ * Android 12+ masks the outer third of `windowSplashScreenAnimatedIcon`, matching
+ * adaptive-icon behavior — the AVD icon area is 432 dp but only the inner 288 dp
+ * (= 2/3) is guaranteed visible. Source SVGs that fill the canvas edge-to-edge
+ * must be inset to this safe area or their edges get clipped.
+ * https://developer.android.com/develop/ui/views/launch/splash-screen
+ */
+const ANDROID_SPLASH_ICON_VISIBLE_RATIO = 288 / 432;
+
+/**
+ * Wraps the source SVG in an outer `<g>` that scales it to the inner 2/3 of the
+ * canvas (centered), compensating for Android's adaptive-icon mask.
+ *
+ * Implemented as a nested group rather than a compound transform: svg2vectordrawable
+ * composes multiple translate/scale ops in a single transform string by naive
+ * sum/multiply (order-incorrect), but emits separate `<group>` elements for each
+ * nested `<g>`, which Android's vector renderer then composes correctly via its
+ * group hierarchy.
+ *
+ * @param svg - Raw source SVG markup with a square `viewBox`
+ */
+const insetSvgForAndroidSplashMasking = (svg: string): string => {
+  const viewBoxMatch = svg.match(/viewBox\s*=\s*"([^"]+)"/);
+  if (!viewBoxMatch) {
+    throw new Error('Splash icon SVG missing viewBox attribute');
+  }
+  const [, , widthStr, heightStr] = viewBoxMatch[1].trim().split(/\s+/);
+  const width = Number(widthStr);
+  const height = Number(heightStr);
+  if (width !== height) {
+    throw new Error(`Splash icon SVG must be square; got ${width}x${height}`);
+  }
+  const scale = ANDROID_SPLASH_ICON_VISIBLE_RATIO;
+  const offset = (width * (1 - scale)) / 2;
+  return svg.replace(
+    /(<svg[^>]*>)([\s\S]*)(<\/svg>\s*)$/,
+    `$1<g transform="translate(${offset},${offset}) scale(${scale})">$2</g>$3`
+  );
+};
+
+/**
+ * Converts a logo SVG into an Android `<vector>` drawable suitable for the
+ * Splash Screen API's `windowSplashScreenAnimatedIcon`. The source SVG must
+ * already be background-free and use a single (non-compound) group transform —
+ * the inset wrapper added here introduces a second group, which is fine because
+ * SVGO collapses the pair before svg2vectordrawable parses transforms.
+ *
+ * @param sourceSvgPath - Path to a square logo SVG with no background rect
+ */
+const buildSplashIconVectorDrawable = async (sourceSvgPath: string): Promise<string> => {
+  const sourceSvg = readFileSync(sourceSvgPath, 'utf8');
+  const insetSvg = insetSvgForAndroidSplashMasking(sourceSvg);
+  return svg2vectordrawable(insetSvg, { floatPrecision: 3 });
+};
+
+/**
+ * Writes light + dark variants of the splash icon vector drawable. Android
+ * auto-selects between them based on the OS theme (drawable/ vs drawable-night/).
+ */
+const writeSplashIconDrawables = async (): Promise<void> => {
+  const { resDir, sources } = ANDROID_ASSETS_SETTINGS;
+  mkdirSync(`${resDir}/drawable-night`, { recursive: true });
+  writeFileSync(
+    `${resDir}/drawable/splash_icon.xml`,
+    await buildSplashIconVectorDrawable(sources.splashIconLight)
+  );
+  writeFileSync(
+    `${resDir}/drawable-night/splash_icon.xml`,
+    await buildSplashIconVectorDrawable(sources.splashIconDark)
+  );
+};
+
+/**
+ * Writes `splash_screen_background` color resources for the Android 12+ splash
+ * API (referenced by `windowSplashScreenBackground` in `styles.xml`).
+ * Light variant goes in `values/colors.xml`, dark in `values-night/colors.xml`.
+ */
+const writeSplashColorsXml = (): void => {
+  const buildColorsXml = (color: string): string =>
+    `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="splash_screen_background">${color}</color>\n</resources>\n`;
+
+  const { resDir, colors } = ANDROID_ASSETS_SETTINGS;
+  mkdirSync(`${resDir}/values-night`, { recursive: true });
+  writeFileSync(`${resDir}/values/colors.xml`, buildColorsXml(colors.splashBackgroundLight));
+  writeFileSync(`${resDir}/values-night/colors.xml`, buildColorsXml(colors.splashBackgroundDark));
+};
+
+/**
  * Generates Android launcher + splash assets via `@capacitor/assets` Custom Mode.
  * Stages the four source SVGs into `android/capacitor-assets/` (committed
  * alongside the generated `android/app/src/main/res/` outputs so inputs are
  * auditable), then invokes the cap-assets CLI to rasterize them.
  */
-export const generateCapacitorAndroidAssets = (): void => {
+export const generateCapacitorAndroidAssets = async (): Promise<void> => {
   console.log('Android assets:');
   mkdirSync(ANDROID_ASSETS_SETTINGS.outputDir, { recursive: true });
 
@@ -122,4 +215,7 @@ export const generateCapacitorAndroidAssets = (): void => {
     ],
     { stdio: 'inherit' }
   );
+
+  writeSplashColorsXml();
+  await writeSplashIconDrawables();
 };
