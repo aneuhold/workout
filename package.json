@@ -8,8 +8,9 @@
     "build": "vite build",
     "build:sb": "storybook build",
     "build:android": "pnpm build && pnpm cap sync android",
+    "push:android": "pnpm cap run android",
     "preview": "pnpm build && vite preview --port 5173",
-    "preview:android": "pnpm build:android && pnpm cap run android",
+    "preview:android": "pnpm build:android && pnpm push:android",
     "lint": "eslint --cache",
     "test": "vitest run",
     "check": "svelte-check && pnpm check:circular",
@@ -92,6 +93,7 @@
     "svelte": "^5.50.0",
     "svelte-check": "^4.4.6",
     "svelte-dnd-action": "^0.9.69",
+    "svg2vectordrawable": "^2.9.1",
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "^3.2.2",
     "tailwindcss": "^4.1.18",
@@ -102,5 +104,8 @@
     "vite": "^7.3.1",
     "vite-plugin-node-polyfills": "^0.26.0",
     "vitest": "^4.1.4"
+  },
+  "devDependenciesComments": {
+    "svg2vectordrawable": "Used by scripts/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs."
   }
 }

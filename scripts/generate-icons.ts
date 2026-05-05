@@ -61,4 +61,4 @@ const copyWideLogos = (): void => {
 // Run all the thangs
 generateIcons();
 copyWideLogos();
-generateCapacitorAndroidAssets();
+await generateCapacitorAndroidAssets();
