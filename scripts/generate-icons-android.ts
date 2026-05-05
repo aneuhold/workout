@@ -1,42 +1,43 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import svg2vectordrawable from 'svg2vectordrawable/src/svg-to-vectordrawable';
-import { ASSETS_DIR } from './generate-icons-utils';
+import { ASSETS_DIR, readThemeBackgroundColors } from './generate-icons-utils';
 
 /**
  * Single-source-of-truth for Android asset generation. Drives `@capacitor/assets`
- * in Custom Mode: the four named source SVGs land in `outputDir`, and the
- * background colors are passed as CLI flags. Swap any field to change the
- * launcher / splash assets without touching the generation logic.
+ * in Custom Mode for the launcher icons (mipmap-*); the Android 12+ splash
+ * (`windowSplashScreenBackground` color + `windowSplashScreenAnimatedIcon`
+ * vector drawable) is generated directly without going through cap-assets.
  *
  * See https://github.com/ionic-team/capacitor-assets
  */
 function createAndroidAssetsSettings() {
-  const splashCanvasSize = 2732;
-  const splashLogoSize = Math.round(splashCanvasSize * 0.37);
+  const themeBackground = readThemeBackgroundColors();
   return {
     outputDir: 'android/capacitor-assets',
     /** Android resource root where generated XML resources land. */
     resDir: 'android/app/src/main/res',
     /** Icon canvas size required by `@capacitor/assets` Custom Mode (≥1024). */
     iconCanvasSize: 1024,
-    /** Splash canvas size required by `@capacitor/assets` Custom Mode. */
-    splashCanvasSize,
-    /** Logo footprint inside the splash canvas. */
-    splashLogoSize,
+    /**
+     * Fraction of `windowSplashScreenAnimatedIcon`'s 432 dp canvas that is
+     * guaranteed unmasked (the inner 288 dp). Source SVGs that fill the canvas
+     * edge-to-edge must be inset to this ratio or their edges get clipped by
+     * the device's adaptive-icon mask.
+     * https://developer.android.com/develop/ui/views/launch/splash-screen
+     */
+    splashIconVisibleRatio: 288 / 432,
     sources: {
       iconOnly: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       iconForeground: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
-      splashLogoLight: `${ASSETS_DIR}/logo-light-icon-circle-gradient-background.svg`,
-      splashLogoDark: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       /** Source for the Android 12+ splash icon (windowSplashScreenAnimatedIcon). */
       splashIconLight: `${ASSETS_DIR}/logo-light-square.svg`,
       splashIconDark: `${ASSETS_DIR}/logo-dark-square.svg`
     },
     colors: {
       iconBackground: '#06120f',
-      splashBackgroundLight: '#bfdbcb',
-      splashBackgroundDark: '#0a1814'
+      splashBackgroundLight: themeBackground.light,
+      splashBackgroundDark: themeBackground.dark
     }
   };
 }
@@ -44,41 +45,8 @@ function createAndroidAssetsSettings() {
 const ANDROID_ASSETS_SETTINGS = createAndroidAssetsSettings();
 
 /**
- * Wraps an icon SVG in a 2732×2732 splash canvas with a solid background.
- * Extracts the source SVG's inner content (everything between the outer
- * <svg> tags) and embeds it in a nested <svg> centered on the canvas.
- *
- * @param sourceSvgPath - Path to a 512×512-viewBox icon SVG
- * @param backgroundColor - CSS color used to fill the full canvas
- */
-const buildSplashWrapperSvg = (sourceSvgPath: string, backgroundColor: string): string => {
-  const sourceSvg = readFileSync(sourceSvgPath, 'utf8');
-  const innerMatch = sourceSvg.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
-  if (!innerMatch) {
-    throw new Error(`Could not extract inner SVG content from ${sourceSvgPath}`);
-  }
-  const innerContent = innerMatch[1];
-  const { splashCanvasSize, splashLogoSize } = ANDROID_ASSETS_SETTINGS;
-  const splashLogoOffset = (splashCanvasSize - splashLogoSize) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${splashCanvasSize} ${splashCanvasSize}">
-  <rect width="${splashCanvasSize}" height="${splashCanvasSize}" fill="${backgroundColor}"/>
-  <svg x="${splashLogoOffset}" y="${splashLogoOffset}" width="${splashLogoSize}" height="${splashLogoSize}" viewBox="0 0 512 512">${innerContent}</svg>
-</svg>
-`;
-};
-
-/**
- * Android 12+ masks the outer third of `windowSplashScreenAnimatedIcon`, matching
- * adaptive-icon behavior — the AVD icon area is 432 dp but only the inner 288 dp
- * (= 2/3) is guaranteed visible. Source SVGs that fill the canvas edge-to-edge
- * must be inset to this safe area or their edges get clipped.
- * https://developer.android.com/develop/ui/views/launch/splash-screen
- */
-const ANDROID_SPLASH_ICON_VISIBLE_RATIO = 288 / 432;
-
-/**
- * Wraps the source SVG in an outer `<g>` that scales it to the inner 2/3 of the
- * canvas (centered), compensating for Android's adaptive-icon mask.
+ * Wraps the source SVG in an outer `<g>` that scales it to the inner safe area
+ * of the canvas (centered), compensating for Android's adaptive-icon mask.
  *
  * Implemented as a nested group rather than a compound transform: svg2vectordrawable
  * composes multiple translate/scale ops in a single transform string by naive
@@ -99,7 +67,7 @@ const insetSvgForAndroidSplashMasking = (svg: string): string => {
   if (width !== height) {
     throw new Error(`Splash icon SVG must be square; got ${width}x${height}`);
   }
-  const scale = ANDROID_SPLASH_ICON_VISIBLE_RATIO;
+  const scale = ANDROID_ASSETS_SETTINGS.splashIconVisibleRatio;
   const offset = (width * (1 - scale)) / 2;
   return svg.replace(
     /(<svg[^>]*>)([\s\S]*)(<\/svg>\s*)$/,
@@ -155,10 +123,10 @@ const writeSplashColorsXml = (): void => {
 };
 
 /**
- * Generates Android launcher + splash assets via `@capacitor/assets` Custom Mode.
- * Stages the four source SVGs into `android/capacitor-assets/` (committed
- * alongside the generated `android/app/src/main/res/` outputs so inputs are
- * auditable), then invokes the cap-assets CLI to rasterize them.
+ * Generates Android launcher icons via `@capacitor/assets` Custom Mode, plus
+ * the Android 12+ splash (color + animated vector) directly. Stages icon
+ * source SVGs into `android/capacitor-assets/` (committed alongside the
+ * generated `android/app/src/main/res/` outputs so inputs are auditable).
  */
 export const generateCapacitorAndroidAssets = async (): Promise<void> => {
   console.log('Android assets:');
@@ -180,20 +148,6 @@ export const generateCapacitorAndroidAssets = async (): Promise<void> => {
     `${ANDROID_ASSETS_SETTINGS.outputDir}/icon-background.svg`,
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ANDROID_ASSETS_SETTINGS.iconCanvasSize} ${ANDROID_ASSETS_SETTINGS.iconCanvasSize}"><rect width="${ANDROID_ASSETS_SETTINGS.iconCanvasSize}" height="${ANDROID_ASSETS_SETTINGS.iconCanvasSize}" fill="${ANDROID_ASSETS_SETTINGS.colors.iconBackground}"/></svg>\n`
   );
-  writeFileSync(
-    `${ANDROID_ASSETS_SETTINGS.outputDir}/splash.svg`,
-    buildSplashWrapperSvg(
-      ANDROID_ASSETS_SETTINGS.sources.splashLogoLight,
-      ANDROID_ASSETS_SETTINGS.colors.splashBackgroundLight
-    )
-  );
-  writeFileSync(
-    `${ANDROID_ASSETS_SETTINGS.outputDir}/splash-dark.svg`,
-    buildSplashWrapperSvg(
-      ANDROID_ASSETS_SETTINGS.sources.splashLogoDark,
-      ANDROID_ASSETS_SETTINGS.colors.splashBackgroundDark
-    )
-  );
 
   execFileSync(
     'pnpm',
@@ -207,11 +161,7 @@ export const generateCapacitorAndroidAssets = async (): Promise<void> => {
       '--iconBackgroundColor',
       ANDROID_ASSETS_SETTINGS.colors.iconBackground,
       '--iconBackgroundColorDark',
-      ANDROID_ASSETS_SETTINGS.colors.iconBackground,
-      '--splashBackgroundColor',
-      ANDROID_ASSETS_SETTINGS.colors.splashBackgroundLight,
-      '--splashBackgroundColorDark',
-      ANDROID_ASSETS_SETTINGS.colors.splashBackgroundDark
+      ANDROID_ASSETS_SETTINGS.colors.iconBackground
     ],
     { stdio: 'inherit' }
   );

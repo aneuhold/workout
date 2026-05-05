@@ -6,9 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'build',
   plugins: {
     SplashScreen: {
-      launchAutoHide: false,
-      // Matches what is in scripts/generate-icons-android.ts
-      backgroundColor: '#0a1814'
+      launchAutoHide: false
     },
     StatusBar: {
       overlaysWebView: false,
