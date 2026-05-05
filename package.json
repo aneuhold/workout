@@ -70,6 +70,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/culori": "^4.0.1",
     "@types/d3-scale": "^4.0.9",
     "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
@@ -77,6 +78,7 @@
     "bits-ui": "^2.15.5",
     "clsx": "^2.1.1",
     "concurrently": "^9.2.1",
+    "culori": "^4.0.2",
     "d3-scale": "^4.0.2",
     "eslint": "^9.0.0",
     "eslint-plugin-storybook": "10.2.7",
@@ -106,6 +108,7 @@
     "vitest": "^4.1.4"
   },
   "devDependenciesComments": {
-    "svg2vectordrawable": "Used by scripts/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs."
+    "svg2vectordrawable": "Used by scripts/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs.",
+    "culori": "Used by scripts/generate-icons-utils.ts to convert the OKLCH --background tokens from src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires."
   }
 }
