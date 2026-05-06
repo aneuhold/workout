@@ -1,17 +1,23 @@
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
 import LocalData from '$util/LocalData/LocalData';
 
 function createPasswordStore() {
-  const { subscribe, set, update } = writable<string>(browser ? LocalData.password : '');
+  const { subscribe, set, update } = writable<string>('');
 
   return {
     subscribe,
     set: (newPassword: string) => {
       set(newPassword);
-      LocalData.password = newPassword;
+      void LocalData.setPassword(newPassword);
     },
-    update
+    update,
+    /**
+     * Loads the cached password into the store. Called once at app startup
+     * after `LocalData.init()` resolves.
+     */
+    hydrate: async () => {
+      set(await LocalData.getPassword());
+    }
   };
 }
 

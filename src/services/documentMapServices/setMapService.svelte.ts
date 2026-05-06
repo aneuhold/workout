@@ -13,8 +13,9 @@ import exerciseMapService from './exerciseMapService.svelte';
 class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   constructor() {
     super({
-      persistToLocalData: (map) =>
-        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.setMap, map),
+      persistToLocalData: (map) => {
+        void LocalData.setDocumentMap(LocalData.storedKeyNames.setMap, map);
+      },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSet>(LocalData.storedKeyNames.setMap),
       persistToDb: createWorkoutPersistToDb('sets'),
