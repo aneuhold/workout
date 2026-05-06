@@ -47,8 +47,9 @@ export type MesocycleAssociatedDocs = MesocycleChildDocs & {
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
   constructor() {
     super({
-      persistToLocalData: (map) =>
-        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.mesocycleMap, map),
+      persistToLocalData: (map) => {
+        void LocalData.setDocumentMap(LocalData.storedKeyNames.mesocycleMap, map);
+      },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMesocycle>(LocalData.storedKeyNames.mesocycleMap),
       persistToDb: createWorkoutPersistToDb('mesocycles'),
