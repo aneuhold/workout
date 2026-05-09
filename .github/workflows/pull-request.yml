@@ -65,17 +65,29 @@ jobs:
 
       - name: Inspect pnpm store after install
         run: |
+          echo "=== which pnpm is actually running ==="
+          which pnpm
+          pnpm --version
+          echo "PATH=$PATH"
+          echo "=== pnpm store path now ==="
+          pnpm store path
+          echo "=== full pnpm config ==="
+          pnpm config list
           STORE_PATH="$(pnpm store path)"
-          echo "=== top level ==="
+          echo "=== reported store top level ==="
           ls -la "$STORE_PATH"
-          echo "=== sizes per top-level entry ==="
+          echo "=== reported store sizes ==="
           du -sh "$STORE_PATH"/* "$STORE_PATH"/.[!.]* 2>/dev/null || true
-          echo "=== file counts per top-level dir ==="
+          echo "=== file counts ==="
           for d in "$STORE_PATH"/files "$STORE_PATH"/links "$STORE_PATH"/.tmp; do
             [ -d "$d" ] && echo "$d: $(find "$d" -type f | wc -l) files, $(find "$d" -type l | wc -l) symlinks"
           done
-          echo "=== total store size ==="
-          du -sh "$STORE_PATH"
+          echo "=== node_modules/.pnpm size (project virtual store) ==="
+          du -sh node_modules/.pnpm 2>/dev/null || echo "(missing)"
+          echo "=== other pnpm-ish dirs on disk ==="
+          find /home/runner -maxdepth 5 -type d \( -name 'store' -o -name '.pnpm-store' -o -name 'pnpm' \) 2>/dev/null | head -20
+          echo "=== all v11/v10 store dirs ==="
+          find /home/runner -maxdepth 8 -type d \( -name 'v11' -o -name 'v10' -o -name 'v3' \) 2>/dev/null | head -20
 
       - name: Build the site
         run: pnpm build
