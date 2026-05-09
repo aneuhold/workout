@@ -31,22 +31,51 @@ jobs:
 
       - name: Inspect pnpm store before install
         run: |
+          echo "=== env ==="
           echo "PNPM_HOME=$PNPM_HOME"
+          echo "pnpm store path: $(pnpm store path)"
+          echo "pnpm cache dir:  $(pnpm config get cache-dir)"
           STORE_PATH="$(pnpm store path)"
-          echo "store path: $STORE_PATH"
-          if [ -d "$STORE_PATH" ]; then
-            echo "store contents (top level):"
-            ls -la "$STORE_PATH"
-            echo "store size:"
-            du -sh "$STORE_PATH"
-            echo "file count:"
-            find "$STORE_PATH" -type f | wc -l
-          else
+          if [ ! -d "$STORE_PATH" ]; then
             echo "(store directory does not exist)"
+            exit 0
           fi
+          echo "=== top level ==="
+          ls -la "$STORE_PATH"
+          echo "=== sizes per top-level entry ==="
+          du -sh "$STORE_PATH"/* "$STORE_PATH"/.[!.]* 2>/dev/null || true
+          echo "=== file counts per top-level dir ==="
+          for d in "$STORE_PATH"/files "$STORE_PATH"/links "$STORE_PATH"/.tmp; do
+            [ -d "$d" ] && echo "$d: $(find "$d" -type f | wc -l) files, $(find "$d" -type l | wc -l) symlinks"
+          done
+          echo "=== sample files/ subdir (first non-empty) ==="
+          find "$STORE_PATH/files" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
+            count=$(find "$d" -type f | wc -l)
+            if [ "$count" -gt 0 ]; then
+              echo "$d: $count files"
+              ls -la "$d" | head -5
+              break
+            fi
+          done
+          echo "=== sample links/ subdir ==="
+          find "$STORE_PATH/links" -mindepth 1 -maxdepth 2 2>/dev/null | head -20
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Inspect pnpm store after install
+        run: |
+          STORE_PATH="$(pnpm store path)"
+          echo "=== top level ==="
+          ls -la "$STORE_PATH"
+          echo "=== sizes per top-level entry ==="
+          du -sh "$STORE_PATH"/* "$STORE_PATH"/.[!.]* 2>/dev/null || true
+          echo "=== file counts per top-level dir ==="
+          for d in "$STORE_PATH"/files "$STORE_PATH"/links "$STORE_PATH"/.tmp; do
+            [ -d "$d" ] && echo "$d: $(find "$d" -type f | wc -l) files, $(find "$d" -type l | wc -l) symlinks"
+          done
+          echo "=== total store size ==="
+          du -sh "$STORE_PATH"
 
       - name: Build the site
         run: pnpm build
