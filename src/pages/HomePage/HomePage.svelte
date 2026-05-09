@@ -45,6 +45,15 @@
   );
 
   const allRecentSessions = $derived(getRecentCompletedSessions(sessionMapService.allDocs));
+
+  // Performance tracking
+  let homeRenderedMarked = false;
+  $effect(() => {
+    if (!homeRenderedMarked && activeMesocycle && docs) {
+      homeRenderedMarked = true;
+      performance.mark('home-rendered');
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-4 p-4">

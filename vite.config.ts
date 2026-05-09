@@ -5,13 +5,20 @@ import { loadEnv, type UserConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { defineConfig, mergeConfig } from 'vitest/config';
 
-// Setup the Sentry Auth Token
+// Setup the environment file if it exists. Update the list of prefixes as needed to be used either
+// in tests or in the Vite build. The prefixes need to be specified for it to pick up stuff.
+const envVarPrefixesToLoad = ['SENTRY_AUTH_TOKEN', 'PERF_'];
+const envFile = loadEnv('', process.cwd(), envVarPrefixesToLoad);
+for (const [key, value] of Object.entries(envFile)) {
+  if (value) {
+    process.env[key] = value;
+  }
+}
+
+// Sentry setup for the build
 let sentryAuthToken;
 if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_AUTH_TOKEN !== '') {
   sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
-} else {
-  const env = loadEnv('', process.cwd(), 'SENTRY_AUTH_TOKEN');
-  sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 }
 if (!sentryAuthToken && !process.env.VITEST) {
   console.error('No Sentry Auth Token found in the environment variables.');

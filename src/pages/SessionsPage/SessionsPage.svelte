@@ -48,6 +48,15 @@
   function isDeloadMicrocycle(microcycleIndex: number): boolean {
     return microcycleIndex === microcycles.length - 1 && microcycles.length > 1;
   }
+
+  // Performance tracking
+  let sessionsListRenderedMarked = false;
+  $effect(() => {
+    if (!sessionsListRenderedMarked && activeMesocycle && docs) {
+      sessionsListRenderedMarked = true;
+      performance.mark('sessions-list-rendered');
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-4 p-4">
