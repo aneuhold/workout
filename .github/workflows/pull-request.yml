@@ -11,10 +11,10 @@ jobs:
     name: 'Build'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up PNPM
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -38,7 +38,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: buildAndTypes
           path: |
@@ -52,10 +52,10 @@ jobs:
     needs: build
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up PNPM
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -67,7 +67,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: buildAndTypes
 
@@ -81,7 +81,7 @@ jobs:
         run: pnpm check
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
+        uses: nwtgck/actions-netlify@v3
         with:
           publish-dir: './build'
           production-branch: main
@@ -105,10 +105,10 @@ jobs:
       issues: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up PNPM
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -120,7 +120,7 @@ jobs:
         run: pnpm install
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: buildAndTypes
 
@@ -135,7 +135,7 @@ jobs:
 
       - name: Upload perf results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: perf-results
           path: scripts/perf/perfTemp/results/
@@ -143,7 +143,7 @@ jobs:
 
       - name: Sticky perf comment
         if: always()
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: '🚦 Perf Results'
           path: scripts/perf/perfTemp/results/pr-comment.md
