@@ -40,11 +40,16 @@ export const PERF_TEST_CONSTANTS = {
   storageStatePath: resolve(PERF_TEMP_DIR, 'auth/storageState.json'),
 
   /**
-   * Aggregated medians (and raw sample arrays) from the most recent run,
-   * grouped by throttling mode. Produced by `runPerf.ts` and copied to
-   * `baselinePath` at the end of the run.
+   * Aggregated medians for the PR build, written by `runPerf.ts --label=pr`
+   * in CI. Read back in the `--compare` step to diff against `mainResultsPath`.
    */
-  latestPath: resolve(PERF_TEMP_DIR, 'results/latest.json'),
+  prResultsPath: resolve(PERF_TEMP_DIR, 'results/pr.json'),
+
+  /**
+   * Aggregated medians for the main build, written by `runPerf.ts --label=main`
+   * in CI. Read back in the `--compare` step to diff against `prResultsPath`.
+   */
+  mainResultsPath: resolve(PERF_TEMP_DIR, 'results/main.json'),
 
   /**
    * Rendered markdown body for the sticky PR comment. `runPerf.ts` writes
@@ -54,13 +59,12 @@ export const PERF_TEST_CONSTANTS = {
   prCommentPath: resolve(PERF_TEMP_DIR, 'results/pr-comment.md'),
 
   /**
-   * The committed baseline that throttled metrics are gated against.
-   * `runPerf.ts` reads it at the start (for comparison) and overwrites it
-   * with the run's `latest.json` at the end. Locally, `git diff` shows the
-   * change so the dev decides whether to commit; in CI the overwrite lives
-   * on the runner only.
+   * The committed local baseline. Only updated by `runPerf.ts` when run
+   * locally (i.e. when `process.env.CI` is unset); CI uses same-runner PR vs
+   * main comparison via `prResultsPath`/`mainResultsPath` instead. Locally,
+   * `git diff` shows the change so the dev decides whether to commit.
    */
-  baselinePath: resolve('scripts/perf/baseline.json')
+  localBaselinePath: resolve('scripts/perf/localBaseline.json')
 } as const;
 
 /**
@@ -98,6 +102,16 @@ export type AggregatedMode = Partial<Record<string, AggregatedMetric>>;
  * Aggregated results split by throttling mode.
  */
 export type AggregatedResults = Record<PerfMode, AggregatedMode>;
+
+/**
+ * On-disk shape for any persisted perf results file (`localBaseline.json`,
+ * `pr.json`, `main.json`). The timestamp is always written so a file's age
+ * is visible by reading it directly; it's ignored when not needed.
+ */
+export type PerfResultsFile = {
+  timestamp: string;
+  results: AggregatedResults;
+};
 
 type ThrottlingProfile = {
   /**

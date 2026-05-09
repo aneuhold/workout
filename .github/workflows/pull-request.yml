@@ -10,8 +10,16 @@ jobs:
   build:
     name: 'Build'
     runs-on: ubuntu-latest
+    strategy:
+      # Build the PR ref and main in parallel so the perf job can compare
+      # them on the same runner.
+      fail-fast: true
+      matrix:
+        ref: [pr, main]
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.ref == 'main' && 'main' || github.ref }}
 
       - name: Set up PNPM
         uses: pnpm/action-setup@v6
@@ -23,81 +31,28 @@ jobs:
           cache: 'pnpm'
 
       - name: Check enableLocalOverride is not enabled
+        if: matrix.ref == 'pr'
         run: |
           if grep -E "enableLocalOverride\s*=\s*true" src/util/localOverride.ts; then
             echo "::error::enableLocalOverride is set to true in src/util/localOverride.ts. Set it back to false before merging."
             exit 1
           fi
 
-      - name: Inspect pnpm store before install
-        run: |
-          echo "=== env ==="
-          echo "PNPM_HOME=$PNPM_HOME"
-          echo "pnpm store path: $(pnpm store path)"
-          echo "pnpm cache dir:  $(pnpm config get cache-dir)"
-          STORE_PATH="$(pnpm store path)"
-          if [ ! -d "$STORE_PATH" ]; then
-            echo "(store directory does not exist)"
-            exit 0
-          fi
-          echo "=== top level ==="
-          ls -la "$STORE_PATH"
-          echo "=== sizes per top-level entry ==="
-          du -sh "$STORE_PATH"/* "$STORE_PATH"/.[!.]* 2>/dev/null || true
-          echo "=== file counts per top-level dir ==="
-          for d in "$STORE_PATH"/files "$STORE_PATH"/links "$STORE_PATH"/.tmp; do
-            [ -d "$d" ] && echo "$d: $(find "$d" -type f | wc -l) files, $(find "$d" -type l | wc -l) symlinks"
-          done
-          echo "=== sample files/ subdir (first non-empty) ==="
-          find "$STORE_PATH/files" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
-            count=$(find "$d" -type f | wc -l)
-            if [ "$count" -gt 0 ]; then
-              echo "$d: $count files"
-              ls -la "$d" | head -5
-              break
-            fi
-          done
-          echo "=== sample links/ subdir ==="
-          find "$STORE_PATH/links" -mindepth 1 -maxdepth 2 2>/dev/null | head -20
-
       - name: Install dependencies
         run: pnpm install
-
-      - name: Inspect pnpm store after install
-        run: |
-          echo "=== which pnpm is actually running ==="
-          which pnpm
-          pnpm --version
-          echo "PATH=$PATH"
-          echo "=== pnpm store path now ==="
-          pnpm store path
-          echo "=== full pnpm config ==="
-          pnpm config list
-          STORE_PATH="$(pnpm store path)"
-          echo "=== reported store top level ==="
-          ls -la "$STORE_PATH"
-          echo "=== reported store sizes ==="
-          du -sh "$STORE_PATH"/* "$STORE_PATH"/.[!.]* 2>/dev/null || true
-          echo "=== file counts ==="
-          for d in "$STORE_PATH"/files "$STORE_PATH"/links "$STORE_PATH"/.tmp; do
-            [ -d "$d" ] && echo "$d: $(find "$d" -type f | wc -l) files, $(find "$d" -type l | wc -l) symlinks"
-          done
-          echo "=== node_modules/.pnpm size (project virtual store) ==="
-          du -sh node_modules/.pnpm 2>/dev/null || echo "(missing)"
-          echo "=== other pnpm-ish dirs on disk ==="
-          find /home/runner -maxdepth 5 -type d \( -name 'store' -o -name '.pnpm-store' -o -name 'pnpm' \) 2>/dev/null | head -20
-          echo "=== all v11/v10 store dirs ==="
-          find /home/runner -maxdepth 8 -type d \( -name 'v11' -o -name 'v10' -o -name 'v3' \) 2>/dev/null | head -20
 
       - name: Build the site
         run: pnpm build
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # Only upload sourcemaps for the PR build. The main build here is
+          # only used as a perf-comparison reference; the main-branch workflow
+          # owns the real release upload.
+          SENTRY_AUTH_TOKEN: ${{ matrix.ref == 'pr' && secrets.SENTRY_AUTH_TOKEN || ''}}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: buildAndTypes
+          name: buildAndTypes-${{ matrix.ref }}
           # Without `include-hidden-files`, dot-prefixed paths like
           # `.svelte-kit/` are silently dropped from the artifact.
           include-hidden-files: true
@@ -129,7 +84,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v8
         with:
-          name: buildAndTypes
+          name: buildAndTypes-pr
 
       - name: Run tests
         run: pnpm test
@@ -179,19 +134,57 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Download build artifact
+      - name: Download main build
         uses: actions/download-artifact@v8
         with:
-          name: buildAndTypes
+          name: buildAndTypes-main
+          path: perfBuilds/main
+
+      - name: Download PR build
+        uses: actions/download-artifact@v8
+        with:
+          name: buildAndTypes-pr
+          path: perfBuilds/pr
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run perf measurements
-        run: pnpm test:perf
+      - name: Seed perf user
+        run: pnpm test:perf:seed
         env:
           PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
           PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      # Measure main first, then PR. `vite preview` always serves `./build/`
+      # using the manifest in `./.svelte-kit/`, so swap whichever ref is under
+      # measurement into those paths between runs. Same runner across both →
+      # cross-runner noise is removed from the comparison.
+      - name: Stage main build
+        run: |
+          rm -rf build .svelte-kit
+          cp -a perfBuilds/main/build .
+          cp -a perfBuilds/main/.svelte-kit .
+
+      - name: Measure main
+        run: pnpm tsx scripts/perf/runPerf.ts --label=main
+        env:
+          PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      - name: Stage PR build
+        run: |
+          rm -rf build .svelte-kit
+          cp -a perfBuilds/pr/build .
+          cp -a perfBuilds/pr/.svelte-kit .
+
+      - name: Measure PR
+        run: pnpm tsx scripts/perf/runPerf.ts --label=pr
+        env:
+          PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      - name: Compare PR vs main
+        run: pnpm tsx scripts/perf/runPerf.ts --compare
 
       - name: Upload perf results
         if: always()

@@ -1,19 +1,12 @@
 import { spawnSync } from 'child_process';
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync
-} from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import {
   type AggregatedMode,
   type AggregatedResults,
   PERF_TEST_CONSTANTS,
   PerfMode,
+  type PerfResultsFile,
   type PerfSample
 } from '$testUtils/perfTestUtils';
 
@@ -28,28 +21,34 @@ const REGRESSION_THRESHOLD = 0.15;
 
 // === Main flow ===
 
-runPlaywrightSuite();
+const labelArg = process.argv.find((a) => a.startsWith('--label='))?.split('=')[1];
+const isCompare = process.argv.includes('--compare');
 
-const latest = aggregateRawSamples();
-mkdirSync(PERF_TEST_CONSTANTS.resultsDir, { recursive: true });
-writeFileSync(PERF_TEST_CONSTANTS.latestPath, JSON.stringify(latest, null, 2));
-
-const baseline = readBaseline();
-const comment = renderComment(latest, baseline);
-writeFileSync(PERF_TEST_CONSTANTS.prCommentPath, comment);
-console.log(comment);
-
-// Promote latest → baseline. The comparison above already ran against the
-// committed baseline (read into memory before this overwrite), so this just
-// stages a candidate baseline on disk. Locally, `git diff` shows the change
-// and the dev decides whether to commit. In CI it lives on the runner only.
-copyFileSync(PERF_TEST_CONSTANTS.latestPath, PERF_TEST_CONSTANTS.baselinePath);
-
-const regressions = detectRegressions(latest, baseline);
-if (regressions.length > 0) {
-  console.error('\nPerf regressions detected:');
-  for (const failure of regressions) console.error(`  - ${failure}`);
+if (isCompare) {
+  // CI compare flow: read the two label files written by prior `--label=...`
+  // runs on the same runner and gate on Slow-mode regressions of PR vs main.
+  const pr = readResultsFile(PERF_TEST_CONSTANTS.prResultsPath);
+  const main = readResultsFile(PERF_TEST_CONSTANTS.mainResultsPath);
+  reportComparison(pr, main, 'PR', 'Main');
+} else if (labelArg === 'pr' || labelArg === 'main') {
+  // CI per-build flow: measure the currently-staged build and write the
+  // aggregated medians to a labeled file for the compare step to read back.
+  runPlaywrightSuite();
+  const path =
+    labelArg === 'pr' ? PERF_TEST_CONSTANTS.prResultsPath : PERF_TEST_CONSTANTS.mainResultsPath;
+  writeResultsFile(path, aggregateRawSamples());
+} else if (labelArg) {
+  console.error(`Unknown --label=${labelArg}; expected 'pr' or 'main'.`);
   process.exit(1);
+} else {
+  // Local flow: measure, compare to the committed `localBaseline.json`, then
+  // refresh it so `git diff` surfaces the change for the dev to review and
+  // commit.
+  runPlaywrightSuite();
+  const latest = aggregateRawSamples();
+  const baseline = readResultsFile(PERF_TEST_CONSTANTS.localBaselinePath);
+  reportComparison(latest, baseline);
+  writeResultsFile(PERF_TEST_CONSTANTS.localBaselinePath, latest);
 }
 
 // === Helpers ===
@@ -105,36 +104,102 @@ function aggregateRawSamples(): AggregatedResults {
 }
 
 /**
- * Reads the committed baseline. Returns empty buckets if the file is missing
- * (first-ever run on a fresh checkout).
+ * Reads a {@link PerfResultsFile} from disk and returns just the inner
+ * medians. Returns empty buckets when the file is missing (first-ever run).
+ *
+ * @param path Path to a {@link PerfResultsFile} on disk.
  */
-function readBaseline(): AggregatedResults {
-  if (!existsSync(PERF_TEST_CONSTANTS.baselinePath)) {
+function readResultsFile(path: string): AggregatedResults {
+  if (!existsSync(path)) {
     return { [PerfMode.Fast]: {}, [PerfMode.Slow]: {} };
   }
-  return JSON.parse(readFileSync(PERF_TEST_CONSTANTS.baselinePath, 'utf-8'));
+  const file: PerfResultsFile = JSON.parse(readFileSync(path, 'utf-8'));
+  return file.results;
+}
+
+/**
+ * Wraps `results` with a fresh ISO timestamp and writes the
+ * {@link PerfResultsFile} to `path`. Creates the parent directory if needed.
+ *
+ * @param path Destination path.
+ * @param results Aggregated medians to persist.
+ */
+function writeResultsFile(path: string, results: AggregatedResults): void {
+  const file: PerfResultsFile = { timestamp: new Date().toISOString(), results };
+  mkdirSync(resolve(path, '..'), { recursive: true });
+  writeFileSync(path, JSON.stringify(file, null, 2));
+}
+
+/**
+ * Renders the PR comment, writes it to disk, prints it, and exits non-zero
+ * if any Slow-mode metric exceeds {@link REGRESSION_THRESHOLD}. Shared by
+ * the local and CI-compare flows.
+ *
+ * @param current Aggregated results from this run (or the PR build in CI).
+ * @param prev Comparison target (local baseline, or the main build in CI).
+ * @param currentLabel Column header for `current`.
+ * @param prevLabel Column header for `prev`.
+ */
+function reportComparison(
+  current: AggregatedResults,
+  prev: AggregatedResults,
+  currentLabel = 'Current',
+  prevLabel = 'Baseline'
+): void {
+  mkdirSync(PERF_TEST_CONSTANTS.resultsDir, { recursive: true });
+  const comment = renderComment(current, prev, currentLabel, prevLabel);
+  writeFileSync(PERF_TEST_CONSTANTS.prCommentPath, comment);
+  console.log(comment);
+
+  const regressions = detectRegressions(current, prev);
+  if (regressions.length > 0) {
+    console.error('\nPerf regressions detected:');
+    for (const failure of regressions) console.error(`  - ${failure}`);
+    process.exit(1);
+  }
 }
 
 /**
  * Builds the markdown body posted as the sticky PR comment.
  *
  * @param current Aggregated results from this run.
- * @param prev Committed baseline to compare against.
+ * @param prev Comparison target.
+ * @param currentLabel Column header for `current`.
+ * @param prevLabel Column header for `prev`.
  */
-function renderComment(current: AggregatedResults, prev: AggregatedResults): string {
+function renderComment(
+  current: AggregatedResults,
+  prev: AggregatedResults,
+  currentLabel: string,
+  prevLabel: string
+): string {
   return [
     '🚦 Perf Results',
     '',
     renderTable(
-      'Fast — 10 Mbps / 50 ms / 2× CPU (dashboard)',
+      'Fast — 10 Mbps / 50 ms / 2x CPU',
       current[PerfMode.Fast],
-      prev[PerfMode.Fast]
+      prev[PerfMode.Fast],
+      currentLabel,
+      prevLabel
     ),
-    renderTable('Slow — Slow 4G + 4× CPU (gate)', current[PerfMode.Slow], prev[PerfMode.Slow])
+    renderTable(
+      'Slow — Slow 4G + 4x CPU',
+      current[PerfMode.Slow],
+      prev[PerfMode.Slow],
+      currentLabel,
+      prevLabel
+    )
   ].join('\n');
 }
 
-function renderTable(title: string, current: AggregatedMode, prev: AggregatedMode): string {
+function renderTable(
+  title: string,
+  current: AggregatedMode,
+  prev: AggregatedMode,
+  currentLabel: string,
+  prevLabel: string
+): string {
   const names = new Set([...Object.keys(current), ...Object.keys(prev)]);
   const rows = [...names].sort().map((name) => {
     const c = current[name]?.median;
@@ -144,7 +209,7 @@ function renderTable(title: string, current: AggregatedMode, prev: AggregatedMod
   return [
     `### ${title}`,
     '',
-    '| Metric | Current | Baseline | Δ |',
+    `| Metric | ${currentLabel} | ${prevLabel} | Δ |`,
     '| --- | --- | --- | --- |',
     ...rows,
     ''
