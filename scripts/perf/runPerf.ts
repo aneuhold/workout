@@ -19,8 +19,9 @@ import {
 
 const REPEAT_EACH = 5;
 /**
- * Maximum tolerated regression vs baseline (throttled metrics only) before the
- * job fails. Unthrottled numbers are reported but not gated — too noisy.
+ * Maximum tolerated regression vs baseline (slow-mode metrics only) before
+ * the job fails. Fast-mode numbers are reported but not gated — they can
+ * still drift more than slow-mode under decent broadband.
  */
 const REGRESSION_THRESHOLD = 0.15;
 
@@ -78,8 +79,8 @@ function runPlaywrightSuite(): void {
  */
 function aggregateRawSamples(): AggregatedResults {
   const aggregated: AggregatedResults = {
-    [PerfMode.Unthrottled]: {},
-    [PerfMode.Throttled]: {}
+    [PerfMode.Fast]: {},
+    [PerfMode.Slow]: {}
   };
   if (!existsSync(PERF_TEST_CONSTANTS.rawResultsDir)) return aggregated;
 
@@ -111,7 +112,7 @@ function aggregateRawSamples(): AggregatedResults {
  */
 function readBaseline(): AggregatedResults {
   if (!existsSync(PERF_TEST_CONSTANTS.baselinePath)) {
-    return { [PerfMode.Unthrottled]: {}, [PerfMode.Throttled]: {} };
+    return { [PerfMode.Fast]: {}, [PerfMode.Slow]: {} };
   }
   return JSON.parse(readFileSync(PERF_TEST_CONSTANTS.baselinePath, 'utf-8'));
 }
@@ -126,12 +127,12 @@ function renderComment(current: AggregatedResults, prev: AggregatedResults): str
   return [
     '🚦 Perf Results',
     '',
-    renderTable('Unthrottled', current[PerfMode.Unthrottled], prev[PerfMode.Unthrottled]),
     renderTable(
-      'Throttled — Slow 4G + 4x CPU',
-      current[PerfMode.Throttled],
-      prev[PerfMode.Throttled]
-    )
+      'Fast — 10 Mbps / 50 ms / 2× CPU (dashboard)',
+      current[PerfMode.Fast],
+      prev[PerfMode.Fast]
+    ),
+    renderTable('Slow — Slow 4G + 4× CPU (gate)', current[PerfMode.Slow], prev[PerfMode.Slow])
   ].join('\n');
 }
 
@@ -153,7 +154,7 @@ function renderTable(title: string, current: AggregatedMode, prev: AggregatedMod
 }
 
 /**
- * Returns one line per throttled metric whose current median exceeds the
+ * Returns one line per slow-mode metric whose current median exceeds the
  * baseline by more than {@link REGRESSION_THRESHOLD}. Empty array → CI passes.
  *
  * @param current Aggregated results from this run.
@@ -161,9 +162,9 @@ function renderTable(title: string, current: AggregatedMode, prev: AggregatedMod
  */
 function detectRegressions(current: AggregatedResults, prev: AggregatedResults): string[] {
   const failures: string[] = [];
-  for (const [name, metric] of Object.entries(current[PerfMode.Throttled])) {
+  for (const [name, metric] of Object.entries(current[PerfMode.Slow])) {
     if (!metric) continue;
-    const baselineMedian = prev[PerfMode.Throttled][name]?.median;
+    const baselineMedian = prev[PerfMode.Slow][name]?.median;
     if (baselineMedian === undefined || baselineMedian === 0) continue;
     const delta = (metric.median - baselineMedian) / baselineMedian;
     if (delta > REGRESSION_THRESHOLD) {

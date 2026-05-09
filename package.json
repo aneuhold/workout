@@ -83,6 +83,7 @@
     "concurrently": "^9.2.1",
     "culori": "^4.0.2",
     "d3-scale": "^4.0.2",
+    "devtools-protocol": "^0.0.1628107",
     "eslint": "^9.0.0",
     "eslint-plugin-storybook": "10.2.7",
     "jsdom": "^29.0.2",

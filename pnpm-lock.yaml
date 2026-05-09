@@ -144,6 +144,9 @@ importers:
       d3-scale:
         specifier: ^4.0.2
         version: 4.0.2
+      devtools-protocol:
+        specifier: ^0.0.1628107
+        version: 0.0.1628107
       eslint:
         specifier: ^9.0.0
         version: 9.39.2(jiti@2.6.1)
@@ -4048,6 +4051,9 @@ packages:
 
   devalue@5.7.1:
     resolution: {integrity: sha512-MUbZ586EgQqdRnC4yDrlod3BEdyvE4TapGYHMW2CiaW+KkkFmWEFqBUaLltEZCGi0iFXCEjRF0OjF0DV2QHjOA==}
+
+  devtools-protocol@0.0.1628107:
+    resolution: {integrity: sha512-0E24JhNEFhBC1vinzdu3b81BlAxTTCac6tySZdRvRglr5n9nq5lHAV0Elc3XNaSAbghEMigthWPkusyJ2JFm0A==}
 
   dezalgo@1.0.4:
     resolution: {integrity: sha512-rXSP0bf+5n0Qonsb+SVVfNfIsimO4HEtmnIpPHY8Q1UCzKlQrDMfdobr8nJOOsRgWCyMRqeSBQzmWUMq7zvVig==}
@@ -12726,6 +12732,8 @@ snapshots:
   devalue@5.6.2: {}
 
   devalue@5.7.1: {}
+
+  devtools-protocol@0.0.1628107: {}
 
   dezalgo@1.0.4:
     dependencies:

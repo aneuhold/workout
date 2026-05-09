@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from '@playwright/test';
+import { Protocol } from 'devtools-protocol';
 import { mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -63,11 +64,14 @@ export const PERF_TEST_CONSTANTS = {
 } as const;
 
 /**
- * Throttling profile applied to a perf measurement run.
+ * Throttling profile applied to a perf measurement run. Both modes apply
+ * throttling — `Fast` is meant to simulate a decent home connection so local
+ * and CI numbers are directly comparable, while `Slow` mirrors Chrome's
+ * Slow 4G + heavy-CPU preset and is the gate for regression detection.
  */
 export enum PerfMode {
-  Unthrottled = 'unthrottled',
-  Throttled = 'throttled'
+  Fast = 'fast',
+  Slow = 'slow'
 }
 
 /**
@@ -95,15 +99,41 @@ export type AggregatedMode = Partial<Record<string, AggregatedMetric>>;
  */
 export type AggregatedResults = Record<PerfMode, AggregatedMode>;
 
+type ThrottlingProfile = {
+  /**
+   * Inputs to CDP `Network.emulateNetworkConditions`. Throughput is bytes/sec
+   * — the `Kbps * 1024 / 8` shape converts from Kbps for readability.
+   */
+  network: Protocol.Network.EmulateNetworkConditionsRequest;
+  /** CPU slowdown factor passed to CDP `Emulation.setCPUThrottlingRate`. */
+  cpuRate: Protocol.Emulation.SetCPUThrottlingRateRequest['rate'];
+};
+
 /**
- * Network throttling values matching the Chrome DevTools "Slow 4G" preset:
- * 400 Kbps down/up, 400 ms latency.
+ * Per-mode throttling. `Fast` simulates a decent home broadband connection
+ * (10 Mbps down / 5 Mbps up / 50 ms / 2× CPU) so local and CI runners
+ * converge on similar numbers. `Slow` mirrors Chrome DevTools' Slow 4G +
+ * 4× CPU preset to surface regressions on cold mid-tier mobile hardware.
  */
-const SLOW_4G = {
-  offline: false,
-  latency: 400,
-  downloadThroughput: (400 * 1024) / 8,
-  uploadThroughput: (400 * 1024) / 8
+const THROTTLING_PROFILES: Record<PerfMode, ThrottlingProfile> = {
+  [PerfMode.Fast]: {
+    network: {
+      offline: false,
+      latency: 50,
+      downloadThroughput: (10_240 * 1024) / 8,
+      uploadThroughput: (5_120 * 1024) / 8
+    },
+    cpuRate: 2
+  },
+  [PerfMode.Slow]: {
+    network: {
+      offline: false,
+      latency: 400,
+      downloadThroughput: (400 * 1024) / 8,
+      uploadThroughput: (400 * 1024) / 8
+    },
+    cpuRate: 4
+  }
 };
 
 /**
@@ -125,20 +155,23 @@ class PerfTestUtils {
   }
 
   /**
-   * Applies Slow 4G + 4× CPU throttling (matching the Chrome DevTools preset)
-   * so throttled runs reflect a mid-tier mobile experience.
+   * Applies the network + CPU throttling profile for the given mode. Both
+   * modes throttle (just to different degrees) so local-machine and CI
+   * runner numbers are directly comparable.
    *
    * @param context Playwright BrowserContext used to open the CDP session.
    * @param page Page being throttled.
+   * @param mode Profile to apply (see {@link THROTTLING_PROFILES}).
    */
-  async applyThrottling(context: BrowserContext, page: Page): Promise<void> {
+  async applyThrottling(context: BrowserContext, page: Page, mode: PerfMode): Promise<void> {
     // CDP = Chrome DevTools Protocol. Lets us drive low-level browser controls
     // (network conditions, CPU rate) that aren't exposed on Playwright's
     // standard surface.
+    const profile = THROTTLING_PROFILES[mode];
     const cdp = await context.newCDPSession(page);
     await cdp.send('Network.enable');
-    await cdp.send('Network.emulateNetworkConditions', SLOW_4G);
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await cdp.send('Network.emulateNetworkConditions', profile.network);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile.cpuRate });
   }
 
   /**

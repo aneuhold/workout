@@ -16,7 +16,7 @@ const measure = async (browser: Browser, mode: PerfMode): Promise<void> => {
   try {
     const page = await context.newPage();
     await perfTestUtils.clearDocCachesExceptAuth(page);
-    if (mode === PerfMode.Throttled) await perfTestUtils.applyThrottling(context, page);
+    await perfTestUtils.applyThrottling(context, page, mode);
 
     // Boot and wait for the home page to finish rendering
     await page.goto('/');
