@@ -8,6 +8,7 @@ import WebSocketService from '$services/WebSocketService';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
+import { PerfMark } from '$util/perfMarks';
 import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandlingService';
 
 const log = createLogger('WorkoutAPIService.ts');
@@ -131,7 +132,7 @@ export default class WorkoutAPIService {
         WorkoutAPIResponseHandlingService.processWorkoutApiOutput(combinedOutput, combinedInput);
         if (!this.initialHydrationMarked && combinedInput.get?.mesocycles?.all) {
           this.initialHydrationMarked = true;
-          performance.mark('hydration-network-complete');
+          performance.mark(PerfMark.HydrationNetworkComplete);
         }
       } else {
         // If there was an error, add the task back to the queue and try again

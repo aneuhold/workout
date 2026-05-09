@@ -7,6 +7,7 @@
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import { PerfMark } from '$util/perfMarks';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
   import HomePageFreeFormSessions from './HomePageFreeFormSessions.svelte';
   import HomePageHeroCard from './HomePageHeroCard';
@@ -51,7 +52,7 @@
   $effect(() => {
     if (!homeRenderedMarked && activeMesocycle && docs) {
       homeRenderedMarked = true;
-      performance.mark('home-rendered');
+      performance.mark(PerfMark.HomeRendered);
     }
   });
 </script>

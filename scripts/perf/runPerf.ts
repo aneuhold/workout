@@ -1,6 +1,7 @@
+import { FileSystemService } from '@aneuhold/core-ts-lib/node';
 import { spawnSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { extname, resolve } from 'path';
 import {
   type AggregatedMode,
   type AggregatedResults,
@@ -9,6 +10,7 @@ import {
   type PerfResultsFile,
   type PerfSample
 } from '$testUtils/perfTestUtils';
+import { PerfMark } from '$util/perfMarks';
 
 /**
  * How many times it needs to run each mode.
@@ -23,6 +25,20 @@ const REGRESSION_THRESHOLD = 0.15;
 
 const labelArg = process.argv.find((a) => a.startsWith('--label='))?.split('=')[1];
 const isCompare = process.argv.includes('--compare');
+
+// All measurement modes need a built source under `./build/` that includes
+// every PerfMark. If any are missing (e.g. measuring `main` from
+// before this branch added the marks), exit cleanly so the compare step
+// renders "—" for that side instead of timing out inside Playwright.
+if (!isCompare) {
+  const missing = await findMissingMarks();
+  if (missing.length > 0) {
+    console.log(
+      `[perf] ${labelArg ?? 'local'}: ./build/ is missing perf marks [${missing.join(', ')}]; skipping measurement.`
+    );
+    process.exit(0);
+  }
+}
 
 if (isCompare) {
   // CI compare flow: read the two label files written by prior `--label=...`
@@ -52,6 +68,33 @@ if (isCompare) {
 }
 
 // === Helpers ===
+
+/**
+ * Walks `./build/` looking for each {@link PerfMark} value as a quoted
+ * literal in any HTML or JS file. Mark names are runtime arguments to
+ * `performance.mark()` and aren't transformed by the bundler, so the
+ * literal survives to the built output. Returns the marks that weren't
+ * found anywhere — empty array means the build is fully instrumented.
+ */
+async function findMissingMarks(): Promise<PerfMark[]> {
+  const buildDir = resolve('build');
+  if (!existsSync(buildDir)) return Object.values(PerfMark);
+
+  const remaining = new Set<PerfMark>(Object.values(PerfMark));
+  const allFiles = await FileSystemService.getAllFilePaths(buildDir);
+  for (const file of allFiles) {
+    if (remaining.size === 0) break;
+    const ext = extname(file).toLowerCase();
+    if (ext !== '.html' && ext !== '.js') continue;
+    const content = readFileSync(file, 'utf-8');
+    for (const mark of [...remaining]) {
+      if (content.includes(`'${mark}'`) || content.includes(`"${mark}"`)) {
+        remaining.delete(mark);
+      }
+    }
+  }
+  return [...remaining];
+}
 
 /**
  * Wipes any prior raw samples and runs the perf spec under Playwright with

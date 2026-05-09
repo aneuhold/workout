@@ -10,6 +10,7 @@
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import { PerfMark } from '$util/perfMarks';
   import SessionsPageEmptyState from './SessionsPageEmptyState.svelte';
   import SessionsPageFreeFormSection from './SessionsPageFreeFormSection.svelte';
   import SessionsPageHeader from './SessionsPageHeader.svelte';
@@ -54,7 +55,7 @@
   $effect(() => {
     if (!sessionsListRenderedMarked && activeMesocycle && docs) {
       sessionsListRenderedMarked = true;
-      performance.mark('sessions-list-rendered');
+      performance.mark(PerfMark.SessionsListRendered);
     }
   });
 </script>
