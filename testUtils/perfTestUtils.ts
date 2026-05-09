@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from '@playwright/test';
-import { Protocol } from 'devtools-protocol';
+import type { Protocol } from 'devtools-protocol';
 import { mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
