@@ -42,6 +42,8 @@
       : ''
   );
 
+  console.log('Weeeeee');
+
   async function handleLogout() {
     // Delete refresh token server-side
     await APIService.logout();
