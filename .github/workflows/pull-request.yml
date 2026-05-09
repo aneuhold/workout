@@ -41,6 +41,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: buildAndTypes
+          # Without `include-hidden-files`, dot-prefixed paths like
+          # `.svelte-kit/` are silently dropped from the artifact.
+          include-hidden-files: true
           path: |
             build/
             .svelte-kit/
