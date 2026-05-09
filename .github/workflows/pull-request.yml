@@ -29,6 +29,22 @@ jobs:
             exit 1
           fi
 
+      - name: Inspect pnpm store before install
+        run: |
+          echo "PNPM_HOME=$PNPM_HOME"
+          STORE_PATH="$(pnpm store path)"
+          echo "store path: $STORE_PATH"
+          if [ -d "$STORE_PATH" ]; then
+            echo "store contents (top level):"
+            ls -la "$STORE_PATH"
+            echo "store size:"
+            du -sh "$STORE_PATH"
+            echo "file count:"
+            find "$STORE_PATH" -type f | wc -l
+          else
+            echo "(store directory does not exist)"
+          fi
+
       - name: Install dependencies
         run: pnpm install
 

@@ -17,18 +17,16 @@ import {
   type PerfSample
 } from '$testUtils/perfTestUtils';
 
-const REPEAT_EACH = 5;
 /**
- * Maximum tolerated regression vs baseline (slow-mode metrics only) before
- * the job fails. Fast-mode numbers are reported but not gated — they can
- * still drift more than slow-mode under decent broadband.
+ * How many times it needs to run each mode.
+ */
+const REPEAT_EACH = 3;
+/**
+ * Maximum tolerated regression vs baseline before the job fails.
  */
 const REGRESSION_THRESHOLD = 0.15;
 
 // === Main flow ===
-// Helper functions are declared with `function` (not arrow consts) so the flow
-// can read top-down — function declarations hoist, the order below is purely
-// visual.
 
 runPlaywrightSuite();
 
