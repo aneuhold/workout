@@ -10,6 +10,7 @@
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import { PerfMark } from '$util/perfMarks';
   import SessionsPageEmptyState from './SessionsPageEmptyState.svelte';
   import SessionsPageFreeFormSection from './SessionsPageFreeFormSection.svelte';
   import SessionsPageHeader from './SessionsPageHeader.svelte';
@@ -48,6 +49,15 @@
   function isDeloadMicrocycle(microcycleIndex: number): boolean {
     return microcycleIndex === microcycles.length - 1 && microcycles.length > 1;
   }
+
+  // Performance tracking
+  let sessionsListRenderedMarked = false;
+  $effect(() => {
+    if (!sessionsListRenderedMarked && activeMesocycle && docs) {
+      sessionsListRenderedMarked = true;
+      performance.mark(PerfMark.SessionsListRendered);
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-4 p-4">

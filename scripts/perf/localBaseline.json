@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-05-09T20:36:47.541Z",
+  "results": {
+    "fast": {
+      "bootToHydrationNetworkComplete": {
+        "samples": [
+          966.8000001907349,
+          941.5,
+          947.8999996185303
+        ],
+        "median": 947.8999996185303
+      },
+      "bootToHomeRendered": {
+        "samples": [
+          985.2000002861023,
+          958.6999998092651,
+          964.8999996185303
+        ],
+        "median": 964.8999996185303
+      },
+      "homeRenderedToSessionsListRendered": {
+        "samples": [
+          133,
+          124.90000009536743,
+          124.10000038146973
+        ],
+        "median": 124.90000009536743
+      }
+    },
+    "slow": {
+      "bootToHydrationNetworkComplete": {
+        "samples": [
+          14623.900000095367,
+          14599.5,
+          14598.699999809265
+        ],
+        "median": 14599.5
+      },
+      "bootToHomeRendered": {
+        "samples": [
+          14657.800000190735,
+          14633.700000286102,
+          14631.699999809265
+        ],
+        "median": 14633.700000286102
+      },
+      "homeRenderedToSessionsListRendered": {
+        "samples": [
+          716.6999998092651,
+          737.3999996185303,
+          707.5999999046326
+        ],
+        "median": 716.6999998092651
+      }
+    }
+  }
+}

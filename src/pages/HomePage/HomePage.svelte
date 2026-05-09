@@ -7,6 +7,7 @@
   import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import { PerfMark } from '$util/perfMarks';
   import HomePageEmptyState from './HomePageEmptyState.svelte';
   import HomePageFreeFormSessions from './HomePageFreeFormSessions.svelte';
   import HomePageHeroCard from './HomePageHeroCard';
@@ -45,6 +46,15 @@
   );
 
   const allRecentSessions = $derived(getRecentCompletedSessions(sessionMapService.allDocs));
+
+  // Performance tracking
+  let homeRenderedMarked = false;
+  $effect(() => {
+    if (!homeRenderedMarked && activeMesocycle && docs) {
+      homeRenderedMarked = true;
+      performance.mark(PerfMark.HomeRendered);
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-4 p-4">

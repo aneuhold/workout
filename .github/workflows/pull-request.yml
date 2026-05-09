@@ -7,15 +7,22 @@ on:
       - main
 
 jobs:
-  testAndDeploy:
-    name: 'Test and Deploy'
+  build:
+    name: 'Build'
     runs-on: ubuntu-latest
-
+    strategy:
+      # Build the PR ref and main in parallel so the perf job can compare
+      # them on the same runner.
+      fail-fast: true
+      matrix:
+        ref: [pr, main]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.ref == 'main' && 'main' || github.ref }}
 
       - name: Set up PNPM
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -24,6 +31,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Check enableLocalOverride is not enabled
+        if: matrix.ref == 'pr'
         run: |
           if grep -E "enableLocalOverride\s*=\s*true" src/util/localOverride.ts; then
             echo "::error::enableLocalOverride is set to true in src/util/localOverride.ts. Set it back to false before merging."
@@ -33,11 +41,50 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # Build has to go before link and check because it creates the .svelte-kit directory
       - name: Build the site
         run: pnpm build
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # Only upload sourcemaps for the PR build. The main build here is
+          # only used as a perf-comparison reference; the main-branch workflow
+          # owns the real release upload.
+          SENTRY_AUTH_TOKEN: ${{ matrix.ref == 'pr' && secrets.SENTRY_AUTH_TOKEN || ''}}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: buildAndTypes-${{ matrix.ref }}
+          # Without `include-hidden-files`, dot-prefixed paths like
+          # `.svelte-kit/` are silently dropped from the artifact.
+          include-hidden-files: true
+          path: |
+            build/
+            .svelte-kit/
+          retention-days: 1
+
+  testAndDeploy:
+    name: 'Test and Deploy'
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: buildAndTypes-pr
 
       - name: Run tests
         run: pnpm test
@@ -49,7 +96,7 @@ jobs:
         run: pnpm check
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
+        uses: nwtgck/actions-netlify@v3
         with:
           publish-dir: './build'
           production-branch: main
@@ -63,3 +110,93 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
+
+  perf:
+    name: 'Performance Tests'
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download main build
+        uses: actions/download-artifact@v8
+        with:
+          name: buildAndTypes-main
+          path: perfBuilds/main
+
+      - name: Download PR build
+        uses: actions/download-artifact@v8
+        with:
+          name: buildAndTypes-pr
+          path: perfBuilds/pr
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Seed perf user
+        run: pnpm test:perf:seed
+        env:
+          PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      # Measure main first, then PR. `vite preview` always serves `./build/`
+      # using the manifest in `./.svelte-kit/`, so swap whichever ref is under
+      # measurement into those paths between runs. Same runner across both →
+      # cross-runner noise is removed from the comparison.
+      - name: Stage main build
+        run: |
+          rm -rf build .svelte-kit
+          cp -a perfBuilds/main/build .
+          cp -a perfBuilds/main/.svelte-kit .
+
+      - name: Measure main
+        run: pnpm tsx scripts/perf/runPerf.ts --label=main
+        env:
+          PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      - name: Stage PR build
+        run: |
+          rm -rf build .svelte-kit
+          cp -a perfBuilds/pr/build .
+          cp -a perfBuilds/pr/.svelte-kit .
+
+      - name: Measure PR
+        run: pnpm tsx scripts/perf/runPerf.ts --label=pr
+        env:
+          PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+
+      - name: Compare PR vs main
+        run: pnpm tsx scripts/perf/runPerf.ts --compare
+
+      - name: Upload perf results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: perf-results
+          path: scripts/perf/perfTemp/results/
+          retention-days: 7
+
+      - name: Sticky perf comment
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: '🚦 Perf Results'
+          path: scripts/perf/perfTemp/results/pr-comment.md

@@ -12,7 +12,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .yarn/install-state.gz
 docs/FullBook.md
-docs/nutrition-planning
 
 # Sentry Config File
 .sentryclirc
@@ -22,3 +21,6 @@ docs/nutrition-planning
 
 # Storybook
 *storybook.log
+
+# Perf-test scratch outputs
+/scripts/perf/perfTemp/
