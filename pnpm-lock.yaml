@@ -33,6 +33,9 @@ importers:
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.3.1)
+      '@capacitor-community/sqlite':
+        specifier: ^8.1.0
+        version: 8.1.0(@capacitor/core@8.3.1)
       '@capacitor/android':
         specifier: ^8.3.1
         version: 8.3.1(@capacitor/core@8.3.1)
@@ -48,6 +51,9 @@ importers:
       '@capacitor/core':
         specifier: ^8.3.1
         version: 8.3.1
+      '@capacitor/preferences':
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.3.1)
       '@capacitor/splash-screen':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.3.1)
@@ -153,6 +159,12 @@ importers:
       eslint-plugin-storybook:
         specifier: 10.2.7
         version: 10.2.7(eslint@9.39.2(jiti@2.6.1))(storybook@10.2.7(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@6.0.3)
+      fake-indexeddb:
+        specifier: ^6.2.5
+        version: 6.2.5
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
       jsdom:
         specifier: ^29.0.2
         version: 29.0.2(@noble/hashes@1.8.0)
@@ -565,6 +577,12 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
+  '@capacitor-community/sqlite@8.1.0':
+    resolution: {integrity: sha512-yhKZDAVPDPcM3QE6UGB3LXyV25a6Rve1SjZ1aUpTE0E2isnYTVM0PG9+JOI241f+NdsHzPTE7ESJiYSqKsKnuA==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capacitor/android@8.3.1':
     resolution: {integrity: sha512-hjskIG8YcBEh3X4yaTXvE9gcqpdcxunTgFruSKnuPxtMxAUzEK4Oq25x0Z1g3cz+MQPc+lRG09R7Ovc+ydKsNw==}
     peerDependencies:
@@ -592,6 +610,11 @@ packages:
 
   '@capacitor/core@8.3.1':
     resolution: {integrity: sha512-UF8ItlHguU1Z6GXfPTeT2gakf+ctNI8pAS1kwSBQlsJMlfD4OPoto/SmKnOxKCQvnF4WRcdWeg6C0zREUNaAQg==}
+
+  '@capacitor/preferences@8.0.1':
+    resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/splash-screen@8.0.1':
     resolution: {integrity: sha512-c/ew/Z3eA7z8l06WoRAtzVF16VwYYrExmHmfGq1Cg675pVzaC/yuucB8/1xG1vhEfnW4fZ1KhSf/kzR1RiVYgg==}
@@ -1801,9 +1824,19 @@ packages:
     cpu: [arm64]
     os: [android]
 
+  '@rollup/rollup-darwin-arm64@4.44.0':
+    resolution: {integrity: sha512-VGF3wy0Eq1gcEIkSCr8Ke03CWT+Pm2yveKLaDvq51pPpZza3JX/ClxXOCmTYYq3us5MvEuNRTaeyFThCKRQhOA==}
+    cpu: [arm64]
+    os: [darwin]
+
   '@rollup/rollup-darwin-arm64@4.55.1':
     resolution: {integrity: sha512-p3grE2PHcQm2e8PSGZdzIhCKbMCw/xi9XvMPErPhwO17vxtvCN5FEA2mSLgmKlCjHGMQTP6phuQTYWUnKewwGg==}
     cpu: [arm64]
+    os: [darwin]
+
+  '@rollup/rollup-darwin-x64@4.44.0':
+    resolution: {integrity: sha512-fBkyrDhwquRvrTxSGH/qqt3/T0w5Rg0L7ZIDypvBPc1/gzjJle6acCpZ36blwuwcKD/u6oCE/sRWlUAcxLWQbQ==}
+    cpu: [x64]
     os: [darwin]
 
   '@rollup/rollup-darwin-x64@4.55.1':
@@ -1833,11 +1866,23 @@ packages:
     os: [linux]
     libc: [musl]
 
+  '@rollup/rollup-linux-arm64-gnu@4.44.0':
+    resolution: {integrity: sha512-ZTR2mxBHb4tK4wGf9b8SYg0Y6KQPjGpR4UWwTFdnmjB4qRtoATZ5dWn3KsDwGa5Z2ZBOE7K52L36J9LueKBdOQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
   '@rollup/rollup-linux-arm64-gnu@4.55.1':
     resolution: {integrity: sha512-a59mwd1k6x8tXKcUxSyISiquLwB5pX+fJW9TkWU46lCqD/GRDe9uDN31jrMmVP3feI3mhAdvcCClhV8V5MhJFQ==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
+
+  '@rollup/rollup-linux-arm64-musl@4.44.0':
+    resolution: {integrity: sha512-GFWfAhVhWGd4r6UxmnKRTBwP1qmModHtd5gkraeW2G490BpFOZkFtem8yuX2NyafIP/mGpRJgTJ2PwohQkUY/Q==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-musl@4.55.1':
     resolution: {integrity: sha512-puS1MEgWX5GsHSoiAsF0TYrpomdvkaXm0CofIMG5uVkP6IBV+ZO9xhC5YEN49nsgYo1DuuMquF9+7EDBVYu4uA==}
@@ -1887,11 +1932,23 @@ packages:
     os: [linux]
     libc: [glibc]
 
+  '@rollup/rollup-linux-x64-gnu@4.44.0':
+    resolution: {integrity: sha512-iUVJc3c0o8l9Sa/qlDL2Z9UP92UZZW1+EmQ4xfjTc1akr0iUFZNfxrXJ/R1T90h/ILm9iXEY6+iPrmYB3pXKjw==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
   '@rollup/rollup-linux-x64-gnu@4.55.1':
     resolution: {integrity: sha512-a8G4wiQxQG2BAvo+gU6XrReRRqj+pLS2NGXKm8io19goR+K8lw269eTrPkSdDTALwMmJp4th2Uh0D8J9bEV1vg==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+
+  '@rollup/rollup-linux-x64-musl@4.44.0':
+    resolution: {integrity: sha512-PQUobbhLTQT5yz/SPg116VJBgz+XOtXt8D1ck+sfJJhuEsMj2jSej5yTdp8CvWBSceu+WW+ibVL6dm0ptG5fcA==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-x64-musl@4.55.1':
     resolution: {integrity: sha512-bD+zjpFrMpP/hqkfEcnjXWHMw5BIghGisOKPj+2NaNDuVT+8Ds4mPf3XcPHuat1tz89WRL+1wbcxKY3WSbiT7w==}
@@ -1909,6 +1966,11 @@ packages:
     cpu: [arm64]
     os: [openharmony]
 
+  '@rollup/rollup-win32-arm64-msvc@4.44.0':
+    resolution: {integrity: sha512-M0CpcHf8TWn+4oTxJfh7LQuTuaYeXGbk0eageVjQCKzYLsajWS/lFC94qlRqOlyC2KvRT90ZrfXULYmukeIy7w==}
+    cpu: [arm64]
+    os: [win32]
+
   '@rollup/rollup-win32-arm64-msvc@4.55.1':
     resolution: {integrity: sha512-yR6Bl3tMC/gBok5cz/Qi0xYnVbIxGx5Fcf/ca0eB6/6JwOY+SRUcJfI0OpeTpPls7f194as62thCt/2BjxYN8g==}
     cpu: [arm64]
@@ -1921,6 +1983,11 @@ packages:
 
   '@rollup/rollup-win32-x64-gnu@4.55.1':
     resolution: {integrity: sha512-xGGY5pXj69IxKb4yv/POoocPy/qmEGhimy/FoTpTSVju3FYXUQQMFCaZZXJVidsmGxRioZAwpThl/4zX41gRKg==}
+    cpu: [x64]
+    os: [win32]
+
+  '@rollup/rollup-win32-x64-msvc@4.44.0':
+    resolution: {integrity: sha512-Q2Mgwt+D8hd5FIPUuPDsvPR7Bguza6yTkJxspDGkZj7tBRn2y4KSWYuIXpftFSjBra76TbKerCV7rgFPQrn+wQ==}
     cpu: [x64]
     os: [win32]
 
@@ -2162,6 +2229,11 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@stencil/core@4.43.4':
+    resolution: {integrity: sha512-QWawMM1XIpSz4k+k+VyHZMr2YSxlCNAPWO/jTdJ+2kdgdN7ZQVEFZpc4WBm3E3mrDPTZ79lLcnIPa399bg4XOg==}
+    engines: {node: '>=16.0.0', npm: '>=7.10.0'}
+    hasBin: true
 
   '@storybook/addon-docs@10.2.7':
     resolution: {integrity: sha512-RHw+uHA05A7t48OtVu6gvNOueSGK8P/5NCmVRl3Vx/Kg3mxCyU2nGOHwWBt3C3CsWOLioZPsa7f5UdjOkhJ35Q==}
@@ -3219,6 +3291,9 @@ packages:
 
   brorand@1.1.0:
     resolution: {integrity: sha512-cKV8tMCEpQs4hK/ik71d6LrPOnpkpGBR0wzxqr68g2m/LB2GxVYQroAjMJZRVM1Y4BCjCKc3vAamxSzOY2RP+w==}
+
+  browser-fs-access@0.35.0:
+    resolution: {integrity: sha512-sLoadumpRfsjprP8XzVjpQc0jK8yqHBx0PtUTGYj2fftT+P/t+uyDAQdMgGAPKD011in/O+YYGh7fIs0oG/viw==}
 
   browser-resolve@2.0.0:
     resolution: {integrity: sha512-7sWsQlYL2rGLy2IWm8WL8DCTJvYLc/qlOnsakDac87SOoCd16WLsaAMdCiAqsTNHIe+SXfaqyxyo6THoWqs8WQ==}
@@ -4540,6 +4615,10 @@ packages:
     resolution: {integrity: sha512-11Ndz7Nv+mvAC1j0ktTa7fAb0vLyGGX+rMHNBYQviQDGU0Hw7lhctJANqbPhu9nV9/izT/IntTgZ7Im/9LJs9g==}
     engines: {'0': node >=0.6.0}
 
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
+
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -5035,6 +5114,9 @@ packages:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
 
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -5049,6 +5131,9 @@ packages:
   ignore@7.0.5:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
+
+  immediate@3.0.6:
+    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
 
   immutable@5.1.4:
     resolution: {integrity: sha512-p6u1bG3YSnINT5RQmx/yRZBpenIl30kVxkTLDyHLIMk0gict704Q9n+thfDI7lTRm9vXdDYutVzXhzcThxTnXA==}
@@ -5400,6 +5485,9 @@ packages:
   isstream@0.1.2:
     resolution: {integrity: sha512-Yljz7ffyPbrLpLngrMtZ7NduUgVvi6wG9RJ9IUcyCd59YQ911PBJphODUcbOVbqYfxe1wuYf/LJ8PauMRwsM/g==}
 
+  jeep-sqlite@2.8.0:
+    resolution: {integrity: sha512-FWNUP6OAmrUHwiW7H1xH5YUQ8tN2O4l4psT1sLd7DQtHd5PfrA1nvNdeKPNj+wQBtu7elJa8WoUibTytNTaaCg==}
+
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
@@ -5496,6 +5584,9 @@ packages:
     resolution: {integrity: sha512-gqXddjPqQ6G40VdnI6T6yObEC+pDNvyP95wdQhkWkg7crHH3km5qP1FsOXEkzEQwnz6gz5qGTn1c2Y52wP3OyQ==}
     engines: {'0': node >=0.6.0}
 
+  jszip@3.10.1:
+    resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
+
   jwa@2.0.1:
     resolution: {integrity: sha512-hRF04fqJIP8Abbkq5NKGN0Bbr3JxlQ+qhZufXVr0DvujKy93ZCbXZMHDL4EOtodSbCWxOqR8MS1tXA5hwqCXDg==}
 
@@ -5528,6 +5619,12 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  lie@3.1.1:
+    resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
+
+  lie@3.3.0:
+    resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
 
   lightningcss-android-arm64@1.30.2:
     resolution: {integrity: sha512-BH9sEdOCahSgmkVhBLeU7Hc9DWeZ1Eb6wNS6Da8igvUwAe0sqROHddIlvU06q3WyXVEOYDZ6ykBZQnjTbmo4+A==}
@@ -5617,6 +5714,9 @@ packages:
   load-json-file@4.0.0:
     resolution: {integrity: sha512-Kx8hMakjX03tiGTLAIdJ+lL0htKnXjEZN6hk/tozf/WOuYGdZBJrZ+rCJRbVCugsjB3jMLn9746NsQIf5VjBMw==}
     engines: {node: '>=4'}
+
+  localforage@1.10.0:
+    resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
 
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
@@ -7274,6 +7374,9 @@ packages:
   split@1.0.1:
     resolution: {integrity: sha512-mTyOoPbrivtXnwnIxZRFYRrPNtEFKlpB2fvjSnCQUiAA6qAZzqwna5envK4uk6OIeP17CsdF3rSBGYVBsU0Tkg==}
 
+  sql.js@1.14.1:
+    resolution: {integrity: sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==}
+
   sshpk@1.18.0:
     resolution: {integrity: sha512-2p2KJZTSqQ/I3+HX42EpYOa2l3f8Erv8MWKsy2I9uf4wA7yFIkXRffYdsx86y6z4vHtV8u7g+pPlr8/4ouAxsQ==}
     engines: {node: '>=0.10.0'}
@@ -8903,6 +9006,11 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.3.1
 
+  '@capacitor-community/sqlite@8.1.0(@capacitor/core@8.3.1)':
+    dependencies:
+      '@capacitor/core': 8.3.1
+      jeep-sqlite: 2.8.0
+
   '@capacitor/android@8.3.1(@capacitor/core@8.3.1)':
     dependencies:
       '@capacitor/core': 8.3.1
@@ -8983,6 +9091,10 @@ snapshots:
   '@capacitor/core@8.3.1':
     dependencies:
       tslib: 2.8.1
+
+  '@capacitor/preferences@8.0.1(@capacitor/core@8.3.1)':
+    dependencies:
+      '@capacitor/core': 8.3.1
 
   '@capacitor/splash-screen@8.0.1(@capacitor/core@8.3.1)':
     dependencies:
@@ -10191,7 +10303,13 @@ snapshots:
   '@rollup/rollup-android-arm64@4.55.1':
     optional: true
 
+  '@rollup/rollup-darwin-arm64@4.44.0':
+    optional: true
+
   '@rollup/rollup-darwin-arm64@4.55.1':
+    optional: true
+
+  '@rollup/rollup-darwin-x64@4.44.0':
     optional: true
 
   '@rollup/rollup-darwin-x64@4.55.1':
@@ -10209,7 +10327,13 @@ snapshots:
   '@rollup/rollup-linux-arm-musleabihf@4.55.1':
     optional: true
 
+  '@rollup/rollup-linux-arm64-gnu@4.44.0':
+    optional: true
+
   '@rollup/rollup-linux-arm64-gnu@4.55.1':
+    optional: true
+
+  '@rollup/rollup-linux-arm64-musl@4.44.0':
     optional: true
 
   '@rollup/rollup-linux-arm64-musl@4.55.1':
@@ -10236,7 +10360,13 @@ snapshots:
   '@rollup/rollup-linux-s390x-gnu@4.55.1':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.44.0':
+    optional: true
+
   '@rollup/rollup-linux-x64-gnu@4.55.1':
+    optional: true
+
+  '@rollup/rollup-linux-x64-musl@4.44.0':
     optional: true
 
   '@rollup/rollup-linux-x64-musl@4.55.1':
@@ -10248,6 +10378,9 @@ snapshots:
   '@rollup/rollup-openharmony-arm64@4.55.1':
     optional: true
 
+  '@rollup/rollup-win32-arm64-msvc@4.44.0':
+    optional: true
+
   '@rollup/rollup-win32-arm64-msvc@4.55.1':
     optional: true
 
@@ -10255,6 +10388,9 @@ snapshots:
     optional: true
 
   '@rollup/rollup-win32-x64-gnu@4.55.1':
+    optional: true
+
+  '@rollup/rollup-win32-x64-msvc@4.44.0':
     optional: true
 
   '@rollup/rollup-win32-x64-msvc@4.55.1':
@@ -10526,6 +10662,17 @@ snapshots:
   '@socket.io/component-emitter@3.1.2': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@stencil/core@4.43.4':
+    optionalDependencies:
+      '@rollup/rollup-darwin-arm64': 4.44.0
+      '@rollup/rollup-darwin-x64': 4.44.0
+      '@rollup/rollup-linux-arm64-gnu': 4.44.0
+      '@rollup/rollup-linux-arm64-musl': 4.44.0
+      '@rollup/rollup-linux-x64-gnu': 4.44.0
+      '@rollup/rollup-linux-x64-musl': 4.44.0
+      '@rollup/rollup-win32-arm64-msvc': 4.44.0
+      '@rollup/rollup-win32-x64-msvc': 4.44.0
 
   '@storybook/addon-docs@10.2.7(@types/react@19.2.3)(esbuild@0.27.3)(rollup@4.55.1)(storybook@10.2.7(@testing-library/dom@10.4.1)(prettier@3.8.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.94.2)(tsx@4.21.0))':
     dependencies:
@@ -11856,6 +12003,8 @@ snapshots:
       fill-range: 7.1.1
 
   brorand@1.1.0: {}
+
+  browser-fs-access@0.35.0: {}
 
   browser-resolve@2.0.0:
     dependencies:
@@ -13441,6 +13590,8 @@ snapshots:
 
   extsprintf@1.3.0: {}
 
+  fake-indexeddb@6.2.5: {}
+
   fast-deep-equal@3.1.3: {}
 
   fast-diff@1.3.0: {}
@@ -14001,6 +14152,8 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  idb@8.0.3: {}
+
   ieee754@1.2.1: {}
 
   ignore-walk@8.0.0:
@@ -14010,6 +14163,8 @@ snapshots:
   ignore@5.3.2: {}
 
   ignore@7.0.5: {}
+
+  immediate@3.0.6: {}
 
   immutable@5.1.4: {}
 
@@ -14286,6 +14441,14 @@ snapshots:
 
   isstream@0.1.2: {}
 
+  jeep-sqlite@2.8.0:
+    dependencies:
+      '@stencil/core': 4.43.4
+      browser-fs-access: 0.35.0
+      jszip: 3.10.1
+      localforage: 1.10.0
+      sql.js: 1.14.1
+
   jiti@2.6.1: {}
 
   jose@6.1.3: {}
@@ -14386,6 +14549,13 @@ snapshots:
       json-schema: 0.4.0
       verror: 1.10.0
 
+  jszip@3.10.1:
+    dependencies:
+      lie: 3.3.0
+      pako: 1.0.11
+      readable-stream: 2.3.8
+      setimmediate: 1.0.5
+
   jwa@2.0.1:
     dependencies:
       buffer-equal-constant-time: 1.0.1
@@ -14444,6 +14614,14 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lie@3.1.1:
+    dependencies:
+      immediate: 3.0.6
+
+  lie@3.3.0:
+    dependencies:
+      immediate: 3.0.6
 
   lightningcss-android-arm64@1.30.2:
     optional: true
@@ -14513,6 +14691,10 @@ snapshots:
       parse-json: 4.0.0
       pify: 3.0.0
       strip-bom: 3.0.0
+
+  localforage@1.10.0:
+    dependencies:
+      lie: 3.1.1
 
   locate-character@3.0.0: {}
 
@@ -16434,6 +16616,8 @@ snapshots:
   split@1.0.1:
     dependencies:
       through: 2.3.8
+
+  sql.js@1.14.1: {}
 
   sshpk@1.18.0:
     dependencies:

@@ -20,4 +20,11 @@ export default class PreferencesBackend implements ILocalDataBackend {
   async remove(key: string): Promise<void> {
     await Preferences.remove({ key });
   }
+
+  async cleanupOldVersions(currentPrefix: string): Promise<void> {
+    const { keys } = await Preferences.keys();
+    await Promise.all(
+      keys.filter((k) => !k.startsWith(currentPrefix)).map((k) => Preferences.remove({ key: k }))
+    );
+  }
 }

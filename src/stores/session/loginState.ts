@@ -62,7 +62,7 @@ function createLoginStateStore() {
           APIService.setRefreshTokenString(config.refreshTokenString);
         }
         setLoginState(LoginState.LoggedIn);
-        void WorkoutAPIService.getInitialDataIfNeeded();
+        WorkoutAPIService.getInitialDataIfNeeded();
       } else {
         log.info('No access token found, setting login state to LoggedOut');
         setLoginState(LoginState.LoggedOut);
