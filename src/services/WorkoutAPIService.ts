@@ -17,6 +17,10 @@ const SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA = 10;
 export default class WorkoutAPIService {
   static lastInitialDataFetchTime: number | null = null;
   private static processingRequestQueue = false;
+  /**
+   * Determines if the initial hydration performance marker has been set yet.
+   */
+  private static initialHydrationMarked = false;
 
   /**
    * Inserts, deletes, updates or gets items in the backend.
@@ -125,6 +129,10 @@ export default class WorkoutAPIService {
         // should help prevent the stores from being set to an old value if
         // the user refreshes the page while the task queue is being processed.
         WorkoutAPIResponseHandlingService.processWorkoutApiOutput(combinedOutput, combinedInput);
+        if (!this.initialHydrationMarked && combinedInput.get?.mesocycles?.all) {
+          this.initialHydrationMarked = true;
+          performance.mark('hydration-network-complete');
+        }
       } else {
         // If there was an error, add the task back to the queue and try again
         // Save this for later to ensure there is no infinite loop
