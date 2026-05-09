@@ -18,7 +18,7 @@ export default class LocalData {
    * A prefix before all stored key names in case cache busting needs to happen
    * at some point.
    */
-  private static PREFIX = 'v4-';
+  private static PREFIX = 'v5-';
 
   static storedKeyNames = {
     password: `${this.PREFIX}password`,
