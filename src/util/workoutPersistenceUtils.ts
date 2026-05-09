@@ -3,7 +3,12 @@ import type { BaseDocument } from '@aneuhold/core-ts-db-lib';
 import type { DocumentInsertOrUpdateInfo } from '$services/DocumentMapStoreService.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService';
 
-type WorkoutApiKey = keyof NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>;
+/**
+ * Names of the workout collections that the primary API can insert / update /
+ * delete (CTOs and other derived outputs are excluded). Equivalently, the keys
+ * of the `insert` payload on `ProjectWorkoutPrimaryEndpointOptions`.
+ */
+export type WorkoutApiInsertKey = keyof NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>;
 
 /**
  * Creates a `prepareForSave` function for a workout document type that
@@ -12,7 +17,7 @@ type WorkoutApiKey = keyof NonNullable<ProjectWorkoutPrimaryEndpointOptions['ins
  *
  * @param key The API key name for this document type (e.g. 'mesocycles')
  */
-export function createWorkoutPrepareForSave<T extends BaseDocument>(key: WorkoutApiKey) {
+export function createWorkoutPrepareForSave<T extends BaseDocument>(key: WorkoutApiInsertKey) {
   return (options: ProjectWorkoutPrimaryEndpointOptions, info: DocumentInsertOrUpdateInfo<T>) => {
     if (info.insert) {
       options.insert = { ...options.insert, [key]: info.insert };
@@ -35,7 +40,7 @@ export function createWorkoutPrepareForSave<T extends BaseDocument>(key: Workout
  *
  * @param key The API key name for this document type (e.g. 'mesocycles')
  */
-export function createWorkoutPersistToDb<T extends BaseDocument>(key: WorkoutApiKey) {
+export function createWorkoutPersistToDb<T extends BaseDocument>(key: WorkoutApiInsertKey) {
   const prepareForSave = createWorkoutPrepareForSave<T>(key);
   return (info: DocumentInsertOrUpdateInfo<T>) => {
     const options: ProjectWorkoutPrimaryEndpointOptions = {};
