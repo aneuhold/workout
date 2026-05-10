@@ -5,9 +5,8 @@
   rendered without app chrome inside the `(marketing)` route group.
 -->
 <script lang="ts">
-  import { IconArrowLeft } from '@tabler/icons-svelte';
   import { mode } from 'mode-watcher';
-  import Button from '$ui/Button/Button.svelte';
+  import BackButton from '$components/BackButton/BackButton.svelte';
 
   const lastUpdated = 'May 10, 2026';
   const contactEmail = 'aneuholddev@gmail.com';
@@ -16,10 +15,7 @@
 </script>
 
 <article class="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
-  <Button variant="ghost" size="sm" class="self-start" onclick={() => history.back()}>
-    <IconArrowLeft size={16} />
-    Back
-  </Button>
+  <BackButton class="self-start">Back</BackButton>
 
   <header class="flex items-center gap-3">
     <img src={logoSrc} alt="" class="h-10 w-10" />

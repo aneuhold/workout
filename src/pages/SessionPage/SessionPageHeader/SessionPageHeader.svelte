@@ -7,9 +7,9 @@
 -->
 <script lang="ts">
   import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
-  import { IconArrowLeft } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
+  import BackButton from '$components/BackButton/BackButton.svelte';
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
@@ -88,9 +88,7 @@
 </script>
 
 <div class="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1">
-  <Button variant="ghost" size="sm" onclick={() => history.back()}>
-    <IconArrowLeft size={16} />
-  </Button>
+  <BackButton />
   <div class="flex items-center gap-2">
     <div class="flex min-w-0 flex-1 flex-col">
       <div class="flex flex-wrap items-baseline gap-x-2">

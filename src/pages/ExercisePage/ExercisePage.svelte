@@ -5,8 +5,8 @@
   Supports view mode (read-only), edit mode, and new exercise creation.
 -->
 <script lang="ts">
-  import { IconArrowLeft } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
+  import BackButton from '$components/BackButton/BackButton.svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import Button from '$ui/Button/Button.svelte';
   import ExercisePageEditForm from './ExercisePageEditForm.svelte';
@@ -33,13 +33,9 @@
   let editOverride = $state<boolean | null>(null);
   let editMode = $derived(editOverride !== null ? editOverride : isNew);
 
-  function handleBack() {
-    history.back();
-  }
-
   function handleCancel() {
     if (isNew) {
-      handleBack();
+      history.back();
     } else {
       editOverride = false;
     }
@@ -49,9 +45,7 @@
 <div class="flex flex-col gap-4 p-4">
   <!-- Header -->
   <div class="flex items-center gap-2">
-    <Button variant="ghost" size="sm" onclick={handleBack}>
-      <IconArrowLeft size={16} />
-    </Button>
+    <BackButton />
     {#if editMode}
       <h1 class="text-xl font-semibold">{isNew ? 'New Exercise' : 'Edit Exercise'}</h1>
     {:else if exercise}
@@ -65,6 +59,6 @@
     <ExercisePageViewMode {exercise} {cto} onEdit={() => (editOverride = true)} />
   {:else}
     <p class="text-sm text-muted-foreground">Exercise not found.</p>
-    <Button variant="outline" onclick={handleBack}>Back to Library</Button>
+    <Button variant="outline" onclick={() => history.back()}>Back to Library</Button>
   {/if}
 </div>
