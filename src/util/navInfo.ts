@@ -1,14 +1,15 @@
-import { analyticsPageInfo } from '$routes/analytics/pageInfo';
-import { exercisePageInfo } from '$routes/exercise/pageInfo';
-import { libraryPageInfo } from '$routes/library/pageInfo';
-import { mesocycleNewPageInfo } from '$routes/mesocycle/new/pageInfo';
-import { mesocyclePageInfo } from '$routes/mesocycle/pageInfo';
-import { mesocyclesPageInfo } from '$routes/mesocycles/pageInfo';
-import { homePageInfo } from '$routes/pageInfo';
-import { sessionPageInfo } from '$routes/session/pageInfo';
-import { sessionsPageInfo } from '$routes/sessions/pageInfo';
-import { settingsPageInfo } from '$routes/settings/pageInfo';
-import { timerPageInfo } from '$routes/timer/pageInfo';
+import { analyticsPageInfo } from '$routes/(app)/analytics/pageInfo';
+import { exercisePageInfo } from '$routes/(app)/exercise/pageInfo';
+import { libraryPageInfo } from '$routes/(app)/library/pageInfo';
+import { mesocycleNewPageInfo } from '$routes/(app)/mesocycle/new/pageInfo';
+import { mesocyclePageInfo } from '$routes/(app)/mesocycle/pageInfo';
+import { mesocyclesPageInfo } from '$routes/(app)/mesocycles/pageInfo';
+import { homePageInfo } from '$routes/(app)/pageInfo';
+import { sessionPageInfo } from '$routes/(app)/session/pageInfo';
+import { sessionsPageInfo } from '$routes/(app)/sessions/pageInfo';
+import { settingsPageInfo } from '$routes/(app)/settings/pageInfo';
+import { timerPageInfo } from '$routes/(app)/timer/pageInfo';
+import { privacyPageInfo } from '$routes/(marketing)/privacy/pageInfo';
 
 export interface PageInfo {
   /**
@@ -38,6 +39,16 @@ export interface PageInfo {
 }
 
 /**
+ * Pages that render under the `(marketing)` route group — publicly
+ * reachable, no app chrome. Spread into `navInfo` below so they share the
+ * same lookup, and exported so consumers (e.g. the Full App Storybook
+ * shell) can detect marketing routes without hard-coding URLs.
+ */
+export const marketingPages = {
+  privacy: privacyPageInfo
+} satisfies Record<string, PageInfo>;
+
+/**
  * Navigation info. Each key is the relative path to the page.
  */
 const navInfo = {
@@ -51,7 +62,8 @@ const navInfo = {
   mesocycle: mesocyclePageInfo,
   mesocycleNew: mesocycleNewPageInfo,
   timer: timerPageInfo,
-  settings: settingsPageInfo
+  settings: settingsPageInfo,
+  ...marketingPages
 } satisfies Record<string, PageInfo>;
 
 export default navInfo;

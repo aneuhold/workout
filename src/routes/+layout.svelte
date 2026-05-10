@@ -1,7 +1,13 @@
 <!--
   @component
-  
-  The root of the application.
+
+  Root layout. Persists across both `(app)` and `(marketing)` route groups,
+  so it owns one-time concerns: global CSS, light/dark mode, view
+  transitions, app-state hydration, and the document visibility listener.
+
+  Group layouts handle their own UI: `(app)` gates chrome on `loginState`,
+  `(marketing)` just renders. Hydration runs even on marketing pages so
+  navigating from `/privacy` into the app finds an already-hydrated store.
 -->
 <script lang="ts">
   import '../globalStyles/global.css';
@@ -9,18 +15,6 @@
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
-  import { page } from '$app/state';
-  import Login from '$components/Login/Login.svelte';
-  import NavBar from '$components/NavBar/NavBar.svelte';
-  import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
-  import SingletonDeleteDialog from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
-  import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
-  import SingletonEquipmentFormDialog from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
-  import SingletonMoveSessionsDialog from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
-  import SingletonMuscleGroupDefaultsDialog from '$components/singletons/dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
-  import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
-  import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
-  import TopBar from '$components/TopBar/TopBar.svelte';
   import nativePlatformService from '$services/NativePlatformService.svelte';
   import timerService from '$services/TimerService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
@@ -29,12 +23,10 @@
   import { translations } from '$stores/local/translations';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
-  import { LoginState, loginState } from '$stores/session/loginState';
+  import { loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
 
   let { children }: { children?: Snippet } = $props();
-
-  let mounted = $state(false);
 
   onNavigate((navigation) => {
     const transition = document.startViewTransition?.bind(document);
@@ -47,6 +39,9 @@
     });
   });
 
+  // Still need all the hydration logic at the top to make sure when navigating between marketing
+  // pages and app routes, it doesn't break the app. This should be a no-op though and looks like
+  // it still loads incredibly fast.
   onMount(async () => {
     await LocalData.init();
     await Promise.all([
@@ -57,7 +52,6 @@
       WorkoutHydrationService.hydrateDocumentMaps()
     ]);
     loginState.init();
-    mounted = true;
     timerService.init();
     nativePlatformService.init();
   });
@@ -66,7 +60,6 @@
     appIsVisible.set(document.visibilityState === 'visible');
   };
 
-  // Global app visibility change listener
   if (browser) {
     document.addEventListener('visibilitychange', handleVisibilityChange);
   }
@@ -78,36 +71,5 @@
   });
 </script>
 
-<!-- 
-Light / Dark mode watcher. This comes with a component toggle as well if you want to use that
-at some point.
--->
 <ModeWatcher />
-<div class="app">
-  {#if !mounted || $loginState === LoginState.Initializing}
-    <div class="flex h-dvh items-center justify-center">
-      <p class="animate-pulse text-muted-foreground">Loading...</p>
-    </div>
-  {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
-    <Login />
-  {:else}
-    <TopBar username={$userConfig.username} currentPath={page.url.pathname} />
-    <NavBar currentPath={page.url.pathname} />
-    <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
-     Otherwise, it is only fixed for desktop. -->
-    <main
-      class="[view-transition-name:main-content] md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48
-        {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-(--top-nav-height)' : ''}"
-    >
-      {@render children?.()}
-    </main>
-    <SingletonCalibrationFormDialog />
-    <SingletonDeleteDialog />
-    <SingletonDeloadDialog />
-    <SingletonEquipmentFormDialog />
-    <SingletonMoveSessionsDialog />
-    <SingletonMuscleGroupDefaultsDialog />
-    <SingletonMuscleGroupFormDialog />
-    <SingletonRescheduleMesocycleDialog />
-  {/if}
-</div>
+{@render children?.()}

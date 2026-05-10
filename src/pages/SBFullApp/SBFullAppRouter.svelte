@@ -16,6 +16,7 @@
   import LibraryPage from '$pages/LibraryPage/LibraryPage.svelte';
   import MesocyclePage from '$pages/MesocyclePage/MesocyclePage.svelte';
   import MesocyclesPage from '$pages/MesocyclesPage/MesocyclesPage.svelte';
+  import PrivacyPolicyPage from '$pages/PrivacyPolicyPage/PrivacyPolicyPage.svelte';
   import SessionPage from '$pages/SessionPage/SessionPage.svelte';
   import SessionsPage from '$pages/SessionsPage/SessionsPage.svelte';
   import SettingsPage from '$pages/SettingsPage/SettingsPage.svelte';
@@ -57,6 +58,8 @@
   <TimerPage />
 {:else if routeState.path === navInfo.analytics.url}
   <p class="p-8 text-muted-foreground">Analytics page coming soon.</p>
+{:else if routeState.path === navInfo.privacy.url}
+  <PrivacyPolicyPage />
 {:else}
   <p class="p-8 text-muted-foreground">Unknown route: {routeState.path}</p>
 {/if}
