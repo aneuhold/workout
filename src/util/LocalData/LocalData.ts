@@ -3,13 +3,15 @@ import type { BaseDocument, DocumentMap } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { browser } from '$app/environment';
 import type { UserConfig } from '$stores/local/userConfig/userConfig';
+import { STORAGE_PREFIX } from './storagePrefix';
 
 export default class LocalData {
   /**
    * A prefix before all stored key names in case cache busting needs to happen
-   * at some point.
+   * at some point. Sourced from `storagePrefix.ts` so build-time scripts can
+   * read the same value without booting SvelteKit.
    */
-  private static PREFIX = 'v4-';
+  private static PREFIX = STORAGE_PREFIX;
 
   private static localStorageAvailable = browser;
 
