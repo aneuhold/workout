@@ -11,6 +11,7 @@
   import { goto } from '$app/navigation';
   import googleAuthService from '$services/GoogleAuthService';
   import timerService from '$services/TimerService';
+  import WorkoutAPIService from '$services/WorkoutAPIService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Avatar from '$ui/Avatar/Avatar.svelte';
@@ -48,7 +49,8 @@
 
     // Clear local state
     userConfig.clear();
-    LocalData.clearWorkoutMaps();
+    WorkoutAPIService.reset();
+    await LocalData.clearWorkoutMaps();
     loginState.set(LoginState.LoggedOut);
 
     // Sign out of Google so the next sign-in prompts for account selection

@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { Protocol } from 'devtools-protocol';
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 const PERF_TEMP_DIR = resolve('scripts/perf/perfTemp');
@@ -189,21 +189,45 @@ class PerfTestUtils {
   }
 
   /**
-   * Clears every `v4-*` localStorage key except `v4-userConfig` before any
-   * page script runs, forcing a full network hydration on the next navigation.
+   * Reads the storage prefix the staged `build/` expects from the marker
+   * file `scripts/emitStorageVersion.ts` writes during build. Used so the
+   * perf workflow can swap main and PR builds in and out of `./build/` and
+   * still seed / clear localStorage with the keys whichever build is about
+   * to read.
+   */
+  detectStoragePrefix(): string {
+    return readFileSync(resolve('build/.storage-version'), 'utf8').trim();
+  }
+
+  /**
+   * Clears every cached document and small-tier key except `userConfig`
+   * before any page script runs, forcing a full network hydration on the
+   * next navigation. Touches both localStorage (small tier) and the
+   * IndexedDB workout database (large tier) so the document maps in the
+   * latter aren't silently served from cache.
    *
    * @param page Page to attach the init script to.
    */
   async clearDocCachesExceptAuth(page: Page): Promise<void> {
-    await page.addInitScript(() => {
-      const keep = 'v4-userConfig';
-      const toRemove: string[] = [];
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (key && key.startsWith('v4-') && key !== keep) toRemove.push(key);
-      }
-      for (const key of toRemove) window.localStorage.removeItem(key);
-    });
+    const prefix = this.detectStoragePrefix();
+    await page.addInitScript(
+      ({ prefix: storagePrefix }) => {
+        const keep = `${storagePrefix}userConfig`;
+        const toRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith(storagePrefix) && key !== keep) toRemove.push(key);
+        }
+        for (const key of toRemove) window.localStorage.removeItem(key);
+        return new Promise<void>((resolveDelete) => {
+          const req = indexedDB.deleteDatabase('workout');
+          req.onsuccess = () => resolveDelete();
+          req.onerror = () => resolveDelete();
+          req.onblocked = () => resolveDelete();
+        });
+      },
+      { prefix }
+    );
   }
 
   /**

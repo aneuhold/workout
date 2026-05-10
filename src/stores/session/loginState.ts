@@ -44,29 +44,30 @@ function createLoginStateStore() {
     userConfig.update((config) => ({ ...config, accessToken, refreshTokenString }));
   });
 
-  // Determine initial login state based on persisted tokens in userConfig.
-  const config = userConfig.get();
-
-  if (browser && config.accessToken) {
-    if (config.accessToken) {
-      APIService.setAccessToken(config.accessToken);
-    }
-    if (config.refreshTokenString) {
-      APIService.setRefreshTokenString(config.refreshTokenString);
-    }
-    setLoginState(LoginState.LoggedIn);
-    WorkoutAPIService.getInitialDataIfNeeded();
-  } else {
-    log.info('No access token found, setting login state to LoggedOut');
-    setLoginState(LoginState.LoggedOut);
-  }
-
   return {
     subscribe,
     set: (newState: LoginState) => {
       setLoginState(newState);
     },
-    get: () => _loginState
+    get: () => _loginState,
+    /**
+     * Resolves the initial login state from the now-hydrated `userConfig`.
+     * Call once at app startup after `userConfig.hydrate()` resolves.
+     */
+    init: () => {
+      const config = userConfig.get();
+      if (browser && config.accessToken) {
+        APIService.setAccessToken(config.accessToken);
+        if (config.refreshTokenString) {
+          APIService.setRefreshTokenString(config.refreshTokenString);
+        }
+        setLoginState(LoginState.LoggedIn);
+        WorkoutAPIService.getInitialDataIfNeeded();
+      } else {
+        log.info('No access token found, setting login state to LoggedOut');
+        setLoginState(LoginState.LoggedOut);
+      }
+    }
   };
 }
 

@@ -1,6 +1,5 @@
 import type { UUID } from 'crypto';
 import { type Updater, writable } from 'svelte/store';
-import { browser } from '$app/environment';
 import LocalData from '$util/LocalData/LocalData';
 
 export type UserConfig = {
@@ -15,23 +14,17 @@ export type UserConfig = {
 function createUserConfigStore() {
   const ANONYMOUS_USER_ID: UUID = '00000000-0000-0000-0000-000000000000';
   let currentConfig: UserConfig = {
-    userId: '00000000-0000-0000-0000-000000000000',
+    userId: ANONYMOUS_USER_ID,
     username: '',
     accessToken: null,
     refreshTokenString: null
   };
   const { subscribe, set } = writable<UserConfig>(currentConfig);
 
-  const localDataUserConfig = browser ? LocalData.userConfig : null;
-  if (localDataUserConfig) {
-    currentConfig = localDataUserConfig;
-    set(currentConfig);
-  }
-
   const updateUserConfig = (updater: Updater<UserConfig>) => {
     currentConfig = updater(currentConfig);
     set(currentConfig);
-    LocalData.userConfig = currentConfig;
+    void LocalData.setUserConfig(currentConfig);
   };
 
   // TODO: Re-implement API persistence when workout user config is needed
@@ -49,12 +42,13 @@ function createUserConfigStore() {
       updateUserConfig(updater);
     },
     /**
-     * Sets the user config without updating the backend.
+     * Replaces the in-memory config without writing back to LocalData.
      *
-     * @param newConfig New user config to set locally.
+     * @param newConfig User config to apply locally.
      */
     setWithoutPropagation: (newConfig: UserConfig) => {
-      updateUserConfig(() => newConfig);
+      currentConfig = newConfig;
+      set(currentConfig);
     },
     /**
      * Clears the user config (e.g. on logout).
@@ -70,7 +64,18 @@ function createUserConfigStore() {
     /**
      * Simply gets the current config.
      */
-    get: () => currentConfig
+    get: () => currentConfig,
+    /**
+     * Loads the cached user config into the store. Called once at app
+     * startup after `LocalData.init()` resolves.
+     */
+    hydrate: async () => {
+      const cached = await LocalData.getUserConfig();
+      if (cached) {
+        currentConfig = cached;
+        set(currentConfig);
+      }
+    }
   };
 }
 

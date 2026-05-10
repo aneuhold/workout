@@ -34,16 +34,22 @@
 
   const log = createLogger('Login.svelte');
 
-  let typedUserName = $state(LocalData.username);
-  let typedPassword = $state(LocalData.password);
+  let typedUserName = $state('');
+  let typedPassword = $state('');
   let processingCredentials = $derived($loginState === LoginState.ProcessingCredentials);
   let invalidCredentials = $state(false);
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
 
-  onMount(() => {
+  onMount(async () => {
     // This happens here because if it happens inline with sign-in, it captures the URL of the popup
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
+    const [storedUsername, storedPassword] = await Promise.all([
+      LocalData.getUsername(),
+      LocalData.getPassword()
+    ]);
+    typedUserName = storedUsername;
+    typedPassword = storedPassword;
   });
 
   /**
@@ -70,7 +76,7 @@
     event.preventDefault();
 
     $loginState = LoginState.ProcessingCredentials;
-    LocalData.username = typedUserName;
+    void LocalData.setUsername(typedUserName);
     password.set(typedPassword);
 
     const validationResponse: APIResponse<AuthValidateUserOutput> = await APIService.validateUser({
