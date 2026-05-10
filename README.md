@@ -55,7 +55,7 @@ For first-time setup, you may need to add your local Android debug key to Google
 
 - `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
 - `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`. Use this to verify the prod build path on-device against the prod backend.
-- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config).
+- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config). For fine-grained control over permissions, edit [`AndroidManifest.xml`](android/app/src/main/AndroidManifest.xml) directly.
 
 #### Testing on an emulator / debugging
 
