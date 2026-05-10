@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { Protocol } from 'devtools-protocol';
-import { globSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 const PERF_TEMP_DIR = resolve('scripts/perf/perfTemp');
@@ -189,21 +189,14 @@ class PerfTestUtils {
   }
 
   /**
-   * Detects the storage prefix the staged `build/` expects by scanning its
-   * JS chunks for the literal `PREFIX="v\d+-"` the bundler emits for
-   * `LocalData.PREFIX`. Used so the perf workflow can swap main and PR
-   * builds in and out of `./build/` and still seed / clear localStorage
-   * with the keys whichever build is about to read.
+   * Reads the storage prefix the staged `build/` expects from the marker
+   * file `scripts/emitStorageVersion.ts` writes during build. Used so the
+   * perf workflow can swap main and PR builds in and out of `./build/` and
+   * still seed / clear localStorage with the keys whichever build is about
+   * to read.
    */
   detectStoragePrefix(): string {
-    const files = globSync('build/_app/immutable/**/*.js');
-    for (const file of files) {
-      const match = readFileSync(file, 'utf8').match(/PREFIX="(v\d+-)"/);
-      if (match) return match[1];
-    }
-    throw new Error(
-      'Could not detect LocalData PREFIX in build/_app/immutable/**/*.js. Did the bundler stop folding the static field?'
-    );
+    return readFileSync(resolve('build/.storage-version'), 'utf8').trim();
   }
 
   /**

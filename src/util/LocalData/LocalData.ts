@@ -8,6 +8,7 @@ import IndexedDbBackend from './IndexedDbBackend';
 import LocalStorageBackend from './LocalStorageBackend';
 import PreferencesBackend from './PreferencesBackend';
 import SqliteBackend from './SqliteBackend';
+import { STORAGE_PREFIX } from './storagePrefix';
 
 /**
  * Single public entry point for client-side persistence. Routes each key to
@@ -16,9 +17,10 @@ import SqliteBackend from './SqliteBackend';
 export default class LocalData {
   /**
    * A prefix before all stored key names in case cache busting needs to happen
-   * at some point.
+   * at some point. Sourced from `storagePrefix.ts` so build-time scripts can
+   * read the same value without booting SvelteKit.
    */
-  private static PREFIX = 'v5-';
+  private static PREFIX = STORAGE_PREFIX;
 
   static storedKeyNames = {
     password: `${this.PREFIX}password`,
