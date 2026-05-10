@@ -16,6 +16,7 @@
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
   import GoogleSignInButton from '$components/GoogleSignInButton';
+  import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import googleAuthService from '$services/GoogleAuthService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
   import { password } from '$stores/local/password';
@@ -133,7 +134,10 @@
   }
 </script>
 
-<form class="flex min-h-screen items-center justify-center p-4" onsubmit={handleSubmit}>
+<form
+  class="flex min-h-screen flex-col items-center justify-center gap-6 p-4"
+  onsubmit={handleSubmit}
+>
   <Card class="w-full max-w-sm">
     <CardHeader>
       <CardTitle>Login</CardTitle>
@@ -190,4 +194,5 @@
       </Button>
     </CardFooter>
   </Card>
+  <MarketingLinks />
 </form>

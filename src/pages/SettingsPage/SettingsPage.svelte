@@ -5,15 +5,13 @@
 -->
 <script lang="ts">
   import { setMode, userPrefersMode } from 'mode-watcher';
+  import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
   import SelectContent from '$ui/Select/SelectContent.svelte';
   import SelectItem from '$ui/Select/SelectItem.svelte';
   import SelectTrigger from '$ui/Select/SelectTrigger.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
-  import { marketingPages } from '$util/navInfo';
-
-  const aboutLinks = Object.values(marketingPages);
 
   const modeOptions = [
     { value: 'light', label: 'Light' },
@@ -53,15 +51,6 @@
 
   <section class="flex flex-col items-center gap-2">
     <h3>About</h3>
-    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-      {#each aboutLinks as link (link.url)}
-        <a
-          class="text-sm text-muted-foreground hover:text-foreground hover:underline"
-          href={link.url}
-        >
-          {link.shortTitle}
-        </a>
-      {/each}
-    </div>
+    <MarketingLinks />
   </section>
 </div>
