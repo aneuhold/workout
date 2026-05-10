@@ -7,6 +7,7 @@
 <script lang="ts">
   import { mode } from 'mode-watcher';
   import BackButton from '$components/BackButton/BackButton.svelte';
+  import navInfo from '$util/navInfo';
 
   const lastUpdated = 'May 10, 2026';
   const contactEmail = 'aneuholddev@gmail.com';
@@ -39,7 +40,8 @@
     <ul class="ml-6 list-disc flex flex-col gap-1">
       <li>
         <strong>Account identifiers.</strong> When you sign in with Google we receive your Google account
-        ID and the username you choose for the app.
+        ID and Google email, which is only used as a unique identifier, and nothing else. We will not
+        email you.
       </li>
       <li>
         <strong>Workout data.</strong> Sessions, exercises, sets, mesocycles, microcycles, equipment,
@@ -100,10 +102,12 @@
   <section class="flex flex-col gap-2">
     <h2 class="text-xl font-semibold">Account deletion</h2>
     <p>
-      You can delete your account from <strong>Settings</strong> inside the app. A web-based
-      deletion flow at <code>/account/delete</code> is also planned and will be linked here once live.
-      Deletion removes your account record and associated workout data from our database. Diagnostic data
-      submitted to Sentry is retained per Sentry's own retention policy.
+      You can delete your account at any time from
+      <a class="underline" href={navInfo.settings.url}>Settings</a>
+      &rarr; Delete account inside the app. You'll be asked to retype your username to confirm. Once confirmed,
+      your account record and every workout, mesocycle, exercise, and calibration tied to it are permanently
+      removed from our database. This action cannot be undone. Diagnostic data submitted to Sentry is
+      retained per Sentry's own retention policy.
     </p>
   </section>
 

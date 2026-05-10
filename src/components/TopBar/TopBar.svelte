@@ -5,15 +5,11 @@
   Static on mobile normally, fixed when timer active. Always fixed on desktop.
 -->
 <script lang="ts">
-  import { APIService } from '@aneuhold/core-ts-api-lib';
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { mode } from 'mode-watcher';
   import { goto } from '$app/navigation';
-  import googleAuthService from '$services/GoogleAuthService';
+  import authService from '$services/AuthService';
   import timerService from '$services/TimerService';
-  import WorkoutAPIService from '$services/WorkoutAPIService';
-  import { userConfig } from '$stores/local/userConfig/userConfig';
-  import { LoginState, loginState } from '$stores/session/loginState';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -23,7 +19,6 @@
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
   import { formatTime } from '$util/formatTime';
-  import LocalData from '$util/LocalData/LocalData';
   import SyncIndicator from './SyncIndicator.svelte';
 
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
@@ -44,17 +39,7 @@
   );
 
   async function handleLogout() {
-    // Delete refresh token server-side
-    await APIService.logout();
-
-    // Clear local state
-    userConfig.clear();
-    WorkoutAPIService.reset();
-    await LocalData.clearWorkoutMaps();
-    loginState.set(LoginState.LoggedOut);
-
-    // Sign out of Google so the next sign-in prompts for account selection
-    await googleAuthService.logout();
+    await authService.logout();
   }
 </script>
 
