@@ -22,6 +22,22 @@ export default class TestSetup {
       });
     });
 
+    spyOnFn(APIService, 'deleteAccount').mockImplementation(() => {
+      return Promise.resolve({
+        success: true,
+        errors: [],
+        data: undefined
+      });
+    });
+
+    spyOnFn(APIService, 'logout').mockImplementation(() => {
+      return Promise.resolve({
+        success: true,
+        errors: [],
+        data: undefined
+      });
+    });
+
     spyOnFn(WebSocketService, 'connect').mockImplementation(() => {
       logger.debug('Mocked WebSocketService.connect called');
     });

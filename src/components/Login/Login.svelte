@@ -5,19 +5,11 @@
   validates credentials via the API, and transitions to the logged-in state on success.
 -->
 <script lang="ts">
-  import {
-    type APIResponse,
-    APIService,
-    type AuthValidateUserOutput
-  } from '@aneuhold/core-ts-api-lib';
-  import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
   import GoogleSignInButton from '$components/GoogleSignInButton';
+  import authService from '$services/AuthService';
   import googleAuthService from '$services/GoogleAuthService';
-  import WorkoutAPIService from '$services/WorkoutAPIService';
-  import { password } from '$stores/local/password';
-  import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -30,9 +22,6 @@
   import Label from '$ui/Label/Label.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import LocalData from '$util/LocalData/LocalData';
-  import { createLogger } from '$util/logging/logger';
-
-  const log = createLogger('Login.svelte');
 
   let typedUserName = $state('');
   let typedPassword = $state('');
@@ -54,74 +43,24 @@
 
   /**
    * Receives the Google ID token from `GoogleSignInButton` and forwards it
-   * to the backend for validation.
+   * to the auth service for validation.
    *
    * @param idToken - The Google-issued ID token JWT.
    */
   async function handleGoogleIdToken(idToken: string) {
-    $loginState = LoginState.ProcessingCredentials;
-    const result = await APIService.validateUser({
-      googleCredentialToken: idToken,
-      project: ProjectName.Workout
-    });
-    handleLoginResult(result);
+    const response = await authService.loginWithGoogle(idToken);
+    invalidCredentials = !response.success;
   }
 
   /**
-   * Handles the login form submission by validating credentials against the API.
+   * Handles the login form submission by delegating to the auth service.
    *
    * @param event - The form submission event.
    */
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
-
-    $loginState = LoginState.ProcessingCredentials;
-    void LocalData.setUsername(typedUserName);
-    password.set(typedPassword);
-
-    const validationResponse: APIResponse<AuthValidateUserOutput> = await APIService.validateUser({
-      userName: typedUserName,
-      password: typedPassword,
-      project: ProjectName.Workout
-    });
-
-    handleLoginResult(validationResponse);
-  }
-
-  /**
-   * Processes the validation response, storing tokens and fetching initial
-   * data on success, or displaying an error on failure.
-   *
-   * @param validationResponse - The response from the validate user API call.
-   */
-  function handleLoginResult(validationResponse: APIResponse<AuthValidateUserOutput>) {
-    if (validationResponse.success && validationResponse.data.userInfo) {
-      invalidCredentials = false;
-      const { user } = validationResponse.data.userInfo;
-      const { accessToken, refreshTokenString } = validationResponse.data;
-
-      // Store tokens for the auto-refresh mechanism
-      if (accessToken) {
-        APIService.setAccessToken(accessToken);
-      }
-      if (refreshTokenString) {
-        APIService.setRefreshTokenString(refreshTokenString);
-      }
-
-      userConfig.set({
-        userId: user._id,
-        username: user.userName,
-        accessToken: accessToken ?? null,
-        refreshTokenString: refreshTokenString ?? null
-      });
-      WorkoutAPIService.getInitialDataForLogin();
-      $loginState = LoginState.LoggedIn;
-    } else if (!validationResponse.success) {
-      $loginState = LoginState.LoggedOut;
-      invalidCredentials = true;
-    } else {
-      log.error('Unexpected response from validateUser', validationResponse);
-    }
+    const response = await authService.loginWithPassword(typedUserName, typedPassword);
+    invalidCredentials = !response.success;
   }
 </script>
 

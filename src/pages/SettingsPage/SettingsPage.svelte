@@ -1,7 +1,8 @@
 <!--
   @component
 
-  Settings page with app preferences. Currently supports light/dark/system mode selection.
+  Settings page with app preferences. Currently supports light/dark/system mode
+  selection and account deletion.
 -->
 <script lang="ts">
   import { setMode, userPrefersMode } from 'mode-watcher';
@@ -10,6 +11,7 @@
   import SelectContent from '$ui/Select/SelectContent.svelte';
   import SelectItem from '$ui/Select/SelectItem.svelte';
   import SelectTrigger from '$ui/Select/SelectTrigger.svelte';
+  import SettingsPageDeleteAccountButton from './SettingsPageDeleteAccountButton.svelte';
 
   const modeOptions = [
     { value: 'light', label: 'Light' },
@@ -44,4 +46,6 @@
       </SelectContent>
     </Select>
   </div>
+
+  <SettingsPageDeleteAccountButton />
 </div>
