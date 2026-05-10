@@ -4,40 +4,6 @@ Goal: bring **MesoPro** (`com.tonyneuhold.mesopro`) into compliance with the [Pl
 
 ---
 
-## Step 1 — Account deletion (in-app + public web URL)
-
-Required by the [User Data: account deletion policy](https://support.google.com/googleplay/android-developer/answer/13316080). Apps that allow account creation must offer a discoverable in-app deletion path **and** a publicly reachable URL where users can request deletion without re-installing.
-
-### 1a. Backend deletion endpoint (`gcloud-backend`)
-
-1. Add a `deleteAccount` action in `src/routes/auth/Auth.controller.ts` (`@Post('deleteAccount')`, authenticated, no body) and a corresponding method in `Auth.service.ts`.
-2. Service flow: load `userId` from `UserContext`, then `Promise.all` repository deletes for that user across `WorkoutSession`, `WorkoutSessionExercise`, `WorkoutSet`, `WorkoutMesocycle`, `WorkoutMicrocycle`, `WorkoutExercise`, `WorkoutExerciseCalibration`, `WorkoutEquipmentType`, `WorkoutMuscleGroup`. Reuse the per-user `userId` filter pattern already used in `WorkoutDeletion.service.ts`.
-3. Then `RefreshTokenRepository.deleteAllForUser(userId)` (add this helper next to the existing `deleteRefreshToken`) and finally `UserRepository.delete(userId)`.
-4. Add a `WorkoutDeletion.service.spec.ts`-style test asserting all collections for that user are empty afterwards. Follow [`~/Development/GithubRepos/ts-libs/.github/copilot-instructions.md`](../../ts-libs/.github/copilot-instructions.md) when touching shared types, and run the backend test suite.
-
-### 1b. Wire it through `core-ts-api-lib`
-
-1. Add `AuthDeleteAccount.ts` to `src/types/` mirroring the empty-input/empty-output shape of the logout types.
-2. Add `authDeleteAccount()` to `GCloudAPIService.ts` and a `static async deleteAccount()` on `APIService.ts` that delegates to it. Wait 6 seconds after publishing locally so the workout app picks it up.
-
-### 1c. In-app deletion flow
-
-1. Add a `handleDeleteAccount` method in `src/pages/SettingsPage/SettingsPage.svelte` that:
-   - Opens `SingletonDeleteDialog` (already imported in `+layout.svelte`) with copy explaining the deletion is permanent.
-   - On confirm: `await APIService.deleteAccount()`, then run the same teardown as `TopBar.svelte:46` `handleLogout` (`userConfig.clear()`, `WorkoutAPIService.reset()`, `LocalData.clearWorkoutMaps()`, `loginState.set(LoginState.LoggedOut)`, `googleAuthService.logout()`).
-   - Surface errors via the existing snackbar pattern.
-2. Add a destructive `Button` row at the bottom of `SettingsPage.svelte` labeled "Delete account" — match the existing `flex flex-col gap-4 p-4` layout, no new CSS.
-
-### 1d. Public web deletion URL
-
-Play needs a URL that works *without* the app installed. The existing layout (`src/routes/+layout.svelte`) gates everything on `LoginState`, so add a route group that opts out of the gate.
-
-1. Create `src/routes/(public)/+layout.svelte` — minimal pass-through that renders only `<ModeWatcher />` and `{@render children?.()}`. This isolates the public pages from the auth-gated `+layout.svelte` via SvelteKit [layout groups](https://svelte.dev/docs/kit/advanced-routing#Advanced-layouts-group).
-2. Create `src/routes/(public)/account/delete/+page.svelte`. It explains the consequences, asks for Google sign-in (reuse `Login.svelte` or call `googleAuthService.signIn()` directly), and on success calls `APIService.deleteAccount()`. Same teardown as 1c on success.
-3. Create `src/routes/(public)/privacy/+page.svelte` and `src/routes/(public)/terms/+page.svelte` — static markdown rendered to HTML, matching the Data Safety form (Sentry, MongoDB Atlas via `gcloud-backend`, Google Sign-In identifiers; retention; deletion contact).
-4. Add `export const prerender = true;` to each public page's `+page.ts` so they're crawlable static HTML under the existing static adapter.
-5. Paste the live HTTPS URLs into Play Console: App Content → Privacy policy, Account deletion, plus the Settings → Account section. Verify each loads in a fresh incognito window before submission.
-
 ---
 
 ## Step 2 — Remove the `AD_ID` permission
@@ -68,31 +34,6 @@ After whichever path:
 
 1. Re-bundle and re-grep the merged manifest for `com.facebook` — should be empty.
 2. Run a release-mode `adb logcat | grep -i facebook` for 30s after first launch to confirm no Facebook init traffic.
-
----
-
-## Step 4 — Sentry PII scrubbing
-
-Default `@sentry/capacitor` and `@sentry/sveltekit` capture user IPs, full URLs (with query strings), and any user object passed via `Sentry.setUser`. Either disclose this on Data Safety or scrub.
-
-1. In `src/hooks.client.ts`, add to `sentryOptions`:
-   - `sendDefaultPii: false` ([docs](https://docs.sentry.io/platforms/javascript/guides/sveltekit/configuration/options/#sendDefaultPii)).
-   - A `beforeSend(event)` that deletes `event.user?.email`, `event.user?.username`, `event.user?.ip_address`, and strips `?...` from `event.request?.url` and any `breadcrumbs[].data.url`.
-   - A `beforeBreadcrumb(breadcrumb)` that does the same URL-stripping for `navigation`/`fetch`/`xhr` breadcrumbs.
-2. Audit `src/stores/session/loginState.ts` and any `Sentry.setUser` callers — pass only an opaque `id` (Mongo ObjectId), never email/username.
-3. Verify on a real release build by triggering an error and inspecting the resulting Sentry event.
-
----
-
-## Step 5 — Settings page links to legal pages + delete account
-
-`src/pages/SettingsPage/SettingsPage.svelte` currently only has a theme toggle. Add three rows below the Appearance row, in this order, all using the existing `flex items-center justify-between` pattern (no new CSS):
-
-1. **Privacy Policy** — anchor opening the Step 1d privacy URL in a new tab.
-2. **Terms of Service** — anchor to the terms URL.
-3. **Delete account** — destructive button wired to `handleDeleteAccount` from Step 1c.
-
-Use `IconExternalLink`, `IconFileText`, and `IconTrash` from `@tabler/icons-svelte` to match the icon usage in `TopBar.svelte`. No new components needed.
 
 ---
 

@@ -8,6 +8,7 @@
   import { mode } from 'mode-watcher';
   import BackButton from '$components/BackButton/BackButton.svelte';
   import navInfo from '$util/navInfo';
+  import PrivacyPolicyPageSection from './PrivacyPolicyPageSection.svelte';
 
   const lastUpdated = 'May 10, 2026';
   const contactEmail = 'aneuholddev@gmail.com';
@@ -35,8 +36,7 @@
     </p>
   </section>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Data we collect</h2>
+  <PrivacyPolicyPageSection id="data-we-collect" title="Data we collect">
     <ul class="ml-6 list-disc flex flex-col gap-1">
       <li>
         <strong>Account identifiers.</strong> When you sign in with Google we receive your Google account
@@ -52,19 +52,17 @@
         app version) collected when the app crashes or hits an error.
       </li>
     </ul>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">How it's used</h2>
+  <PrivacyPolicyPageSection id="how-its-used" title="How it's used">
     <p>
       Your data is used solely to provide the service: signing you in, syncing your workouts across
       devices, and showing you your training history. We do not use it for advertising and we do not
       sell it to anyone.
     </p>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Where it's stored</h2>
+  <PrivacyPolicyPageSection id="where-its-stored" title="Where it's stored">
     <ul class="ml-6 list-disc flex flex-col gap-1">
       <li>
         <strong>MongoDB Atlas.</strong> Account and workout documents are stored in MongoDB Atlas and
@@ -74,10 +72,9 @@
         <strong>Sentry.</strong> Crash and error reports are sent to Sentry to help diagnose bugs.
       </li>
     </ul>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Third parties</h2>
+  <PrivacyPolicyPageSection id="third-parties" title="Third parties">
     <ul class="ml-6 list-disc flex flex-col gap-1">
       <li>
         Google Sign-In —
@@ -92,15 +89,13 @@
         </a>
       </li>
     </ul>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Retention</h2>
+  <PrivacyPolicyPageSection id="retention" title="Retention">
     <p>Your data is kept for as long as your account exists. Deleting your account removes it.</p>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Account deletion</h2>
+  <PrivacyPolicyPageSection id="account-deletion" title="Account deletion">
     <p>
       You can delete your account at any time from
       <a class="underline" href={navInfo.settings.url}>Settings</a>
@@ -109,18 +104,16 @@
       removed from our database. This action cannot be undone. Diagnostic data submitted to Sentry is
       retained per Sentry's own retention policy.
     </p>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Children</h2>
+  <PrivacyPolicyPageSection id="children" title="Children">
     <p>MesoPro is not directed to children under 13 and we do not knowingly collect their data.</p>
-  </section>
+  </PrivacyPolicyPageSection>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-xl font-semibold">Contact</h2>
+  <PrivacyPolicyPageSection id="contact" title="Contact">
     <p>
       Questions or requests:
       <a class="underline" href="mailto:{contactEmail}">{contactEmail}</a>
     </p>
-  </section>
+  </PrivacyPolicyPageSection>
 </article>
