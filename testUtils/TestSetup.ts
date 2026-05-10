@@ -26,7 +26,7 @@ export default class TestSetup {
       return Promise.resolve({
         success: true,
         errors: [],
-        data: undefined
+        data: {}
       });
     });
 

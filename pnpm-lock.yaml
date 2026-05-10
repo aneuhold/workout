@@ -16,8 +16,8 @@ importers:
         version: 4.8.3
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.37
-        version: 3.0.37
+        specifier: ^3.0.38
+        version: 3.0.38
       '@aneuhold/core-ts-db-lib':
         specifier: ^5.0.8
         version: 5.0.8
@@ -302,8 +302,8 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.37':
-    resolution: {integrity: sha512-K60/0TBIyYTF/0EE+KsVqQegbonfDSv6U5cs6gQysBG10EEz5CrISj4nNjyy8KyxZW5xCT1qTaIOXsYkAL0iHw==}
+  '@aneuhold/core-ts-api-lib@3.0.38':
+    resolution: {integrity: sha512-Q3mfbM2DOZJFVV6ZqU7tWFVrzaVWHrvAJMmB0CJUxnrVgdnpI0/16bLslRqWTOYdyRK6m37ZWsJUqSWC8g+mug==}
 
   '@aneuhold/core-ts-db-lib@5.0.8':
     resolution: {integrity: sha512-h/rGfwoBa9AEPEEpE9dN29LPPTf7ZNYnUlknLiFu1RV5dMaDXjkrLfwXHKt8SqCTjwsogpzLrDvfsfUlnAAiwg==}
@@ -8802,7 +8802,7 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.37':
+  '@aneuhold/core-ts-api-lib@3.0.38':
     dependencies:
       '@aneuhold/core-ts-db-lib': 5.0.8
       '@aneuhold/core-ts-lib': 2.4.4

@@ -1,6 +1,7 @@
 import {
   type APIResponse,
   APIService,
+  type AuthDeleteAccountOutput,
   type AuthValidateUserOutput
 } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
@@ -80,7 +81,7 @@ class AuthService {
    * tied to them, then clears the local session. Returns the response so
    * the caller can render an error if the API call failed.
    */
-  async deleteAccount(): Promise<APIResponse<undefined>> {
+  async deleteAccount(): Promise<APIResponse<AuthDeleteAccountOutput>> {
     const response = await APIService.deleteAccount();
     if (response.success) {
       await this.clearLocalSession();
