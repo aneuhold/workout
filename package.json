@@ -11,6 +11,7 @@
     "push:android": "pnpm cap run android",
     "preview": "pnpm build && vite preview --port 5173",
     "preview:android": "pnpm build:android && pnpm push:android",
+    "publish:android:validate": "cd android && ./gradlew signingReport",
     "lint": "eslint --cache",
     "test": "vitest run",
     "test:perf": "pnpm test:perf:seed && tsx scripts/perf/runPerf.ts",

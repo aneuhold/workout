@@ -4,6 +4,8 @@ Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, currently `versionCode 1` / `v
 
 This is downstream of [`capacitor-android-plan.md`](./capacitor-android-plan.md). The Android shell, plugins, icons, and splash are all wired up. What's left is the Play Console submission itself: account, signed release build, store listing assets, legal/policy URLs, compliance forms, and the testing → production rollout.
 
+> Capacitor's [official Play deployment page](https://capacitorjs.com/docs/android/deploying-to-google-play) is a thin pointer — it states that Capacitor apps are normal native Android apps and defers to Google's [launch checklist](https://developer.android.com/distribute/best-practices/launch/launch-checklist). There's no Capacitor-managed signing, bundling, or Play upload flow; everything below uses standard Gradle + Play Console.
+
 > **Personal-account caveat:** Google requires new personal developer accounts to run a **closed test with at least 12 opt-in testers for 14+ continuous days** before they can request production access. Plan the calendar around this. ([Closed testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465))
 
 ---
@@ -21,22 +23,17 @@ Docs: [Create a Play Console account](https://support.google.com/googleplay/andr
 
 ---
 
-## Step 2 — Host a privacy policy + (optional) marketing page
+## Step 2 — Pages that need to exist on the public web
 
-Play **requires a publicly reachable Privacy Policy URL** on the store listing. Without one, the listing cannot be submitted. ([Play privacy policy requirements](https://support.google.com/googleplay/android-developer/answer/9859455))
+Hosting will be a SvelteKit route outside the base layout (handled separately). This step just enumerates the pages the Play submission depends on.
 
-Options, cheapest first:
+| Page | Required? | Why |
+|---|---|---|
+| **Privacy Policy** | **Required** | Play will not let you submit without a publicly reachable URL. ([Play privacy policy requirements](https://support.google.com/googleplay/android-developer/answer/9859455)) Content must match Step 7's Data Safety answers exactly. Must cover: data collected (auth identifiers, workout/session documents, device/Sentry crash data), where it's stored (MongoDB Atlas via `gcloud-backend`, Sentry), third parties (Google Sign-In, Sentry), retention, deletion-request contact email, children's policy. |
+| **Terms of Service** | Optional but recommended | Not required by Play. Light "use at your own risk, no warranty, account termination" boilerplate. Useful to link from in-app Settings. |
+| **Marketing / landing page** | Optional | Not required by Play. Helpful to populate the listing's "Website" field with something other than a privacy policy, and gives somewhere to point a Play Store badge once live. Can be added post-launch. |
 
-- **GitHub Pages** off this repo or a small `mesopro-site` repo — free, plain markdown → HTML. Recommended for v1.
-- **A new SvelteKit route** in this app (e.g. `/privacy`, `/terms`, `/`) deployed to the same static host the web build already targets. Heavier but keeps everything in one repo.
-
-Concrete sub-steps:
-
-1. Decide host (GitHub Pages vs same web deploy). Confirm the final URLs before filling in the Play listing.
-2. Write `privacy-policy.md` covering: data collected (auth identifiers, workout/session documents, device/Sentry crash data), where it's stored (MongoDB Atlas via `gcloud-backend`, Sentry), third parties (Google Sign-In, Sentry), retention, deletion request contact email, children's policy. Must match Step 7's Data Safety answers exactly.
-3. Write `terms.md` (optional but recommended — light "use at your own risk, no warranty, account termination terms" boilerplate).
-4. Optionally a one-page `index.html` marketing landing (screenshots + Play Store badge once live). Not required for submission.
-5. Publish and verify both URLs load over HTTPS in incognito.
+Verify each URL loads over HTTPS in incognito before pasting into the Play listing.
 
 ---
 
@@ -87,7 +84,7 @@ Add an npm script `release:android` in `package.json` that runs the build + bund
 
 ## Step 6 — Prepare store-listing assets
 
-Required image assets ([Play asset specs](https://support.google.com/googleplay/android-developer/answer/9866151)):
+Required image assets ([Play asset specs](https://support.google.com/googleplay/android-developer/answer/9866151)). Note: [`@capacitor/assets`](https://capacitorjs.com/docs/guides/splash-screens-and-icons) (already used via `android/capacitor-assets/`) only generates **in-app** launcher icons + splash screens from the source SVG. The 512×512 Play icon and 1024×500 feature graphic are Play-only deliverables and have to be composed separately.
 
 | Asset | Spec | Source |
 |---|---|---|
@@ -186,10 +183,9 @@ Before each upload:
 
 ---
 
-## Open questions
+## Post-launch follow-ups
 
-1. **Privacy policy hosting** — GitHub Pages standalone, or a `/privacy` route inside this SvelteKit app? Standalone is simpler; in-app keeps everything in one repo and lets us link from a Settings screen.
-2. **Marketing landing page** — wanted for v1, or defer until after launch?
-3. **Testers** — who are the 12+ closed-test accounts, and when do we want the 14-day clock to start?
-4. **CI for releases** — manual `bundleRelease` is fine for v1; revisit Fastlane / Gradle Play Publisher post-launch (open question carried over from `capacitor-android-plan.md`).
-5. **R8/minify** — leave off for v1 as proposed, or enable up front and budget time to debug any plugin reflection issues?
+These are not gates on shipping v1 — flagged here so they don't get lost.
+
+1. **CI for releases.** First release goes out manually via `./gradlew bundleRelease` + Play Console upload, deliberately, to learn where the friction actually is. Once the manual flow is understood, automate with **GitHub Actions** + the [Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) plugin (free, open source, handles AAB upload + listing updates). Avoid Ionic Appflow — paid-only (~$49/mo starting tier) and Ionic has discontinued it (existing-customer maintenance only through Dec 31 2027).
+2. **Marketing landing page.** Optional for v1; nice to have for the listing's Website field and as a target for the Play Store badge after launch.
