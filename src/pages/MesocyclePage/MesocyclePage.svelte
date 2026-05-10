@@ -11,10 +11,10 @@
 -->
 <script lang="ts">
   import { CycleType, WorkoutMesocycleSchema } from '@aneuhold/core-ts-db-lib';
-  import { IconArrowLeft } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
+  import BackButton from '$components/BackButton/BackButton.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import mesocycleMapService, {
@@ -23,7 +23,6 @@
   import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
-  import Button from '$ui/Button/Button.svelte';
   import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
   import MesocycleExercisesCard from './MesocycleExercisesCard.svelte';
@@ -229,9 +228,7 @@
     <h1 class="text-xl font-semibold">New Mesocycle</h1>
   {:else}
     <div class="flex items-center gap-2">
-      <Button variant="ghost" size="sm" onclick={() => goto('/mesocycles')}>
-        <IconArrowLeft size={16} />
-      </Button>
+      <BackButton onclick={() => goto('/mesocycles')} />
       <h1 class="text-xl font-semibold">Mesocycle</h1>
       {#if mesocycle}
         <div class="ml-auto">

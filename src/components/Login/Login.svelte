@@ -7,7 +7,10 @@
 <script lang="ts">
   import { IconLoader2 } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
+  import { pushState } from '$app/navigation';
+  import { page } from '$app/state';
   import GoogleSignInButton from '$components/GoogleSignInButton';
+  import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import authService from '$services/AuthService';
   import googleAuthService from '$services/GoogleAuthService';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -22,6 +25,7 @@
   import Label from '$ui/Label/Label.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import LocalData from '$util/LocalData/LocalData';
+  import navInfo from '$util/navInfo';
 
   let typedUserName = $state('');
   let typedPassword = $state('');
@@ -30,6 +34,11 @@
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
 
   onMount(async () => {
+    // Google Sign-In only works when the page URL is the root route. If the user
+    // logs out from a deeper page, redirect them to home before initializing.
+    if (page.url.pathname !== navInfo.home.url) {
+      pushState(navInfo.home.url, '');
+    }
     // This happens here because if it happens inline with sign-in, it captures the URL of the popup
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
@@ -64,7 +73,10 @@
   }
 </script>
 
-<form class="flex min-h-screen items-center justify-center p-4" onsubmit={handleSubmit}>
+<form
+  class="flex min-h-screen flex-col items-center justify-center gap-6 p-4"
+  onsubmit={handleSubmit}
+>
   <Card class="w-full max-w-sm">
     <CardHeader>
       <CardTitle>Login</CardTitle>
@@ -121,4 +133,5 @@
       </Button>
     </CardFooter>
   </Card>
+  <MarketingLinks />
 </form>

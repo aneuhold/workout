@@ -49,13 +49,21 @@ The reason that the `pageInfo.ts` files are separate and not done in the module 
 <details>
 <summary><h3 style="display: inline">Android Development</h3></summary>
 
+[![Play Console](https://img.shields.io/badge/Play%20Console-Open-414141?logo=googleplay&logoColor=white)](https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/releases/overview)
+
 For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-google-sign-in.md).
 
 #### Commands
 
-- `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
-- `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`. Use this to verify the prod build path on-device against the prod backend.
-- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config).
+- 🛠️ Development of site
+  - `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
+- 💻 `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config). For fine-grained control over permissions, edit [`AndroidManifest.xml`](android/app/src/main/AndroidManifest.xml) directly.
+- 🚀 Production build testing
+  - `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`.
+  - `pnpm push:android` - pushes the latest prod build to the chosen device (selection)
+  - `pnpm preview:android` - production-style android build, then pushes to the chosen device
+- 📦 Publishing
+  - `pnpm publish:android:build` will create the production build with the real signing upload key. It offers to bump versions as well if necessary.
 
 #### Testing on an emulator / debugging
 

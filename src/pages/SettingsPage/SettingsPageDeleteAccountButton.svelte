@@ -73,7 +73,7 @@
 <AlertDialog bind:open={confirmOpen}>
   <AlertDialogContent>
     <AlertDialogHeader>
-      <AlertDialogTitle>Delete account?</AlertDialogTitle>
+      <AlertDialogTitle class="flex flex-col items-center">Delete account?</AlertDialogTitle>
       <AlertDialogDescription>
         <div class="flex flex-col gap-2">
           This permanently deletes your MesoPro account and every workout, mesocycle, exercise, and
@@ -81,7 +81,7 @@
           by signing up in the future with the same email, but your current data will be lost
           permanently as soon as you tap / click "Delete".
 
-          <span class="flex flex-col">
+          <span class="flex flex-col items-center">
             Type your username "{$userConfig.username}" to confirm:
           </span>
           <Input

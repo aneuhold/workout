@@ -21,8 +21,8 @@ const AAB_OUTPUT_PATH = join(
 
 const PLAY_CONSOLE_LINKS = [
   {
-    label: 'Play Console — app list',
-    url: 'https://play.google.com/console/u/0/developers/7096606584485556849/app-list'
+    label: 'Play Console — Releases Overview',
+    url: 'https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/releases/overview'
   }
 ];
 

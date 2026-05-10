@@ -6,11 +6,14 @@
 -->
 <script lang="ts">
   import { setMode, userPrefersMode } from 'mode-watcher';
+  import AppVersion from '$components/AppVersion/AppVersion.svelte';
+  import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
   import SelectContent from '$ui/Select/SelectContent.svelte';
   import SelectItem from '$ui/Select/SelectItem.svelte';
   import SelectTrigger from '$ui/Select/SelectTrigger.svelte';
+  import Separator from '$ui/Separator/Separator.svelte';
   import SettingsPageDeleteAccountButton from './SettingsPageDeleteAccountButton.svelte';
 
   const modeOptions = [
@@ -48,4 +51,13 @@
   </div>
 
   <SettingsPageDeleteAccountButton />
+
+  <Separator class="mt-4" />
+
+  <section class="flex flex-col items-center gap-2">
+    <h3>About</h3>
+    <MarketingLinks />
+  </section>
+
+  <AppVersion />
 </div>
