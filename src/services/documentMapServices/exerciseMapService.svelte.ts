@@ -40,9 +40,8 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.exerciseMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutExercise>(LocalData.storedKeyNames.exerciseMap),
       persistToDb: createWorkoutPersistToDb('exercises'),

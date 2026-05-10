@@ -67,9 +67,8 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
 
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.sessionMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.sessionMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSession>(LocalData.storedKeyNames.sessionMap),
       persistToDb: createWorkoutPersistToDb('sessions'),

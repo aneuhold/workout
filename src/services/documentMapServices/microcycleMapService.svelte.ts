@@ -12,9 +12,8 @@ import sessionMapService from './sessionMapService.svelte';
 class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicrocycle> {
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.microcycleMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.microcycleMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMicrocycle>(LocalData.storedKeyNames.microcycleMap),
       persistToDb: createWorkoutPersistToDb('microcycles'),

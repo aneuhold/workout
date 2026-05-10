@@ -1,4 +1,3 @@
-import 'fake-indexeddb/auto';
 import { cleanup } from '@testing-library/svelte';
 import { afterEach, beforeEach, vi } from 'vitest';
 import TestSetup from './TestSetup';

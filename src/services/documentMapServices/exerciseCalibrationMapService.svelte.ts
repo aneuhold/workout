@@ -11,9 +11,8 @@ import exerciseMapService from './exerciseMapService.svelte';
 class ExerciseCalibrationDocumentMapService extends DocumentMapStoreService<WorkoutExerciseCalibration> {
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseCalibrationMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.exerciseCalibrationMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutExerciseCalibration>(
           LocalData.storedKeyNames.exerciseCalibrationMap

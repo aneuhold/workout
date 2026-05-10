@@ -8,7 +8,7 @@ import perfTestUtils, { PERF_TEST_CONSTANTS } from './perfTestUtils';
 
 /**
  * Authenticates the perf test user and saves a Playwright storageState file
- * containing the userConfig entry so each spec boots already logged in.
+ * containing `v4-userConfig` so each spec boots already logged in.
  *
  * @param config Playwright config injected by the test runner; only used for
  *   the project's baseURL.
@@ -39,23 +39,15 @@ const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
     refreshTokenString: auth.data.refreshTokenString ?? null
   });
 
-  // Detect the prefix from the staged build so we seed the key the about-to-
-  // run app actually reads. The CI workflow swaps main and PR builds in and
-  // out of `./build/` between perf measurements, so source-derived prefixes
-  // would mismatch whichever side isn't on the current branch.
-  const userConfigKey = `${perfTestUtils.detectStoragePrefix()}userConfig`;
   const baseURL = config.projects[0].use.baseURL ?? 'http://localhost:5173';
   const browser = await chromium.launch();
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(baseURL);
-    await page.evaluate(
-      ({ key, value }) => {
-        window.localStorage.setItem(key, value);
-      },
-      { key: userConfigKey, value: userConfigValue }
-    );
+    await page.evaluate((value) => {
+      window.localStorage.setItem('v4-userConfig', value);
+    }, userConfigValue);
     mkdirSync(dirname(PERF_TEST_CONSTANTS.storageStatePath), { recursive: true });
     await context.storageState({ path: PERF_TEST_CONSTANTS.storageStatePath });
   } finally {

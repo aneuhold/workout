@@ -24,53 +24,20 @@ export default class WorkoutAPIService {
   private static initialHydrationMarked = false;
 
   /**
-   * In-memory mirror of the persisted queue. The disk copy in
-   * {@link LocalData} is for crash recovery only — this array is the
-   * source of truth at runtime so callers of {@link queryApi} never
-   * block on disk I/O.
-   */
-  private static inMemoryApiRequestQueue: ProjectWorkoutPrimaryEndpointOptions[] = [];
-  private static inMemoryCurrentApiRequest: ProjectWorkoutPrimaryEndpointOptions | undefined;
-
-  /**
-   * Serializes background persistence so concurrent snapshots can't
-   * interleave their writes to the underlying backend.
-   *
-   * Basically, each time we persist, we append the new persistence task to the end of the chain.
-   * That way it happens in order. Kind of clever actually.
-   */
-  private static persistChain: Promise<void> = Promise.resolve();
-
-  /**
-   * Loads any persisted queue and current request from {@link LocalData}
-   * into the in-memory mirror. Call once at app boot, after
-   * `LocalData.init()`.
-   */
-  static async hydrate(): Promise<void> {
-    const [queue, current] = await Promise.all([
-      LocalData.getApiRequestQueue(),
-      LocalData.getCurrentApiRequest()
-    ]);
-    this.inMemoryApiRequestQueue = queue;
-    this.inMemoryCurrentApiRequest = current;
-  }
-
-  /**
    * Inserts, deletes, updates or gets items in the backend.
    *
-   * Returns synchronously: the request is appended to the in-memory
-   * queue immediately and the disk write happens in the background. If
-   * an API request is already being processed, this one waits its turn
-   * in the queue instead of issuing a parallel network call.
+   * If an API request is already being processed, this will be added
+   * to the queue and executed after the previous request is done.
    *
    * @param apiOptions The API options that describe the desired operation(s).
    */
-  static queryApi(apiOptions: ProjectWorkoutPrimaryEndpointOptions): void {
-    this.inMemoryApiRequestQueue.push(apiOptions);
-    void this.persistQueue();
+  static queryApi(apiOptions: ProjectWorkoutPrimaryEndpointOptions) {
+    // Add the options to the queue
+    this.pushApiRequest(apiOptions);
 
-    if (!this.processingRequestQueue && this.inMemoryApiRequestQueue.length > 0) {
-      void this.processApiRequests();
+    // Start processing the queue if not already doing so
+    if (!this.processingRequestQueue && LocalData.apiRequestQueue.length > 0) {
+      this.processApiRequests();
     }
   }
 
@@ -82,28 +49,28 @@ export default class WorkoutAPIService {
    * - the last initial data fetch was more than {@link SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA}
    * ago or it hasn't been fetched yet.
    */
-  static getInitialDataIfNeeded(): void {
-    if (!userConfig.get().accessToken || this.inMemoryApiRequestQueue.length !== 0) return;
-
-    if (!this.lastInitialDataFetchTime) {
-      this.getInitialData();
-    } else if (
-      this.lastInitialDataFetchTime <
-      Date.now() - SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA * 1000
-    ) {
-      log.info(
-        'Fetching initial data because it has been more than',
-        SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA,
-        'seconds since the last fetch and the user reopened the app.'
-      );
-      this.getInitialData();
+  static getInitialDataIfNeeded() {
+    if (userConfig.get().accessToken && LocalData.apiRequestQueue.length === 0) {
+      if (!this.lastInitialDataFetchTime) {
+        this.getInitialData();
+      } else if (
+        this.lastInitialDataFetchTime <
+        Date.now() - SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA * 1000
+      ) {
+        log.info(
+          'Fetching initial data because it has been more than',
+          SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA,
+          'seconds since the last fetch and the user reopened the app.'
+        );
+        this.getInitialData();
+      }
     }
   }
 
   /**
    * Gets initial data as if the user is just logging in.
    */
-  static getInitialDataForLogin(): void {
+  static getInitialDataForLogin() {
     this.lastInitialDataFetchTime = null;
     this.getInitialData();
   }
@@ -133,35 +100,18 @@ export default class WorkoutAPIService {
   }
 
   /**
-   * Clears in-memory state and the persisted copy. Call on logout so a
-   * different user signing in on the same device doesn't inherit the
-   * previous session's queue.
-   */
-  static reset(): void {
-    this.inMemoryApiRequestQueue = [];
-    this.inMemoryCurrentApiRequest = undefined;
-    this.lastInitialDataFetchTime = null;
-    this.initialHydrationMarked = false;
-    this.processingRequestQueue = false;
-    void this.persistQueue();
-    void this.persistCurrentRequest();
-  }
-
-  /**
    * Starts processing the currently queued API requests. Each result is
    * combined together and processed at the end.
    */
-  private static async processApiRequests(): Promise<void> {
+  private static async processApiRequests() {
     this.processingRequestQueue = true;
     apiActivityService.setSyncing();
     let combinedOutput: ProjectWorkoutPrimaryOutput = {};
     const combinedInput: ProjectWorkoutPrimaryEndpointOptions = {};
     let hadError = false;
-    while (this.inMemoryApiRequestQueue.length > 0) {
-      const currentRequest = this.inMemoryApiRequestQueue.shift();
-      this.inMemoryCurrentApiRequest = currentRequest;
-      void this.persistQueue();
-      void this.persistCurrentRequest();
+    while (LocalData.apiRequestQueue.length > 0) {
+      const currentRequest = this.shiftApiRequestQueue();
+      LocalData.currentApiRequest = currentRequest;
       if (!currentRequest) {
         log.error('No current API request to process, something went wrong!!');
         break;
@@ -175,7 +125,7 @@ export default class WorkoutAPIService {
       } else {
         hadError = true;
       }
-      if (result && this.inMemoryApiRequestQueue.length === 0) {
+      if (result && LocalData.apiRequestQueue.length === 0) {
         // Only set the stores if there are no more requests to process. This
         // should help prevent the stores from being set to an old value if
         // the user refreshes the page while the task queue is being processed.
@@ -215,23 +165,16 @@ export default class WorkoutAPIService {
     }
   }
 
-  private static persistQueue(): Promise<void> {
-    const snapshot = [...this.inMemoryApiRequestQueue];
-    this.persistChain = this.persistChain
-      .then(() => LocalData.setApiRequestQueue(snapshot))
-      .catch((err: unknown) => {
-        log.error('Failed to persist api request queue', err);
-      });
-    return this.persistChain;
+  private static pushApiRequest(apiInput: ProjectWorkoutPrimaryEndpointOptions) {
+    const apiRequestQueue = LocalData.apiRequestQueue;
+    apiRequestQueue.push(apiInput);
+    LocalData.apiRequestQueue = apiRequestQueue;
   }
 
-  private static persistCurrentRequest(): Promise<void> {
-    const snapshot = this.inMemoryCurrentApiRequest;
-    this.persistChain = this.persistChain
-      .then(() => LocalData.setCurrentApiRequest(snapshot))
-      .catch((err: unknown) => {
-        log.error('Failed to persist current api request', err);
-      });
-    return this.persistChain;
+  private static shiftApiRequestQueue(): ProjectWorkoutPrimaryEndpointOptions | undefined {
+    const apiRequestQueue = LocalData.apiRequestQueue;
+    const result = apiRequestQueue.shift();
+    LocalData.apiRequestQueue = apiRequestQueue;
+    return result;
   }
 }

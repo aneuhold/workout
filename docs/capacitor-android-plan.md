@@ -10,9 +10,9 @@ The Android shell is in place and the system-feature plugins (Sentry native cras
 
 For each plugin, the standard pattern is to gate it on [`Capacitor.isNativePlatform()`](https://capacitorjs.com/docs/core-apis/web#isnativeplatform) so the web build stays untouched.
 
-### Persistent storage — preferences + SQLite
+### Persistent storage — `@capacitor/preferences`
 
-`localStorage` survives app updates today, but Android can clear WebView storage under storage pressure, and the workout document maps in `src/util/LocalData/LocalData.ts` already exceed iOS's 4 MB `UserDefaults` cap. The fix is a two-tier split: [`@capacitor/preferences`](https://capacitorjs.com/docs/apis/preferences) for small auth/config values, [`@capacitor-community/sqlite`](https://github.com/capacitor-community/sqlite) (no encryption) for the document maps. See [`capacitor-persistent-storage-plan.md`](./capacitor-persistent-storage-plan.md) for the full design.
+`localStorage` survives app updates today, but Android can clear WebView storage under storage pressure. For data that must survive (auth tokens, user prefs), migrate to [`@capacitor/preferences`](https://capacitorjs.com/docs/apis/preferences). Audit `src/stores/local/` (currently `password.ts`, `translations.ts`, `userConfig/`) to find candidates.
 
 ### Haptics — `@capacitor/haptics` (optional)
 

@@ -26,9 +26,8 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
 
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.muscleGroupMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.muscleGroupMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMuscleGroup>(LocalData.storedKeyNames.muscleGroupMap),
       persistToDb: createWorkoutPersistToDb('muscleGroups'),

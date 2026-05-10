@@ -13,7 +13,7 @@ interface TestDoc extends BaseDocument {
 const persistToLocalDataMock = vi.fn<(map: DocumentMap<TestDoc>) => void>();
 const persistToDbMock = vi.fn<(updateInfo: DocumentInsertOrUpdateInfo<TestDoc>) => void>();
 const prepareForSaveMock = vi.fn();
-const loadFromLocalDataMock = vi.fn<() => Promise<DocumentMap<TestDoc> | null>>();
+const loadFromLocalDataMock = vi.fn<() => DocumentMap<TestDoc> | null>();
 
 function createTestService() {
   return new DocumentMapStoreService<TestDoc>({
@@ -303,10 +303,10 @@ describe('DocumentMapStoreService', () => {
   });
 
   describe('hydrate', () => {
-    it('should populate mapState from loadFromLocalData when it returns a map', async () => {
-      loadFromLocalDataMock.mockResolvedValue({ [doc1._id]: doc1, [doc2._id]: doc2 });
+    it('should populate mapState from loadFromLocalData when it returns a map', () => {
+      loadFromLocalDataMock.mockReturnValue({ [doc1._id]: doc1, [doc2._id]: doc2 });
 
-      await service.hydrate();
+      service.hydrate();
 
       expect(loadFromLocalDataMock).toHaveBeenCalledTimes(1);
       expect(service.getDoc(doc1._id)).toEqual(doc1);
@@ -314,20 +314,20 @@ describe('DocumentMapStoreService', () => {
       expect(service.allDocs).toHaveLength(2);
     });
 
-    it('should be a no-op when loadFromLocalData returns null', async () => {
-      loadFromLocalDataMock.mockResolvedValue(null);
+    it('should be a no-op when loadFromLocalData returns null', () => {
+      loadFromLocalDataMock.mockReturnValue(null);
 
-      await service.hydrate();
+      service.hydrate();
 
       expect(loadFromLocalDataMock).toHaveBeenCalledTimes(1);
       expect(service.allDocs).toEqual([]);
     });
 
-    it('should not re-trigger persistToLocalData when hydrating', async () => {
-      loadFromLocalDataMock.mockResolvedValue({ [doc1._id]: doc1 });
+    it('should not re-trigger persistToLocalData when hydrating', () => {
+      loadFromLocalDataMock.mockReturnValue({ [doc1._id]: doc1 });
       persistToLocalDataMock.mockClear();
 
-      await service.hydrate();
+      service.hydrate();
 
       expect(persistToLocalDataMock).not.toHaveBeenCalled();
     });

@@ -11,9 +11,8 @@ import {
 class EquipmentTypeDocumentMapService extends DocumentMapStoreService<WorkoutEquipmentType> {
   constructor() {
     super({
-      persistToLocalData: (map) => {
-        void LocalData.setDocumentMap(LocalData.storedKeyNames.equipmentTypeMap, map);
-      },
+      persistToLocalData: (map) =>
+        LocalData.setAndGetDocumentMap(LocalData.storedKeyNames.equipmentTypeMap, map),
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutEquipmentType>(LocalData.storedKeyNames.equipmentTypeMap),
       persistToDb: createWorkoutPersistToDb('equipmentTypes'),
