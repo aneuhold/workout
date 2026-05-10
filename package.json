@@ -5,7 +5,7 @@
     "dev": "vite dev",
     "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'OnePlus IN2025'\"",
     "open:android": "pnpm cap open android",
-    "build": "vite build && tsx scripts/emitStorageVersion.ts",
+    "build": "vite build && tsx scripts/emitStorageVersion.ts && tsx scripts/replaceDevVersion.ts",
     "build:sb": "storybook build",
     "build:android": "pnpm build && pnpm cap sync android",
     "push:android": "pnpm cap run android",

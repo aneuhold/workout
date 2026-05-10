@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { mode } from 'mode-watcher';
+  import AppVersion from '$components/AppVersion/AppVersion.svelte';
   import BackButton from '$components/BackButton/BackButton.svelte';
   import navInfo from '$util/navInfo';
   import PrivacyPolicyPageSection from './PrivacyPolicyPageSection.svelte';
@@ -116,4 +117,6 @@
       <a class="underline" href="mailto:{contactEmail}">{contactEmail}</a>
     </p>
   </PrivacyPolicyPageSection>
+
+  <AppVersion />
 </article>

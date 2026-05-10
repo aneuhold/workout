@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { setMode, userPrefersMode } from 'mode-watcher';
+  import AppVersion from '$components/AppVersion/AppVersion.svelte';
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
@@ -57,4 +58,6 @@
     <h3>About</h3>
     <MarketingLinks />
   </section>
+
+  <AppVersion />
 </div>
