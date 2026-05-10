@@ -2,6 +2,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import type { Protocol } from 'devtools-protocol';
 import { mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
+import LocalData from '$util/LocalData/LocalData';
 
 const PERF_TEMP_DIR = resolve('scripts/perf/perfTemp');
 
@@ -189,21 +190,31 @@ class PerfTestUtils {
   }
 
   /**
-   * Clears every `v4-*` localStorage key except `v4-userConfig` before any
-   * page script runs, forcing a full network hydration on the next navigation.
+   * Clears every cached document and small-tier key except `userConfig`
+   * before any page script runs, forcing a full network hydration on the
+   * next navigation. Touches both localStorage (small tier) and the
+   * IndexedDB workout database (large tier) so the document maps in the
+   * latter aren't silently served from cache.
    *
    * @param page Page to attach the init script to.
    */
   async clearDocCachesExceptAuth(page: Page): Promise<void> {
-    await page.addInitScript(() => {
-      const keep = 'v4-userConfig';
-      const toRemove: string[] = [];
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (key && key.startsWith('v4-') && key !== keep) toRemove.push(key);
-      }
-      for (const key of toRemove) window.localStorage.removeItem(key);
-    });
+    const keep = LocalData.storedKeyNames.userConfig;
+    const localStorageKeysToRemove = Object.values(LocalData.storedKeyNames).filter(
+      (key) => key !== keep
+    );
+    await page.addInitScript(
+      ({ keysToRemove }) => {
+        for (const key of keysToRemove) window.localStorage.removeItem(key);
+        return new Promise<void>((resolveDelete) => {
+          const req = indexedDB.deleteDatabase('workout');
+          req.onsuccess = () => resolveDelete();
+          req.onerror = () => resolveDelete();
+          req.onblocked = () => resolveDelete();
+        });
+      },
+      { keysToRemove: localStorageKeysToRemove }
+    );
   }
 
   /**
