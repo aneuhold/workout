@@ -42,7 +42,7 @@
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@aneuhold/core-ts-api-lib": "^3.0.36",
+    "@aneuhold/core-ts-api-lib": "^3.0.38",
     "@aneuhold/core-ts-db-lib": "^5.0.8",
     "@aneuhold/core-ts-lib": "^2.4.4",
     "@aneuhold/eslint-config": "^2.0.5",
