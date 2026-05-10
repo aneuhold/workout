@@ -53,9 +53,15 @@ For first-time setup, you may need to add your local Android debug key to Google
 
 #### Commands
 
-- `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
-- `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`. Use this to verify the prod build path on-device against the prod backend.
-- `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config). For fine-grained control over permissions, edit [`AndroidManifest.xml`](android/app/src/main/AndroidManifest.xml) directly.
+- 🛠️ Development of site
+  - `pnpm dev:android` — runs hot-reloading for android. This is the only way at the moment to work with the local gcloud-backend if you want to do that via localOverrides. The prod build cannot hook into the local gcloud-backend. You don't need to use the localOverride though to use hot-reloading.
+- 💻 `pnpm open:android` — opens the Android project in Android Studio for native-side work (Gradle, manifest, signing, plugin config). For fine-grained control over permissions, edit [`AndroidManifest.xml`](android/app/src/main/AndroidManifest.xml) directly.
+- 🚀 Production build testing
+  - `pnpm build:android` — production-style local build: `pnpm build` then `cap sync android`.
+  - `pnpm push:android` - pushes the latest prod build to the chosen device (selection)
+  - `pnpm preview:android` - production-style android build, then pushes to the chosen device
+- 📦 Publishing
+  - `pnpm publish:android:build` will create the production build with the real signing upload key. It offers to bump versions as well if necessary.
 
 #### Testing on an emulator / debugging
 
