@@ -13,6 +13,8 @@
   import { ProjectName } from '@aneuhold/core-ts-db-lib';
   import { IconLoader2 } from '@tabler/icons-svelte';
   import { onMount } from 'svelte';
+  import { pushState } from '$app/navigation';
+  import { page } from '$app/state';
   import GoogleSignInButton from '$components/GoogleSignInButton';
   import googleAuthService from '$services/GoogleAuthService';
   import WorkoutAPIService from '$services/WorkoutAPIService';
@@ -31,6 +33,7 @@
   import Separator from '$ui/Separator/Separator.svelte';
   import LocalData from '$util/LocalData/LocalData';
   import { createLogger } from '$util/logging/logger';
+  import navInfo from '$util/navInfo';
 
   const log = createLogger('Login.svelte');
 
@@ -41,6 +44,11 @@
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
 
   onMount(async () => {
+    // Google Sign-In only works when the page URL is the root route. If the user
+    // logs out from a deeper page, redirect them to home before initializing.
+    if (page.url.pathname !== navInfo.home.url) {
+      pushState(navInfo.home.url, '');
+    }
     // This happens here because if it happens inline with sign-in, it captures the URL of the popup
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
