@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'OnePlus IN2025'\"",
@@ -12,6 +12,7 @@
     "preview": "pnpm build && vite preview --port 5173",
     "preview:android": "pnpm build:android && pnpm push:android",
     "publish:android:validate": "cd android && ./gradlew signingReport",
+    "publish:android:build": "tsx scripts/publishAndroidBuild.ts 'pnpm build:android' 'cd android && ./gradlew bundleRelease'",
     "lint": "eslint --cache",
     "test": "vitest run",
     "test:perf": "pnpm test:perf:seed && tsx scripts/perf/runPerf.ts",
@@ -58,6 +59,7 @@
     "@capacitor/status-bar": "^8.0.2",
     "@capgo/capacitor-social-login": "^8.3.20",
     "@fontsource-variable/inter": "^5.2.8",
+    "@inquirer/prompts": "^8.4.2",
     "@internationalized/date": "^3.11.0",
     "@neoconfetti/svelte": "^2.2.2",
     "@playwright/test": "^1.59.1",
