@@ -4,7 +4,6 @@ import { chromium, type FullConfig } from '@playwright/test';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { loadEnv } from 'vite';
-import LocalData from '$util/LocalData/LocalData';
 import perfTestUtils, { PERF_TEST_CONSTANTS } from './perfTestUtils';
 
 /**
@@ -40,6 +39,11 @@ const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
     refreshTokenString: auth.data.refreshTokenString ?? null
   });
 
+  // Detect the prefix from the staged build so we seed the key the about-to-
+  // run app actually reads. The CI workflow swaps main and PR builds in and
+  // out of `./build/` between perf measurements, so source-derived prefixes
+  // would mismatch whichever side isn't on the current branch.
+  const userConfigKey = `${perfTestUtils.detectStoragePrefix()}userConfig`;
   const baseURL = config.projects[0].use.baseURL ?? 'http://localhost:5173';
   const browser = await chromium.launch();
   try {
@@ -50,7 +54,7 @@ const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
       ({ key, value }) => {
         window.localStorage.setItem(key, value);
       },
-      { key: LocalData.storedKeyNames.userConfig, value: userConfigValue }
+      { key: userConfigKey, value: userConfigValue }
     );
     mkdirSync(dirname(PERF_TEST_CONSTANTS.storageStatePath), { recursive: true });
     await context.storageState({ path: PERF_TEST_CONSTANTS.storageStatePath });
