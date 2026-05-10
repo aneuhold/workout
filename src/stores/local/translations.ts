@@ -1,17 +1,35 @@
 import type { Translations } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
 import LocalData from '$util/LocalData/LocalData';
 
 function createTranslationsStore() {
-  const initialTranslations = (browser ? LocalData.translations : null) ?? {};
-  const { subscribe, set } = writable<Translations>(initialTranslations);
+  const { subscribe, set } = writable<Translations>({});
 
   return {
     subscribe,
     set: (newTranslations: Translations) => {
       set(newTranslations);
-      LocalData.translations = newTranslations;
+      void LocalData.setTranslations(newTranslations);
+    },
+    /**
+     * Replaces the in-memory value without writing back to LocalData. Used
+     * by `hydrate` so loading the cached value back in doesn't trigger a
+     * round-trip write of what we just read.
+     *
+     * @param value The value to apply.
+     */
+    setWithoutPropagation: (value: Translations) => {
+      set(value);
+    },
+    /**
+     * Loads the cached translations into the store. Called once at app
+     * startup after `LocalData.init()` resolves.
+     */
+    hydrate: async () => {
+      const cached = await LocalData.getTranslations();
+      if (cached) {
+        set(cached);
+      }
     }
   };
 }

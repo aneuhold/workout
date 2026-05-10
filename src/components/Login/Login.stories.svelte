@@ -33,8 +33,8 @@
 <Story
   name="Empty State"
   beforeEach={() => {
-    spyOn(LocalData, 'username', 'get').mockReturnValue('');
-    spyOn(LocalData, 'password', 'get').mockReturnValue('');
+    spyOn(LocalData, 'getUsername').mockResolvedValue('');
+    spyOn(LocalData, 'getPassword').mockResolvedValue('');
   }}
 />
 
@@ -42,8 +42,8 @@
 <Story
   name="Filled In"
   beforeEach={() => {
-    spyOn(LocalData, 'username', 'get').mockReturnValue('test');
-    spyOn(LocalData, 'password', 'get').mockReturnValue('test');
+    spyOn(LocalData, 'getUsername').mockResolvedValue('test');
+    spyOn(LocalData, 'getPassword').mockResolvedValue('test');
   }}
 />
 
@@ -64,8 +64,8 @@
       errors: [],
       data: {}
     });
-    spyOn(LocalData, 'username', 'get').mockReturnValue('test');
-    spyOn(LocalData, 'password', 'get').mockReturnValue('test');
+    spyOn(LocalData, 'getUsername').mockResolvedValue('test');
+    spyOn(LocalData, 'getPassword').mockResolvedValue('test');
   }}
   play={async ({ canvasElement }) => {
     const canvas = within(canvasElement);

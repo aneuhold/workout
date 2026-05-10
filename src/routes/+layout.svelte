@@ -23,10 +23,14 @@
   import TopBar from '$components/TopBar/TopBar.svelte';
   import nativePlatformService from '$services/NativePlatformService.svelte';
   import timerService from '$services/TimerService';
+  import WorkoutAPIService from '$services/WorkoutAPIService';
   import WorkoutHydrationService from '$services/WorkoutHydrationService';
+  import { password } from '$stores/local/password';
+  import { translations } from '$stores/local/translations';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { LoginState, loginState } from '$stores/session/loginState';
+  import LocalData from '$util/LocalData/LocalData';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -43,8 +47,16 @@
     });
   });
 
-  onMount(() => {
-    WorkoutHydrationService.hydrateDocumentMaps();
+  onMount(async () => {
+    await LocalData.init();
+    await Promise.all([
+      password.hydrate(),
+      translations.hydrate(),
+      userConfig.hydrate(),
+      WorkoutAPIService.hydrate(),
+      WorkoutHydrationService.hydrateDocumentMaps()
+    ]);
+    loginState.init();
     mounted = true;
     timerService.init();
     nativePlatformService.init();
