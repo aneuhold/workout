@@ -49,6 +49,8 @@ The reason that the `pageInfo.ts` files are separate and not done in the module 
 <details>
 <summary><h3 style="display: inline">Android Development</h3></summary>
 
+[![Play Console](https://img.shields.io/badge/Play%20Console-Open-414141?logo=googleplay&logoColor=white)](https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/releases/overview)
+
 For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-google-sign-in.md).
 
 #### Commands
