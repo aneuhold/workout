@@ -15,6 +15,7 @@
   import SingletonMuscleGroupDefaultsDialog from './dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
   import SingletonMuscleGroupFormDialog from './dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from './dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
+  import SingletonUpdateNotification from './dialogs/SingletonUpdateNotification/SingletonUpdateNotification.svelte';
 
   let { children }: { children?: Snippet } = $props();
 </script>
@@ -29,3 +30,4 @@
 <SingletonMuscleGroupDefaultsDialog />
 <SingletonMuscleGroupFormDialog />
 <SingletonRescheduleMesocycleDialog />
+<SingletonUpdateNotification />

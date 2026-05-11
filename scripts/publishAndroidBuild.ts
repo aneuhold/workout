@@ -59,9 +59,17 @@ const main = async (): Promise<void> => {
     runCommand(command);
   }
 
+  const aabFolder = dirname(AAB_OUTPUT_PATH);
+  runCommand(`open "${aabFolder}"`);
+
   console.log('');
   console.log('Built AAB artifact:');
   console.log(`  ${AAB_OUTPUT_PATH}`);
+  console.log('');
+  console.log('Upload the AAB to the internal testing track:');
+  console.log(
+    '  https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/tracks/internal-testing'
+  );
 };
 
 /**

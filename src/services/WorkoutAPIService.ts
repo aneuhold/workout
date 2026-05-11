@@ -9,6 +9,7 @@ import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 import { PerfMark } from '$util/perfMarks';
+import updateCheckService from './UpdateCheckService.svelte';
 import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandlingService';
 
 const log = createLogger('WorkoutAPIService.ts');
@@ -114,6 +115,7 @@ export default class WorkoutAPIService {
   static getInitialData(): void {
     log.info('Getting initial data...');
     this.lastInitialDataFetchTime = Date.now();
+    void updateCheckService.checkForUpdate();
 
     this.queryApi({
       get: {
