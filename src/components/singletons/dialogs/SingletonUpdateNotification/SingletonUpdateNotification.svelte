@@ -45,7 +45,7 @@
 </script>
 
 <AlertDialog bind:open>
-  <AlertDialogContent>
+  <AlertDialogContent escapeKeydownBehavior="ignore">
     <AlertDialogHeader>
       <AlertDialogTitle>Update Available</AlertDialogTitle>
       <AlertDialogDescription>
