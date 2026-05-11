@@ -18,6 +18,7 @@
   import SingletonMuscleGroupDefaultsDialog from '$components/singletons/dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
   import SingletonMuscleGroupFormDialog from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
+  import SingletonUpdateNotification from '$components/singletons/dialogs/SingletonUpdateNotification/SingletonUpdateNotification.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
@@ -52,5 +53,6 @@
     <SingletonMuscleGroupDefaultsDialog />
     <SingletonMuscleGroupFormDialog />
     <SingletonRescheduleMesocycleDialog />
+    <SingletonUpdateNotification />
   {/if}
 </div>

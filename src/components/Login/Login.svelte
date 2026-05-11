@@ -13,6 +13,7 @@
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import authService from '$services/AuthService';
   import googleAuthService from '$services/GoogleAuthService';
+  import updateCheckService from '$services/UpdateCheckService.svelte';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -42,6 +43,7 @@
     // This happens here because if it happens inline with sign-in, it captures the URL of the popup
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
+    void updateCheckService.checkForUpdate();
     const [storedUsername, storedPassword] = await Promise.all([
       LocalData.getUsername(),
       LocalData.getPassword()

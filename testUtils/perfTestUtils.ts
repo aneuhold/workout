@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { Protocol } from 'devtools-protocol';
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 const PERF_TEMP_DIR = resolve('scripts/perf/perfTemp');
@@ -189,13 +189,23 @@ class PerfTestUtils {
   }
 
   /**
-   * Reads the storage prefix the staged `build/` expects from the marker
-   * file `scripts/emitStorageVersion.ts` writes during build. Used so the
-   * perf workflow can swap main and PR builds in and out of `./build/` and
-   * still seed / clear localStorage with the keys whichever build is about
-   * to read.
+   * Reads the storage prefix the staged `build/` expects. Prefers
+   * `build/version.json` (written by `emitVersionInfo.ts`) and falls back to
+   * `build/.storage-version` for backwards compatibility with older builds.
    */
   detectStoragePrefix(): string {
+    const versionJsonPath = resolve('build/version.json');
+    if (existsSync(versionJsonPath)) {
+      const data: unknown = JSON.parse(readFileSync(versionJsonPath, 'utf8'));
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'storageVersion' in data &&
+        typeof data.storageVersion === 'string'
+      ) {
+        return data.storageVersion;
+      }
+    }
     return readFileSync(resolve('build/.storage-version'), 'utf8').trim();
   }
 
