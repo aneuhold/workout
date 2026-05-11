@@ -4,28 +4,36 @@
   Singleton dialog that appears when a newer version of the app is deployed.
   On web, prompts the user to reload. On Android, prompts them to update from
   the Play Store. Reacts to `updateAvailable` from `UpdateCheckService`.
+  Import `updateNotificationDialog` and call `.open()` to trigger imperatively.
 -->
+<script lang="ts" module>
+  let open = $state(false);
+
+  export const updateNotificationDialog = {
+    open: () => {
+      open = true;
+    }
+  };
+</script>
+
 <script lang="ts">
   import { Capacitor } from '@capacitor/core';
   import updateCheckService from '$services/UpdateCheckService.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
-  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
   import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
   import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
   import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
   import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
 
-  let open = $state(false);
+  const isNative = Capacitor.isNativePlatform();
 
   $effect(() => {
     if (updateCheckService.updateAvailable) {
       open = true;
     }
   });
-
-  const isNative = Capacitor.isNativePlatform();
 
   function handleAction() {
     if (isNative) {
@@ -49,7 +57,6 @@
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
-      <AlertDialogCancel onclick={() => (open = false)}>Not now</AlertDialogCancel>
       <AlertDialogAction onclick={handleAction}>
         {isNative ? 'Update' : 'Reload'}
       </AlertDialogAction>
