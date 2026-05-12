@@ -32,22 +32,22 @@ export const setLogSink = (sink: LogSink | null): void => {
   logSink = sink;
 };
 
-enum LogLevel {
+export enum LogLevel {
   Debug = 'debug',
   Info = 'info',
   Warn = 'warn',
   Error = 'error'
 }
 
-type LogSink = (entry: LogEntry) => void;
-
-type LogEntry = {
+export type LogEntry = {
   level: LogLevel;
   tag: string;
   message: string;
   args: unknown[];
   timestampMs: number;
 };
+
+type LogSink = (entry: LogEntry) => void;
 
 let logSink: LogSink | null = null;
 
