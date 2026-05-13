@@ -9,6 +9,9 @@ import { LogLevel, setLogSink } from '$util/logging/logger';
 localOverride();
 
 const debugSentry = false;
+// This has the issue where it will always log to Sentry when testing mobile, but just didn't
+// have the motivation at the time to figure out the ENV variable situation. This should be fixed
+// though.
 const initalizeSentry =
   Capacitor.isNativePlatform() ||
   (window.location.hostname !== 'localhost' && !window.location.hostname.includes('netlify.app')) ||
