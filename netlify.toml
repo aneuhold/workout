@@ -1,0 +1,6 @@
+# Allow the Capacitor Android app (which loads from https://localhost) to read
+# version.json so UpdateCheckService can detect new deploys cross-origin.
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
