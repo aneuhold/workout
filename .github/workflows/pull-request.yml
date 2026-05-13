@@ -101,6 +101,7 @@ jobs:
           publish-dir: './build'
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-config-path: ./netlify.toml
           deploy-message: '${{ github.event.pull_request.title }} Deploy Preview'
           enable-pull-request-comment: false
           enable-commit-comment: false
