@@ -10,6 +10,7 @@ localOverride();
 
 const debugSentry = false;
 const initalizeSentry =
+  Capacitor.isNativePlatform() ||
   (window.location.hostname !== 'localhost' && !window.location.hostname.includes('netlify.app')) ||
   debugSentry;
 
