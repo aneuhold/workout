@@ -43,11 +43,9 @@ jobs:
 
       - name: Build the site
         run: pnpm build
-        env:
-          # Only upload sourcemaps for the PR build. The main build here is
-          # only used as a perf-comparison reference; the main-branch workflow
-          # owns the real release upload.
-          SENTRY_AUTH_TOKEN: ${{ matrix.ref == 'pr' && secrets.SENTRY_AUTH_TOKEN || ''}}
+        # Source-map upload is gated on SENTRY_UPLOAD_SOURCE_MAPS in
+        # vite.config.ts and is intentionally unset here — only the
+        # main-branch workflow and `pnpm publish:android:build` upload.
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7

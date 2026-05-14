@@ -7,7 +7,7 @@ import { defineConfig, mergeConfig } from 'vitest/config';
 
 // Setup the environment file if it exists. Update the list of prefixes as needed to be used either
 // in tests or in the Vite build. The prefixes need to be specified for it to pick up stuff.
-const envVarPrefixesToLoad = ['SENTRY_AUTH_TOKEN', 'PERF_'];
+const envVarPrefixesToLoad = ['SENTRY_AUTH_TOKEN', 'SENTRY_UPLOAD_SOURCE_MAPS', 'PERF_'];
 const envFile = loadEnv('', process.cwd(), envVarPrefixesToLoad);
 for (const [key, value] of Object.entries(envFile)) {
   if (value) {
@@ -15,14 +15,13 @@ for (const [key, value] of Object.entries(envFile)) {
   }
 }
 
-// Sentry setup for the build
-let sentryAuthToken;
-if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_AUTH_TOKEN !== '') {
-  sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
-}
-if (!sentryAuthToken && !process.env.VITEST) {
-  console.error('No Sentry Auth Token found in the environment variables.');
-}
+// Source-map upload is gated on both `SENTRY_UPLOAD_SOURCE_MAPS=true` and the
+// presence of `SENTRY_AUTH_TOKEN`, so it only runs from the main-branch CI
+// workflow and from `pnpm publish:android:build` — never from PR previews
+// or local dev.
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
+const shouldUploadSourceMaps =
+  process.env.SENTRY_UPLOAD_SOURCE_MAPS === 'true' && !!sentryAuthToken;
 
 // Vitest specific logic to run
 if (process.env.VITEST) {
@@ -51,7 +50,7 @@ if (process.env.VITEST) {
 const viteConfig: UserConfig = {
   plugins: [
     // Make sure `sentrySvelteKit` is registered before `sveltekit`
-    process.env.CI === 'true' &&
+    shouldUploadSourceMaps &&
       sentrySvelteKit({
         sourceMapsUploadOptions: {
           org: 'anton-neuhold',

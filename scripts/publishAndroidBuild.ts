@@ -55,6 +55,11 @@ const main = async (): Promise<void> => {
 
   await promptAndApplyVersionBump();
 
+  // Opt into Sentry source-map upload for the bundled build. vite.config.ts
+  // gates the plugin on this flag; SENTRY_AUTH_TOKEN must be present in the
+  // local environment (typically via a .env file) for the upload to succeed.
+  process.env.SENTRY_UPLOAD_SOURCE_MAPS = 'true';
+
   for (const command of commands) {
     runCommand(command);
   }
