@@ -2,6 +2,29 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 /**
+ * Mirrors Android's `NotificationManager.IMPORTANCE_*` levels. The plugin
+ * types these as a bare numeric union; named values make the channel config
+ * legible.
+ */
+enum NotificationImportance {
+  Min = 1,
+  Low = 2,
+  Default = 3,
+  High = 4,
+  Max = 5
+}
+
+/**
+ * Mirrors Android's `NotificationCompat.VISIBILITY_*` levels. `Public` lets
+ * the notification show on the lock screen.
+ */
+enum NotificationVisibility {
+  Secret = -1,
+  Private = 0,
+  Public = 1
+}
+
+/**
  * Bridges the timer to the OS notification system on native platforms so the
  * completion alert fires even when the WebView is backgrounded or suspended.
  *
@@ -55,8 +78,8 @@ class TimerNotificationService {
       name: 'Timer complete',
       description: 'Plays the countdown beeps and completion tone when the rest timer ends.',
       sound: 'timer_complete',
-      importance: 4,
-      visibility: 1
+      importance: NotificationImportance.High,
+      visibility: NotificationVisibility.Public
     });
 
     const status = await LocalNotifications.checkPermissions();

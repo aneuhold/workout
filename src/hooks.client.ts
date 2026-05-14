@@ -12,7 +12,7 @@ const debugSentry = false;
 // This has the issue where it will always log to Sentry when testing mobile, but just didn't
 // have the motivation at the time to figure out the ENV variable situation. This should be fixed
 // though.
-const initalizeSentry =
+const initializeSentry =
   Capacitor.isNativePlatform() ||
   (window.location.hostname !== 'localhost' && !window.location.hostname.includes('netlify.app')) ||
   debugSentry;
@@ -21,7 +21,7 @@ const initalizeSentry =
  * Username is set in the `loginState` store. That seemed like the best source
  * of truth because it is always called on startup and when logging in.
  */
-if (initalizeSentry) {
+if (initializeSentry) {
   const sentryOptions = {
     dsn: 'https://d2be0b33224daa1b4da3c30d5163f89a@o4507319328702464.ingest.us.sentry.io/4510925034618880',
     tracesSampleRate: 1.0,
