@@ -1,28 +1,20 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { createLogger } from '$util/logging/logger';
-
-const logger = createLogger('TimerNotificationService');
 
 /**
  * Bridges the timer to the OS notification system on native platforms so the
  * completion alert fires even when the WebView is backgrounded or suspended.
  *
- * On Android, a single notification is scheduled at `endTime - LEAD_TIME_MS`
- * with a custom sound (`timer_complete.wav`) that contains the full countdown
- * beep sequence followed by the completion tone. The sound is attached to the
- * `timer-complete` channel because Android 8+ ignores per-notification sound.
+ * Note that on Android, swiping down on the notification bar while the timer is
+ * going off automatically silences the sound. This seems like built-in Android behavior.
  *
- * On web (or any non-native platform), every method is a no-op and the
- * in-app TimerWebAudioService remains the sound path. The reactive
- * `hasPermission` getter is what TimerService uses to decide which path
- * is live for a given session.
+ * On web (or any non-native platform), every method is a no-op and the in-app
+ * TimerWebAudioService remains the sound path.
  *
  * 🔴 Channel immutability / Issue with changing the wav file 🔴:
- * after a channel is created the OS retains its
- * sound/importance. Regenerating `timer_complete.wav` won't be picked up by
- * an existing install — uninstall the app (or rotate the channel id) when
- * iterating on the sound during development.
+ * after a channel is created the OS retains its sound/importance. Regenerating
+ * `timer_complete.wav` won't be picked up by an existing install — uninstall the
+ * app (or rotate the channel id) when iterating on the sound during development.
  */
 class TimerNotificationService {
   #hasPermission = $state(false);
@@ -30,8 +22,13 @@ class TimerNotificationService {
   #initialized = false;
 
   private readonly NOTIFICATION_ID = 1;
-  private readonly LEAD_TIME_MS = 5000;
-  private readonly TIMER_CHANNEL_ID = 'timer-complete';
+  /**
+   * Lead time before the timer end to fire the notification, in ms.
+   *
+   * 5 seconds for the beeps and 1 for the completion.
+   */
+  private readonly LEAD_TIME_MS = 6000;
+  private readonly CHANNEL_ID = 'timer-complete';
 
   /**
    * Reactive: `true` once the OS has granted notification permission for
@@ -53,82 +50,65 @@ class TimerNotificationService {
     this.#initialized = true;
     if (!Capacitor.isNativePlatform()) return;
 
-    try {
-      await LocalNotifications.createChannel({
-        id: this.TIMER_CHANNEL_ID,
-        name: 'Timer complete',
-        description: 'Plays the countdown beeps and completion tone when the rest timer ends.',
-        sound: 'timer_complete',
-        importance: 4,
-        visibility: 1
-      });
+    await LocalNotifications.createChannel({
+      id: this.CHANNEL_ID,
+      name: 'Timer complete',
+      description: 'Plays the countdown beeps and completion tone when the rest timer ends.',
+      sound: 'timer_complete',
+      importance: 4,
+      visibility: 1
+    });
 
-      const status = await LocalNotifications.checkPermissions();
-      if (status.display === 'granted') {
-        this.#hasPermission = true;
-      }
-    } catch (err) {
-      logger.error('Failed to initialize notifications', err);
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === 'granted') {
+      this.#hasPermission = true;
     }
   }
 
   /**
-   * Schedules the OS notification to fire at `endTimeMs - LEAD_TIME_MS`.
-   * On first call this session it prompts for permission if needed; that
-   * gesture flips the reactive `hasPermission` and the in-app audio effect
-   * stops competing. No-op on web, and a graceful no-op when the timer is
-   * shorter than the lead time.
+   * Schedules the alarm to fire at `endTimeMs - LEAD_TIME_MS`. On the very
+   * first call this session, prompts for notification permission. No-op
+   * on web or if the timer is shorter than the lead time.
    *
    * @param endTimeMs Wall-clock time the timer should complete, in ms since epoch.
    */
   async schedule(endTimeMs: number): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
+    await this.ensurePermission();
+    if (!this.#hasPermission) return;
 
     const fireAtMs = endTimeMs - this.LEAD_TIME_MS;
     if (fireAtMs <= Date.now()) return;
 
-    if (!this.#hasPermission && !this.#permissionAsked) {
-      this.#permissionAsked = true;
-      try {
-        const status = await LocalNotifications.requestPermissions();
-        this.#hasPermission = status.display === 'granted';
-      } catch (err) {
-        logger.error('Failed to request notification permission', err);
-      }
-    }
-
-    if (!this.#hasPermission) return;
-
-    try {
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: this.NOTIFICATION_ID,
-            title: 'Rest complete',
-            body: 'Time for your next set.',
-            schedule: { at: new Date(fireAtMs), allowWhileIdle: true },
-            channelId: this.TIMER_CHANNEL_ID
-          }
-        ]
-      });
-    } catch (err) {
-      logger.error('Failed to schedule notification', err);
-    }
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: this.NOTIFICATION_ID,
+          title: 'Rest complete',
+          body: '💪🟢',
+          schedule: { at: new Date(fireAtMs), allowWhileIdle: true },
+          channelId: this.CHANNEL_ID
+        }
+      ]
+    });
   }
 
   /**
-   * Cancels the scheduled notification if any. Safe to call even when
-   * nothing is scheduled. No-op on web.
+   * Cancels the scheduled alarm if any. Safe to call when nothing is
+   * scheduled. No-op on web.
    */
   async cancel(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    try {
-      await LocalNotifications.cancel({
-        notifications: [{ id: this.NOTIFICATION_ID }]
-      });
-    } catch (err) {
-      logger.error('Failed to cancel notification', err);
-    }
+    await LocalNotifications.cancel({
+      notifications: [{ id: this.NOTIFICATION_ID }]
+    });
+  }
+
+  private async ensurePermission(): Promise<void> {
+    if (this.#hasPermission || this.#permissionAsked) return;
+    this.#permissionAsked = true;
+    const status = await LocalNotifications.requestPermissions();
+    this.#hasPermission = status.display === 'granted';
   }
 }
 
