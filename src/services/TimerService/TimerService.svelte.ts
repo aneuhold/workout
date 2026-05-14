@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import wakeLockService from '$services/WakeLockService';
-import timerAudioService from './TimerAudioService';
+import timerNotificationService from './TimerNotificationService.svelte';
+import timerWebAudioService from './TimerWebAudioService';
 
 /**
  * A countdown timer service that manages reactive state using Svelte 5 runes.
@@ -33,20 +34,29 @@ class TimerService {
 
   /**
    * Initializes persistent reactive effects for audio cues and screen wake
-   * lock. Safe to call multiple times — only the first call sets up effects.
+   * lock. Safe to call multiple times. Only the first call sets up effects.
    */
   init(): void {
     if (this.#initialized) return;
     this.#initialized = true;
 
+    void timerNotificationService.init();
+
     let previousRemaining: number | null = null;
     let previousActive = false;
 
-    // Countdown beeps & completion tone
+    // Countdown beeps & completion tone — skipped once the OS notification
+    // path is live so native + web don't double-play.
     $effect.root(() => {
       $effect(() => {
         const remaining = this.#remainingSeconds;
         const active = this.#isActive;
+
+        if (timerNotificationService.hasPermission) {
+          previousRemaining = remaining;
+          previousActive = active;
+          return;
+        }
 
         // Beep for last 5 seconds (5, 4, 3, 2, 1)
         if (
@@ -56,12 +66,12 @@ class TimerService {
           previousRemaining !== null &&
           remaining !== previousRemaining
         ) {
-          timerAudioService.playCountdownBeep();
+          timerWebAudioService.playCountdownBeep();
         }
 
         // Completion tone: was active, now inactive, remaining hit 0
         if (previousActive && !active && remaining === 0 && previousRemaining !== null) {
-          timerAudioService.playCompletionTone();
+          timerWebAudioService.playCompletionTone();
         }
 
         previousRemaining = remaining;
@@ -82,11 +92,14 @@ class TimerService {
   }
 
   /**
-   * Starts the countdown timer for the given number of seconds.
+   * Starts the countdown timer for the given number of seconds. Awaits the
+   * native notification schedule so first-run permission prompts and any
+   * platform errors surface to the caller. Callers that don't care can
+   * fire-and-forget.
    *
    * @param seconds The duration to count down from.
    */
-  start(seconds: number) {
+  async start(seconds: number): Promise<void> {
     if (!browser) return;
     this.#clearTimer();
     this.#endTime = Date.now() + seconds * 1000;
@@ -95,39 +108,44 @@ class TimerService {
     this.#remainingSeconds = seconds;
     this.#totalSeconds = seconds;
     this.#interval = setInterval(() => this.#tick(), 1000);
+    await timerNotificationService.schedule(this.#endTime);
   }
 
   /** Pauses the timer, preserving remaining time. */
-  pause() {
+  async pause(): Promise<void> {
     if (!this.#isActive || this.#isPaused) return;
     this.#clearTimer();
     this.#isPaused = true;
+    await timerNotificationService.cancel();
   }
 
   /** Resumes a paused timer. */
-  resume() {
+  async resume(): Promise<void> {
     if (!this.#isActive || !this.#isPaused) return;
     this.#endTime = Date.now() + this.#remainingSeconds * 1000;
     this.#interval = setInterval(() => this.#tick(), 1000);
     this.#isPaused = false;
+    await timerNotificationService.schedule(this.#endTime);
   }
 
   /** Stops the timer and resets all state. */
-  stop() {
+  async stop(): Promise<void> {
     this.#clearTimer();
     this.#isActive = false;
     this.#isPaused = false;
     this.#remainingSeconds = 0;
     this.#totalSeconds = 0;
+    await timerNotificationService.cancel();
   }
 
   /** Resets the timer and clears all state. */
-  reset() {
+  async reset(): Promise<void> {
     this.#clearTimer();
     this.#isActive = false;
     this.#isPaused = false;
     this.#remainingSeconds = 0;
     this.#totalSeconds = 0;
+    await timerNotificationService.cancel();
   }
 
   #clearTimer() {

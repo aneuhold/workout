@@ -37,6 +37,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!--
+        Exact-alarm permissions ensure the local-notification scheduled at
+        endTime - 5s by TimerNotificationService fires on time under Doze
+        rather than being delayed by minutes. USE_EXACT_ALARM is the
+        Play-Store-approved flavor for timer/alarm apps (Android 14+);
+        SCHEDULE_EXACT_ALARM covers Android 12/13.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!--
         Strip transitively-contributed permissions we don't use. Declaring AD_ID
         while telling Data Safety "no advertising ID" triggers a Play Console
         warning; the ACCESS_ADSERVICES_* set is Privacy Sandbox, which we don't
