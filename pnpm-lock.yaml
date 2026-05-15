@@ -51,9 +51,6 @@ importers:
       '@capacitor/core':
         specifier: ^8.3.1
         version: 8.3.1
-      '@capacitor/local-notifications':
-        specifier: ^8.1.0
-        version: 8.1.0(@capacitor/core@8.3.1)
       '@capacitor/preferences':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.3.1)
@@ -621,11 +618,6 @@ packages:
 
   '@capacitor/core@8.3.1':
     resolution: {integrity: sha512-UF8ItlHguU1Z6GXfPTeT2gakf+ctNI8pAS1kwSBQlsJMlfD4OPoto/SmKnOxKCQvnF4WRcdWeg6C0zREUNaAQg==}
-
-  '@capacitor/local-notifications@8.1.0':
-    resolution: {integrity: sha512-rc1vWw7G7LXLL9AOoi6DKA740UMDEVpBbRBFByI4KVPV4wJi30gtr5k2D3/WwiwwYvjm55eD1k03QhOrGYf9cA==}
-    peerDependencies:
-      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/preferences@8.0.1':
     resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
@@ -9345,10 +9337,6 @@ snapshots:
   '@capacitor/core@8.3.1':
     dependencies:
       tslib: 2.8.1
-
-  '@capacitor/local-notifications@8.1.0(@capacitor/core@8.3.1)':
-    dependencies:
-      '@capacitor/core': 8.3.1
 
   '@capacitor/preferences@8.0.1(@capacitor/core@8.3.1)':
     dependencies:
