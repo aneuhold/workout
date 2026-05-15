@@ -5,10 +5,8 @@ type ToneSpec = {
 };
 
 /**
- * Framework-agnostic sound synthesis for the timer. Contains no WebAudio and
- * no Node-only APIs so it can be consumed by both the in-browser
- * TimerWebAudioService and the build-time `generate:sounds` script that
- * produces the Android WAV.
+ * Framework-agnostic sound synthesis for the timer. Contains no WebAudio APIs
+ * so it can be consumed by the in-browser TimerWebAudioService.
  *
  * THE ROBOT WROTE THIS. I (Anton) HAVE NO CLUE WHAT IS GOING ON HERE. I DON'T KNOW SOUND STUFF
  * 😂😂😂
