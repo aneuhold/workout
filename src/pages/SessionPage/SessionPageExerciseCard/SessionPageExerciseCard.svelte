@@ -12,9 +12,11 @@
     type WorkoutSet,
     WorkoutSetService
   } from '@aneuhold/core-ts-db-lib';
+  import { IconExternalLink } from '@tabler/icons-svelte';
   import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
   import setMapService from '$services/documentMapServices/setMapService.svelte';
+  import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import { cn } from '$util/svelte-shadcn-util';
   import sessionPageService from '../SessionPageService.svelte';
@@ -157,6 +159,18 @@
     <div class="overflow-hidden">
       <Separator />
       <div class="flex flex-col gap-4 px-3 py-3">
+        {#if exercise}
+          <Button
+            href="/exercise?exerciseId={exercise._id}"
+            variant="ghost"
+            size="sm"
+            class="self-start text-muted-foreground hover:text-foreground"
+          >
+            <IconExternalLink size={14} />
+            View exercise details
+          </Button>
+        {/if}
+
         {#if mode === SessionPageMode.Active && previousSessionExercise && !sets.some( (s) => WorkoutSetService.isCompleted(s) )}
           <SessionPageExerciseCardPrevSoreness {previousSessionExercise} />
         {/if}

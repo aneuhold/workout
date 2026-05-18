@@ -5,6 +5,7 @@
   fixed left sidebar on desktop (md breakpoint).
 -->
 <script lang="ts">
+  import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
   import {
     type Icon,
     IconBarbell,
@@ -35,7 +36,8 @@
       if (mesocycleSession) {
         return `/session?sessionId=${mesocycleSession._id}`;
       }
-      const freeFormSession = sessionMapService.freeFormSessions.inProgress.at(0) ?? null;
+      const freeFormSession: WorkoutSession | undefined =
+        sessionMapService.freeFormSessions.inProgress[0];
       if (freeFormSession) {
         return `/session?sessionId=${freeFormSession._id}`;
       }
