@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import wakeLockService from '$services/WakeLockService';
-import timerAudioService from './TimerAudioService';
+import timerWebAudioService from './TimerWebAudioService';
 
 /**
  * A countdown timer service that manages reactive state using Svelte 5 runes.
@@ -33,7 +33,7 @@ class TimerService {
 
   /**
    * Initializes persistent reactive effects for audio cues and screen wake
-   * lock. Safe to call multiple times — only the first call sets up effects.
+   * lock. Safe to call multiple times. Only the first call sets up effects.
    */
   init(): void {
     if (this.#initialized) return;
@@ -42,7 +42,7 @@ class TimerService {
     let previousRemaining: number | null = null;
     let previousActive = false;
 
-    // Countdown beeps & completion tone
+    // Countdown beeps & completion tone.
     $effect.root(() => {
       $effect(() => {
         const remaining = this.#remainingSeconds;
@@ -56,12 +56,12 @@ class TimerService {
           previousRemaining !== null &&
           remaining !== previousRemaining
         ) {
-          timerAudioService.playCountdownBeep();
+          timerWebAudioService.playCountdownBeep();
         }
 
         // Completion tone: was active, now inactive, remaining hit 0
         if (previousActive && !active && remaining === 0 && previousRemaining !== null) {
-          timerAudioService.playCompletionTone();
+          timerWebAudioService.playCompletionTone();
         }
 
         previousRemaining = remaining;
@@ -86,7 +86,7 @@ class TimerService {
    *
    * @param seconds The duration to count down from.
    */
-  start(seconds: number) {
+  start(seconds: number): void {
     if (!browser) return;
     this.#clearTimer();
     this.#endTime = Date.now() + seconds * 1000;
@@ -98,14 +98,14 @@ class TimerService {
   }
 
   /** Pauses the timer, preserving remaining time. */
-  pause() {
+  pause(): void {
     if (!this.#isActive || this.#isPaused) return;
     this.#clearTimer();
     this.#isPaused = true;
   }
 
   /** Resumes a paused timer. */
-  resume() {
+  resume(): void {
     if (!this.#isActive || !this.#isPaused) return;
     this.#endTime = Date.now() + this.#remainingSeconds * 1000;
     this.#interval = setInterval(() => this.#tick(), 1000);
@@ -113,7 +113,7 @@ class TimerService {
   }
 
   /** Stops the timer and resets all state. */
-  stop() {
+  stop(): void {
     this.#clearTimer();
     this.#isActive = false;
     this.#isPaused = false;
@@ -122,7 +122,7 @@ class TimerService {
   }
 
   /** Resets the timer and clears all state. */
-  reset() {
+  reset(): void {
     this.#clearTimer();
     this.#isActive = false;
     this.#isPaused = false;

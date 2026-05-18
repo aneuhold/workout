@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
   import type { WorkoutExercise, WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
-  import { IconCheck, IconChevronDown, IconExternalLink } from '@tabler/icons-svelte';
+  import { IconCheck, IconChevronDown } from '@tabler/icons-svelte';
   import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import { SessionPageExerciseCardState } from '../sessionPageTypes';
@@ -46,17 +46,8 @@
   </div>
 
   <div class="flex min-w-0 flex-1 flex-col gap-1">
-    <span class="flex items-center gap-1 font-medium">
+    <span class="font-medium">
       {exercise?.exerciseName ?? 'Unknown Exercise'}
-      {#if exercise}
-        <a
-          href="/exercise?exerciseId={exercise._id}"
-          class="inline-flex shrink-0 text-muted-foreground hover:text-foreground"
-          onclick={(e) => e.stopPropagation()}
-        >
-          <IconExternalLink size={14} />
-        </a>
-      {/if}
     </span>
     <div class="flex flex-wrap gap-1">
       {#if repRange && exercise}

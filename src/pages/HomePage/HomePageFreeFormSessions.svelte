@@ -15,7 +15,7 @@
 
   const { freeFormSessions } = sessionMapService;
 
-  const inProgressSession = $derived(freeFormSessions.inProgress.at(0) ?? null);
+  const inProgressSession: WorkoutSession | undefined = $derived(freeFormSessions.inProgress[0]);
 
   const upcomingPlanned = $derived(freeFormSessions.planned.slice(0, 2));
 

@@ -62,7 +62,9 @@
 
   // --- Free-form derivations ---
 
-  const freeFormSession = $derived(sessionMapService.freeFormSessions.inProgress.at(0) ?? null);
+  const freeFormSession: WorkoutSession | undefined = $derived(
+    sessionMapService.freeFormSessions.inProgress[0]
+  );
   const freeFormExercises = $derived(
     freeFormSession ? sessionMapService.getOrderedSessionExercisesForSession(freeFormSession) : []
   );

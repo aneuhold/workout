@@ -8,7 +8,6 @@ const log = createLogger('localOverride.ts');
  */
 export default function localOverride() {
   const enableLocalOverride = false;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (enableLocalOverride) {
     // Derive the API host from the page's own hostname so the same code works for web
     // (localhost), the Android emulator, and a physical device — under live-reload all three

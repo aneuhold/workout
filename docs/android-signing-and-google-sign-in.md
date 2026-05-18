@@ -4,15 +4,15 @@ How signing keys, SHA-1 / SHA-256 fingerprints, and Google OAuth clients fit tog
 
 ## TL;DR
 
-Google Sign-In on Android works only when the **SHA-1 of the key that signed the APK on the device** is registered against an Android OAuth 2.0 Client ID (with `package_name = com.tonyneuhold.mesopro`) in Google Cloud Console — same project as our Web `GOOGLE_CLIENT_ID`. Different distribution paths use different keys, so we have to register each one as its own Android OAuth client (Cloud Console allows only one SHA-1 per client).
+Google Sign-In on Android works only when the **SHA-1 of the key that signed the APK on the device** is registered against an Android OAuth 2.0 Client ID (with `package_name = com.tonyneuhold.mesopro`) in Google Cloud Console ([here is the link to where the keys are entered](https://console.cloud.google.com/auth/clients?project=backend-463900)). Different distribution paths use different keys, so we have to register each one as its own Android OAuth client (Cloud Console allows only one SHA-1 per client).
 
 ## The SHA-1 / SHA-256 Keys in play
 
-| Distribution path                           | Key that signs the APK on device                                               | Where to get the SHA-1 / SHA-256                                                                                  |
-| ------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev:android` (per developer)          | That developer's local debug keystore (`~/.android/debug.keystore`)            | `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android` |
-| `adb install` of locally signed release AAB | Local upload keystore                                                          | `keytool -list -v -keystore ~/.android/keystores/mesopro-upload.jks -alias mesopro`                               |
-| Play Store install (any track)              | **Google's app signing key** — Play App Signing re-signs your AAB after upload | Play Console → Test and release → Setup → App Integrity → "App signing key certificate"                           |
+| Distribution path                           | Key that signs the APK on device                                               | Where to get the SHA-1 / SHA-256                                                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev:android` (per developer)          | That developer's local debug keystore (`~/.android/debug.keystore`)            | `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android`                                    |
+| `adb install` of locally signed release AAB | Local upload keystore                                                          | `keytool -list -v -keystore ~/.android/keystores/mesopro-upload.jks -alias mesopro`                                                                  |
+| Play Store install (any track)              | **Google's app signing key** — Play App Signing re-signs your AAB after upload | [Link to the location in the Play Console](https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/keymanagement) |
 
 Each of those gets its **own Android OAuth 2.0 client** in Google Cloud, all sharing `package_name = com.tonyneuhold.mesopro`. Name each client descriptively so it's obvious which physical key/machine it belongs to — e.g. `Android Debug Client - Anton Macbook Pro M2`, `Android Play App Signing`, etc. The Cloud Console client list is the registry.
 

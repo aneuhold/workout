@@ -140,7 +140,7 @@
       for (let cycleIdx = 0; cycleIdx < totalCycles; cycleIdx++) {
         const microcycle = microcycles[cycleIdx];
         const microcycleSessions = sessionsByMicrocycle.get(microcycle._id) ?? [];
-        const session = microcycleSessions.at(sessionIndex);
+        const session: WorkoutSession | undefined = microcycleSessions[sessionIndex];
 
         // This can be undefined if microcycles have skipped sessions (such as when a deload was
         // started early)
