@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import svg2vectordrawable from 'svg2vectordrawable/src/svg-to-vectordrawable';
-import { ASSETS_DIR, readThemeBackgroundColors } from './generate-icons-utils';
+import { ASSETS_DIR, readThemeBackgroundColors, renderSvgToPng } from './generate-icons-utils';
 
 /**
  * Single-source-of-truth for Android asset generation. Drives `@capacitor/assets`
@@ -15,10 +15,14 @@ function createAndroidAssetsSettings() {
   const themeBackground = readThemeBackgroundColors();
   return {
     outputDir: 'android/capacitor-assets',
+    /** Output dir for Play Store listing deliverables (512 icon, feature graphic). */
+    playStoreAssetsDir: 'android/play-store-assets',
     /** Android resource root where generated XML resources land. */
     resDir: 'android/app/src/main/res',
     /** Icon canvas size required by `@capacitor/assets` Custom Mode (≥1024). */
     iconCanvasSize: 1024,
+    /** Play Store listing icon size (Google's required spec: 512×512 PNG). */
+    playStoreIconSize: 512,
     /**
      * Fraction of `windowSplashScreenAnimatedIcon`'s 432 dp canvas that is
      * guaranteed unmasked (the inner 288 dp). Source SVGs that fill the canvas
@@ -30,6 +34,8 @@ function createAndroidAssetsSettings() {
     sources: {
       iconOnly: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       iconForeground: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
+      /** Source for the Play Store 512×512 listing icon. */
+      playStoreIcon: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       /** Source for the Android 12+ splash icon (windowSplashScreenAnimatedIcon). */
       splashIconLight: `${ASSETS_DIR}/logo-light-square.svg`,
       splashIconDark: `${ASSETS_DIR}/logo-dark-square.svg`
@@ -123,10 +129,26 @@ const writeSplashColorsXml = (): void => {
 };
 
 /**
+ * Renders the 512×512 Play Store listing icon (required by Google Play with a
+ * strict 32-bit PNG, ≤1 MB spec) into `android/play-store-assets/` alongside
+ * the other Play submission deliverables.
+ *
+ * https://support.google.com/googleplay/android-developer/answer/9866151
+ */
+const writePlayStoreIcon = (): void => {
+  const { playStoreAssetsDir, playStoreIconSize, sources } = ANDROID_ASSETS_SETTINGS;
+  mkdirSync(playStoreAssetsDir, { recursive: true });
+  const outputPath = `${playStoreAssetsDir}/app-icon-${playStoreIconSize}.png`;
+  renderSvgToPng(sources.playStoreIcon, playStoreIconSize, outputPath);
+  console.log(`  wrote ${outputPath}`);
+};
+
+/**
  * Generates Android launcher icons via `@capacitor/assets` Custom Mode, plus
- * the Android 12+ splash (color + animated vector) directly. Stages icon
- * source SVGs into `android/capacitor-assets/` (committed alongside the
- * generated `android/app/src/main/res/` outputs so inputs are auditable).
+ * the Android 12+ splash (color + animated vector) directly, plus the Play
+ * Store 512×512 listing icon. Stages icon source SVGs into
+ * `android/capacitor-assets/` (committed alongside the generated
+ * `android/app/src/main/res/` outputs so inputs are auditable).
  */
 export const generateCapacitorAndroidAssets = async (): Promise<void> => {
   console.log('Android assets:');
@@ -168,4 +190,5 @@ export const generateCapacitorAndroidAssets = async (): Promise<void> => {
 
   writeSplashColorsXml();
   await writeSplashIconDrawables();
+  writePlayStoreIcon();
 };
