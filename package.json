@@ -3,7 +3,7 @@
   "version": "1.1.2",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "concurrently --kill-others --names vite,android \"vite dev\" \"pnpm cap run android --live-reload --port 5173 --host localhost --forwardPorts 5173:5173 --target-name 'OnePlus IN2025'\"",
+    "dev:android": "tsx scripts/dev-android.ts",
     "open:android": "pnpm cap open android",
     "build": "vite build && tsx scripts/replaceDevVersion.ts && tsx scripts/emitVersionInfo.ts",
     "build:sb": "storybook build",
@@ -31,9 +31,7 @@
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
     "generate:icons": "tsx scripts/generate-icons.ts"
   },
-  "scriptsComments": {
-    "dev:android": "Vite binds to localhost only (vs using --host, which binds to 0.0.0.0). '--forwardPorts 5173:5173' tells Capacitor to run 'adb reverse tcp:5173 tcp:5173' so the device's localhost:5173 forwards to the Mac's. '--host localhost' pins the live-reload URL so the WebView origin is http://localhost:5173 which is already in the backend's CORS allowlist, so we can hit prod without running gcloud-backend locally in hot-reload mode. '--target-name' avoids the interactive emulator prompt. Possible names: 'Pixel 10 Pro XL', 'OnePlus IN2025', 'Pixel 6'"
-  },
+  "scriptsComments": {},
   "packageManager": "pnpm@10.33.2",
   "type": "module",
   "license": "BUSL-1.1",
