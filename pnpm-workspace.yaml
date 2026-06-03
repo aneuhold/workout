@@ -1,0 +1,4 @@
+# Hold back any package published within the last 7 days, so a freshly
+# released bad version can't sneak into installs/updates.
+# 7 * 24 * 60 minutes = 10080.
+minimumReleaseAge: 10080
