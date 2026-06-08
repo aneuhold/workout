@@ -81,6 +81,8 @@
     "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
+    "@typescript-eslint/rule-tester": "^8.60.0",
+    "@typescript-eslint/utils": "^8.59.3",
     "bits-ui": "^2.15.5",
     "clsx": "^2.1.1",
     "concurrently": "^9.2.1",
