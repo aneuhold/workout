@@ -34,6 +34,7 @@
     "./.storybook/**/*.ts",
     "./testUtils/**/*.ts",
     "./capacitor.config.ts",
+    "./eslint.config.ts",
     "./scripts/**/*.ts",
     "./eslint/**/*.ts"
   ]
