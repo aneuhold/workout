@@ -3,15 +3,15 @@ import {
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
 import type { BaseDocument } from '@aneuhold/core-ts-db-lib';
-import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-import setMapService from '$services/documentMapServices/setMapService.svelte';
+import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+import setMapService from '$services/documentMapServices/SetMap.service.svelte';
 
 export default class WorkoutAPIResponseHandlingService {
   /**

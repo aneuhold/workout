@@ -3,20 +3,20 @@ import {
   type ProjectWorkoutPrimaryEndpointOptions,
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import apiActivityService from '$services/ApiActivityService/ApiActivityService.svelte';
-import WebSocketService from '$services/WebSocketService';
+import apiActivityService from '$services/ApiActivityService/ApiActivity.service.svelte';
+import WebSocketService from '$services/WebSocket.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 import { PerfMark } from '$util/perfMarks';
-import updateCheckService from './UpdateCheckService.svelte';
-import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandlingService';
-
-const log = createLogger('WorkoutAPIService.ts');
-
-const SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA = 10;
+import updateCheckService from './UpdateCheck.service.svelte';
+import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandling.service';
 
 export default class WorkoutAPIService {
+  static readonly #log = createLogger('WorkoutAPIService.ts');
+
+  private static readonly secondsToWaitBeforeFetchingInitialData = 10;
+
   static lastInitialDataFetchTime: number | null = null;
   private static processingRequestQueue = false;
   /**
@@ -80,7 +80,7 @@ export default class WorkoutAPIService {
    * - the app is visible and wasn't before
    * - the user is logged in
    * - there is no task queue item
-   * - the last initial data fetch was more than {@link SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA}
+   * - the last initial data fetch was more than {@link WorkoutAPIService.secondsToWaitBeforeFetchingInitialData}
    * ago or it hasn't been fetched yet.
    */
   static getInitialDataIfNeeded(): void {
@@ -90,11 +90,11 @@ export default class WorkoutAPIService {
       this.getInitialData();
     } else if (
       this.lastInitialDataFetchTime <
-      Date.now() - SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA * 1000
+      Date.now() - WorkoutAPIService.secondsToWaitBeforeFetchingInitialData * 1000
     ) {
-      log.info(
+      this.#log.info(
         'Fetching initial data because it has been more than',
-        SECONDS_TO_WAIT_BEFORE_FETCHING_INITIAL_DATA,
+        WorkoutAPIService.secondsToWaitBeforeFetchingInitialData,
         'seconds since the last fetch and the user reopened the app.'
       );
       this.getInitialData();
@@ -113,7 +113,7 @@ export default class WorkoutAPIService {
    * Gets the initial data from the backend and sets the stores accordingly.
    */
   static getInitialData(): void {
-    log.info('Getting initial data...');
+    this.#log.info('Getting initial data...');
     this.lastInitialDataFetchTime = Date.now();
     void updateCheckService.checkForUpdate();
 
@@ -165,7 +165,7 @@ export default class WorkoutAPIService {
       void this.persistQueue();
       void this.persistCurrentRequest();
       if (!currentRequest) {
-        log.error('No current API request to process, something went wrong!!');
+        this.#log.error('No current API request to process, something went wrong!!');
         break;
       }
       if (currentRequest.get) {
@@ -203,16 +203,16 @@ export default class WorkoutAPIService {
   private static async callWorkoutAPI(
     input: ProjectWorkoutPrimaryEndpointOptions
   ): Promise<ProjectWorkoutPrimaryOutput | null> {
-    log.info('Processing API request', input);
+    this.#log.info('Processing API request', input);
     const result = await APIService.callWorkoutAPI({
       options: input,
       socketId: WebSocketService.getSocketId()
     });
     if (result.success) {
-      log.info('Successfully processed API request', input);
+      this.#log.info('Successfully processed API request', input);
       return result.data;
     } else {
-      log.error('Error processing API request', input, result);
+      this.#log.error('Error processing API request', input, result);
       return null;
     }
   }
@@ -222,7 +222,7 @@ export default class WorkoutAPIService {
     this.persistChain = this.persistChain
       .then(() => LocalData.setApiRequestQueue(snapshot))
       .catch((err: unknown) => {
-        log.error('Failed to persist api request queue', err);
+        this.#log.error('Failed to persist api request queue', err);
       });
     return this.persistChain;
   }
@@ -232,7 +232,7 @@ export default class WorkoutAPIService {
     this.persistChain = this.persistChain
       .then(() => LocalData.setCurrentApiRequest(snapshot))
       .catch((err: unknown) => {
-        log.error('Failed to persist current api request', err);
+        this.#log.error('Failed to persist current api request', err);
       });
     return this.persistChain;
   }

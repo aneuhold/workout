@@ -4,10 +4,6 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { mode } from 'mode-watcher';
 
-// Match `--sidebar` from global.css (TopBar's `bg-sidebar`).
-const STATUS_BAR_BACKGROUND_LIGHT = '#fafafa';
-const STATUS_BAR_BACKGROUND_DARK = '#18181b';
-
 /**
  * Bootstraps native-only UI lifecycle plugins (splash screen, status bar,
  * hardware back button). No-ops on web. Future phone-only behaviors with no
@@ -16,6 +12,10 @@ const STATUS_BAR_BACKGROUND_DARK = '#18181b';
  * differ.
  */
 class NativePlatformService {
+  // Match `--sidebar` from global.css (TopBar's `bg-sidebar`).
+  private static readonly statusBarBackgroundLight = '#fafafa';
+  private static readonly statusBarBackgroundDark = '#18181b';
+
   private initialized = false;
 
   /**
@@ -32,7 +32,9 @@ class NativePlatformService {
         const isDark = mode.current === 'dark';
         StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
         StatusBar.setBackgroundColor({
-          color: isDark ? STATUS_BAR_BACKGROUND_DARK : STATUS_BAR_BACKGROUND_LIGHT
+          color: isDark
+            ? NativePlatformService.statusBarBackgroundDark
+            : NativePlatformService.statusBarBackgroundLight
         });
       });
     });
@@ -49,4 +51,5 @@ class NativePlatformService {
   }
 }
 
-export default new NativePlatformService();
+const nativePlatformService = new NativePlatformService();
+export default nativePlatformService;

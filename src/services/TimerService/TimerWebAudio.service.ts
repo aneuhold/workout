@@ -1,4 +1,4 @@
-import timerSoundSynthService from './TimerSoundSynthService';
+import timerSoundSynthService from './TimerSoundSynth.service';
 
 /**
  * In-browser audio cues for the timer. Builds AudioBuffers from the shared
@@ -63,4 +63,5 @@ class TimerWebAudioService {
   }
 }
 
-export default new TimerWebAudioService();
+const timerWebAudioService = new TimerWebAudioService();
+export default timerWebAudioService;

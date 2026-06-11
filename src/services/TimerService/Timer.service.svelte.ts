@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
-import wakeLockService from '$services/WakeLockService';
-import timerWebAudioService from './TimerWebAudioService';
+import wakeLockService from '$services/WakeLock.service';
+import timerWebAudioService from './TimerWebAudio.service';
 
 /**
  * A countdown timer service that manages reactive state using Svelte 5 runes.
@@ -149,4 +149,5 @@ class TimerService {
   }
 }
 
-export default new TimerService();
+const timerService = new TimerService();
+export default timerService;

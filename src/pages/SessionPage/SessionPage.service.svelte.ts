@@ -11,10 +11,10 @@ import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { goto } from '$app/navigation';
 import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
 import { exercisePickerDialog } from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
-import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import { SessionPageExerciseCardState, SessionPageMode } from './sessionPageTypes';
 import {
   deriveCardState,
@@ -426,4 +426,5 @@ class SessionPageService {
   }
 }
 
-export default new SessionPageService();
+const sessionPageService = new SessionPageService();
+export default sessionPageService;

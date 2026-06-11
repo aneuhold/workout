@@ -8,7 +8,7 @@
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
-  import sessionPageService from './SessionPageService.svelte';
+  import sessionPageService from './SessionPage.service.svelte';
   import { SessionPageMode } from './sessionPageTypes';
 
   let setsComplete = $derived(sessionPageService.completedCount >= sessionPageService.totalSets);

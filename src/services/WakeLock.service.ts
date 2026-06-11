@@ -56,4 +56,5 @@ class WakeLockService {
   }
 }
 
-export default new WakeLockService();
+const wakeLockService = new WakeLockService();
+export default wakeLockService;

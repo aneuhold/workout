@@ -176,4 +176,5 @@ class TimerSoundSynthService {
   }
 }
 
-export default new TimerSoundSynthService();
+const timerSoundSynthService = new TimerSoundSynthService();
+export default timerSoundSynthService;
