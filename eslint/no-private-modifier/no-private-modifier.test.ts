@@ -32,45 +32,78 @@ ruleTester.run('no-private-modifier', noPrivateModifier, {
     { code: `class Foo { static value = 1; }` }
   ],
   invalid: [
-    // Private instance field.
+    // Private instance field, rewritten with its `this` reference.
+    {
+      code: `class Foo { private count = 0; read() { return this.count; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: `class Foo { #count = 0; read() { return this.#count; } }`
+    },
+    // Field with no references is still converted.
     {
       code: `class Foo { private count = 0; }`,
-      errors: [{ messageId: 'privateField' }]
+      errors: [{ messageId: 'privateField' }],
+      output: `class Foo { #count = 0; }`
     },
-    // Private static field.
+    // Private method, rewritten along with its call site.
     {
-      code: `class Foo { private static count = 0; }`,
-      errors: [{ messageId: 'privateField' }]
+      code: `class Foo { private helper() {} run() { this.helper(); } }`,
+      errors: [{ messageId: 'privateMethod' }],
+      output: `class Foo { #helper() {} run() { this.#helper(); } }`
     },
-    // Private accessor field.
+    // Static field referenced via both `Foo.x` and `this.x`.
     {
-      code: `class Foo { private accessor x = 1; }`,
-      errors: [{ messageId: 'privateField' }]
+      code: `class Foo { private static total = 0; static bump() { Foo.total++; this.total++; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: `class Foo { static #total = 0; static bump() { Foo.#total++; this.#total++; } }`
     },
-    // Private instance method.
+    // Accessor property.
     {
-      code: `class Foo { private helper(): void {} }`,
-      errors: [{ messageId: 'privateMethod' }]
+      code: `class Foo { private accessor label = ''; show() { return this.label; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: `class Foo { accessor #label = ''; show() { return this.#label; } }`
     },
-    // Private static method.
+    // Getter/setter pair sharing a name: both declarations convert, the shared
+    // reference is rewritten exactly once.
     {
-      code: `class Foo { private static helper(): void {} }`,
-      errors: [{ messageId: 'privateMethod' }]
+      code: `class Foo { private get x() { return 1; } private set x(v: number) {} use() { return this.x; } }`,
+      errors: [{ messageId: 'privateMethod' }, { messageId: 'privateMethod' }],
+      output: `class Foo { get #x() { return 1; } set #x(v: number) {} use() { return this.#x; } }`
     },
-    // Private getter is reported as a method.
+    // Two distinct members in one class.
     {
-      code: `class Foo { private get x(): number { return 1; } }`,
-      errors: [{ messageId: 'privateMethod' }]
+      code: `class Foo { private count = 0; private helper() { return this.count; } }`,
+      errors: [{ messageId: 'privateField' }, { messageId: 'privateMethod' }],
+      output: `class Foo { #count = 0; #helper() { return this.#count; } }`
     },
-    // Private constructor.
+    // Private constructor: reported, never fixed.
     {
       code: `class Foo { private constructor() {} }`,
-      errors: [{ messageId: 'privateConstructor' }]
+      errors: [{ messageId: 'privateConstructor' }],
+      output: null
     },
-    // Multiple private members are each reported.
+    // Possible cross-instance access (`other.id`) is ambiguous, so no fix.
     {
-      code: `class Foo { private count = 0; private helper(): void {} }`,
-      errors: [{ messageId: 'privateField' }, { messageId: 'privateMethod' }]
+      code: `class Foo { private id = 1; eq(other: Foo): boolean { return this.id === other.id; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: null
+    },
+    // Computed access can't be expressed as `#`, so no fix.
+    {
+      code: `class Foo { private val = 1; read() { return this['val']; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: null
+    },
+    // Destructuring a private member off `this` has no `#` form, so no fix.
+    {
+      code: `class Foo { private val = 1; read() { const { val } = this; return val; } }`,
+      errors: [{ messageId: 'privateField' }],
+      output: null
+    },
+    // A colliding `#count` already exists, so the rename is unsafe — report only.
+    {
+      code: `class Foo { #count = 1; private count = 2; }`,
+      errors: [{ messageId: 'privateField' }],
+      output: null
     }
   ]
 });
