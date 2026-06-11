@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
   import { IconChevronRight } from '@tabler/icons-svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';

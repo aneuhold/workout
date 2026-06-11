@@ -6,12 +6,12 @@ import type {
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import { WorkoutMesocycleService, WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
-import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-import setMapService from '$services/documentMapServices/setMapService.svelte';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 
 export type HomePageMicrocycleInfo = {
   microcycle: WorkoutMicrocycle;

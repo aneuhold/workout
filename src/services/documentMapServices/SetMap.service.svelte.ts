@@ -1,14 +1,14 @@
 import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
-import exerciseMapService from './exerciseMapService.svelte';
+import exerciseMapService from './ExerciseMap.service.svelte';
 
 class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   constructor() {
@@ -32,4 +32,5 @@ class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   }
 }
 
-export default new SetDocumentMapService();
+const setDocumentMapService = new SetDocumentMapService();
+export default setDocumentMapService;

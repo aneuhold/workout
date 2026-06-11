@@ -15,14 +15,14 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
-import equipmentTypeMapService from './equipmentTypeMapService.svelte';
+import equipmentTypeMapService from './EquipmentTypeMap.service.svelte';
 
 class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise> {
   /** Keyed by exercise ID (same as the CTO's `_id`). */
@@ -257,4 +257,5 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   }
 }
 
-export default new ExerciseDocumentMapService();
+const exerciseDocumentMapService = new ExerciseDocumentMapService();
+export default exerciseDocumentMapService;

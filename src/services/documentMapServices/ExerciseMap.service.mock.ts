@@ -17,12 +17,12 @@ import type { UUID } from 'crypto';
 import TestUsers from '$testUtils/TestUsers';
 import EquipmentTypeMapServiceMock, {
   MockDefaultEquipmentType
-} from './equipmentTypeMapService.mock';
-import exerciseMapService from './exerciseMapService.svelte';
-import MuscleGroupMapServiceMock, { MockDefaultMuscleGroup } from './muscleGroupMapService.mock';
-import sessionExerciseMapService from './sessionExerciseMapService.svelte';
-import sessionMapService from './sessionMapService.svelte';
-import setMapService from './setMapService.svelte';
+} from './EquipmentTypeMap.service.mock';
+import exerciseMapService from './ExerciseMap.service.svelte';
+import MuscleGroupMapServiceMock, { MockDefaultMuscleGroup } from './MuscleGroupMap.service.mock';
+import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
+import sessionMapService from './SessionMap.service.svelte';
+import setMapService from './SetMap.service.svelte';
 
 export enum MockDefaultExercise {
   BarbellBenchPress = 'Barbell Bench Press',

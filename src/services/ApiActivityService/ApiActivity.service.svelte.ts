@@ -51,4 +51,5 @@ class ApiActivityService {
   }
 }
 
-export default new ApiActivityService();
+const apiActivityService = new ApiActivityService();
+export default apiActivityService;

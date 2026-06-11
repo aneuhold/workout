@@ -2,7 +2,7 @@ import { type WorkoutSession, WorkoutSessionSchema } from '@aneuhold/core-ts-db-
 import type { UUID } from 'crypto';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import TestUsers from '$testUtils/TestUsers';
-import sessionMapService from './sessionMapService.svelte';
+import sessionMapService from './SessionMap.service.svelte';
 
 export type AddMockSessionInfo = {
   workoutMicrocycleId?: UUID;

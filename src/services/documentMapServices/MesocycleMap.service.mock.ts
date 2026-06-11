@@ -11,7 +11,7 @@ import {
 import type { UUID } from 'crypto';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import TestUsers from '$testUtils/TestUsers';
-import mesocycleMapService from './mesocycleMapService.svelte';
+import mesocycleMapService from './MesocycleMap.service.svelte';
 
 export type AddMockMesocycleInfo = {
   cycleType?: CycleType;

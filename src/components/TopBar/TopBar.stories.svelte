@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import { ApiActivityState } from '$services/ApiActivityService/ApiActivityService.svelte';
+  import { ApiActivityState } from '$services/ApiActivityService/ApiActivity.service.svelte';
   import {
     createBoolArgTypes,
     createEnumArgType,

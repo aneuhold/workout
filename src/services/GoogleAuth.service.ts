@@ -2,21 +2,21 @@ import { GOOGLE_CLIENT_ID } from '@aneuhold/core-ts-db-lib';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { createLogger } from '$util/logging/logger';
 
-const log = createLogger('GoogleAuthService');
-
-/**
- * Error code the capgo plugin uses when the user dismisses the sign-in UI.
- * See `SocialLoginErrorCode` in the plugin's
- * [definitions.ts](https://github.com/Cap-go/capacitor-social-login/blob/main/src/definitions.ts).
- */
-const USER_CANCELLED_CODE = 'USER_CANCELLED';
-
 /**
  * Google Sign-In service backed by `@capgo/capacitor-social-login`.
  * Same code path on web (OAuth2 popup) and native (Credential Manager / Google Sign-In SDK).
  * Returns the Google-signed ID token JWT used by `APIService.validateUser`.
  */
 class GoogleAuthService {
+  /**
+   * Error code the capgo plugin uses when the user dismisses the sign-in UI.
+   * See `SocialLoginErrorCode` in the plugin's
+   * [definitions.ts](https://github.com/Cap-go/capacitor-social-login/blob/main/src/definitions.ts).
+   */
+  private static readonly userCancelledCode = 'USER_CANCELLED';
+
+  private readonly log = createLogger('GoogleAuthService');
+
   private initPromise: Promise<void> | undefined;
 
   /**
@@ -54,12 +54,12 @@ class GoogleAuthService {
         options: {}
       });
       if (result.responseType !== 'online') {
-        log.error('Unexpected offline response from Google sign-in', result);
+        this.log.error('Unexpected offline response from Google sign-in', result);
         throw new Error(`Unexpected Google sign-in response type: ${result.responseType}`);
       }
       return result.idToken;
     } catch (e) {
-      if (isUserCancelled(e)) {
+      if (this.isUserCancelled(e)) {
         return null;
       }
       throw e;
@@ -74,12 +74,25 @@ class GoogleAuthService {
     try {
       await SocialLogin.logout({ provider: 'google' });
     } catch (e) {
-      log.warn('Google logout failed', e);
+      this.log.warn('Google logout failed', e);
     }
+  }
+
+  /**
+   * Whether the given error is the plugin's "user dismissed the sign-in UI"
+   * error rather than a genuine failure.
+   *
+   * @param e - The error thrown by the social-login plugin.
+   */
+  private isUserCancelled(e: unknown): boolean {
+    return (
+      typeof e === 'object' &&
+      e !== null &&
+      'code' in e &&
+      e.code === GoogleAuthService.userCancelledCode
+    );
   }
 }
 
-const isUserCancelled = (e: unknown): boolean =>
-  typeof e === 'object' && e !== null && 'code' in e && e.code === USER_CANCELLED_CODE;
-
-export default new GoogleAuthService();
+const googleAuthService = new GoogleAuthService();
+export default googleAuthService;

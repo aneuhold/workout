@@ -5,15 +5,13 @@ import {
   type AuthValidateUserOutput
 } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
-import googleAuthService from '$services/GoogleAuthService';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import googleAuthService from '$services/GoogleAuth.service';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import { password } from '$stores/local/password';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { LoginState, loginState } from '$stores/session/loginState';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
-
-const log = createLogger('AuthService');
 
 /**
  * Auth orchestration singleton. Centralizes login (Google + password),
@@ -22,6 +20,8 @@ const log = createLogger('AuthService');
  * returned `APIResponse`.
  */
 class AuthService {
+  private readonly log = createLogger('AuthService');
+
   /**
    * Validates a Google ID token and applies the result. Returns the raw
    * response so callers can render their own error UI.
@@ -71,7 +71,7 @@ class AuthService {
     try {
       await APIService.logout();
     } catch (error) {
-      log.warn('APIService.logout failed; continuing local teardown', error);
+      this.log.warn('APIService.logout failed; continuing local teardown', error);
     }
     await this.clearLocalSession();
   }
@@ -119,7 +119,7 @@ class AuthService {
     } else if (!response.success) {
       loginState.set(LoginState.LoggedOut);
     } else {
-      log.error('Unexpected response from validateUser', response);
+      this.log.error('Unexpected response from validateUser', response);
     }
   }
 
@@ -136,4 +136,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

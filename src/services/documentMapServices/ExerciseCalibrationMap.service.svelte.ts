@@ -1,12 +1,12 @@
 import type { WorkoutExerciseCalibration } from '@aneuhold/core-ts-db-lib';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
-import exerciseMapService from './exerciseMapService.svelte';
+import exerciseMapService from './ExerciseMap.service.svelte';
 
 class ExerciseCalibrationDocumentMapService extends DocumentMapStoreService<WorkoutExerciseCalibration> {
   constructor() {
@@ -29,4 +29,5 @@ class ExerciseCalibrationDocumentMapService extends DocumentMapStoreService<Work
   }
 }
 
-export default new ExerciseCalibrationDocumentMapService();
+const exerciseCalibrationDocumentMapService = new ExerciseCalibrationDocumentMapService();
+export default exerciseCalibrationDocumentMapService;

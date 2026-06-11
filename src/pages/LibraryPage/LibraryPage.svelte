@@ -20,9 +20,9 @@
   import { equipmentFormDialog } from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import { muscleGroupFormDialog } from '$components/singletons/dialogs/SingletonMuscleGroupFormDialog/SingletonMuscleGroupFormDialog.svelte';
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenu from '$ui/DropdownMenu/DropdownMenu.svelte';
   import DropdownMenuContent from '$ui/DropdownMenu/DropdownMenuContent.svelte';

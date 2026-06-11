@@ -15,8 +15,8 @@ import MockData from '$testUtils/MockData';
 import TestSetup from '$testUtils/TestSetup';
 import TestUsers from '$testUtils/TestUsers';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
-import exerciseMapService from './exerciseMapService.svelte';
-import MesocycleMapServiceMock from './mesocycleMapService.mock';
+import exerciseMapService from './ExerciseMap.service.svelte';
+import MesocycleMapServiceMock from './MesocycleMap.service.mock';
 
 describe('exerciseMapService CTO update methods', () => {
   beforeEach(() => {

@@ -3,7 +3,7 @@ import { flushSync } from 'svelte';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DocumentMapStoreService, {
   type DocumentInsertOrUpdateInfo
-} from './DocumentMapStoreService.svelte';
+} from './DocumentMapStore.service.svelte';
 
 interface TestDoc extends BaseDocument {
   name: string;

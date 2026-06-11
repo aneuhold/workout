@@ -8,9 +8,9 @@
 <script lang="ts">
   import { IconChevronRight } from '@tabler/icons-svelte';
   import type { Snippet } from 'svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import OnboardingChecklist from './OnboardingChecklist.svelte';
   import { shouldShowOnboardingChecklist } from './onboardingEmptyStateUtils';

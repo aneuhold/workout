@@ -8,7 +8,7 @@
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
   import { IconPencil, IconTrash } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import LibraryPageCard from './LibraryPageCard.svelte';
 

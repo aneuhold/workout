@@ -4,8 +4,8 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import TestUsers from '$testUtils/TestUsers';
-import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
-import ExerciseMapServiceMock, { MockDefaultExercise } from './exerciseMapService.mock';
+import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
+import ExerciseMapServiceMock, { MockDefaultExercise } from './ExerciseMap.service.mock';
 
 export type AddMockCalibrationInfo = {
   workoutExerciseId: UUID;

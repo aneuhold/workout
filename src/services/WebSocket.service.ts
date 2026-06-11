@@ -4,12 +4,11 @@ import { io, Socket } from 'socket.io-client';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { createLogger } from '$util/logging/logger';
 
-const log = createLogger('WebSocketService.ts');
-
 /**
  * A service for handling WebSocket connections used in the application.
  */
 export default class WebSocketService {
+  static readonly #log = createLogger('WebSocketService.ts');
   static #socket?: Socket<WorkoutWebSocketServerToClientEvents, never>;
   static #unsubs: (() => void)[] = [];
 
@@ -26,11 +25,11 @@ export default class WebSocketService {
       });
 
       this.#socket.on('connect', () => {
-        log.info('Connected to WebSocket server');
+        this.#log.info('Connected to WebSocket server');
       });
 
       this.#socket.on('disconnect', () => {
-        log.info('Disconnected from WebSocket server');
+        this.#log.info('Disconnected from WebSocket server');
       });
     }
   }

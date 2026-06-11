@@ -2,7 +2,7 @@ import type { UUID } from 'crypto';
 import { describe, expect, it } from 'vitest';
 import ExerciseMapServiceMock, {
   MockDefaultExercise
-} from '$services/documentMapServices/exerciseMapService.mock';
+} from '$services/documentMapServices/ExerciseMap.service.mock';
 import MockData from '$testUtils/MockData';
 import workoutMesocycleCalendarUtils from './workoutMesocycleCalendarUtils';
 

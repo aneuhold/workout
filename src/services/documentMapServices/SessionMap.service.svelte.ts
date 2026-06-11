@@ -16,8 +16,8 @@ import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import {
@@ -25,10 +25,10 @@ import {
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
-import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
-import exerciseMapService from './exerciseMapService.svelte';
-import sessionExerciseMapService from './sessionExerciseMapService.svelte';
-import setMapService from './setMapService.svelte';
+import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from './ExerciseMap.service.svelte';
+import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
+import setMapService from './SetMap.service.svelte';
 
 class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> {
   /**
@@ -326,4 +326,5 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 }
 
-export default new SessionDocumentMapService();
+const sessionDocumentMapService = new SessionDocumentMapService();
+export default sessionDocumentMapService;

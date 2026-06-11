@@ -4,8 +4,6 @@ import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
 import { createLogger } from '$util/logging/logger';
 
-const log = createLogger('DocumentMapStoreService.ts');
-
 export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
   insert?: T[];
   update?: T[];
@@ -43,6 +41,7 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
  * for singleton behavior.
  */
 export default class DocumentMapStoreService<T extends BaseDocument> {
+  private readonly log = createLogger('DocumentMapStoreService.ts');
   private mapState: DocumentMap<T> = $state({});
   private config: DocumentMapStoreConfig<T>;
 
@@ -144,7 +143,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       docIds.forEach((docId) => {
         const currentDoc = this.mapState[docId];
         if (!currentDoc) {
-          log.error(`Document with ID ${docId} does not exist in the map.`);
+          this.log.error(`Document with ID ${docId} does not exist in the map.`);
           return;
         }
         docsToUpdate.push(mutator(currentDoc));
@@ -163,7 +162,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   public deleteManyDocs(docIds: UUID[], get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     docIds.forEach((id) => {
       if (!this.mapState[id]) {
-        log.error(`Document with ID ${id} does not exist in the map.`);
+        this.log.error(`Document with ID ${id} does not exist in the map.`);
         return;
       }
       delete this.mapState[id];

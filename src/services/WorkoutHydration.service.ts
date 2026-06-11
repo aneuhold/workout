@@ -1,12 +1,12 @@
-import equipmentTypeMapService from './documentMapServices/equipmentTypeMapService.svelte';
-import exerciseCalibrationMapService from './documentMapServices/exerciseCalibrationMapService.svelte';
-import exerciseMapService from './documentMapServices/exerciseMapService.svelte';
-import mesocycleMapService from './documentMapServices/mesocycleMapService.svelte';
-import microcycleMapService from './documentMapServices/microcycleMapService.svelte';
-import muscleGroupMapService from './documentMapServices/muscleGroupMapService.svelte';
-import sessionExerciseMapService from './documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from './documentMapServices/sessionMapService.svelte';
-import setMapService from './documentMapServices/setMapService.svelte';
+import equipmentTypeMapService from './documentMapServices/EquipmentTypeMap.service.svelte';
+import exerciseCalibrationMapService from './documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from './documentMapServices/ExerciseMap.service.svelte';
+import mesocycleMapService from './documentMapServices/MesocycleMap.service.svelte';
+import microcycleMapService from './documentMapServices/MicrocycleMap.service.svelte';
+import muscleGroupMapService from './documentMapServices/MuscleGroupMap.service.svelte';
+import sessionExerciseMapService from './documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from './documentMapServices/SessionMap.service.svelte';
+import setMapService from './documentMapServices/SetMap.service.svelte';
 
 /**
  * Orchestrates app-startup hydration of every workout document map service

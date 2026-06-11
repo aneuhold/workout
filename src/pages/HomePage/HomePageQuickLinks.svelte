@@ -7,8 +7,8 @@
 <script lang="ts">
   import { IconBarbell, IconCalendar, IconChartBar } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
 
   function handleStartFreeForm() {

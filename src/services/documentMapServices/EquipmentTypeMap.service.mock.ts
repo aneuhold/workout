@@ -1,6 +1,6 @@
 import { type WorkoutEquipmentType, WorkoutEquipmentTypeSchema } from '@aneuhold/core-ts-db-lib';
 import TestUsers from '$testUtils/TestUsers';
-import equipmentTypeMapService from './equipmentTypeMapService.svelte';
+import equipmentTypeMapService from './EquipmentTypeMap.service.svelte';
 
 export enum MockDefaultEquipmentType {
   Barbell = 'Barbell',
