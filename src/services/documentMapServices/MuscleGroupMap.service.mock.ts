@@ -1,6 +1,6 @@
 import { type WorkoutMuscleGroup, WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
 import TestUsers from '$testUtils/TestUsers';
-import muscleGroupMapService from './muscleGroupMapService.svelte';
+import muscleGroupMapService from './MuscleGroupMap.service.svelte';
 
 export enum MockDefaultMuscleGroup {
   Chest = 'Chest',

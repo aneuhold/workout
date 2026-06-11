@@ -4,7 +4,8 @@
  * call across the individual validation modules.
  */
 export const messages = {
-  fileNaming: 'A service file must be named `<name>.service.ts` or `<name>.service.svelte.ts`.',
+  fileNaming:
+    'A service file must be named `<Name>.service.ts` or `<Name>.service.svelte.ts`, where `<Name>` starts with a capital letter.',
   classRequired: 'A service file must define exactly one class; none was found.',
   singleClassOnly: 'A service file must define exactly one class.',
   classMustBeNamed: 'A service class must have a name.',

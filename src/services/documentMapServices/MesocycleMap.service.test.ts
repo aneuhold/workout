@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import MockData from '$testUtils/MockData';
 import TestSetup from '$testUtils/TestSetup';
-import MesocycleMapServiceMock from './mesocycleMapService.mock';
-import mesocycleMapService from './mesocycleMapService.svelte';
+import MesocycleMapServiceMock from './MesocycleMap.service.mock';
+import mesocycleMapService from './MesocycleMap.service.svelte';
 
 describe('Unit Tests', () => {
   beforeEach(() => {

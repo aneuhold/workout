@@ -1,7 +1,7 @@
 import { type WorkoutMicrocycle, WorkoutMicrocycleSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import TestUsers from '$testUtils/TestUsers';
-import microcycleMapService from './microcycleMapService.svelte';
+import microcycleMapService from './MicrocycleMap.service.svelte';
 
 export type AddMockMicrocycleInfo = {
   workoutMesocycleId?: UUID;

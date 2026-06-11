@@ -15,8 +15,8 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
 import {
@@ -24,13 +24,13 @@ import {
   createWorkoutPrepareForSave,
   ctoGet
 } from '$util/workoutPersistenceUtils';
-import exerciseCalibrationMapService from './exerciseCalibrationMapService.svelte';
-import exerciseMapService from './exerciseMapService.svelte';
-import microcycleMapService from './microcycleMapService.svelte';
-import muscleGroupMapService from './muscleGroupMapService.svelte';
-import sessionExerciseMapService from './sessionExerciseMapService.svelte';
-import sessionMapService from './sessionMapService.svelte';
-import setMapService from './setMapService.svelte';
+import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from './ExerciseMap.service.svelte';
+import microcycleMapService from './MicrocycleMap.service.svelte';
+import muscleGroupMapService from './MuscleGroupMap.service.svelte';
+import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
+import sessionMapService from './SessionMap.service.svelte';
+import setMapService from './SetMap.service.svelte';
 
 export type MesocycleChildDocs = {
   microcycles: WorkoutMicrocycle[];
@@ -490,4 +490,5 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
   }
 }
 
-export default new MesocycleDocumentMapService();
+const mesocycleDocumentMapService = new MesocycleDocumentMapService();
+export default mesocycleDocumentMapService;

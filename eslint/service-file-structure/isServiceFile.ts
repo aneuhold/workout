@@ -7,10 +7,11 @@
 const SERVICE_FILE = /[sS]ervice\.(svelte\.)?ts$/;
 
 /**
- * Matches the required service file naming convention: a basename ending in
- * `.service.ts` or `.service.svelte.ts` (e.g. `wakeLock.service.ts`).
+ * Matches the required service file naming convention: a PascalCase name
+ * (capital first letter) followed by `.service.ts` or `.service.svelte.ts`
+ * (e.g. `WakeLock.service.ts`).
  */
-const SERVICE_FILE_NAMING = /\.service\.(svelte\.)?ts$/;
+const SERVICE_FILE_NAMING = /^[A-Z][A-Za-z0-9]*\.service\.(svelte\.)?ts$/;
 
 /**
  * Excludes test, spec, and mock variants from the gate even when their name
@@ -41,7 +42,8 @@ export const isServiceFile = (filePath: string): boolean => {
 
 /**
  * Decides whether an in-scope service file follows the required
- * `*.service.ts` / `*.service.svelte.ts` naming convention.
+ * `<Name>.service.ts` / `<Name>.service.svelte.ts` naming convention, where
+ * `<Name>` is PascalCase (starts with a capital letter).
  *
  * @param filePath The file path being linted
  */

@@ -1,14 +1,14 @@
 import type { WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import { WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
   createWorkoutPrepareForSave
 } from '$util/workoutPersistenceUtils';
-import setMapService from './setMapService.svelte';
+import setMapService from './SetMap.service.svelte';
 
 class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutSessionExercise> {
   constructor() {
@@ -79,4 +79,5 @@ class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutS
   }
 }
 
-export default new SessionExerciseDocumentMapService();
+const sessionExerciseDocumentMapService = new SessionExerciseDocumentMapService();
+export default sessionExerciseDocumentMapService;

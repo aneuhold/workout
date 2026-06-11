@@ -2,9 +2,10 @@ import { usesServiceFileNaming } from '../isServiceFile';
 import type { ServiceFileValidation } from '../serviceModel';
 
 /**
- * Requires an in-scope service file to follow the `<name>.service.ts` /
- * `<name>.service.svelte.ts` naming convention. Reported at the top of the file
- * since the violation is the file name itself, not any particular node.
+ * Requires an in-scope service file to follow the `<Name>.service.ts` /
+ * `<Name>.service.svelte.ts` naming convention, where `<Name>` is PascalCase
+ * (starts with a capital letter). Reported at the top of the file since the
+ * violation is the file name itself, not any particular node.
  *
  * @param context The rule context
  */

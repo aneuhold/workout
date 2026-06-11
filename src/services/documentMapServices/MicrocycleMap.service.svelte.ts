@@ -1,13 +1,13 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type { WorkoutMicrocycle, WorkoutSession } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
   createWorkoutPrepareForSave
 } from '$util/workoutPersistenceUtils';
-import sessionMapService from './sessionMapService.svelte';
+import sessionMapService from './SessionMap.service.svelte';
 
 class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicrocycle> {
   constructor() {
@@ -93,4 +93,5 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
   }
 }
 
-export default new MicrocycleDocumentMapService();
+const microcycleDocumentMapService = new MicrocycleDocumentMapService();
+export default microcycleDocumentMapService;

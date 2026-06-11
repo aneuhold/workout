@@ -30,36 +30,42 @@ const validService = (className: string): string => {
 ruleTester.run('service-file-structure', serviceFileStructure, {
   valid: [
     // Canonical singleton service.
-    { filename: 'wakeLock.service.ts', code: validService('WakeLockService') },
+    { filename: 'WakeLock.service.ts', code: validService('WakeLockService') },
     // Rune-based `.service.svelte.ts` service is in scope and well-formed.
-    { filename: 'timer.service.svelte.ts', code: validService('TimerService') },
+    { filename: 'Timer.service.svelte.ts', code: validService('TimerService') },
     // Exporting the class itself as default is allowed (extensible base).
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: `export default class FooService {}`
     },
     // Exporting the named class as default is also allowed.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [`class FooService {}`, `export default FooService;`].join('\n')
     },
     // Out-of-scope file: not a service name, so anything goes.
     { filename: 'helpers.ts', code: `export function stray() {}` },
     // Test files are excluded from the gate.
-    { filename: 'foo.service.test.ts', code: `export function stray() {}` },
+    { filename: 'Foo.service.test.ts', code: `export function stray() {}` },
     // Mock files are excluded from the gate.
-    { filename: 'setMap.service.mock.ts', code: `export const thing = () => {};` }
+    { filename: 'SetMap.service.mock.ts', code: `export const thing = () => {};` }
   ],
   invalid: [
-    // A service file not following the `*.service.ts` naming convention.
+    // A service file not following the `<Name>.service.ts` naming convention.
     {
       filename: 'FooService.ts',
       code: validService('FooService'),
       errors: [{ messageId: 'fileNaming' }]
     },
-    // Inline `export default new X()` is rewritten to the two-line form.
+    // A `.service.ts` file whose name is not PascalCase (lowercase first letter).
     {
       filename: 'foo.service.ts',
+      code: validService('FooService'),
+      errors: [{ messageId: 'fileNaming' }]
+    },
+    // Inline `export default new X()` is rewritten to the two-line form.
+    {
+      filename: 'Foo.service.ts',
       code: [`class FooService {}`, `export default new FooService();`].join('\n'),
       errors: [{ messageId: 'trailingInstanceExport' }],
       output: [
@@ -70,7 +76,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // Constructor arguments are preserved by the fix.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [`class FooService {}`, `export default new FooService(1, 2);`].join('\n'),
       errors: [{ messageId: 'trailingInstanceExport' }],
       output: [
@@ -81,7 +87,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // Wrong instance name is reported with no safe fix.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [`class FooService {}`, `const svc = new FooService();`, `export default svc;`].join(
         '\n'
       ),
@@ -90,7 +96,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // A top-level function declaration is forbidden.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [
         `class FooService {}`,
         `function helper() {}`,
@@ -101,7 +107,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // A top-level value `const` is forbidden.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [
         `class FooService {}`,
         `const MAX = 5;`,
@@ -112,7 +118,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // A top-level arrow-function `const` is forbidden.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [
         `class FooService {}`,
         `const helper = () => {};`,
@@ -123,7 +129,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // A top-level named `export const` is forbidden.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [
         `class FooService {}`,
         `export const value = 1;`,
@@ -134,7 +140,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // More than one class is not allowed.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: [
         `class AService {}`,
         `class BService {}`,
@@ -145,7 +151,7 @@ ruleTester.run('service-file-structure', serviceFileStructure, {
     },
     // No class at all.
     {
-      filename: 'foo.service.ts',
+      filename: 'Foo.service.ts',
       code: `export const value = 1;`,
       errors: [{ messageId: 'classRequired' }]
     }

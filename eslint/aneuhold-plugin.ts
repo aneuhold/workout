@@ -1,4 +1,5 @@
 import { fooMustBeBar } from './foo-must-be-bar/foo-must-be-bar';
+import { noPrivateModifier } from './no-private-modifier/no-private-modifier';
 import { serviceFileStructure } from './service-file-structure/service-file-structure';
 
 /**
@@ -14,12 +15,14 @@ export const aneuholdPlugin = {
     aneuhold: {
       rules: {
         'foo-must-be-bar': fooMustBeBar,
+        'no-private-modifier': noPrivateModifier,
         'service-file-structure': serviceFileStructure
       }
     }
   },
   rules: {
     'aneuhold/foo-must-be-bar': 'error',
+    'aneuhold/no-private-modifier': 'error',
     'aneuhold/service-file-structure': 'error'
   }
 };

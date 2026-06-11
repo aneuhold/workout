@@ -1,8 +1,8 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import WebSocketService from '$services/WebSocketService';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import WebSocketService from '$services/WebSocket.service';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
 import { createLogger } from '$util/logging/logger';

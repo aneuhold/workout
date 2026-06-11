@@ -6,7 +6,7 @@ import type {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStoreService.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
@@ -98,4 +98,5 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
   }
 }
 
-export default new MuscleGroupDocumentMapService();
+const muscleGroupDocumentMapService = new MuscleGroupDocumentMapService();
+export default muscleGroupDocumentMapService;

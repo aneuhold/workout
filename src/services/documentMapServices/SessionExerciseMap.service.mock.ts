@@ -6,7 +6,7 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import TestUsers from '$testUtils/TestUsers';
-import sessionExerciseMapService from './sessionExerciseMapService.svelte';
+import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
 
 export type AddMockSessionExerciseInfo = {
   workoutSessionId: UUID;
