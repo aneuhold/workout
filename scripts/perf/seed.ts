@@ -1,8 +1,8 @@
 import { APIService, type ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
 import { test, vi } from 'vitest';
-import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-import MuscleGroupMapServiceMock from '$services/documentMapServices/muscleGroupMapService.mock';
+import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import MuscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
 import MockData from '$testUtils/MockData';
 import perfTestUtils from '$testUtils/perfTestUtils';
 import TestUsers from '$testUtils/TestUsers';

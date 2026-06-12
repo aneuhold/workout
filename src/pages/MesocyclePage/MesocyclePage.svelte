@@ -16,12 +16,12 @@
   import { goto } from '$app/navigation';
   import BackButton from '$components/BackButton/BackButton.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import mesocycleMapService, {
     type MesocycleChildDocs
-  } from '$services/documentMapServices/mesocycleMapService.svelte';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  } from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';

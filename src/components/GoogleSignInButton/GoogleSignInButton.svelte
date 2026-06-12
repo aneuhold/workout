@@ -10,7 +10,7 @@
   the rationale on the inline error pattern.
 -->
 <script lang="ts">
-  import googleAuthService from '$services/GoogleAuthService';
+  import googleAuthService from '$services/GoogleAuth.service';
   import { createLogger } from '$util/logging/logger';
   import GoogleSignInButtonPresentational from './GoogleSignInButtonPresentational.svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import MockData from '$testUtils/MockData';
   import Button from '$ui/Button/Button.svelte';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';

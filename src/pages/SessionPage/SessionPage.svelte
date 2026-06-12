@@ -8,13 +8,13 @@
   import type { UUID } from 'crypto';
   import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import SingletonExercisePickerDialog from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
+  import sessionPageService from './SessionPage.service.svelte';
   import SessionPageExerciseCard from './SessionPageExerciseCard';
   import SessionPageHeader from './SessionPageHeader';
   import SessionPageStartDatePicker from './SessionPageHeader/SessionPageStartDatePicker.svelte';
   import SessionPageProgressBar from './SessionPageProgressBar.svelte';
-  import sessionPageService from './SessionPageService.svelte';
   import SessionPageSummaryCard from './SessionPageSummaryCard.svelte';
   import { SessionPageMode } from './sessionPageTypes';
 

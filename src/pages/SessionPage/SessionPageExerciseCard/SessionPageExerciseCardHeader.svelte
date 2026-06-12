@@ -7,7 +7,7 @@
 <script lang="ts">
   import type { WorkoutExercise, WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import { IconCheck, IconChevronDown } from '@tabler/icons-svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import { SessionPageExerciseCardState } from '../sessionPageTypes';
 

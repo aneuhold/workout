@@ -6,10 +6,16 @@ on:
     branches:
       - main
 
+# Cancel an in-progress run when a newer push supersedes it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: 'Build'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       # Build the PR ref and main in parallel so the perf job can compare
       # them on the same runner.
@@ -62,6 +68,7 @@ jobs:
   testAndDeploy:
     name: 'Test and Deploy'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
 
     steps:
@@ -113,6 +120,7 @@ jobs:
   perf:
     name: 'Performance Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     permissions:
       pull-requests: write

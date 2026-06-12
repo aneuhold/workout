@@ -1,6 +1,6 @@
 import { type WorkoutSet, WorkoutSetService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import { SessionPageMode, SessionPageSetState } from '../sessionPageTypes';
 
 /**

@@ -82,7 +82,7 @@ The app uses a layered animation approach. Each layer uses the simplest tool tha
 
 - **Simple state**: Use Svelte 5 runes (`$state()`, `$derived()`)
 - **Stores** (`src/stores`): Only for modules that export a real Svelte store using `writable`, `readable`, or `derived` from `svelte/store`. Organized by `local/` (persisted), `session/` (session-only), `derived/` (computed).
-- **Services** (`src/services`): Singleton classes exported as default instances. Use services for rune-based reactive state (`$state`, `$derived`, `$effect`) and for non-reactive utilities (audio, wake lock, etc.). Name files as `<Name>Service.ts` or `<Name>Service.svelte.ts` if the file uses Svelte runes.
+- **Services** (`src/services`): Singleton classes exported as default instances. Use services for rune-based reactive state (`$state`, `$derived`, `$effect`) and for non-reactive utilities (audio, wake lock, etc.). Name files as `<Name>.service.ts` or `<Name>.service.svelte.ts` if the file uses Svelte runes, where `<Name>` is PascalCase (e.g. `WakeLock.service.ts`, `Timer.service.svelte.ts`). These service file names are enforced via linting.
 
 ## Before Considering a Task Complete
 
@@ -119,7 +119,7 @@ The app uses a layered animation approach. Each layer uses the simplest tool tha
 
 ### Barrel Files (`index.ts`)
 
-- Only use a barrel file when a folder has a **single public export** and all other files in the folder are internal implementation details consumed exclusively by that export. This keeps the import path clean (e.g., `$services/TimerService` instead of `$services/TimerService/TimerService.svelte`) without the tree-shaking and performance downsides of large barrel files that re-export many modules.
+- Only use a barrel file when a folder has a **single public export** and all other files in the folder are internal implementation details consumed exclusively by that export. This keeps the import path clean (e.g., `$services/TimerService` instead of `$services/TimerService/Timer.service.svelte`) without the tree-shaking and performance downsides of large barrel files that re-export many modules.
 - Do **not** create barrel files that aggregate exports from multiple unrelated modules. Every file in the folder should be reachable only through the one public export.
 
 ### Imports

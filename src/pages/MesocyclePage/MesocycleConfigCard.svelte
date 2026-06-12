@@ -16,8 +16,8 @@
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import ValidatedInput from '$components/ValidatedInput/ValidatedInput.svelte';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import Button from '$ui/Button/Button.svelte';

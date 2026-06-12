@@ -7,7 +7,7 @@
 -->
 <script lang="ts">
   import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
   import DialogContent from '$ui/Dialog/DialogContent.svelte';

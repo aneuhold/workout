@@ -13,13 +13,13 @@
     WorkoutSetService
   } from '@aneuhold/core-ts-db-lib';
   import { IconExternalLink } from '@tabler/icons-svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-  import setMapService from '$services/documentMapServices/setMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import setMapService from '$services/documentMapServices/SetMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import { cn } from '$util/svelte-shadcn-util';
-  import sessionPageService from '../SessionPageService.svelte';
+  import sessionPageService from '../SessionPage.service.svelte';
   import { SessionPageExerciseCardState, SessionPageMode } from '../sessionPageTypes';
   import { getImmediateFieldState, getLateFieldState } from './exerciseCardUtils';
   import SessionPageExerciseCardFatigueSliders from './SessionPageExerciseCardFatigueSliders.svelte';

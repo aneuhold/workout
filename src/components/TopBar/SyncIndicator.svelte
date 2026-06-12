@@ -8,7 +8,7 @@
   import { IconCloud, IconCloudCheck, IconCloudOff, IconCloudUp } from '@tabler/icons-svelte';
   import apiActivityService, {
     ApiActivityState
-  } from '$services/ApiActivityService/ApiActivityService.svelte';
+  } from '$services/ApiActivityService/ApiActivity.service.svelte';
 
   let { timerHighlight = false }: { timerHighlight?: boolean } = $props();
 

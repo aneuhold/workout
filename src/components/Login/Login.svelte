@@ -11,9 +11,9 @@
   import { page } from '$app/state';
   import GoogleSignInButton from '$components/GoogleSignInButton';
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
-  import authService from '$services/AuthService';
-  import googleAuthService from '$services/GoogleAuthService';
-  import updateCheckService from '$services/UpdateCheckService.svelte';
+  import authService from '$services/Auth.service';
+  import googleAuthService from '$services/GoogleAuth.service';
+  import updateCheckService from '$services/UpdateCheck.service.svelte';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';

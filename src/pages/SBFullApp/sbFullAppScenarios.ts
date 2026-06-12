@@ -1,8 +1,8 @@
 import { CycleType } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import type { MockGeneratedMesocycleData } from '$services/documentMapServices/mesocycleMapService.mock';
-import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import type { MockGeneratedMesocycleData } from '$services/documentMapServices/MesocycleMap.service.mock';
+import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
 import MockData, { type MockBaseData } from '$testUtils/MockData';
 import routeState from './sbFullAppRouteState.svelte';

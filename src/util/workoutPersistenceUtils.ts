@@ -1,7 +1,7 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import type { BaseDocument } from '@aneuhold/core-ts-db-lib';
-import type { DocumentInsertOrUpdateInfo } from '$services/DocumentMapStoreService.svelte';
-import WorkoutAPIService from '$services/WorkoutAPIService';
+import type { DocumentInsertOrUpdateInfo } from '$services/DocumentMapStore.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPI.service';
 
 /**
  * Names of the workout collections that the primary API can insert / update /

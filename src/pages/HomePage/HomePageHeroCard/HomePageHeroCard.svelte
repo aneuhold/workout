@@ -20,8 +20,8 @@
   import { goto } from '$app/navigation';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import { moveSessionsDialog } from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import type { HomePageSessionBundle } from '../homePageUtils';
   import { regenerateMesocycle } from '../homePageUtils';
   import { getHeroCardState, HeroCardAction } from './heroCardUtils';

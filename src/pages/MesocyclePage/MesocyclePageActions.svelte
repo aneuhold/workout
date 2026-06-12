@@ -15,8 +15,8 @@
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
   import { rescheduleMesocycleDialog } from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';

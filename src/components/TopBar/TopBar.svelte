@@ -8,7 +8,7 @@
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { mode } from 'mode-watcher';
   import { goto } from '$app/navigation';
-  import authService from '$services/AuthService';
+  import authService from '$services/Auth.service';
   import timerService from '$services/TimerService';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';

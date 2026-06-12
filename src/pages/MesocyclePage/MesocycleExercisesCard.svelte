@@ -7,7 +7,7 @@
   import { type WorkoutExerciseCTO } from '@aneuhold/core-ts-db-lib';
   import { IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';

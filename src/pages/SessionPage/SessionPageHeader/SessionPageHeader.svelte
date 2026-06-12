@@ -11,9 +11,9 @@
   import { goto } from '$app/navigation';
   import BackButton from '$components/BackButton/BackButton.svelte';
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import SessionPageReorderDialog from '../SessionPageReorderDialog.svelte';
