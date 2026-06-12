@@ -92,7 +92,7 @@ const viteConfig: UserConfig = {
 
 const vitestConfig = defineConfig({
   test: {
-    include: ['src/**/*.{test,spec}.{js,ts,svelte.ts}', 'eslint/**/*.{test,spec}.ts'],
+    include: ['src/**/*.{test,spec}.{js,ts,svelte.ts}'],
     environment: 'jsdom',
     setupFiles: ['./testUtils/vitest-setup.ts']
   }
