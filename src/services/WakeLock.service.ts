@@ -8,48 +8,48 @@ import { KeepAwake } from '@capacitor-community/keep-awake';
  * and silently no-ops if the browser doesn't support it.
  */
 class WakeLockService {
-  private lock: WakeLockSentinel | null = null;
-  private shouldBeActive = false;
+  #lock: WakeLockSentinel | null = null;
+  #shouldBeActive = false;
 
   constructor() {
-    if (typeof document !== 'undefined' && !this.isNative) {
+    if (typeof document !== 'undefined' && !this.#isNative) {
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && this.shouldBeActive) {
-          this.acquireLock();
+        if (document.visibilityState === 'visible' && this.#shouldBeActive) {
+          this.#acquireLock();
         }
       });
     }
   }
 
   async request(): Promise<void> {
-    this.shouldBeActive = true;
-    await this.acquireLock();
+    this.#shouldBeActive = true;
+    await this.#acquireLock();
   }
 
   async release(): Promise<void> {
-    this.shouldBeActive = false;
-    if (this.isNative) {
+    this.#shouldBeActive = false;
+    if (this.#isNative) {
       await KeepAwake.allowSleep();
       return;
     }
-    if (this.lock) {
-      await this.lock.release();
-      this.lock = null;
+    if (this.#lock) {
+      await this.#lock.release();
+      this.#lock = null;
     }
   }
 
-  private get isNative(): boolean {
+  get #isNative(): boolean {
     return Capacitor.isNativePlatform();
   }
 
-  private async acquireLock(): Promise<void> {
-    if (this.isNative) {
+  async #acquireLock(): Promise<void> {
+    if (this.#isNative) {
       await KeepAwake.keepAwake();
       return;
     }
     if (!('wakeLock' in navigator)) return;
     try {
-      this.lock = await navigator.wakeLock.request('screen');
+      this.#lock = await navigator.wakeLock.request('screen');
     } catch {
       // Wake lock request can fail (e.g. low battery). Silently ignore.
     }

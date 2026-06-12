@@ -7,42 +7,42 @@ import timerSoundSynthService from './TimerSoundSynth.service';
  * until the first user gesture.
  */
 class TimerWebAudioService {
-  private audioCtx: AudioContext | null = null;
-  private countdownBeepBuffer: AudioBuffer | null = null;
-  private completionToneBuffer: AudioBuffer | null = null;
+  #audioCtx: AudioContext | null = null;
+  #countdownBeepBuffer: AudioBuffer | null = null;
+  #completionToneBuffer: AudioBuffer | null = null;
 
   /** Short beep for the last 5 seconds of countdown. */
   playCountdownBeep(): void {
-    const ctx = this.getAudioContext();
+    const ctx = this.#getAudioContext();
     if (!ctx) return;
-    if (!this.countdownBeepBuffer) {
-      this.countdownBeepBuffer = this.createBuffer(
+    if (!this.#countdownBeepBuffer) {
+      this.#countdownBeepBuffer = this.createBuffer(
         ctx,
         timerSoundSynthService.synthesizeBeep(ctx.sampleRate)
       );
     }
-    this.playBuffer(ctx, this.countdownBeepBuffer);
+    this.#playBuffer(ctx, this.#countdownBeepBuffer);
   }
 
   /** "Beep beep beeeeeeep" pattern when the timer completes. */
   playCompletionTone(): void {
-    const ctx = this.getAudioContext();
+    const ctx = this.#getAudioContext();
     if (!ctx) return;
-    if (!this.completionToneBuffer) {
-      this.completionToneBuffer = this.createBuffer(
+    if (!this.#completionToneBuffer) {
+      this.#completionToneBuffer = this.createBuffer(
         ctx,
         timerSoundSynthService.synthesizeCompletionTone(ctx.sampleRate)
       );
     }
-    this.playBuffer(ctx, this.completionToneBuffer);
+    this.#playBuffer(ctx, this.#completionToneBuffer);
   }
 
-  private getAudioContext(): AudioContext | null {
+  #getAudioContext(): AudioContext | null {
     if (typeof AudioContext === 'undefined') return null;
-    if (!this.audioCtx) {
-      this.audioCtx = new AudioContext();
+    if (!this.#audioCtx) {
+      this.#audioCtx = new AudioContext();
     }
-    return this.audioCtx;
+    return this.#audioCtx;
   }
 
   private createBuffer(ctx: AudioContext, samples: Float32Array<ArrayBuffer>): AudioBuffer {
@@ -51,7 +51,7 @@ class TimerWebAudioService {
     return buffer;
   }
 
-  private playBuffer(ctx: AudioContext, buffer: AudioBuffer): void {
+  #playBuffer(ctx: AudioContext, buffer: AudioBuffer): void {
     // Resume in case the browser suspended the context (autoplay policy).
     if (ctx.state === 'suspended') {
       void ctx.resume();

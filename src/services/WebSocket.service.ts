@@ -57,7 +57,7 @@ export default class WebSocketService {
       this.connect();
     }
     this.#socket?.on('rootPostResult', (data) => {
-      this.reviveDates(data);
+      this.#reviveDates(data);
       callback(data);
     });
     const unsub = () => {
@@ -94,7 +94,7 @@ export default class WebSocketService {
    *
    * @param body the body to revive
    */
-  private static reviveDates(body: unknown) {
+  static #reviveDates(body: unknown) {
     const bodyIsObject = (body: unknown): body is Record<string, unknown> =>
       body !== null && typeof body === 'object';
     if (!bodyIsObject(body)) {
@@ -106,7 +106,7 @@ export default class WebSocketService {
       if (revivedValue !== value) {
         body[key] = revivedValue;
       } else if (typeof value === 'object') {
-        this.reviveDates(value);
+        this.#reviveDates(value);
       }
     }
   }

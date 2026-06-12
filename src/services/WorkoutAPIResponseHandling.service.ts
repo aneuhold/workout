@@ -30,45 +30,43 @@ export default class WorkoutAPIResponseHandlingService {
   ) {
     const get = input.get;
     if (output.mesocycles && get?.mesocycles?.all) {
-      mesocycleMapService.setMap(this.convertDocumentArrayToMap(output.mesocycles));
+      mesocycleMapService.setMap(this.#convertDocumentArrayToMap(output.mesocycles));
     }
     if (output.microcycles && get?.microcycles?.all) {
-      microcycleMapService.setMap(this.convertDocumentArrayToMap(output.microcycles));
+      microcycleMapService.setMap(this.#convertDocumentArrayToMap(output.microcycles));
     }
     if (output.sessions && get?.sessions?.all) {
-      sessionMapService.setMap(this.convertDocumentArrayToMap(output.sessions));
+      sessionMapService.setMap(this.#convertDocumentArrayToMap(output.sessions));
     }
     if (output.sessionExercises && get?.sessionExercises?.all) {
-      sessionExerciseMapService.setMap(this.convertDocumentArrayToMap(output.sessionExercises));
+      sessionExerciseMapService.setMap(this.#convertDocumentArrayToMap(output.sessionExercises));
     }
     if (output.sets && get?.sets?.all) {
-      setMapService.setMap(this.convertDocumentArrayToMap(output.sets));
+      setMapService.setMap(this.#convertDocumentArrayToMap(output.sets));
     }
     if (output.exercises && get?.exercises?.all) {
-      exerciseMapService.setMap(this.convertDocumentArrayToMap(output.exercises));
+      exerciseMapService.setMap(this.#convertDocumentArrayToMap(output.exercises));
     }
     if (output.exerciseCTOs && get?.exerciseCTOs?.all) {
       exerciseMapService.setExerciseCTOs(output.exerciseCTOs);
     }
     if (output.exerciseCalibrations && get?.exerciseCalibrations?.all) {
       exerciseCalibrationMapService.setMap(
-        this.convertDocumentArrayToMap(output.exerciseCalibrations)
+        this.#convertDocumentArrayToMap(output.exerciseCalibrations)
       );
     }
     if (output.muscleGroups && get?.muscleGroups?.all) {
-      muscleGroupMapService.setMap(this.convertDocumentArrayToMap(output.muscleGroups));
+      muscleGroupMapService.setMap(this.#convertDocumentArrayToMap(output.muscleGroups));
     }
     if (output.equipmentTypes && get?.equipmentTypes?.all) {
-      equipmentTypeMapService.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
+      equipmentTypeMapService.setMap(this.#convertDocumentArrayToMap(output.equipmentTypes));
     }
     if (output.muscleGroupVolumeCTOs && get?.muscleGroupVolumeCTOs?.all) {
       muscleGroupMapService.setVolumeCTOs(output.muscleGroupVolumeCTOs);
     }
   }
 
-  private static convertDocumentArrayToMap<T extends BaseDocument>(
-    documents: T[]
-  ): Record<string, T> {
+  static #convertDocumentArrayToMap<T extends BaseDocument>(documents: T[]): Record<string, T> {
     return documents.reduce<Record<string, T>>((map, document) => {
       map[document._id] = document;
       return map;

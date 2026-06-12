@@ -13,18 +13,18 @@ import { mode } from 'mode-watcher';
  */
 class NativePlatformService {
   // Match `--sidebar` from global.css (TopBar's `bg-sidebar`).
-  private static readonly statusBarBackgroundLight = '#fafafa';
-  private static readonly statusBarBackgroundDark = '#18181b';
+  static readonly #statusBarBackgroundLight = '#fafafa';
+  static readonly #statusBarBackgroundDark = '#18181b';
 
-  private initialized = false;
+  #initialized = false;
 
   /**
    * Wires up native lifecycle plugins. Call once from the root layout's
    * onMount. Safe to call multiple times — only the first call has effect.
    */
   init(): void {
-    if (this.initialized) return;
-    this.initialized = true;
+    if (this.#initialized) return;
+    this.#initialized = true;
     if (!Capacitor.isNativePlatform()) return;
 
     $effect.root(() => {
@@ -33,8 +33,8 @@ class NativePlatformService {
         StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
         StatusBar.setBackgroundColor({
           color: isDark
-            ? NativePlatformService.statusBarBackgroundDark
-            : NativePlatformService.statusBarBackgroundLight
+            ? NativePlatformService.#statusBarBackgroundDark
+            : NativePlatformService.#statusBarBackgroundLight
         });
       });
     });

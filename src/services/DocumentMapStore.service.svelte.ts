@@ -41,9 +41,9 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
  * for singleton behavior.
  */
 export default class DocumentMapStoreService<T extends BaseDocument> {
-  private readonly log = createLogger('DocumentMapStoreService.ts');
-  private mapState: DocumentMap<T> = $state({});
-  private config: DocumentMapStoreConfig<T>;
+  readonly #log = createLogger('DocumentMapStoreService.ts');
+  #mapState: DocumentMap<T> = $state({});
+  #config: DocumentMapStoreConfig<T>;
 
   /**
    * A derived array of all documents in the map. Only recomputes when
@@ -51,11 +51,11 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * when individual document properties change.
    */
   readonly allDocs: T[] = $derived(
-    Object.values(this.mapState).filter((doc): doc is T => doc !== undefined)
+    Object.values(this.#mapState).filter((doc): doc is T => doc !== undefined)
   );
 
   constructor(config: DocumentMapStoreConfig<T>) {
-    this.config = config;
+    this.#config = config;
   }
 
   /**
@@ -64,7 +64,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * @param docId The ID of the document to retrieve
    */
   public getDoc(docId: UUID): T | undefined {
-    return this.mapState[docId];
+    return this.#mapState[docId];
   }
 
   /**
@@ -74,14 +74,14 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * @param ids The IDs of the documents to retrieve
    */
   public getDocsWithIds(ids: UUID[]): T[] {
-    return ids.map((id) => this.mapState[id]).filter((doc): doc is T => doc !== undefined);
+    return ids.map((id) => this.#mapState[id]).filter((doc): doc is T => doc !== undefined);
   }
 
   /**
    * Gets a snapshot of the entire document map.
    */
   public getMap(): Map<UUID, T> {
-    const snapshot = $state.snapshot(this.mapState);
+    const snapshot = $state.snapshot(this.#mapState);
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const map = new Map<UUID, T>();
     Object.values(snapshot).forEach((doc) => {
@@ -100,7 +100,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * @param doc The document to add
    */
   public addDocWithoutPersist(doc: T): void {
-    this.mapState[doc._id] = doc;
+    this.#mapState[doc._id] = doc;
   }
 
   public addDoc(doc: T, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
@@ -111,8 +111,8 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     docs.forEach((doc) => {
       this.addDocWithoutPersist(doc);
     });
-    this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ insert: docs, get });
+    this.#config.persistToLocalData(this.#mapState);
+    this.#config.persistToDb({ insert: docs, get });
   }
 
   public updateDoc(
@@ -128,12 +128,12 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     mutator: Updater<T>,
     get?: ProjectWorkoutPrimaryEndpointOptions['get']
   ): void {
-    const docsToUpdate = this.updateManyDocsWithoutPersist(filterOrDocIds, mutator);
-    this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ update: docsToUpdate, get });
+    const docsToUpdate = this.#updateManyDocsWithoutPersist(filterOrDocIds, mutator);
+    this.#config.persistToLocalData(this.#mapState);
+    this.#config.persistToDb({ update: docsToUpdate, get });
   }
 
-  private updateManyDocsWithoutPersist(
+  #updateManyDocsWithoutPersist(
     filterOrDocIds: ((currentDoc: T) => boolean) | UUID[],
     mutator: Updater<T>
   ): T[] {
@@ -141,9 +141,9 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     if (Array.isArray(filterOrDocIds)) {
       const docIds = filterOrDocIds;
       docIds.forEach((docId) => {
-        const currentDoc = this.mapState[docId];
+        const currentDoc = this.#mapState[docId];
         if (!currentDoc) {
-          this.log.error(`Document with ID ${docId} does not exist in the map.`);
+          this.#log.error(`Document with ID ${docId} does not exist in the map.`);
           return;
         }
         docsToUpdate.push(mutator(currentDoc));
@@ -161,14 +161,14 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
 
   public deleteManyDocs(docIds: UUID[], get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     docIds.forEach((id) => {
-      if (!this.mapState[id]) {
-        this.log.error(`Document with ID ${id} does not exist in the map.`);
+      if (!this.#mapState[id]) {
+        this.#log.error(`Document with ID ${id} does not exist in the map.`);
         return;
       }
-      delete this.mapState[id];
+      delete this.#mapState[id];
     });
-    this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({ delete: docIds, get });
+    this.#config.persistToLocalData(this.#mapState);
+    this.#config.persistToDb({ delete: docIds, get });
   }
 
   public upsertManyDocs(
@@ -179,9 +179,9 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     newDocs.forEach((doc) => {
       this.addDocWithoutPersist(doc);
     });
-    const docsToUpdate = this.updateManyDocsWithoutPersist(filter, mutator);
-    this.config.persistToLocalData(this.mapState);
-    this.config.persistToDb({
+    const docsToUpdate = this.#updateManyDocsWithoutPersist(filter, mutator);
+    this.#config.persistToLocalData(this.#mapState);
+    this.#config.persistToDb({
       insert: newDocs,
       update: docsToUpdate,
       get
@@ -195,8 +195,8 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * @param newMap The new document map
    */
   public setMap(newMap: DocumentMap<T>): void {
-    this.mapState = newMap;
-    this.config.persistToLocalData(this.mapState);
+    this.#mapState = newMap;
+    this.#config.persistToLocalData(this.#mapState);
   }
 
   /**
@@ -205,10 +205,10 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
    * can show the last-known-good data before the API responds.
    */
   public async hydrate(): Promise<void> {
-    if (!this.config.loadFromLocalData) return;
-    const cached = await this.config.loadFromLocalData();
+    if (!this.#config.loadFromLocalData) return;
+    const cached = await this.#config.loadFromLocalData();
     if (cached) {
-      this.mapState = cached;
+      this.#mapState = cached;
     }
   }
 
@@ -229,10 +229,10 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
       info.insert.forEach((doc) => this.addDocWithoutPersist(doc));
     }
     if (info.delete) {
-      info.delete.forEach((id) => delete this.mapState[id]);
+      info.delete.forEach((id) => delete this.#mapState[id]);
     }
-    this.config.persistToLocalData(this.mapState);
-    this.config.prepareForSave(apiOptions, info);
+    this.#config.persistToLocalData(this.#mapState);
+    this.#config.prepareForSave(apiOptions, info);
     return apiOptions;
   }
 }

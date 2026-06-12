@@ -13,11 +13,11 @@ class GoogleAuthService {
    * See `SocialLoginErrorCode` in the plugin's
    * [definitions.ts](https://github.com/Cap-go/capacitor-social-login/blob/main/src/definitions.ts).
    */
-  private static readonly userCancelledCode = 'USER_CANCELLED';
+  static readonly #userCancelledCode = 'USER_CANCELLED';
 
-  private readonly log = createLogger('GoogleAuthService');
+  readonly #log = createLogger('GoogleAuthService');
 
-  private initPromise: Promise<void> | undefined;
+  #initPromise: Promise<void> | undefined;
 
   /**
    * Idempotent initialize. Safe to call multiple times; only runs once on
@@ -26,18 +26,18 @@ class GoogleAuthService {
    * rest of the session.
    */
   init(): Promise<void> {
-    if (!this.initPromise) {
-      this.initPromise = SocialLogin.initialize({
+    if (!this.#initPromise) {
+      this.#initPromise = SocialLogin.initialize({
         google: {
           webClientId: GOOGLE_CLIENT_ID,
           mode: 'online'
         }
       }).catch((e: unknown) => {
-        this.initPromise = undefined;
+        this.#initPromise = undefined;
         throw e;
       });
     }
-    return this.initPromise;
+    return this.#initPromise;
   }
 
   /**
@@ -54,12 +54,12 @@ class GoogleAuthService {
         options: {}
       });
       if (result.responseType !== 'online') {
-        this.log.error('Unexpected offline response from Google sign-in', result);
+        this.#log.error('Unexpected offline response from Google sign-in', result);
         throw new Error(`Unexpected Google sign-in response type: ${result.responseType}`);
       }
       return result.idToken;
     } catch (e) {
-      if (this.isUserCancelled(e)) {
+      if (this.#isUserCancelled(e)) {
         return null;
       }
       throw e;
@@ -74,7 +74,7 @@ class GoogleAuthService {
     try {
       await SocialLogin.logout({ provider: 'google' });
     } catch (e) {
-      this.log.warn('Google logout failed', e);
+      this.#log.warn('Google logout failed', e);
     }
   }
 
@@ -84,12 +84,12 @@ class GoogleAuthService {
    *
    * @param e - The error thrown by the social-login plugin.
    */
-  private isUserCancelled(e: unknown): boolean {
+  #isUserCancelled(e: unknown): boolean {
     return (
       typeof e === 'object' &&
       e !== null &&
       'code' in e &&
-      e.code === GoogleAuthService.userCancelledCode
+      e.code === GoogleAuthService.#userCancelledCode
     );
   }
 }

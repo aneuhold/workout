@@ -15,11 +15,11 @@ import {
 
 class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscleGroup> {
   /** Keyed by muscle group ID (same as the CTO's `_id`). */
-  private volumeCTOMapState: DocumentMap<WorkoutMuscleGroupVolumeCTO> = $state({});
+  #volumeCTOMapState: DocumentMap<WorkoutMuscleGroupVolumeCTO> = $state({});
 
   /** All volume CTOs from the backend. Only recomputes when the map is replaced. */
   readonly allVolumeCTOs: WorkoutMuscleGroupVolumeCTO[] = $derived(
-    Object.values(this.volumeCTOMapState).filter(
+    Object.values(this.#volumeCTOMapState).filter(
       (cto): cto is WorkoutMuscleGroupVolumeCTO => cto !== undefined
     )
   );
@@ -65,7 +65,7 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
     for (const cto of ctos) {
       map[cto._id] = cto;
     }
-    this.volumeCTOMapState = map;
+    this.#volumeCTOMapState = map;
   }
 
   /**
@@ -74,7 +74,7 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
    * @param muscleGroupId The muscle group ID to look up
    */
   getVolumeCTO(muscleGroupId: UUID): WorkoutMuscleGroupVolumeCTO | undefined {
-    return this.volumeCTOMapState[muscleGroupId];
+    return this.#volumeCTOMapState[muscleGroupId];
   }
 
   /**
@@ -90,7 +90,7 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
       for (const muscleGroupId of cto.primaryMuscleGroups) {
         if (seen.has(muscleGroupId)) continue;
         seen.add(muscleGroupId);
-        const volumeCTO = this.volumeCTOMapState[muscleGroupId];
+        const volumeCTO = this.#volumeCTOMapState[muscleGroupId];
         if (volumeCTO) volumeCTOs.push(volumeCTO);
       }
     }

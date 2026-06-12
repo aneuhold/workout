@@ -26,11 +26,11 @@ import equipmentTypeMapService from './EquipmentTypeMap.service.svelte';
 
 class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise> {
   /** Keyed by exercise ID (same as the CTO's `_id`). */
-  private exerciseCTOMapState: DocumentMap<WorkoutExerciseCTO> = $state({});
+  #exerciseCTOMapState: DocumentMap<WorkoutExerciseCTO> = $state({});
 
   /** All exercise CTOs fetched from the backend. */
   readonly exerciseCTOs: WorkoutExerciseCTO[] = $derived(
-    Object.values(this.exerciseCTOMapState).filter(
+    Object.values(this.#exerciseCTOMapState).filter(
       (cto): cto is WorkoutExerciseCTO => cto !== undefined
     )
   );
@@ -56,7 +56,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    * @param exerciseId The exercise ID to look up
    */
   getCTO(exerciseId: UUID): WorkoutExerciseCTO | undefined {
-    return this.exerciseCTOMapState[exerciseId];
+    return this.#exerciseCTOMapState[exerciseId];
   }
 
   /**
@@ -69,7 +69,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
     for (const cto of ctos) {
       map[cto._id] = cto;
     }
-    this.exerciseCTOMapState = map;
+    this.#exerciseCTOMapState = map;
   }
 
   /**
@@ -87,7 +87,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
     this.addDoc(exercise, ctoGet);
 
-    this.exerciseCTOMapState[exercise._id] = this.buildMinimalCTO(exercise, equipmentType, null);
+    this.#exerciseCTOMapState[exercise._id] = this.#buildMinimalCTO(exercise, equipmentType, null);
   }
 
   /**
@@ -99,7 +99,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    */
   updateCTOBestCalibration(calibration: WorkoutExerciseCalibration): void {
     const exerciseId = calibration.workoutExerciseId;
-    const cto = this.exerciseCTOMapState[exerciseId];
+    const cto = this.#exerciseCTOMapState[exerciseId];
     const new1RM = WorkoutExerciseCalibrationService.get1RM(calibration);
 
     if (!cto) {
@@ -107,7 +107,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       if (!exercise) return;
       const equipmentType = equipmentTypeMapService.getDoc(exercise.workoutEquipmentTypeId);
       if (!equipmentType) return;
-      this.exerciseCTOMapState[exerciseId] = this.buildMinimalCTO(
+      this.#exerciseCTOMapState[exerciseId] = this.#buildMinimalCTO(
         exercise,
         equipmentType,
         calibration
@@ -135,7 +135,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    */
   updateCTOBestSet(set: WorkoutSet): void {
     if (set.actualWeight == null || !set.actualReps || set.actualReps <= 0) return;
-    const cto = this.exerciseCTOMapState[set.workoutExerciseId];
+    const cto = this.#exerciseCTOMapState[set.workoutExerciseId];
     if (!cto) return;
 
     const new1RM = WorkoutExerciseCalibrationService.get1RMRaw(set.actualWeight, set.actualReps);
@@ -180,7 +180,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
 
     for (const se of sessionExercises) {
       const exerciseId = se.workoutExerciseId;
-      const cto = this.exerciseCTOMapState[exerciseId];
+      const cto = this.#exerciseCTOMapState[exerciseId];
       if (!cto) continue;
 
       const seSets = setsBySessionExerciseId.get(se._id);
@@ -222,7 +222,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    * @param exerciseId The exercise ID whose CTO should be removed
    */
   removeCTO(exerciseId: UUID): void {
-    delete this.exerciseCTOMapState[exerciseId];
+    delete this.#exerciseCTOMapState[exerciseId];
   }
 
   override deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
@@ -239,7 +239,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    * @param equipmentType The exercise's resolved equipment type
    * @param bestCalibration Seed value for `bestCalibration` (null when unknown)
    */
-  private buildMinimalCTO(
+  #buildMinimalCTO(
     exercise: WorkoutExercise,
     equipmentType: WorkoutEquipmentType,
     bestCalibration: WorkoutExerciseCalibration | null

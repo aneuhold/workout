@@ -4,8 +4,8 @@
  */
 class UpdateCheckService {
   /** Replaced with the deployed version at build time (see `replaceDevVersion.ts`). */
-  private static readonly currentVersion: string = '#DEV.VERSION#';
-  private static readonly versionUrl = 'https://mesopro.tonyneuhold.com/version.json';
+  static readonly #currentVersion: string = '#DEV.VERSION#';
+  static readonly #versionUrl = 'https://mesopro.tonyneuhold.com/version.json';
 
   #updateAvailable: boolean = $state(false);
 
@@ -20,17 +20,17 @@ class UpdateCheckService {
    * replaced). Errors are swallowed silently.
    */
   async checkForUpdate(): Promise<void> {
-    if (UpdateCheckService.currentVersion.includes('DEV.VERSION')) return;
+    if (UpdateCheckService.#currentVersion.includes('DEV.VERSION')) return;
 
     try {
-      const response = await fetch(UpdateCheckService.versionUrl, { cache: 'no-store' });
+      const response = await fetch(UpdateCheckService.#versionUrl, { cache: 'no-store' });
       const data: unknown = await response.json();
       if (
         typeof data === 'object' &&
         data !== null &&
         'appVersion' in data &&
         typeof data.appVersion === 'string' &&
-        data.appVersion !== UpdateCheckService.currentVersion
+        data.appVersion !== UpdateCheckService.#currentVersion
       ) {
         this.#updateAvailable = true;
       }

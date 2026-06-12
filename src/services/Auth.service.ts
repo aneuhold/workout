@@ -20,7 +20,7 @@ import { createLogger } from '$util/logging/logger';
  * returned `APIResponse`.
  */
 class AuthService {
-  private readonly log = createLogger('AuthService');
+  readonly #log = createLogger('AuthService');
 
   /**
    * Validates a Google ID token and applies the result. Returns the raw
@@ -34,7 +34,7 @@ class AuthService {
       googleCredentialToken: idToken,
       project: ProjectName.Workout
     });
-    this.applyLoginResult(response);
+    this.#applyLoginResult(response);
     return response;
   }
 
@@ -58,7 +58,7 @@ class AuthService {
       password: userPassword,
       project: ProjectName.Workout
     });
-    this.applyLoginResult(response);
+    this.#applyLoginResult(response);
     return response;
   }
 
@@ -71,9 +71,9 @@ class AuthService {
     try {
       await APIService.logout();
     } catch (error) {
-      this.log.warn('APIService.logout failed; continuing local teardown', error);
+      this.#log.warn('APIService.logout failed; continuing local teardown', error);
     }
-    await this.clearLocalSession();
+    await this.#clearLocalSession();
   }
 
   /**
@@ -84,7 +84,7 @@ class AuthService {
   async deleteAccount(): Promise<APIResponse<AuthDeleteAccountOutput>> {
     const response = await APIService.deleteAccount();
     if (response.success) {
-      await this.clearLocalSession();
+      await this.#clearLocalSession();
     }
     return response;
   }
@@ -96,7 +96,7 @@ class AuthService {
    *
    * @param response - The response from `APIService.validateUser`.
    */
-  private applyLoginResult(response: APIResponse<AuthValidateUserOutput>): void {
+  #applyLoginResult(response: APIResponse<AuthValidateUserOutput>): void {
     if (response.success && response.data.userInfo) {
       const { user } = response.data.userInfo;
       const { accessToken, refreshTokenString } = response.data;
@@ -119,7 +119,7 @@ class AuthService {
     } else if (!response.success) {
       loginState.set(LoginState.LoggedOut);
     } else {
-      this.log.error('Unexpected response from validateUser', response);
+      this.#log.error('Unexpected response from validateUser', response);
     }
   }
 
@@ -127,7 +127,7 @@ class AuthService {
    * Tears down local session state so the app returns to the login screen.
    * Google sign-out is best-effort — failure does not block local cleanup.
    */
-  private async clearLocalSession(): Promise<void> {
+  async #clearLocalSession(): Promise<void> {
     userConfig.clear();
     WorkoutAPIService.reset();
     await LocalData.clearWorkoutMaps();

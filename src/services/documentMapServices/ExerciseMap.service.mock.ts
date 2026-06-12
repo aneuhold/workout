@@ -342,7 +342,7 @@ export default class ExerciseMapServiceMock {
   ): WorkoutExerciseCTO[] {
     const hasSessionData = sessionMapService.allDocs.length > 0;
     const derivedFields = hasSessionData
-      ? ExerciseMapServiceMock.deriveCTOFields()
+      ? ExerciseMapServiceMock.#deriveCTOFields()
       : new Map<UUID, DerivedExerciseCTOFields>();
 
     const exerciseCTOs = calibrations.map((cal) => {
@@ -378,7 +378,7 @@ export default class ExerciseMapServiceMock {
    *   sessions
    * - Sets arrays: all sets from each variant's setOrder
    */
-  private static deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
+  static #deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
     const completedSessionIds = new Set<UUID>();
     for (const session of sessionMapService.allDocs) {
       if (session.complete) {

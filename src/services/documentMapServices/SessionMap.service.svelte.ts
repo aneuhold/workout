@@ -277,7 +277,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
     const session = this.getDoc(sessionId);
     if (!session || session.complete) return;
 
-    const options = this.prepareDeleteSessionExercisesWithSets(
+    const options = this.#prepareDeleteSessionExercisesWithSets(
       session.sessionExerciseOrder,
       apiOptions
     );
@@ -296,7 +296,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
     const session = this.getDoc(sessionId);
     if (!session || !sessionExerciseMapService.getDoc(sessionExerciseId)) return;
 
-    const apiOptions = this.prepareDeleteSessionExercisesWithSets([sessionExerciseId]);
+    const apiOptions = this.#prepareDeleteSessionExercisesWithSets([sessionExerciseId]);
 
     session.sessionExerciseOrder = session.sessionExerciseOrder.filter(
       (id) => id !== sessionExerciseId
@@ -313,7 +313,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
    * @param sessionExerciseIds The session exercise IDs to delete
    * @param apiOptions Optional existing API options to extend.
    */
-  private prepareDeleteSessionExercisesWithSets(
+  #prepareDeleteSessionExercisesWithSets(
     sessionExerciseIds: UUID[],
     apiOptions?: ProjectWorkoutPrimaryEndpointOptions
   ) {

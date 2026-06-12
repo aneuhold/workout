@@ -20,25 +20,25 @@ export default class LocalData {
    * at some point. Sourced from `storagePrefix.ts` so build-time scripts can
    * read the same value without booting SvelteKit.
    */
-  private static PREFIX = STORAGE_PREFIX;
+  static #PREFIX = STORAGE_PREFIX;
 
   static storedKeyNames = {
-    password: `${this.PREFIX}password`,
-    username: `${this.PREFIX}username`,
-    translations: `${this.PREFIX}translations`,
-    userConfig: `${this.PREFIX}userConfig`,
-    currentApiRequest: `${this.PREFIX}currentApiRequest`,
-    apiRequestQueue: `${this.PREFIX}apiRequestQueue`,
+    password: `${this.#PREFIX}password`,
+    username: `${this.#PREFIX}username`,
+    translations: `${this.#PREFIX}translations`,
+    userConfig: `${this.#PREFIX}userConfig`,
+    currentApiRequest: `${this.#PREFIX}currentApiRequest`,
+    apiRequestQueue: `${this.#PREFIX}apiRequestQueue`,
     // Workout document maps
-    mesocycleMap: `${this.PREFIX}mesocycleMap`,
-    microcycleMap: `${this.PREFIX}microcycleMap`,
-    sessionMap: `${this.PREFIX}sessionMap`,
-    sessionExerciseMap: `${this.PREFIX}sessionExerciseMap`,
-    setMap: `${this.PREFIX}setMap`,
-    exerciseMap: `${this.PREFIX}exerciseMap`,
-    exerciseCalibrationMap: `${this.PREFIX}exerciseCalibrationMap`,
-    muscleGroupMap: `${this.PREFIX}muscleGroupMap`,
-    equipmentTypeMap: `${this.PREFIX}equipmentTypeMap`
+    mesocycleMap: `${this.#PREFIX}mesocycleMap`,
+    microcycleMap: `${this.#PREFIX}microcycleMap`,
+    sessionMap: `${this.#PREFIX}sessionMap`,
+    sessionExerciseMap: `${this.#PREFIX}sessionExerciseMap`,
+    setMap: `${this.#PREFIX}setMap`,
+    exerciseMap: `${this.#PREFIX}exerciseMap`,
+    exerciseCalibrationMap: `${this.#PREFIX}exerciseCalibrationMap`,
+    muscleGroupMap: `${this.#PREFIX}muscleGroupMap`,
+    equipmentTypeMap: `${this.#PREFIX}equipmentTypeMap`
   };
 
   /**
@@ -46,20 +46,20 @@ export default class LocalData {
    * `localStorage` on web and `UserDefaults`/`SharedPreferences` on native.
    * Everything else routes to the large-tier backend.
    */
-  private static smallTierKeys: ReadonlySet<string> = new Set([
+  static #smallTierKeys: ReadonlySet<string> = new Set([
     this.storedKeyNames.password,
     this.storedKeyNames.username,
     this.storedKeyNames.userConfig,
     this.storedKeyNames.currentApiRequest
   ]);
 
-  private static smallBackend: ILocalDataBackend = Capacitor.isNativePlatform()
+  static #smallBackend: ILocalDataBackend = Capacitor.isNativePlatform()
     ? new PreferencesBackend()
     : new LocalStorageBackend();
-  private static largeBackend: ILocalDataBackend = Capacitor.isNativePlatform()
+  static #largeBackend: ILocalDataBackend = Capacitor.isNativePlatform()
     ? new SqliteBackend()
     : new IndexedDbBackend();
-  private static initialized = false;
+  static #initialized = false;
 
   /**
    * Opens any backend resources (SQLite connection, IndexedDB upgrade) and
@@ -67,51 +67,51 @@ export default class LocalData {
    * the first call has effect.
    */
   static async init(): Promise<void> {
-    if (this.initialized) return;
-    this.initialized = true;
-    if (this.smallBackend === this.largeBackend) {
-      await this.smallBackend.init?.();
+    if (this.#initialized) return;
+    this.#initialized = true;
+    if (this.#smallBackend === this.#largeBackend) {
+      await this.#smallBackend.init?.();
     } else {
-      await Promise.all([this.smallBackend.init?.(), this.largeBackend.init?.()]);
+      await Promise.all([this.#smallBackend.init?.(), this.#largeBackend.init?.()]);
     }
     void this.cleanupOldVersions();
   }
 
   static async getPassword(): Promise<string> {
-    return (await this.getValue(this.storedKeyNames.password)) ?? '';
+    return (await this.#getValue(this.storedKeyNames.password)) ?? '';
   }
 
   static async setPassword(newPassword: string): Promise<void> {
-    await this.storeValue(this.storedKeyNames.password, newPassword);
+    await this.#storeValue(this.storedKeyNames.password, newPassword);
   }
 
   static async getUsername(): Promise<string> {
-    return (await this.getValue(this.storedKeyNames.username)) ?? '';
+    return (await this.#getValue(this.storedKeyNames.username)) ?? '';
   }
 
   static async setUsername(newUsername: string): Promise<void> {
-    await this.storeValue(this.storedKeyNames.username, newUsername);
+    await this.#storeValue(this.storedKeyNames.username, newUsername);
   }
 
   static async getTranslations(): Promise<Translations | null> {
-    return this.getStoredObject<Translations>(this.storedKeyNames.translations);
+    return this.#getStoredObject<Translations>(this.storedKeyNames.translations);
   }
 
   static async setTranslations(newTranslations: Translations | null): Promise<void> {
-    await this.storeValue(this.storedKeyNames.translations, JSON.stringify(newTranslations));
+    await this.#storeValue(this.storedKeyNames.translations, JSON.stringify(newTranslations));
   }
 
   static async getUserConfig(): Promise<UserConfig | null> {
-    return this.getStoredObject<UserConfig>(this.storedKeyNames.userConfig);
+    return this.#getStoredObject<UserConfig>(this.storedKeyNames.userConfig);
   }
 
   static async setUserConfig(newSettings: UserConfig | null): Promise<void> {
-    await this.storeValue(this.storedKeyNames.userConfig, JSON.stringify(newSettings));
+    await this.#storeValue(this.storedKeyNames.userConfig, JSON.stringify(newSettings));
   }
 
   static async getCurrentApiRequest(): Promise<ProjectWorkoutPrimaryEndpointOptions | undefined> {
     return (
-      (await this.getStoredObject<ProjectWorkoutPrimaryEndpointOptions>(
+      (await this.#getStoredObject<ProjectWorkoutPrimaryEndpointOptions>(
         this.storedKeyNames.currentApiRequest
       )) ?? undefined
     );
@@ -120,12 +120,12 @@ export default class LocalData {
   static async setCurrentApiRequest(
     newApiRequest: ProjectWorkoutPrimaryEndpointOptions | undefined
   ): Promise<void> {
-    await this.storeValue(this.storedKeyNames.currentApiRequest, JSON.stringify(newApiRequest));
+    await this.#storeValue(this.storedKeyNames.currentApiRequest, JSON.stringify(newApiRequest));
   }
 
   static async getApiRequestQueue(): Promise<ProjectWorkoutPrimaryEndpointOptions[]> {
     return (
-      (await this.getStoredObject<ProjectWorkoutPrimaryEndpointOptions[]>(
+      (await this.#getStoredObject<ProjectWorkoutPrimaryEndpointOptions[]>(
         this.storedKeyNames.apiRequestQueue
       )) ?? []
     );
@@ -134,7 +134,7 @@ export default class LocalData {
   static async setApiRequestQueue(
     newRequestQueue: ProjectWorkoutPrimaryEndpointOptions[]
   ): Promise<void> {
-    await this.storeValue(this.storedKeyNames.apiRequestQueue, JSON.stringify(newRequestQueue));
+    await this.#storeValue(this.storedKeyNames.apiRequestQueue, JSON.stringify(newRequestQueue));
   }
 
   /**
@@ -147,7 +147,7 @@ export default class LocalData {
     key: string,
     newMap: DocumentMap<T>
   ): Promise<void> {
-    await this.storeValue(key, JSON.stringify(newMap));
+    await this.#storeValue(key, JSON.stringify(newMap));
   }
 
   /**
@@ -157,7 +157,7 @@ export default class LocalData {
    * @param key The storage key to read from (from `storedKeyNames`)
    */
   static async getDocumentMap<T extends BaseDocument>(key: string): Promise<DocumentMap<T> | null> {
-    return this.getStoredObject<DocumentMap<T>>(key);
+    return this.#getStoredObject<DocumentMap<T>>(key);
   }
 
   /**
@@ -171,22 +171,22 @@ export default class LocalData {
     const removals: Promise<void>[] = [];
     for (const key of Object.values(this.storedKeyNames)) {
       if (key.endsWith('Map')) {
-        removals.push(this.getBackendFor(key).remove(key));
+        removals.push(this.#getBackendFor(key).remove(key));
       }
     }
     await Promise.all(removals);
   }
 
-  private static getBackendFor(key: string): ILocalDataBackend {
-    return this.smallTierKeys.has(key) ? this.smallBackend : this.largeBackend;
+  static #getBackendFor(key: string): ILocalDataBackend {
+    return this.#smallTierKeys.has(key) ? this.#smallBackend : this.#largeBackend;
   }
 
-  private static async storeValue(key: string, value: string): Promise<void> {
-    await this.getBackendFor(key).set(key, value);
+  static async #storeValue(key: string, value: string): Promise<void> {
+    await this.#getBackendFor(key).set(key, value);
   }
 
-  private static async getValue(key: string): Promise<string | null> {
-    return this.getBackendFor(key).get(key);
+  static async #getValue(key: string): Promise<string | null> {
+    return this.#getBackendFor(key).get(key);
   }
 
   /**
@@ -196,10 +196,10 @@ export default class LocalData {
    */
   private static async cleanupOldVersions(): Promise<void> {
     const backends =
-      this.smallBackend === this.largeBackend
-        ? [this.smallBackend]
-        : [this.smallBackend, this.largeBackend];
-    await Promise.all(backends.map((backend) => backend.cleanupOldVersions(this.PREFIX)));
+      this.#smallBackend === this.#largeBackend
+        ? [this.#smallBackend]
+        : [this.#smallBackend, this.#largeBackend];
+    await Promise.all(backends.map((backend) => backend.cleanupOldVersions(this.#PREFIX)));
   }
 
   /**
@@ -208,8 +208,8 @@ export default class LocalData {
    *
    * @param key The key to get the object for.
    */
-  private static async getStoredObject<ObjectType>(key: string): Promise<ObjectType | null> {
-    const currentlyStoredValue = await this.getValue(key);
+  static async #getStoredObject<ObjectType>(key: string): Promise<ObjectType | null> {
+    const currentlyStoredValue = await this.#getValue(key);
     if (
       currentlyStoredValue &&
       currentlyStoredValue !== '' &&
