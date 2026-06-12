@@ -54,11 +54,11 @@ export default class SqliteBackend implements ILocalDataBackend {
   }
 
   #openDb(): Promise<SQLiteDBConnection> {
-    this.#dbPromise ??= this.createConnection();
+    this.#dbPromise ??= this.#createConnection();
     return this.#dbPromise;
   }
 
-  private async createConnection(): Promise<SQLiteDBConnection> {
+  async #createConnection(): Promise<SQLiteDBConnection> {
     const sqlite = new SQLiteConnection(CapacitorSQLite);
     const db = await sqlite.createConnection(
       SqliteBackend.#DB_NAME,

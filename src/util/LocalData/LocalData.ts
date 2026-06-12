@@ -74,7 +74,7 @@ export default class LocalData {
     } else {
       await Promise.all([this.#smallBackend.init?.(), this.#largeBackend.init?.()]);
     }
-    void this.cleanupOldVersions();
+    void this.#cleanupOldVersions();
   }
 
   static async getPassword(): Promise<string> {
@@ -194,7 +194,7 @@ export default class LocalData {
    * they don't pile up when the prefix is bumped. Each backend owns the
    * predicate it uses to scope deletion safely within its namespace.
    */
-  private static async cleanupOldVersions(): Promise<void> {
+  static async #cleanupOldVersions(): Promise<void> {
     const backends =
       this.#smallBackend === this.#largeBackend
         ? [this.#smallBackend]

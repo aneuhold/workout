@@ -171,7 +171,7 @@ export default class WorkoutAPIService {
       if (currentRequest.get) {
         combinedInput.get = { ...combinedInput.get, ...currentRequest.get };
       }
-      const result = await this.callWorkoutAPI(currentRequest);
+      const result = await this.#callWorkoutAPI(currentRequest);
       if (result) {
         combinedOutput = { ...combinedOutput, ...result };
       } else {
@@ -200,7 +200,7 @@ export default class WorkoutAPIService {
     }
   }
 
-  private static async callWorkoutAPI(
+  static async #callWorkoutAPI(
     input: ProjectWorkoutPrimaryEndpointOptions
   ): Promise<ProjectWorkoutPrimaryOutput | null> {
     this.#log.info('Processing API request', input);

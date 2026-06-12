@@ -16,7 +16,7 @@ class TimerWebAudioService {
     const ctx = this.#getAudioContext();
     if (!ctx) return;
     if (!this.#countdownBeepBuffer) {
-      this.#countdownBeepBuffer = this.createBuffer(
+      this.#countdownBeepBuffer = this.#createBuffer(
         ctx,
         timerSoundSynthService.synthesizeBeep(ctx.sampleRate)
       );
@@ -29,7 +29,7 @@ class TimerWebAudioService {
     const ctx = this.#getAudioContext();
     if (!ctx) return;
     if (!this.#completionToneBuffer) {
-      this.#completionToneBuffer = this.createBuffer(
+      this.#completionToneBuffer = this.#createBuffer(
         ctx,
         timerSoundSynthService.synthesizeCompletionTone(ctx.sampleRate)
       );
@@ -45,7 +45,7 @@ class TimerWebAudioService {
     return this.#audioCtx;
   }
 
-  private createBuffer(ctx: AudioContext, samples: Float32Array<ArrayBuffer>): AudioBuffer {
+  #createBuffer(ctx: AudioContext, samples: Float32Array<ArrayBuffer>): AudioBuffer {
     const buffer = ctx.createBuffer(1, samples.length, ctx.sampleRate);
     buffer.copyToChannel(samples, 0);
     return buffer;
