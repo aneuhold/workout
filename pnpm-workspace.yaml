@@ -2,3 +2,8 @@
 # released bad version can't sneak into installs/updates.
 # 7 * 24 * 60 minutes = 10080.
 minimumReleaseAge: 10080
+
+minimumReleaseAgeExclude:
+  # Local-published `@aneuhold/*` dev packages (via local-npm-registry) are meant
+  # to propagate immediately, so they must be exempt from the age gate above.
+  - '@aneuhold/*'
