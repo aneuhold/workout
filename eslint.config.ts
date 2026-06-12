@@ -1,4 +1,4 @@
-import svelteConfig from '@aneuhold/eslint-config/src/configs/svelte-config.ts';
+import svelteConfig from '@aneuhold/eslint-config/src/configs/svelte-config';
 import storybook from 'eslint-plugin-storybook';
 
 export default [
