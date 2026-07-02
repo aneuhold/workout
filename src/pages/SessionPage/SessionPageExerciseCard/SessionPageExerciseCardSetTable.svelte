@@ -80,7 +80,7 @@
   {/each}
   {#if hasRirAndReps && !isDeload && mode === SessionPageMode.Active}
     <p class="px-2 pt-1 text-xs text-muted-foreground/70">
-      Hit target reps first, then keep going until you reach target RIR.
+      Hit your target RIR, even if it means missing target reps.
     </p>
   {/if}
   {#if freeFormEditable && (mode === SessionPageMode.Active || mode === SessionPageMode.Planning)}

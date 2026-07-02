@@ -36,10 +36,10 @@ const sharedTextConstants = {
     'Your performance on subsequent exercises targeting unused muscles was hugely deteriorated'
   ],
   performanceDescriptions: [
-    'You hit your target reps, but had to do 2+ more reps than planned to hit target RIR, or hit target reps at 2+ reps before target RIR',
-    'You hit your target reps, but had to do 0-1 more reps than planned to hit target RIR, or hit target reps at 1 rep before target RIR',
-    'You hit your target reps after your target RIR',
-    "You could not match last week's reps at any RIR"
+    'You stopped at target RIR and beat your planned reps by 2 or more',
+    'You stopped at target RIR within 1 rep of your planned reps',
+    'You reached your planned reps only by pushing past target RIR',
+    'You could not reach your planned reps at any RIR'
   ],
   sorenessDescriptions: [
     'You did not get at all sore in the target muscle group',
