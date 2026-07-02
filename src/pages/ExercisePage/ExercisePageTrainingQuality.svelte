@@ -14,6 +14,7 @@
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
+  import sharedTextConstants from '$util/sharedTextConstants';
   import { cn } from '$util/svelte-shadcn-util';
 
   let {
@@ -201,10 +202,9 @@
         <InfoPopover>
           <p class="mb-1 font-medium">Performance Score (0–3)</p>
           <ul class="flex flex-col gap-0.5">
-            <li><strong>0:</strong> Hit target reps with 2+ reps extra needed or surplus</li>
-            <li><strong>1:</strong> Hit target reps with 0–1 rep variance</li>
-            <li><strong>2:</strong> Hit target reps after target RIR</li>
-            <li><strong>3:</strong> Could not match last week's reps at any RIR</li>
+            {#each sharedTextConstants.performanceDescriptions as description, score (score)}
+              <li><strong>{score}:</strong> {description}</li>
+            {/each}
           </ul>
         </InfoPopover>
       </div>
