@@ -90,13 +90,13 @@
     const apiOptions = deleteContext.isFreeForm
       ? undefined
       : microcycleMapService.prepareDeleteSessionFromMicrocycle(session._id);
-    sessionMapService.deleteSession(session._id, apiOptions);
     open = false;
     if (deleteContext.isFreeForm) {
       void goto('/sessions');
     } else {
       history.back();
     }
+    sessionMapService.deleteSession(session._id, apiOptions);
   }
 </script>
 
