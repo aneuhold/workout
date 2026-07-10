@@ -1,60 +1,115 @@
-# Free-form session: targets / add-set / add-exercise not saving
+# Free-form session: targets / RIR not saving + multi-add exercise data loss
 
-## Report (clarified with user)
-Original: "Bug with when saves happen on the planning screen / free form screen. It should save whenever the numbers are tapped off of or when the screen leaves."
+## Problem
 
-Clarified: the **Log** flow (committing a set's actual weight/reps/RIR via the log button/dialog) is believed to work as expected (**confirm it actually persists**). The real problem is in a **free-form workout**: **setting targets, adding sets, and adding exercises do not seem to save to the DB.**
+Two independent bugs in a free-form session:
 
-So the scope is:
-1. Confirm the Log flow actually persists actuals to the DB.
-2. Fix persistence for, in a free-form session: (a) setting targets, (b) adding a set, (c) adding an exercise.
-3. Ensure edits also flush on screen leave as a safety net.
+1. Editing a set's weight / reps / RIR and tapping off does not save.
+2. Adding more than one exercise at once persists only the last one; the rest silently vanish
+   on the next fetch.
 
-## Possible cross-cutting cause — read first
-This may share a root cause with the data-clobber bug in `docs/planned-fixes/sync-and-save-reliability.md` (Issue 1). If an add-set/add-exercise write IS being queued but gets clobbered by a batched `all`-get response (last-write-wins in `#processApiRequests`), the doc would round-trip and then vanish, looking exactly like "doesn't save." **First determine whether the write is even being triggered/queued** (add a temp log in `WorkoutAPIService.queryApi` and `DocumentMapStoreService.updateManyDocs`). If the write never fires → it's a trigger bug (below). If it fires but the local store reverts after the next sync → it's the clobber bug, and this work should merge with the sync-reliability worktree instead.
+Runtime verification (live backend, active free-form session):
 
-## What the code does today
+- Edit weight target then blur: no `POST /project/workout`, and the value is gone after reload.
+- Add Set (single): fires `POST /project/workout` (201) and survives reload.
+- Log a set: fires `POST /project/workout` (201) and the actuals survive reload.
+- Add two exercises at once: fires one `POST /project/workout` (201), but only one exercise
+  survives logout/login. Confirmed by inspecting the request body (see below).
 
-Both target screens are the same component, `SessionPage`, in different modes (`src/pages/SessionPage/sessionPageTypes.ts`): planning = `SessionPageMode.Planning`, free-form = `SessionPageMode.Active`. Route sets the mode in `src/routes/(app)/session/+page.svelte:11`.
+## Findings
 
-### Numeric field save trigger
-The only save trigger for numeric fields is an inline `onchange` on the weight/reps inputs in the set row, gated to Planning mode:
-- `src/pages/SessionPage/SessionPageSetRow.svelte:159-162` (weight), `:183-186` (reps):
-  ```js
-  onchange={() => { if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps); }}
-  ```
-- `onchange` on a number input fires on blur/commit, so it is effectively a blur save — but **only in Planning mode**. In a free-form (Active) session, typing a target and tapping off does nothing.
-- The RIR input (`:204-211`) has **no** save handler at all.
+### Targets / RIR — confirmed trigger bug (fix here)
 
-Save chain when it fires: `onPlannedChange` → `handlePlannedChange` (`SessionPageExerciseCard/SessionPageExerciseCard.svelte:104-114`) → `setMapService.updateDoc` → `DocumentMapStoreService.updateManyDocs` (`src/services/DocumentMapStore.service.svelte.ts:126`) → `persistToLocalData` + `persistToDb` → `WorkoutAPIService.queryApi`. Immediate, no debounce — so when the trigger fires, propagation is fine.
+The numeric inputs only save in Planning mode. In an Active free-form session the change is dropped:
 
-### No save-on-leave
-`SessionPage.svelte` has **no** lifecycle/navigation hooks — no `beforeNavigate`, `onDestroy`, `pagehide`, or `visibilitychange`. A value typed and left (input still focused on navigate, iOS back-gesture that emits no native `change`) is lost.
+- `SessionPageSetRow.svelte:159-162` (weight) and `:183-186` (reps):
+  `onchange={() => { if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps); }}`
+  The mode guard means an Active-mode edit fires nothing.
+- The RIR input (`SessionPageSetRow.svelte:204-211`) has no `onchange` in any mode. RIR entered
+  during a workout is only captured if the user hits Log; a plain edit-and-blur is lost.
+- Related gap: the RIR input is hidden when `mode === Planning` (`SessionPageSetRow.svelte:191`),
+  so `plannedRir` cannot be entered from the set row while planning at all.
 
-### Add set / add exercise
-Need to trace the add-set and add-exercise handlers in the free-form flow (in `SessionPageExerciseCard` and the SessionPage service) and confirm each calls `updateDoc` / `queryApi`. The report says these specifically don't persist, so verify whether the handler mutates only local rune state without calling the persistence layer, or whether it persists but gets clobbered (see cross-cutting cause above).
+The save chain, once triggered, is correct and immediate:
+`onPlannedChange` → `handlePlannedChange` (`SessionPageExerciseCard.svelte:104-114`) →
+`setMapService.updateDoc` → `DocumentMapStore.service.svelte.ts` `updateManyDocs` →
+`persistToLocalData` + `persistToDb` → `WorkoutAPIService.queryApi`. No debounce.
 
-## Research plan
-1. Add temporary logging at `WorkoutAPIService.queryApi` and `DocumentMapStoreService.updateManyDocs`. In a free-form session: set a target, add a set, add an exercise. See which of the three fire a queued write.
-2. For any that do NOT fire → trigger bug. For any that DO fire but revert → clobber bug (hand to the sync-reliability worktree).
-3. Confirm the Log flow fires a write and the actual values land in the DB.
+### Multi-add exercise — confirmed data-loss bug (fix here)
 
-## Fix direction (trigger side)
-- **Targets in free-form**: make the weight/reps `onchange` in `SessionPageSetRow.svelte` fire in Active mode too, routing to the planned/target fields. Cleanest: a single `onFieldBlur(field, value)` callback the parent maps to the correct field per mode.
-- **Add set / add exercise**: ensure those handlers call the persistence layer (`updateDoc`) not just local state. Fix wherever the trace shows the write is missing.
-- **Save on leave (safety net)**: add a flush in `SessionPage.svelte` via SvelteKit `beforeNavigate` plus a `pagehide`/`visibilitychange` listener (for mobile PWA background/close where `beforeNavigate` doesn't run). A `flushPendingEdits()` on `src/pages/SessionPage/SessionPage.service.svelte.ts` is the natural home; track the dirty field in `$state` on edit and commit it in the flush handler and on blur.
-- No debounce/flush plumbing needed in the sync layer — `updateDoc` already persists synchronously and queues the API write.
+Adding N exercises at once only persists the last one. Single add, add-set, and log all work
+(one insert per doctype, no overwrite).
+
+Root cause is the persistence-options accumulator overwriting a per-doctype key instead of merging.
+`createWorkoutPrepareForSave` (`src/util/workoutPersistenceUtils.ts:20-35`):
+
+```js
+if (info.insert) {
+  options.insert = { ...options.insert, [key]: info.insert };  // replaces the array, does not merge
+}
+```
+
+`addExercisesToSession` (`SessionMap.service.svelte:229-264`) calls `prepareDocsForSave` once per
+exercise inside the loop, so each iteration replaces `options.insert.sessionExercises` (and
+`.sets`) with just the current exercise. Only the last survives in the payload. The
+`sessionExerciseOrder` update lists every ID, but the earlier exercises are never inserted.
+Locally every exercise shows (each iteration writes to the local map), so it looks fine until a
+fetch walks the order array, cannot find the never-inserted exercises, and drops them
+(`getDocsWithIds` filters missing IDs).
+
+Verified request body for a two-exercise add: `insert.sessionExercises` and `insert.sets` each
+contained a single doc (the second exercise), while `update.sessions[0].sessionExerciseOrder`
+listed both IDs. After logout/login only the second exercise remained.
+
+This is a distinct trigger/batching bug, not the sync layer. The queue reliability issues in
+`docs/planned-fixes/sync-and-save-reliability.md` are real but separate and do not cause this.
+
+#### Decided fix — call site only
+
+Fix the call sites, not `createWorkoutPrepareForSave` / `prepareDocsForSave`. The overwrite is
+intentional: `prepareDocsForSave` is meant to set an entire doctype's operation in one shot, so a
+later call can replace an earlier one. Making the accumulator merge would break that contract. The
+bug is calling it repeatedly for the same doctype inside a loop; the caller should build the full
+array first and call once per doctype.
+
+Two call sites do this and both must be fixed:
+
+- `addExercisesToSession` (`src/services/documentMapServices/SessionMap.service.svelte.ts:229-264`):
+  collect all new `sessionExercise`s and all new `set`s into arrays in the loop, then call
+  `sessionExerciseMapService.prepareDocsForSave({ insert: allSessionExercises }, apiOptions)` and
+  `setMapService.prepareDocsForSave({ insert: allSets }, apiOptions)` once, after the loop.
+- `moveMesocycle` cascade (`src/services/documentMapServices/MesocycleMap.service.svelte.ts:444-472`):
+  the cascade loop calls `prepareDocsForSave` for mesocycles / microcycles / sessions once per
+  subsequent mesocycle, overwriting each prior iteration and the primary mesocycle set at :444-446.
+  Accumulate the primary plus every subsequent mesocycle / microcycle / session into arrays, then
+  call `prepareDocsForSave` once per doctype after the loop.
+
+All other `prepareDocsForSave` call sites were audited and are correct (each touches a given
+doctype + operation at most once per `apiOptions` object; `batchChildDocSaves` is fine).
+
+Verify after the fix: adding 2+ exercises at once, then logout/login, keeps all of them
+(request body's `insert.sessionExercises` should contain every added exercise); a cascading
+mesocycle move persists the shift on the primary and all subsequent mesocycles.
+
+## Fix direction (targets / RIR only)
+
+- Make weight/reps/RIR save on change (blur/commit) in Active mode as well, routing to the planned
+  target fields (`plannedWeight` / `plannedReps` / `plannedRir`). The Active-mode inputs already
+  display `actual ?? planned`, and the Log flow owns actuals, so an in-workout edit before logging
+  is a target edit.
+- Cleanest shape: replace the two Planning-gated `onchange` handlers and the untracked RIR input
+  with one `onFieldChange(field, value)` callback the row raises on commit; the parent maps it to
+  the correct planned field. This also gives RIR a save path.
+- Every edit saves the moment it commits. No navigation/lifecycle flush.
 
 ## Key files
-- `src/pages/SessionPage/SessionPageSetRow.svelte` — the `onchange` gating and the RIR input (trigger site).
-- `src/pages/SessionPage/SessionPageExerciseCard/SessionPageExerciseCard.svelte` — `handlePlannedChange` / `handleLogSet` / add-set / add-exercise handlers.
-- `src/pages/SessionPage/SessionPageExerciseCard/SessionPageExerciseCardSetTable.svelte` — prop plumbing for `onPlannedChange`.
-- `src/pages/SessionPage/SessionPage.svelte` — where a save-on-leave flush lives.
-- `src/pages/SessionPage/SessionPage.service.svelte.ts` — natural home for `flushPendingEdits()`.
-- `src/services/DocumentMapStore.service.svelte.ts`, `src/services/WorkoutAPI.service.ts` — sync layer (immediate; likely not the trigger problem, but see clobber cross-reference).
 
-## Worktree note
-Mostly independent of the other fixes (edits are in `SessionPage/*`), **except** the possible shared clobber cause. Do the diagnosis in step 1 first; if it's the clobber, fold into the sync-reliability worktree to avoid two people editing `WorkoutAPI.service.ts`.
+- `SessionPageSetRow.svelte` — the mode-gated weight/reps `onchange` and the handler-less RIR input.
+- `SessionPageExerciseCard/SessionPageExerciseCard.svelte` — `handlePlannedChange`, the target save handler.
+- `SessionPageExerciseCard/SessionPageExerciseCardSetTable.svelte` — `onPlannedChange` prop plumbing.
+- `src/util/workoutPersistenceUtils.ts` — `createWorkoutPrepareForSave` accumulator (multi-add root cause).
+- `src/services/documentMapServices/SessionMap.service.svelte.ts` — `addExercisesToSession` loop (multi-add call site).
 
 ## Before done
+
 Run `pnpm lint --fix`, `pnpm check`, `pnpm test`.

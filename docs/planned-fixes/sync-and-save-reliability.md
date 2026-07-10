@@ -1,10 +1,11 @@
 # Sync + Save Reliability (API queue hardening)
 
-This doc covers **three reported issues that all live in the same choke point**:
+This doc covers **four issues that all live in the same choke point**:
 `src/services/WorkoutAPI.service.ts` → `#processApiRequests()` / `#callWorkoutAPI()`.
+Issues 1-3 are reported; Issue 4 (dropped-write-on-failure) surfaced while investigating the others.
 
-Because all three edit the same method, they must be done in **one worktree / one pass**
-to avoid conflicts. They are three distinct fixes, not one, but they share the same
+Because all edit the same method, they must be done in **one worktree / one pass**
+to avoid conflicts. They are distinct fixes, not one, but they share the same
 error-classification rework.
 
 Original reports:
@@ -68,10 +69,61 @@ On an expired access token the backend returns 401; the lib auto-refreshes (`GCl
 
 There is **no code that maps an auth failure to `loginState.set(LoginState.LoggedOut)`** or prompts re-login. An auth failure is indistinguishable from a generic network failure at this layer, so the user just sees the error icon and silent save failure.
 
+#### Production evidence (Sentry WORKOUT-P, user polarBar, 2026-07-08)
+
+Breadcrumbs from a native-app app-start (build 1.1.4):
+
+```
+Getting initial data...
+POST /project/workout   → 401      (access token expired)
+POST /auth/refresh      → 201      (refresh attempt)
+→ result surfaced to app: { data:{}, success:false,
+                            errors:["Response did not match the expected APIResponse shape"] }
+```
+
+The lib refreshes on 401 and retries once (`GCloudAPI.service.ts:178-193`), but the retried
+`/project/workout` response fails `#isAPIResponseShape` (`:259-270`), collapsing the 401 into a
+generic `success:false`. The auth origin is gone by the time it reaches `#callWorkoutAPI`, so the
+app logs `[WorkoutAPIService.ts] Error processing API request` (WORKOUT-P) and shows the error
+icon with no re-login prompt. Whether the malformed retry body is itself a 401 error body that
+does not match the APIResponse shape, or a genuinely different backend response, is not yet
+confirmed from the trace alone.
+
 ### Fix direction
 Make auth failures distinguishable and actionable:
 - The API lib currently swallows the 401 into a generic `success:false`. Add an explicit auth-expired signal on the response (a typed error / flag) **or** an `onAuthExpired` callback analogous to `onTokensRefreshed`. This is a small `@aneuhold/core-ts-api-lib` change (see `~/Development/GithubRepos/ts-libs/packages/core-ts-api-lib/src/services/GCloudAPIService/GCloudAPI.service.ts` — `#call:178-193`, `#tryRefreshTokens:200-223`).
 - In the app, route an auth error to `loginState.set(LoginState.LoggedOut)` plus a user-facing "please log in again" prompt. Wire it in `src/stores/session/loginState.ts` next to `onTokensRefreshed`.
+
+---
+
+## Issue 4 — a failed write is dropped from the queue (data loss)
+
+### Root cause
+
+`#processApiRequests` (`WorkoutAPI.service.ts:162-194`) removes each request from the queue before
+sending it and does not put it back when the call fails:
+
+```js
+const currentRequest = this.#inMemoryApiRequestQueue.shift();  // removed up front
+const result = await this.#callWorkoutAPI(currentRequest);
+if (result) { combinedOutput = { ...combinedOutput, ...result }; } else { hadError = true; }
+// on failure: no re-queue (the retry block at :189-193 is commented out)
+```
+
+So any write (insert / update / delete) whose call returns `success:false` or throws is discarded.
+The document was already written to local storage synchronously via `persistToLocalData`, so it
+keeps showing in the UI, but it never reaches the backend. A later successful `get { all: true }`
+then replaces the store with backend truth (Issue 1 path), and the never-synced document disappears.
+
+This is the mechanism that turns a transient failure (offline, expired token per Issue 3, or a
+malformed response) into permanent, silent data loss rather than a retry.
+
+### Fix direction
+
+On a failed write, re-queue it (or persist it to a durable pending-writes list) instead of dropping
+it, and retry once connectivity / auth is restored. Distinguish auth failures (Issue 3) so an
+expired token pauses the queue and prompts re-login rather than draining and dropping every pending
+write. Be careful not to re-queue a `get` the same way, and cap retries to avoid an infinite loop.
 
 ---
 
