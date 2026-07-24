@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/dev-android.ts",
@@ -40,11 +40,11 @@
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@aneuhold/core-ts-api-lib": "^3.0.38",
-    "@aneuhold/core-ts-db-lib": "^5.0.8",
-    "@aneuhold/core-ts-lib": "^2.4.4",
-    "@aneuhold/eslint-config": "^3.0.0",
-    "@aneuhold/local-npm-registry": "^0.2.32",
+    "@aneuhold/core-ts-api-lib": "^3.0.41",
+    "@aneuhold/core-ts-db-lib": "^5.0.10",
+    "@aneuhold/core-ts-lib": "^2.4.6",
+    "@aneuhold/eslint-config": "^3.0.2",
+    "@aneuhold/local-npm-registry": "^0.2.34",
     "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/android": "^8.3.1",

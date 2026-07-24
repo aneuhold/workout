@@ -4,6 +4,7 @@ import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocket.service';
 import WorkoutAPIService from '$services/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
+import { sessionExpired } from '$stores/session/sessionExpired';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
 import { createLogger } from '$util/logging/logger';
 
@@ -32,6 +33,7 @@ function createLoginStateStore() {
     // Add the Sentry info for the user here
     if (newState === LoginState.LoggedIn) {
       getSentry()?.setUser({ username: userConfig.get().username });
+      sessionExpired.set(false);
     }
 
     handleLoginStateChangeForWebSocket(newState);
@@ -42,6 +44,12 @@ function createLoginStateStore() {
   // Persist new tokens when GCloudAPIService auto-refreshes on 401.
   APIService.setOnTokensRefreshed((accessToken, refreshTokenString) => {
     userConfig.update((config) => ({ ...config, accessToken, refreshTokenString }));
+  });
+
+  APIService.setOnAuthExpired(() => {
+    userConfig.clear();
+    sessionExpired.set(true);
+    setLoginState(LoginState.LoggedOut);
   });
 
   return {
