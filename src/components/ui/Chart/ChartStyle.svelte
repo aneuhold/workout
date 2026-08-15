@@ -28,7 +28,7 @@
 
 {#if themeContents}
   {#key id}
-    <svelte:element this={'style'}>
+    <svelte:element this={"style"}>
       {themeContents}
     </svelte:element>
   {/key}
