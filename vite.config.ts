@@ -63,7 +63,12 @@ const viteConfig: UserConfig = {
     // Added so that certain node packages work in the browser. The below
     // 3 are needed specifically for crypto it seems.
     nodePolyfills({
-      include: ['crypto', 'util', 'stream']
+      include: ['crypto', 'util', 'stream'],
+      // The `process` global shim rewrites every `process` reference in a
+      // transformed module to an empty stub. Vitest runs in Node against the
+      // real environment, so there the shim only hides `process.env` from any
+      // module that reads it. `Buffer` and `global` keep their defaults.
+      globals: { process: !process.env.VITEST }
     })
     /**
      * Bundle visualizer for analyzing the bundle size.
