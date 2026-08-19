@@ -66,8 +66,10 @@ const viteConfig: UserConfig = {
       include: ['crypto', 'util', 'stream'],
       // Version 0.27 started always wiping out the process global. See here for the bug.
       // https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/159
-      // If that is fixed, then `process: false` doesn't need to be specified anymore.
-      globals: { process: false }
+      // If that is fixed, then `process: !process.env.VITEST` doesn't need to be specified anymore.
+      // This needs to be true for web environments, because we use process.env in the web
+      // environment.
+      globals: { process: !process.env.VITEST }
     })
     /**
      * Bundle visualizer for analyzing the bundle size.
