@@ -36,11 +36,8 @@
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {
-    "@sentry/sveltekit": "10.60.0",
+    "@sentry/sveltekit": "^10.60.0",
     "socket.io-client": "^4.8.3"
-  },
-  "dependenciesComments": {
-    "@sentry/sveltekit": "Pinned exactly to the `@sentry/browser` / `@sentry/core` version that `@sentry/capacitor` depends on (it pins those exactly rather than by range). `SentryCapacitor.init(options, Sentry.init)` in src/hooks.client.ts passes a client between the two SDKs, so a mismatch resolves two copies of `@sentry/core` and the `Client` types stop being assignable. Bump this and `@sentry/capacitor` together."
   },
   "devDependencies": {
     "@aneuhold/core-ts-api-lib": "^3.0.43",
