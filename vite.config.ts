@@ -64,11 +64,10 @@ const viteConfig: UserConfig = {
     // 3 are needed specifically for crypto it seems.
     nodePolyfills({
       include: ['crypto', 'util', 'stream'],
-      // The `process` global shim rewrites every `process` reference in a
-      // transformed module to an empty stub. Vitest runs in Node against the
-      // real environment, so there the shim only hides `process.env` from any
-      // module that reads it. `Buffer` and `global` keep their defaults.
-      globals: { process: !process.env.VITEST }
+      // Version 0.27 started always wiping out the process global. See here for the bug.
+      // https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/159
+      // If that is fixed, then `process: false` doesn't need to be specified anymore.
+      globals: { process: false }
     })
     /**
      * Bundle visualizer for analyzing the bundle size.
