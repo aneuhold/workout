@@ -13,13 +13,6 @@ import {
 import { PerfMark } from '$util/perfMarks';
 
 /**
- * Quote characters a minifier may wrap a string literal in. Rolldown emits
- * template literals where esbuild emitted single quotes, so all three need
- * to count as a match.
- */
-const QUOTE_CHARS = ["'", '"', '`'];
-
-/**
  * How many times it needs to run each mode.
  */
 const REPEAT_EACH = 3;
@@ -90,6 +83,12 @@ async function findMissingMarks(): Promise<PerfMark[]> {
 
   const remaining = new Set<PerfMark>(Object.values(PerfMark));
   const allFiles = await FileSystemService.getAllFilePaths(buildDir);
+  /**
+   * Quote characters a minifier may wrap a string literal in. Rolldown emits
+   * template literals where esbuild emitted single quotes, so all three need
+   * to count as a match.
+   */
+  const QUOTE_CHARS = ["'", '"', '`'];
   for (const file of allFiles) {
     if (remaining.size === 0) break;
     const ext = extname(file).toLowerCase();
