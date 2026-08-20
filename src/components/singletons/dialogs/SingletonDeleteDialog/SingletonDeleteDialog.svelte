@@ -9,9 +9,7 @@
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
 
   type ItemType =
-    | WorkoutDocumentType.Exercise
-    | WorkoutDocumentType.MuscleGroup
-    | WorkoutDocumentType.Equipment;
+    WorkoutDocumentType.Exercise | WorkoutDocumentType.MuscleGroup | WorkoutDocumentType.Equipment;
 
   let open = $state(false);
   let currentItem = $state<{ name: string; type: ItemType; id: UUID } | null>(null);

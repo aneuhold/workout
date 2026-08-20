@@ -63,7 +63,13 @@ const viteConfig: UserConfig = {
     // Added so that certain node packages work in the browser. The below
     // 3 are needed specifically for crypto it seems.
     nodePolyfills({
-      include: ['crypto', 'util', 'stream']
+      include: ['crypto', 'util', 'stream'],
+      // Version 0.27 started always wiping out the process global. See here for the bug.
+      // https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/159
+      // If that is fixed, then `process: !process.env.VITEST` doesn't need to be specified anymore.
+      // This needs to be true for web environments, because we use process.env in the web
+      // environment.
+      globals: { process: !process.env.VITEST }
     })
     /**
      * Bundle visualizer for analyzing the bundle size.

@@ -72,9 +72,10 @@ if (isCompare) {
 /**
  * Walks `./build/` looking for each {@link PerfMark} value as a quoted
  * literal in any HTML or JS file. Mark names are runtime arguments to
- * `performance.mark()` and aren't transformed by the bundler, so the
- * literal survives to the built output. Returns the marks that weren't
- * found anywhere — empty array means the build is fully instrumented.
+ * `performance.mark()`, so the literal survives to the built output, though
+ * the surrounding quote character depends on the minifier. Returns the marks
+ * that weren't found anywhere, so an empty array means the build is fully
+ * instrumented.
  */
 async function findMissingMarks(): Promise<PerfMark[]> {
   const buildDir = resolve('build');
@@ -82,13 +83,19 @@ async function findMissingMarks(): Promise<PerfMark[]> {
 
   const remaining = new Set<PerfMark>(Object.values(PerfMark));
   const allFiles = await FileSystemService.getAllFilePaths(buildDir);
+  /**
+   * Quote characters a minifier may wrap a string literal in. Rolldown emits
+   * template literals where esbuild emitted single quotes, so all three need
+   * to count as a match.
+   */
+  const QUOTE_CHARS = ["'", '"', '`'];
   for (const file of allFiles) {
     if (remaining.size === 0) break;
     const ext = extname(file).toLowerCase();
     if (ext !== '.html' && ext !== '.js') continue;
     const content = readFileSync(file, 'utf-8');
     for (const mark of [...remaining]) {
-      if (content.includes(`'${mark}'`) || content.includes(`"${mark}"`)) {
+      if (QUOTE_CHARS.some((quote) => content.includes(`${quote}${mark}${quote}`))) {
         remaining.delete(mark);
       }
     }
