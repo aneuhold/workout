@@ -7,22 +7,22 @@ Make the Android release ride along with the existing web deploy, driven by a si
 The entire release process:
 
 ```
-pnpm bump patch      # or minor / major
+pnpm version patch      # or minor / major
 ```
 
-Commit, open a PR, merge. CI deploys the web build to Netlify and uploads the signed AAB to the Play track named in Step 3, both from the same commit. Promoting to production stays a manual click in Play Console.
+That writes `package.json`, commits, and tags. Open a PR, merge. CI deploys the web build to Netlify and uploads the signed AAB to the Play track named in Step 2, both from the same commit. Promoting to production stays a manual click in Play Console.
 
 Merges that do not change the version deploy the web build only, exactly as today.
 
 ## Why this is simpler
 
-| | Today | After |
-|---|---|---|
-| Version fields to maintain by hand | 3 (`package.json` `version`, `build.gradle` `versionName`, `build.gradle` `versionCode`) | 1 (`package.json` `version`) |
-| Commands to run for a release | 1 script + ~6 manual Play Console steps | 1 command |
-| Machines that can cut a release | 1 (the one holding the keystore) | any (CI) |
-| Ordering rules you must remember | Upload to Play before merging, or `UpdateCheckService` nags users toward a release that does not exist | none |
-| Source of the shipped AAB | your working tree | the merged commit |
+|                                    | Today                                                                                                  | After                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Version fields to maintain by hand | 3 (`package.json` `version`, `build.gradle` `versionName`, `build.gradle` `versionCode`)               | 1 (`package.json` `version`) |
+| Commands to run for a release      | 1 script + ~6 manual Play Console steps                                                                | 1 command                    |
+| Machines that can cut a release    | 1 (the one holding the keystore)                                                                       | any (CI)                     |
+| Ordering rules you must remember   | Upload to Play before merging, or `UpdateCheckService` nags users toward a release that does not exist | none                         |
+| Source of the shipped AAB          | your working tree                                                                                      | the merged commit            |
 
 ## Step 1 — Derive both Android version fields from `package.json`
 
@@ -37,19 +37,7 @@ Replace the literal `versionCode 13` / `versionName "1.1.7"` with values parsed 
 
 The existing `signingConfigs.release` block and its `keystorePropertiesFile.exists()` guard need no changes. That guard already covers a developer with a local keystore, a developer without one, and CI writing the file at build time.
 
-## Step 2 — The bump command
-
-**`package.json`**
-
-Add one script:
-
-```
-"bump": "pnpm version --no-git-tag-version"
-```
-
-Used as `pnpm bump patch`, `pnpm bump minor`, `pnpm bump major`. It writes `package.json` and nothing else: no git commit, no tag, no dirty-tree check.
-
-## Step 3 — Play upload script
+## Step 2 — Play upload script
 
 **New file: `scripts/uploadAndroidRelease.ts`**
 
@@ -60,7 +48,7 @@ Follows the existing `scripts/<verb><Noun>.ts` convention (`emitVersionInfo.ts`,
 3. `edits.tracks.update` assigning that version code to the target track with `status: 'completed'`, using the first line of the triggering commit message as the release name and notes.
 4. `edits.commit`.
 
-Reads `appId` from `capacitor.config.ts` rather than hardcoding the package name. Authorizes with a bare `new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/androidpublisher'] })` from `google-auth-library`, which picks up the Application Default Credentials that `google-github-actions/auth` writes in Step 4.
+Reads `appId` from `capacitor.config.ts` rather than hardcoding the package name. Authorizes with a bare `new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/androidpublisher'] })` from `google-auth-library`, which picks up the Application Default Credentials that `google-github-actions/auth` writes in Step 3.
 
 New dependencies: `@googleapis/androidpublisher` and `google-auth-library`. Use the scoped package, not the 212 MB umbrella `googleapis`.
 
@@ -84,7 +72,7 @@ enum PlayTrack {
 
 Set the module-level track constant to `PlayTrack.InternalTesting`. That is where the current release lives and where the app's only published build sits. Switch to `PlayTrack.ClosedTesting` once the 12-tester cohort is assembled and the 14-day clock starts, so the closed track keeps receiving builds without a Play Console visit.
 
-## Step 4 — Extend the main-branch workflow
+## Step 3 — Extend the main-branch workflow
 
 **`.github/workflows/main-branch.yml`**
 
@@ -108,7 +96,7 @@ Changes to the job:
 
 No `workflow_dispatch` and no duplicate-upload guard. Re-running from the GitHub UI covers manual reruns, and Play rejects a duplicate version code with an explicit message.
 
-## Step 5 — External setup
+## Step 4 — External setup
 
 ### Done
 
@@ -131,7 +119,7 @@ Verified against `backend-463900` on 2026-08-19:
    - `ANDROID_KEY_ALIAS`
    - `ANDROID_KEY_PASSWORD`
 
-## Step 6 — Fold the release configuration into the Android reference doc
+## Step 5 — Fold the release configuration into the Android reference doc
 
 Rename `docs/android-signing-and-google-sign-in.md` to **`docs/android-signing-and-publishing.md`**. Update the two inbound links: `README.md:54` and `docs/play-store-submission-plan.md:29`.
 
@@ -139,7 +127,7 @@ Merge into the existing structure rather than appending:
 
 - Rewrite the opening scope line and the TL;DR so the doc answers both questions it now serves: which key signs a given build, and which identity publishes it.
 - Extend the distribution-path table with a row for the CI release, so all four paths sit together: local debug key, local upload key, CI upload key, and Google's Play App Signing key.
-- New **Publishing identity** section, recording everything under Step 5's "Done" list plus:
+- New **Publishing identity** section, recording everything under Step 4's "Done" list plus:
   - Why the account is separate from `github-actions-deployer`: that account holds `run.admin`, `compute.instanceAdmin.v1`, `artifactregistry.admin`, `compute.osLogin`, and `iam.serviceAccountUser` on `backend-463900`, none of which publishing needs.
   - Why the name is app-scoped: the impersonation grant is per repository, so a shared `play-publisher` would let every bound repo release every app it can reach. Matches the `<app>-<purpose>` convention already documented for `mesopro-upload.jks`.
   - That Play Console grants release permission, which is why the account carries no GCP project roles.
@@ -164,7 +152,7 @@ Once this lands, this plan document is superseded and can be deleted.
 
 **`README.md`**
 
-- The Publishing bullet collapses to one line: `pnpm bump` plus merge.
+- The Publishing bullet collapses to one line: `pnpm version patch` plus merge.
 - Line 71's pointer to `scriptsComments` is corrected to name `scripts/dev-android.ts`, which holds the `DEVICES` list.
 
 **`vite.config.ts`**
@@ -177,13 +165,13 @@ Kept, because Step 4's asset uploads and Step 7's 12-tester gate are still open.
 
 - Line 3, the header, still says `versionCode 1 / versionName "1.0"`. Point it at `package.json` `version` instead.
 - Line 5 links to `capacitor-android-plan.md`, which no longer exists.
-- Step 3, lines 54 to 56: the manual `versionCode` bump and local build steps become `pnpm bump patch` plus a merge.
+- Step 3, lines 54 to 56: the manual `versionCode` bump and local build steps become `pnpm version patch` plus a merge.
 - Step 3, line 60: "Add an npm script `release:android`" is obsolete. Delete.
 - Step 8, line 145: "upload the latest AAB (bump `versionCode`)" becomes promoting the CI-uploaded build in Play Console.
 - Validation checkpoints, lines 158 to 161: the manual `build:android`, `bundleRelease`, and "versionCode strictly increased" checks are CI's job. The device smoke test survives.
 - Post-launch follow-ups, line 169: replace the Gradle Play Publisher recommendation with a pointer to `docs/android-signing-and-publishing.md`.
 
-Step 7's "push at least one patch release during this window" becomes `pnpm bump patch` plus a merge.
+Step 7's "push at least one patch release during this window" becomes `pnpm version patch` plus a merge.
 
 ## Validation
 
@@ -191,7 +179,7 @@ Per the repo's completion checklist: `pnpm lint --fix`, `pnpm check`, `pnpm test
 
 Android-specific, in order:
 
-1. `pnpm bump patch`, then confirm `cd android && ./gradlew :app:properties | grep -i version` reports the matching `versionName` and derived `versionCode`. Revert the bump afterward.
+1. `pnpm version patch`, then confirm `cd android && ./gradlew :app:properties | grep -i version` reports the matching `versionName` and derived `versionCode`. Drop the resulting commit and tag afterward.
 2. `pnpm build:android` still succeeds locally with no `keystore.properties` changes.
 3. First real merge with a version bump: watch the workflow, then confirm the build appears on the target track with the expected version code.
 
