@@ -17,8 +17,7 @@ for (const [key, value] of Object.entries(envFile)) {
 
 // Source-map upload is gated on both `SENTRY_UPLOAD_SOURCE_MAPS=true` and the
 // presence of `SENTRY_AUTH_TOKEN`, so it only runs from the main-branch CI
-// workflow and from `pnpm publish:android:build` — never from PR previews
-// or local dev.
+// workflow. PR previews and local dev never upload.
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const shouldUploadSourceMaps =
   process.env.SENTRY_UPLOAD_SOURCE_MAPS === 'true' && !!sentryAuthToken;

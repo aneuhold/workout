@@ -1,7 +1,7 @@
 /**
  * Single source of truth for `performance.mark` names emitted by the app.
  * Runtime call sites use `performance.mark(PerfMark.X)`; the perf
- * orchestrator (`scripts/perf/runPerf.ts`) reads `Object.values(PerfMark)`
+ * orchestrator (`scripts/commands/perf/runPerf.ts`) reads `Object.values(PerfMark)`
  * to validate that a built artifact contains every expected mark before
  * launching Playwright.
  *

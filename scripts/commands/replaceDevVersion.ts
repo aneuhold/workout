@@ -1,10 +1,8 @@
 import { readdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { PROJECT_ROOT } from '../constants/projectRoot';
+import appVersionService from '../services/AppVersion.service';
 
-const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(SCRIPT_DIR, '..');
-const PACKAGE_JSON_PATH = join(PROJECT_ROOT, 'package.json');
 const BUILD_DIR = join(PROJECT_ROOT, 'build');
 const PLACEHOLDER = '#DEV.VERSION#';
 const TARGET_EXTENSIONS = ['.html', '.js', '.css'];
@@ -16,7 +14,7 @@ const TARGET_EXTENSIONS = ['.html', '.js', '.css'];
  * version string in production while keeping source files version-agnostic.
  */
 const main = (): void => {
-  const version = readPackageVersion();
+  const version = appVersionService.read().version;
   const files = collectBuildFiles(BUILD_DIR);
 
   let filesChanged = 0;
@@ -35,18 +33,6 @@ const main = (): void => {
   console.log(
     `Replaced ${PLACEHOLDER} -> ${version} in ${filesChanged} file(s) (${totalReplacements} occurrence(s))`
   );
-};
-
-/**
- * Reads the `version` field from the project's `package.json`.
- */
-const readPackageVersion = (): string => {
-  const text = readFileSync(PACKAGE_JSON_PATH, 'utf-8');
-  const match = text.match(/"version"\s*:\s*"([^"]+)"/);
-  if (!match) {
-    throw new Error(`Could not find "version" in ${PACKAGE_JSON_PATH}`);
-  }
-  return match[1];
 };
 
 /**

@@ -1,8 +1,8 @@
 # Google Play Store Submission Plan
 
-Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, currently `versionCode 1` / `versionName "1.0"`, `targetSdk 36`) live on the Google Play Store.
+Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, `targetSdk 36`) live on the Google Play Store. `package.json` `version`, `build.gradle` `versionName`, and `versionCode` are written by `pnpm bump` and by nothing else.
 
-This is downstream of [`capacitor-android-plan.md`](./capacitor-android-plan.md). The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done — both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. What's left is the public-web pages, signed release build, store listing assets, compliance forms, and the testing → production rollout.
+The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done — both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. What's left is the public-web pages, signed release build, store listing assets, compliance forms, and the testing → production rollout.
 
 > Capacitor's [official Play deployment page](https://capacitorjs.com/docs/android/deploying-to-google-play) is a thin pointer — it states that Capacitor apps are normal native Android apps and defers to Google's [launch checklist](https://developer.android.com/distribute/best-practices/launch/launch-checklist). There's no Capacitor-managed signing, bundling, or Play upload flow; everything below uses standard Gradle + Play Console.
 
@@ -26,7 +26,7 @@ Verify each URL loads over HTTPS in incognito before pasting into the Play listi
 
 ## Step 2 — Wire the existing upload keystore into Gradle
 
-The upload keystore already exists at `~/.android/keystores/mesopro-upload.jks` (alias `mesopro`, password in password manager) — see [`android-signing-and-google-sign-in.md`](./android-signing-and-google-sign-in.md) for full context. What's left is wiring it into the Gradle build, since `android/app/build.gradle` currently has no `signingConfig` for `release` and `android/.gitignore` still has `*.keystore` commented out.
+The upload keystore already exists at `~/.android/keystores/mesopro-upload.jks` (alias `mesopro`, password in password manager) — see [`android-signing-and-publishing.md`](./android-signing-and-publishing.md) for full context. What's left is wiring it into the Gradle build, since `android/app/build.gradle` currently has no `signingConfig` for `release` and `android/.gitignore` still has `*.keystore` commented out.
 
 1. Add a `keystore.properties` file at `android/keystore.properties` (gitignored — never committed) with:
    ```
@@ -43,7 +43,7 @@ The upload keystore already exists at `~/.android/keystores/mesopro-upload.jks` 
 3. Edit `android/.gitignore` — uncomment the existing `#*.jks` and `#*.keystore` lines (already present at lines ~56–58), and add `keystore.properties`.
 4. Confirm enrollment in **[Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756)** at first AAB upload (Step 6). Google holds the real signing key; the local keystore is only the *upload* key (rotatable if lost). Then immediately copy the **App signing key SHA-1** from Play Console → App Integrity and register it as a new Android OAuth client per the existing signing doc — without this, Google Sign-In silently fails for every Play Store install.
 
-Docs: [Sign your app](https://developer.android.com/studio/publish/app-signing#sign-apk), [Configure Gradle to sign your app](https://developer.android.com/studio/publish/app-signing#sign_release).
+Docs: [Sign your app](https://developer.android.com/studio/publish/app-signing#sign-apk), [Remove signing information from your build files](https://developer.android.com/studio/publish/app-signing#secure-shared-keystore).
 
 ---
 
@@ -51,13 +51,12 @@ Docs: [Sign your app](https://developer.android.com/studio/publish/app-signing#s
 
 Play requires Android App Bundle (`.aab`), not APK. ([AAB requirement](https://developer.android.com/guide/app-bundle))
 
-1. Bump `versionCode` / `versionName` in `android/app/build.gradle` whenever you upload a new build — `versionCode` must strictly exceed the highest one ever uploaded to **any** track. To check what's currently published: Play Console → *Test and release → App bundle explorer* (lists every upload) or *Releases overview* (shows the top `versionCode` per track). Play also hard-rejects a re-used code at upload time and tells you the existing highest, so this is recoverable if forgotten.
-2. Run `pnpm build:android` (already wired: `pnpm build && pnpm cap sync android`).
-3. From the `android/` dir: `./gradlew bundleRelease`.
-4. Output: `android/app/build/outputs/bundle/release/app-release.aab`.
-5. Smoke-test the release build by installing the universal APK Android Studio can extract from the bundle, or via `bundletool build-apks` + `install-apks`.
+1. Run `pnpm bump` and pick patch, minor, or major. It writes the new semver to `package.json` `version` and `android/app/build.gradle` `versionName`, and increments `versionCode`, which Play requires to strictly exceed the highest one ever uploaded to **any** track.
+2. Open the bump as a PR and merge it. `main-branch.yml` builds the signed AAB and uploads it to the track named in `scripts/commands/uploadAndroidRelease/index.ts`.
+3. Output on a local run: `android/app/build/outputs/bundle/release/app-release.aab`.
+4. Smoke-test the release build by installing the universal APK Android Studio can extract from the bundle, or via `bundletool build-apks` + `install-apks`.
 
-Add an npm script `release:android` in `package.json` that runs the build + bundle in one shot.
+`pnpm release:android` does the same build, bundle, and upload from a developer machine. See [`android-signing-and-publishing.md`](./android-signing-and-publishing.md) for the credentials it needs.
 
 ---
 
@@ -132,7 +131,7 @@ Required before production for new personal accounts: **≥12 testers, opted in 
 2. Play Console → **Testing → Closed testing → Create track**. Upload same or newer AAB.
 3. Add the 12+ accounts to the tester list. Distribute the opt-in URL.
 4. Track opt-ins via Play Console; chase anyone who hasn't joined within a few days.
-5. Keep the test running uninterrupted for 14+ days. Push at least one patch release during this window to prove the update flow works.
+5. Keep the test running uninterrupted for 14+ days. Push at least one patch release during this window (`pnpm bump`, then merge) to prove the update flow works.
 6. Collect feedback — bug reports go via the closed-test feedback URL, crash reports via Play Console + Sentry.
 
 ---
@@ -142,7 +141,7 @@ Required before production for new personal accounts: **≥12 testers, opted in 
 Once Step 7's clock has elapsed and Play Console shows the **"Apply for production access"** button as available:
 
 1. Apply for production access. Google reviews — usually a few days.
-2. Once approved: **Production → Create new release**, upload the latest AAB (bump `versionCode`).
+2. Once approved: **Production → Create new release**, promoting the build CI already uploaded to the testing track.
 3. Release notes for v1.0.
 4. Choose a **staged rollout** (start at 20%, expand once Sentry shows no spike in crash-free-sessions).
 5. Submit for review. First-time reviews can take **up to 7 days**; subsequent updates are usually <24 h.
@@ -155,10 +154,7 @@ Once Step 7's clock has elapsed and Play Console shows the **"Apply for producti
 Before each upload:
 
 - `pnpm lint --fix`, `pnpm check`, `pnpm test` all pass
-- `pnpm build:android` clean
-- `./gradlew bundleRelease` produces a signed `.aab`
 - Install the release build on a physical device and run the golden path end-to-end (sign in → log a session → close → reopen → data persists)
-- `versionCode` strictly increased since last upload
 
 ---
 
@@ -166,5 +162,5 @@ Before each upload:
 
 These are not gates on shipping v1 — flagged here so they don't get lost.
 
-1. **CI for releases.** First release goes out manually via `./gradlew bundleRelease` + Play Console upload, deliberately, to learn where the friction actually is. Once the manual flow is understood, automate with **GitHub Actions** + the [Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) plugin (free, open source, handles AAB upload + listing updates). Avoid Ionic Appflow — paid-only (~$49/mo starting tier) and Ionic has discontinued it (existing-customer maintenance only through Dec 31 2027).
+1. **CI for releases.** Handled: `main-branch.yml` bundles and uploads on any merge that bumps the version. See [`android-signing-and-publishing.md`](./android-signing-and-publishing.md).
 2. **Marketing landing page.** Optional for v1; nice to have for the listing's Website field and as a target for the Play Store badge after launch.

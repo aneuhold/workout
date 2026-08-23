@@ -112,11 +112,10 @@ function runPlaywrightSuite(): void {
     rmSync(PERF_TEST_CONSTANTS.rawResultsDir, { recursive: true, force: true });
   }
   mkdirSync(PERF_TEST_CONSTANTS.rawResultsDir, { recursive: true });
-  const result = spawnSync(
-    'pnpm',
-    ['exec', 'playwright', 'test', 'scripts/perf/perf.spec.ts', `--repeat-each=${REPEAT_EACH}`],
-    { stdio: 'inherit', shell: false }
-  );
+  const result = spawnSync('pnpm', ['exec', 'playwright', 'test', `--repeat-each=${REPEAT_EACH}`], {
+    stdio: 'inherit',
+    shell: false
+  });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
