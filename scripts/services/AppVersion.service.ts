@@ -9,7 +9,7 @@ import gitService from './Git.service';
  * `versionName`. `versionCode` is the integer Play orders uploads by, and lives
  * only in `build.gradle`.
  */
-export type AppVersion = {
+type AppVersion = {
   version: string;
   versionCode: number;
 };
