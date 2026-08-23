@@ -12,8 +12,8 @@ const main = (): void => {
   const baseRef = process.argv[2];
   if (!baseRef) {
     throw new Error(
-      'Usage: tsx scripts/emitVersionChanged.ts <baseRef>\n' +
-        'Example: tsx scripts/emitVersionChanged.ts origin/main'
+      'Usage: tsx scripts/commands/emitVersionChanged.ts <baseRef>\n' +
+        'Example: tsx scripts/commands/emitVersionChanged.ts origin/main'
     );
   }
 
