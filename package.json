@@ -12,7 +12,7 @@
     "preview": "pnpm build && vite preview --port 5173",
     "preview:android": "pnpm build:android && pnpm push:android",
     "bump": "tsx scripts/commands/bumpRelease/index.ts",
-    "bundle:android": "tsx scripts/commands/bundleAndroidRelease/index.ts",
+    "bundle:android": "tsx scripts/commands/bundleAndroidRelease.ts",
     "release:android": "pnpm build && pnpm bundle:android && tsx scripts/commands/uploadAndroidRelease/index.ts",
     "lint": "eslint --cache",
     "test": "vitest run",

@@ -11,9 +11,17 @@ jobs:
     name: 'Deploy'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      # Required for the Workload Identity Federation OIDC token that
+      # google-github-actions/auth exchanges for Play publishing credentials.
+      id-token: write
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          # We need the previous version for a couple scripts
+          fetch-depth: 2
 
       - name: Set up PNPM
         uses: pnpm/action-setup@v6
@@ -50,3 +58,37 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
+
+      # Everything below publishes the Android release, and only runs when this
+      # push moved `package.json` `version`.
+      - name: Check whether the version changed
+        id: version
+        run: pnpm tsx scripts/commands/emitVersionChanged.ts HEAD~1
+
+      - name: Set up Java
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # `build/` is already on disk from the Netlify step
+      - name: Bundle the signed release
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm bundle:android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+
+      - name: Authenticate to Google Cloud
+        if: steps.version.outputs.changed == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/926119935605/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: mesopro-play-publisher@backend-463900.iam.gserviceaccount.com
+
+      - name: Upload to Google Play
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm tsx scripts/commands/uploadAndroidRelease/index.ts
+        env:
+          RELEASE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
