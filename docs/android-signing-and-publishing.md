@@ -2,7 +2,7 @@
 
 How publishing the android app works.
 
-## Signing
+## 🔑 Signing
 
 Google Sign-In on Android works only when the **SHA-1 of the key that signed the APK on the device** is registered against an Android OAuth 2.0 Client ID (with `package_name = com.tonyneuhold.mesopro`) in Google Cloud Console ([here is the link to where the keys are entered](https://console.cloud.google.com/auth/clients?project=backend-463900)). Different distribution paths use different keys, so we have to register each one as its own Android OAuth client (Cloud Console allows only one SHA-1 per client).
 
@@ -36,7 +36,7 @@ Play App Signing enrolls automatically at the first AAB upload, which is what ma
 
 **Back up the file + passwords to a password manager immediately.** Losing it requires Google support to reset. Password is currently held in password manager for the existing one created 5/3/2026.
 
-## Publishing
+## 🚀 Publishing
 
 `pnpm bump`, then merge to `main`. CI builds the signed AAB and uploads it to the track set in `scripts/commands/uploadAndroidRelease/index.ts`. A merge that doesn't change the version deploys the web build only.
 
@@ -84,7 +84,7 @@ Two repository secrets are also set in GitHub, so CI can sign with the publish k
 
 Base64 is only an encoding step, since GitHub secrets hold text and a keystore is binary. Setting one without the other fails the build rather than quietly producing an unsigned bundle.
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
 The error you'll see when SHA-1 is wrong/missing:
 
@@ -96,7 +96,7 @@ GetCredentialCancellationException: [16] Account reauth failed
 
 To see the underlying exception: Android Studio → Logcat → filter `package:com.tonyneuhold.mesopro` and search `Google` while tapping the sign-in button.
 
-## Adding a new Developer
+## 👋 Adding a new Developer
 
 1. They run `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep SHA1` on their machine.
 2. In Google Cloud Console → Credentials → Create credentials → OAuth client → Android ([link to the right location here](https://console.cloud.google.com/auth/clients?project=backend-463900)).
@@ -104,7 +104,7 @@ To see the underlying exception: Android Studio → Logcat → filter `package:c
 4. Package name: `com.tonyneuhold.mesopro`. SHA-1: theirs. Save.
 5. They can now run `pnpm dev:android` and Google Sign-In works.
 
-## References
+## 📚 References
 
 - [Client Authentication for Google Play services](https://developers.google.com/android/guides/client-auth) — official statement that SHA-1 is required for Google Sign-In
 - [Sign in with Google via Credential Manager](https://developer.android.com/identity/sign-in/credential-manager-siwg) — the API we use under the hood
