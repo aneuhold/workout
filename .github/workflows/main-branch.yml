@@ -16,6 +16,9 @@ jobs:
       # Required for the Workload Identity Federation OIDC token that
       # google-github-actions/auth exchanges for Play publishing credentials.
       id-token: write
+      # Required for nwtgck/actions-netlify to create the GitHub Deployment it
+      # is configured for via `github-deployment-description`.
+      deployments: write
 
     steps:
       - uses: actions/checkout@v6
