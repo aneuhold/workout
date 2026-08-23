@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import gitService from './Git.service';
 import { PROJECT_ROOT } from '../constants/projectRoot';
+import gitService from './Git.service';
 
 /**
  * The combined Android app version. `version` is the semver string, held in

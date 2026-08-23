@@ -1,5 +1,5 @@
 import { appendFileSync } from 'fs';
-import appVersionService from './services/AppVersion.service';
+import appVersionService from '../services/AppVersion.service';
 
 /**
  * Reports whether `package.json` `version` differs between a base git ref and

@@ -1,5 +1,5 @@
-import capacitorConfig from '../../capacitor.config';
-import androidProjectService from '../services/AndroidProject.service';
+import capacitorConfig from '../../../capacitor.config';
+import androidProjectService from '../../services/AndroidProject.service';
 import playReleaseService from './PlayRelease.service';
 import releaseNotesService from './ReleaseNotes.service';
 import { PlayTrack } from './types';

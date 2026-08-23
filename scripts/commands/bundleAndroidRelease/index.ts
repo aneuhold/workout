@@ -1,4 +1,4 @@
-import androidProjectService from '../services/AndroidProject.service';
+import androidProjectService from '../../services/AndroidProject.service';
 import signingConfigService from './SigningConfig.service';
 
 signingConfigService.writeFromEnvironment();

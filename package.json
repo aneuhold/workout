@@ -3,20 +3,20 @@
   "version": "1.1.7",
   "scripts": {
     "dev": "vite dev",
-    "dev:android": "tsx scripts/dev-android.ts",
+    "dev:android": "tsx scripts/commands/dev-android.ts",
     "open:android": "pnpm cap open android",
-    "build": "vite build && tsx scripts/replaceDevVersion.ts && tsx scripts/emitVersionInfo.ts",
+    "build": "vite build && tsx scripts/commands/replaceDevVersion.ts && tsx scripts/commands/emitVersionInfo.ts",
     "build:sb": "storybook build",
     "build:android": "pnpm build && pnpm cap sync android",
     "push:android": "pnpm cap run android",
     "preview": "pnpm build && vite preview --port 5173",
     "preview:android": "pnpm build:android && pnpm push:android",
-    "bump": "tsx scripts/bumpRelease/index.ts",
-    "bundle:android": "tsx scripts/bundleAndroidRelease/index.ts",
-    "release:android": "pnpm build && pnpm bundle:android && tsx scripts/uploadAndroidRelease/index.ts",
+    "bump": "tsx scripts/commands/bumpRelease/index.ts",
+    "bundle:android": "tsx scripts/commands/bundleAndroidRelease/index.ts",
+    "release:android": "pnpm build && pnpm bundle:android && tsx scripts/commands/uploadAndroidRelease/index.ts",
     "lint": "eslint --cache",
     "test": "vitest run",
-    "test:perf": "pnpm test:perf:seed && tsx scripts/perf/runPerf.ts",
+    "test:perf": "pnpm test:perf:seed && tsx scripts/commands/perf/runPerf.ts",
     "test:perf:seed": "vitest run -c vite.perf.config.ts",
     "check": "svelte-check && pnpm check:circular",
     "check:circular": "madge --circular --extensions ts,svelte src/",
@@ -30,13 +30,13 @@
     "sub:eslint-config": "local-npm subscribe @aneuhold/eslint-config",
     "unsub:core-ts-api-lib": "local-npm unsubscribe @aneuhold/core-ts-api-lib",
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
-    "generate:icons": "tsx scripts/generate-icons.ts"
+    "generate:icons": "tsx scripts/commands/generate-icons/generate-icons.ts"
   },
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@11.23.0",
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {
-    "@sentry/sveltekit": "^10.60.0",
+    "@sentry/sveltekit": "10.60.0",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
@@ -117,8 +117,8 @@
     "vitest": "^4.1.10"
   },
   "devDependenciesComments": {
-    "svg2vectordrawable": "Used by scripts/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs.",
-    "culori": "Used by scripts/generate-icons-utils.ts to convert the OKLCH --background tokens from src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires.",
+    "svg2vectordrawable": "Used by scripts/commands/generate-icons/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs.",
+    "culori": "Used by scripts/commands/generate-icons/generate-icons-utils.ts to convert the OKLCH --background tokens from src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires.",
     "devtools-protocol": "Provides the `Protocol` namespace used in testUtils/perfTestUtils.ts to type the CDP throttling inputs (`Network.emulateNetworkConditionsRequest`, `Emulation.SetCPUThrottlingRateRequest`). Playwright depends on this transitively but doesn't re-export it."
   }
 }

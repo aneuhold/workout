@@ -68,7 +68,7 @@ For first-time setup, you may need to add your local Android debug key to Google
 #### Testing on an emulator / debugging
 
 1. If you want to test on your actual device, then plug it in first to the laptop at this point.
-2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the `DEVICES` list in [`scripts/dev-android.ts`](scripts/dev-android.ts).
+2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the `DEVICES` list in [`scripts/commands/dev-android.ts`](scripts/commands/dev-android.ts).
 3. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
 
 ![alt text](docs/images/chrome-inspect-devices.png)

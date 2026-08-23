@@ -1,5 +1,5 @@
 import { select } from '@inquirer/prompts';
-import appVersionService from '../services/AppVersion.service';
+import appVersionService from '../../services/AppVersion.service';
 import semverBumpService from './SemverBump.service';
 import { BumpKind } from './types';
 

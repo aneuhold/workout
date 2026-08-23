@@ -9,6 +9,6 @@ export default {
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['scripts/perf/seed.ts']
+    include: ['scripts/commands/perf/seed.ts']
   }
 };

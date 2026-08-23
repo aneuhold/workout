@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
-import { STORAGE_PREFIX } from '../src/util/LocalData/storagePrefix';
-import appVersionService from './services/AppVersion.service';
+import { STORAGE_PREFIX } from '../../src/util/LocalData/storagePrefix';
+import appVersionService from '../services/AppVersion.service';
 
 const OUTPUT_PATH = join('build', 'version.json');
 

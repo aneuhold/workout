@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { PROJECT_ROOT } from './constants/projectRoot';
-import appVersionService from './services/AppVersion.service';
+import { PROJECT_ROOT } from '../constants/projectRoot';
+import appVersionService from '../services/AppVersion.service';
 
 const BUILD_DIR = join(PROJECT_ROOT, 'build');
 const PLACEHOLDER = '#DEV.VERSION#';
