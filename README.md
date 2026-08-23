@@ -51,7 +51,7 @@ The reason that the `pageInfo.ts` files are separate and not done in the module 
 
 [![Play Console](https://img.shields.io/badge/Play%20Console-Open-414141?logo=googleplay&logoColor=white)](https://play.google.com/console/u/0/developers/7096606584485556849/app/4974980926556665079/releases/overview)
 
-For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-google-sign-in.md).
+For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-publishing.md).
 
 #### Commands
 
@@ -63,12 +63,12 @@ For first-time setup, you may need to add your local Android debug key to Google
   - `pnpm push:android` - pushes the latest prod build to the chosen device (selection)
   - `pnpm preview:android` - production-style android build, then pushes to the chosen device
 - 📦 Publishing
-  - `pnpm publish:android:build` will create the production build with the real signing upload key. It offers to bump versions as well if necessary.
+  - `pnpm bump` picks a patch/minor/major bump, then merging that to `main` deploys the web build and uploads the signed AAB to Play. See [the publishing docs](docs/android-signing-and-publishing.md). If you don't bump, it won't deploy to Google Play.
 
 #### Testing on an emulator / debugging
 
 1. If you want to test on your actual device, then plug it in first to the laptop at this point.
-2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the options in `scriptsComments`.
+2. From the repo root, run `pnpm dev:android` and wait for the app to appear on the emulator. Note that you may need to change the device being used by updating the command. See the `DEVICES` list in [`scripts/dev-android.ts`](scripts/dev-android.ts).
 3. On your Mac, open Chrome and navigate to `chrome://inspect/#devices` This will bring up a view like so:
 
 ![alt text](docs/images/chrome-inspect-devices.png)
