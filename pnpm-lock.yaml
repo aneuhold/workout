@@ -30,6 +30,9 @@ importers:
       '@aneuhold/local-npm-registry':
         specifier: ^1.0.1
         version: 1.0.1(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
+      '@aneuhold/robot-instructions':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -320,6 +323,9 @@ packages:
   '@aneuhold/local-npm-registry@1.0.1':
     resolution: {integrity: sha512-v5CSi7EbKV0G+m/Whl3tUVVGqpPqC7dAqltUYlvUC8v/o19ZmiJ5gYc3pgyG9hkFlDzmB+uKDkYJw3qlkbSwkQ==}
     hasBin: true
+
+  '@aneuhold/robot-instructions@0.1.2':
+    resolution: {integrity: sha512-eUA5qaSJTPKY9PRKSmYQLL4U2uGb1bLs+VjF5irXGpchyg4R8Ku5LBs401xh/F3bhmEFt9jnCVkqVNpUAojJmA==}
 
   '@angular-devkit/architect@0.2100.3':
     resolution: {integrity: sha512-PcruWF0+IxXOTZd9MN/3y4A5aTfblALzT/+zWym26PtisaBgWQ3tRPQsf/CgT8EdmZl8eUOAWlNBSkbUj/S/lQ==}
@@ -8524,6 +8530,8 @@ snapshots:
       - react-native-b4a
       - supports-color
       - typanion
+
+  '@aneuhold/robot-instructions@0.1.2': {}
 
   '@angular-devkit/architect@0.2100.3':
     dependencies:
