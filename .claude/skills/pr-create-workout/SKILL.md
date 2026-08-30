@@ -10,7 +10,7 @@ You are tasked with pushing up the local branch (if not already done) and creati
 
 Then you execute the following. Note that you do have permissions to commit if the user explicitly asked you to use this skill:
 
-1. If the version needs to be bumped, use `pnpm bump` and commit.
+1. If the version needs to be bumped, run `pnpm bump <patch|minor|major>` and commit. Always pass the bump kind as an argument, since omitting it opens an interactive prompt that needs a TTY to answer.
 2. Push up the changes to a new PR
 3. (If the user did ask for a PR review to be done) Run another sub-agent (Opus) to do a code-review on the work, then address any low-hanging fruit issues the reviewer brings up, but for larger issues, or something that isn't clear if it should be updated, ask the user first. After this iteration is complete locally, then push again. up again.
 4. Open the PR as ready to review, and make sure all the checks pass
