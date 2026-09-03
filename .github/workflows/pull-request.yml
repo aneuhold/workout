@@ -30,7 +30,6 @@ jobs:
       - name: Set up pnpm and Node.js
         uses: pnpm/setup@v2
         with:
-          runtime: node@lts
           cache: true
           install: false
 
@@ -75,7 +74,6 @@ jobs:
       - name: Set up pnpm, Node.js, and install dependencies
         uses: pnpm/setup@v2
         with:
-          runtime: node@lts
           cache: true
 
       - name: Download build artifact
@@ -124,7 +122,6 @@ jobs:
       - name: Set up pnpm, Node.js, and install dependencies
         uses: pnpm/setup@v2
         with:
-          runtime: node@lts
           cache: true
 
       - name: Check whether the version changed
@@ -166,7 +163,6 @@ jobs:
       - name: Set up pnpm, Node.js, and install dependencies
         uses: pnpm/setup@v2
         with:
-          runtime: node@lts
           cache: true
 
       - name: Download main build
