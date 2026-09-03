@@ -32,7 +32,7 @@
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
     "generate:icons": "tsx scripts/commands/generate-icons/generate-icons.ts"
   },
-  "packageManager": "pnpm@11.23.0",
+  "packageManager": "pnpm@12.2.1",
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {

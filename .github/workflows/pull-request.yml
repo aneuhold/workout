@@ -27,14 +27,12 @@ jobs:
         with:
           ref: ${{ matrix.ref == 'main' && 'main' || github.ref }}
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
+          runtime: node@lts
+          cache: true
+          install: false
 
       - name: Check enableLocalOverride is not enabled
         if: matrix.ref == 'pr'
@@ -74,17 +72,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+          runtime: node@lts
+          cache: true
 
       - name: Download build artifact
         uses: actions/download-artifact@v8
@@ -129,17 +121,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+          runtime: node@lts
+          cache: true
 
       - name: Check whether the version changed
         id: version
@@ -177,17 +163,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+          runtime: node@lts
+          cache: true
 
       - name: Download main build
         uses: actions/download-artifact@v8
