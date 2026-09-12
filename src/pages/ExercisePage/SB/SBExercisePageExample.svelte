@@ -2,9 +2,9 @@
   import { type DocumentMap, type WorkoutExerciseCalibration } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
+  import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockData from '$testUtils/MockData';
   import ExercisePage from '../ExercisePage.svelte';
 

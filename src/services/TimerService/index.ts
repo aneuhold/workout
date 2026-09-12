@@ -1,1 +1,1 @@
-export { default } from './TimerService.svelte';
+export { default } from './Timer.service.svelte';

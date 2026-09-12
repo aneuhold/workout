@@ -11,7 +11,7 @@
   import { WorkoutSetService } from '@aneuhold/core-ts-db-lib';
   import SessionCard from '$components/SessionCard/SessionCard.svelte';
   import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 
   const { freeFormSessions } = sessionMapService;
 

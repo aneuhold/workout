@@ -7,9 +7,9 @@
 -->
 <script lang="ts">
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import { PerfMark } from '$util/perfMarks';
   import SessionsPageEmptyState from './SessionsPageEmptyState.svelte';
   import SessionsPageFreeFormSection from './SessionsPageFreeFormSection.svelte';

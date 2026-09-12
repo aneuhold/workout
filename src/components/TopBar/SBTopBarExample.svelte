@@ -2,7 +2,7 @@
   import { onDestroy } from 'svelte';
   import apiActivityService, {
     ApiActivityState
-  } from '$services/ApiActivityService/ApiActivityService.svelte';
+  } from '$services/ApiActivityService/ApiActivity.service.svelte';
   import timerService from '$services/TimerService';
   import TopBar from './TopBar.svelte';
 

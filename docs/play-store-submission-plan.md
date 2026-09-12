@@ -1,8 +1,8 @@
 # Google Play Store Submission Plan
 
-Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, currently `versionCode 1` / `versionName "1.0"`, `targetSdk 36`) live on the Google Play Store.
+Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, `targetSdk 36`) live on the Google Play Store. `package.json` `version`, `build.gradle` `versionName`, and `versionCode` are written by `pnpm bump` and by nothing else.
 
-This is downstream of [`capacitor-android-plan.md`](./capacitor-android-plan.md). The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done — both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. The upload keystore is wired into Gradle, a signed release AAB has been built, and the Play Console compliance forms (App content) are filled out. What's left is the public-web pages, store listing assets, the main store listing copy, and the testing → production rollout.
+The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done — both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. The upload keystore is wired into Gradle, a signed release AAB has been built, and the Play Console compliance forms (App content) are filled out. What's left is the public-web pages, store listing assets, the main store listing copy, and the testing → production rollout.
 
 > Capacitor's [official Play deployment page](https://capacitorjs.com/docs/android/deploying-to-google-play) is a thin pointer — it states that Capacitor apps are normal native Android apps and defers to Google's [launch checklist](https://developer.android.com/distribute/best-practices/launch/launch-checklist). There's no Capacitor-managed signing, bundling, or Play upload flow; everything below uses standard Gradle + Play Console.
 
@@ -82,7 +82,7 @@ Required before production for new personal accounts: **≥12 testers, opted in 
 2. Play Console → **Testing → Closed testing → Create track**. Upload same or newer AAB.
 3. Add the 12+ accounts to the tester list. Distribute the opt-in URL.
 4. Track opt-ins via Play Console; chase anyone who hasn't joined within a few days.
-5. Keep the test running uninterrupted for 14+ days. Push at least one patch release during this window to prove the update flow works.
+5. Keep the test running uninterrupted for 14+ days. Push at least one patch release during this window (`pnpm bump`, then merge) to prove the update flow works.
 6. Collect feedback — bug reports go via the closed-test feedback URL, crash reports via Play Console + Sentry.
 
 ---
@@ -92,7 +92,7 @@ Required before production for new personal accounts: **≥12 testers, opted in 
 Once Step 5's clock has elapsed and Play Console shows the **"Apply for production access"** button as available:
 
 1. Apply for production access. Google reviews — usually a few days.
-2. Once approved: **Production → Create new release**, upload the latest AAB (bump `versionCode`).
+2. Once approved: **Production → Create new release**, promoting the build CI already uploaded to the testing track.
 3. Release notes for v1.0.
 4. Choose a **staged rollout** (start at 20%, expand once Sentry shows no spike in crash-free-sessions).
 5. Submit for review. First-time reviews can take **up to 7 days**; subsequent updates are usually <24 h.
@@ -105,10 +105,7 @@ Once Step 5's clock has elapsed and Play Console shows the **"Apply for producti
 Before each upload:
 
 - `pnpm lint --fix`, `pnpm check`, `pnpm test` all pass
-- `pnpm build:android` clean
-- `./gradlew bundleRelease` produces a signed `.aab`
 - Install the release build on a physical device and run the golden path end-to-end (sign in → log a session → close → reopen → data persists)
-- `versionCode` strictly increased since last upload
 
 ---
 
@@ -116,5 +113,5 @@ Before each upload:
 
 These are not gates on shipping v1 — flagged here so they don't get lost.
 
-1. **CI for releases.** First release goes out manually via `./gradlew bundleRelease` + Play Console upload, deliberately, to learn where the friction actually is. Once the manual flow is understood, automate with **GitHub Actions** + the [Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) plugin (free, open source, handles AAB upload + listing updates). Avoid Ionic Appflow — paid-only (~$49/mo starting tier) and Ionic has discontinued it (existing-customer maintenance only through Dec 31 2027).
+1. **CI for releases.** Handled: `main-branch.yml` bundles and uploads on any merge that bumps the version. See [`android-signing-and-publishing.md`](./android-signing-and-publishing.md).
 2. **Marketing landing page.** Optional for v1; nice to have for the listing's Website field and as a target for the Play Store badge after launch.

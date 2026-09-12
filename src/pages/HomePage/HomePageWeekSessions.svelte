@@ -13,8 +13,8 @@
   import SessionCard from '$components/SessionCard/SessionCard.svelte';
   import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
   import { getSessionStatus } from '$components/SessionCard/sessionCardUtils';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 
   let {
     microcycle,

@@ -24,4 +24,4 @@ docs/FullBook.md
 storybook-static
 
 # Perf-test scratch outputs
-/scripts/perf/perfTemp/
+/scripts/commands/perf/perfTemp/

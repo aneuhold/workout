@@ -11,7 +11,7 @@
   import { SvelteSet } from 'svelte/reactivity';
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
-  } from '$services/documentMapServices/mesocycleMapService.mock';
+  } from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockData from '$testUtils/MockData';
   import WorkoutMesocycleCalendar from './WorkoutMesocycleCalendar.svelte';
 

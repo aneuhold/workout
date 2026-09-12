@@ -14,7 +14,7 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
+  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
   import MockData from '$testUtils/MockData';
   import SessionsPage from '../SessionsPage.svelte';

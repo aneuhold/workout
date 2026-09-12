@@ -6,10 +6,16 @@ on:
     branches:
       - main
 
+# Cancel an in-progress run when a newer push supersedes it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: 'Build'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       # Build the PR ref and main in parallel so the perf job can compare
       # them on the same runner.
@@ -17,18 +23,16 @@ jobs:
       matrix:
         ref: [pr, main]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ matrix.ref == 'main' && 'main' || github.ref }}
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
+          runtime: node@lts
+          cache: true
+          install: false
 
       - name: Check enableLocalOverride is not enabled
         if: matrix.ref == 'pr'
@@ -44,8 +48,8 @@ jobs:
       - name: Build the site
         run: pnpm build
         # Source-map upload is gated on SENTRY_UPLOAD_SOURCE_MAPS in
-        # vite.config.ts and is intentionally unset here — only the
-        # main-branch workflow and `pnpm publish:android:build` upload.
+        # vite.config.ts and is intentionally unset here. The main-branch
+        # workflow is the only uploader.
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
@@ -62,22 +66,17 @@ jobs:
   testAndDeploy:
     name: 'Test and Deploy'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+          runtime: node@lts
+          cache: true
 
       - name: Download build artifact
         uses: actions/download-artifact@v8
@@ -94,7 +93,7 @@ jobs:
         run: pnpm check
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3
+        uses: nwtgck/actions-netlify@v4
         with:
           publish-dir: './build'
           production-branch: main
@@ -110,28 +109,65 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
 
+  # Compiles the same signed bundle the main-branch workflow uploads, so a
+  # Gradle, Java, or signing failure surfaces on the PR that caused it rather
+  # than on the merge that publishes the release.
+  androidBuild:
+    name: 'Android Build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@lts
+          cache: true
+
+      - name: Check whether the version changed
+        id: version
+        run: pnpm tsx scripts/commands/emitVersionChanged.ts origin/main
+
+      - name: Download build artifact
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: buildAndTypes-pr
+
+      - name: Set up Java
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Bundle the signed release
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm bundle:android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+
   perf:
     name: 'Performance Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     permissions:
       pull-requests: write
       issues: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up pnpm, Node.js, and install dependencies
+        uses: pnpm/setup@v2
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+          runtime: node@lts
+          cache: true
 
       - name: Download main build
         uses: actions/download-artifact@v8
@@ -165,7 +201,7 @@ jobs:
           cp -a perfBuilds/main/.svelte-kit .
 
       - name: Measure main
-        run: pnpm tsx scripts/perf/runPerf.ts --label=main
+        run: pnpm tsx scripts/commands/perf/runPerf.ts --label=main
         env:
           PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
           PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
@@ -177,20 +213,20 @@ jobs:
           cp -a perfBuilds/pr/.svelte-kit .
 
       - name: Measure PR
-        run: pnpm tsx scripts/perf/runPerf.ts --label=pr
+        run: pnpm tsx scripts/commands/perf/runPerf.ts --label=pr
         env:
           PERF_TEST_USERNAME: ${{ secrets.PERF_TEST_USERNAME }}
           PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
 
       - name: Compare PR vs main
-        run: pnpm tsx scripts/perf/runPerf.ts --compare
+        run: pnpm tsx scripts/commands/perf/runPerf.ts --compare
 
       - name: Upload perf results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: perf-results
-          path: scripts/perf/perfTemp/results/
+          path: scripts/commands/perf/perfTemp/results/
           retention-days: 7
 
       - name: Sticky perf comment
@@ -198,4 +234,4 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: '🚦 Perf Results'
-          path: scripts/perf/perfTemp/results/pr-comment.md
+          path: scripts/commands/perf/perfTemp/results/pr-comment.md

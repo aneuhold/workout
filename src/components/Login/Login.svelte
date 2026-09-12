@@ -11,10 +11,11 @@
   import { page } from '$app/state';
   import GoogleSignInButton from '$components/GoogleSignInButton';
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
-  import authService from '$services/AuthService';
-  import googleAuthService from '$services/GoogleAuthService';
-  import updateCheckService from '$services/UpdateCheckService.svelte';
+  import authService from '$services/Auth.service';
+  import googleAuthService from '$services/GoogleAuth.service';
+  import updateCheckService from '$services/UpdateCheck.service.svelte';
   import { LoginState, loginState } from '$stores/session/loginState';
+  import { sessionExpired } from '$stores/session/sessionExpired';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -117,6 +118,8 @@
       </div>
       {#if invalidCredentials}
         <p class="text-destructive text-sm">Invalid username or password.</p>
+      {:else if $sessionExpired}
+        <p class="text-destructive text-sm">Your session expired. Please log in again.</p>
       {/if}
     </CardContent>
     <CardFooter>

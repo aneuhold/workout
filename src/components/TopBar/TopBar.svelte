@@ -8,7 +8,7 @@
   import { IconLogout, IconSettings, IconStopwatch, IconUser } from '@tabler/icons-svelte';
   import { mode } from 'mode-watcher';
   import { goto } from '$app/navigation';
-  import authService from '$services/AuthService';
+  import authService from '$services/Auth.service';
   import timerService from '$services/TimerService';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';
@@ -43,8 +43,10 @@
   }
 </script>
 
+<!-- Take a look at notes about backface-hidden / backface-visibility, but if that is removed, then newer versions of
+ Android have an absolute wrecked UI. -->
 <header
-  class="[view-transition-name:match-element] z-40 flex h-(--top-nav-height) items-center bg-sidebar text-sidebar-foreground
+  class="[view-transition-name:match-element] backface-hidden z-40 flex h-(--top-nav-height) items-center bg-sidebar text-sidebar-foreground
     {showTimerHighlight ? 'fixed inset-x-0 top-0' : 'md:fixed md:inset-x-0 md:top-0'}"
 >
   <!-- Logo: always sits in the sidebar bg -->

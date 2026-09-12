@@ -8,7 +8,7 @@ All brand SVGs live in [`docs/officialAssets/`](officialAssets/).
 
 ## Generated
 
-`pnpm generate:assets` regenerates everything. It runs [`scripts/generate-icons.ts`](../scripts/generate-icons.ts) (icons, splash, Play 512) and then [`scripts/play-store-assets/render-feature-graphic.ts`](../scripts/play-store-assets/render-feature-graphic.ts) (Playwright render of the feature graphic).
+`pnpm generate:assets` regenerates everything. It runs [`scripts/commands/generate-icons/generate-icons.ts`](../scripts/commands/generate-icons/generate-icons.ts) (icons, splash, Play 512) and then [`scripts/play-store-assets/render-feature-graphic.ts`](../scripts/play-store-assets/render-feature-graphic.ts) (Playwright render of the feature graphic).
 
 | Folder                       | Contents                                                           |
 | ---------------------------- | ------------------------------------------------------------------ |

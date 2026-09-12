@@ -2,7 +2,7 @@
   import { APIService } from '@aneuhold/core-ts-api-lib';
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { spyOn, userEvent, within } from 'storybook/test';
-  import googleAuthService from '$services/GoogleAuthService';
+  import googleAuthService from '$services/GoogleAuth.service';
   import { LoginState, loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
   import Login from './Login.svelte';

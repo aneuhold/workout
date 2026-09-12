@@ -26,7 +26,7 @@
   import { WorkoutEquipmentTypeSchema } from '@aneuhold/core-ts-db-lib';
   import { IconPlus, IconX } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';

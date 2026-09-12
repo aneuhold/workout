@@ -12,8 +12,8 @@
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { goto } from '$app/navigation';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';

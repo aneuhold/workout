@@ -24,7 +24,7 @@
     WorkoutExerciseCalibrationService
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';

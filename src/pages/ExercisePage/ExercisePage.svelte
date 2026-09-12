@@ -7,7 +7,7 @@
 <script lang="ts">
   import type { UUID } from 'crypto';
   import BackButton from '$components/BackButton/BackButton.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import ExercisePageEditForm from './ExercisePageEditForm.svelte';
   import ExercisePageViewMode from './ExercisePageViewMode.svelte';

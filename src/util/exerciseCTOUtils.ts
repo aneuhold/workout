@@ -1,8 +1,8 @@
 import type { WorkoutExerciseCTO } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
-import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
 
 /**
  * Returns the CTOs for exercises referenced by the given calibration IDs.

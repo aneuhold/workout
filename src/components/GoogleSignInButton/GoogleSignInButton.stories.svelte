@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { fn, spyOn, userEvent, within } from 'storybook/test';
-  import googleAuthService from '$services/GoogleAuthService';
+  import googleAuthService from '$services/GoogleAuth.service';
   import GoogleSignInButton from './GoogleSignInButton.svelte';
 
   const { Story } = defineMeta({

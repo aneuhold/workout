@@ -12,8 +12,8 @@
   import { goto } from '$app/navigation';
   import SessionCard from '$components/SessionCard/SessionCard.svelte';
   import { SessionStatus } from '$components/SessionCard/sessionCardTypes';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Pagination from '$ui/Pagination/Pagination.svelte';
   import PaginationContent from '$ui/Pagination/PaginationContent.svelte';

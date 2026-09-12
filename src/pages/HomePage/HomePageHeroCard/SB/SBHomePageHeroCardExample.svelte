@@ -18,9 +18,9 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
+  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import { daysAgo } from '$testUtils/dateUtils';
   import MockData from '$testUtils/MockData';
   import { getPendingReviewSessions } from '../../homePageUtils';

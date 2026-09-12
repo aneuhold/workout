@@ -3,13 +3,14 @@ import type { Protocol } from 'devtools-protocol';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-const PERF_TEMP_DIR = resolve('scripts/perf/perfTemp');
+const PERF_DIR = resolve('scripts/commands/perf');
+const PERF_TEMP_DIR = resolve(PERF_DIR, 'perfTemp');
 
 /**
  * Filesystem locations the perf pipeline reads and writes. Co-located so the
  * orchestrator, spec, seed, and global setup all agree on a single layout.
  * Only `baselinePath` is committed; everything else lives under
- * `scripts/perf/perfTemp/` and is gitignored.
+ * `scripts/commands/perf/perfTemp/` and is gitignored.
  */
 export const PERF_TEST_CONSTANTS = {
   /**
@@ -64,7 +65,7 @@ export const PERF_TEST_CONSTANTS = {
    * main comparison via `prResultsPath`/`mainResultsPath` instead. Locally,
    * `git diff` shows the change so the dev decides whether to commit.
    */
-  localBaselinePath: resolve('scripts/perf/localBaseline.json')
+  localBaselinePath: resolve(PERF_DIR, 'localBaseline.json')
 } as const;
 
 /**

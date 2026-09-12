@@ -26,7 +26,7 @@
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
-  } from '$services/documentMapServices/mesocycleMapService.mock';
+  } from '$services/documentMapServices/MesocycleMap.service.mock';
   import timerService from '$services/TimerService';
   import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
   import MockData, { type MockBaseData } from '$testUtils/MockData';

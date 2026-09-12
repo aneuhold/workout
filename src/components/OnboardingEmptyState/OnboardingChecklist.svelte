@@ -10,10 +10,10 @@
   import { goto } from '$app/navigation';
   import { equipmentFormDialog } from '$components/singletons/dialogs/SingletonEquipmentFormDialog/SingletonEquipmentFormDialog.svelte';
   import { muscleGroupDefaultsDialog } from '$components/singletons/dialogs/SingletonMuscleGroupDefaultsDialog/SingletonMuscleGroupDefaultsDialog.svelte';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';

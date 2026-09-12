@@ -27,7 +27,7 @@
 
 <script lang="ts">
   import { WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';

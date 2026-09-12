@@ -8,13 +8,13 @@ const viewport = { width: 1280, height: 800 };
  * in order to use this for other things.
  */
 export default defineConfig({
-  testDir: './scripts/perf',
+  testDir: './scripts/commands/perf',
   testMatch: /.*\.spec\.ts$/,
   globalSetup: './testUtils/playwrightGlobalSetup.ts',
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
-  outputDir: 'scripts/perf/perfTemp/test-results',
+  outputDir: 'scripts/commands/perf/perfTemp/test-results',
   use: { baseURL, headless: true, viewport },
   // viewport is specified a second time because devices seems to override it by default.
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } }],

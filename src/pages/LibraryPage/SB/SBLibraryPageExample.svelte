@@ -1,9 +1,9 @@
 <script lang="ts">
   import { type DocumentMap, type WorkoutExerciseCalibration } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-  import { MockDefaultExercise } from '$services/documentMapServices/exerciseMapService.mock';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import { MockDefaultExercise } from '$services/documentMapServices/ExerciseMap.service.mock';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import MockData from '$testUtils/MockData';
   import LibraryPage from '../LibraryPage.svelte';
 

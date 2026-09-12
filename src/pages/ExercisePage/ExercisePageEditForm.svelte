@@ -17,9 +17,9 @@
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import TipBox from '$components/TipBox/TipBox.svelte';
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';

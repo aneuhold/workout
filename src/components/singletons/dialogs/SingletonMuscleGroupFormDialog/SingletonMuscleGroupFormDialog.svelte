@@ -26,7 +26,7 @@
   import { WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import TipBox from '$components/TipBox/TipBox.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';

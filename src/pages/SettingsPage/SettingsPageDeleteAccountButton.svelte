@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
   import { IconTrash } from '@tabler/icons-svelte';
-  import authService from '$services/AuthService';
+  import authService from '$services/Auth.service';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';

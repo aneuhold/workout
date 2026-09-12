@@ -18,7 +18,7 @@
 
 <script lang="ts">
   import { Capacitor } from '@capacitor/core';
-  import updateCheckService from '$services/UpdateCheckService.svelte';
+  import updateCheckService from '$services/UpdateCheck.service.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';

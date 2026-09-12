@@ -14,7 +14,7 @@
   } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import timerService from '$services/TimerService';
   import Button from '$ui/Button/Button.svelte';
   import { formatTime } from '$util/formatTime';

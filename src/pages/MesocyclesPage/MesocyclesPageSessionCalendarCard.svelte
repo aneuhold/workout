@@ -6,10 +6,10 @@
 -->
 <script lang="ts">
   import SessionCalendar from '$components/WorkoutCalendar/SessionCalendar/WorkoutSessionCalendar.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
-  import setMapService from '$services/documentMapServices/setMapService.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import setMapService from '$services/documentMapServices/SetMap.service.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';

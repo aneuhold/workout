@@ -9,9 +9,7 @@
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
 
   type ItemType =
-    | WorkoutDocumentType.Exercise
-    | WorkoutDocumentType.MuscleGroup
-    | WorkoutDocumentType.Equipment;
+    WorkoutDocumentType.Exercise | WorkoutDocumentType.MuscleGroup | WorkoutDocumentType.Equipment;
 
   let open = $state(false);
   let currentItem = $state<{ name: string; type: ItemType; id: UUID } | null>(null);
@@ -25,10 +23,10 @@
 </script>
 
 <script lang="ts">
-  import equipmentTypeMapService from '$services/documentMapServices/equipmentTypeMapService.svelte';
-  import exerciseCalibrationMapService from '$services/documentMapServices/exerciseCalibrationMapService.svelte';
-  import exerciseMapService from '$services/documentMapServices/exerciseMapService.svelte';
-  import muscleGroupMapService from '$services/documentMapServices/muscleGroupMapService.svelte';
+  import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';

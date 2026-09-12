@@ -15,8 +15,8 @@
     IconList,
     IconStopwatch
   } from '@tabler/icons-svelte';
-  import mesocycleMapService from '$services/documentMapServices/mesocycleMapService.svelte';
-  import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import { navBarItems } from '$util/navInfo';
 
   let { currentPath }: { currentPath: string } = $props();

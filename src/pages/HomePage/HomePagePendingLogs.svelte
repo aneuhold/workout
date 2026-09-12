@@ -6,7 +6,7 @@
 <script lang="ts">
   import { WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
   import { IconChevronRight, IconClock } from '@tabler/icons-svelte';
-  import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';

@@ -4,15 +4,15 @@ import type {
   WorkoutExerciseCalibration,
   WorkoutExerciseCTO
 } from '@aneuhold/core-ts-db-lib';
-import EquipmentTypeMapServiceMock from '$services/documentMapServices/equipmentTypeMapService.mock';
-import ExerciseCalibrationMapServiceMock from '$services/documentMapServices/exerciseCalibrationMapService.mock';
-import ExerciseMapServiceMock from '$services/documentMapServices/exerciseMapService.mock';
-import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
-import MicrocycleMapServiceMock from '$services/documentMapServices/microcycleMapService.mock';
-import MuscleGroupMapServiceMock from '$services/documentMapServices/muscleGroupMapService.mock';
-import SessionExerciseMapServiceMock from '$services/documentMapServices/sessionExerciseMapService.mock';
-import SessionMapServiceMock from '$services/documentMapServices/sessionMapService.mock';
-import SetMapServiceMock from '$services/documentMapServices/setMapService.mock';
+import EquipmentTypeMapServiceMock from '$services/documentMapServices/EquipmentTypeMap.service.mock';
+import ExerciseCalibrationMapServiceMock from '$services/documentMapServices/ExerciseCalibrationMap.service.mock';
+import ExerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
+import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import MicrocycleMapServiceMock from '$services/documentMapServices/MicrocycleMap.service.mock';
+import MuscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
+import SessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
+import SessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+import SetMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
 import UserConfigMock from '$stores/local/userConfig/userConfig.mock';
 import TestUsers from './TestUsers';
 

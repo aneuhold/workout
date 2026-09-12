@@ -9,9 +9,9 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-import microcycleMapService from '$services/documentMapServices/microcycleMapService.svelte';
-import sessionExerciseMapService from '$services/documentMapServices/sessionExerciseMapService.svelte';
-import sessionMapService from '$services/documentMapServices/sessionMapService.svelte';
+import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import { SessionPageExerciseCardState, SessionPageMode } from './sessionPageTypes';
 
 /**

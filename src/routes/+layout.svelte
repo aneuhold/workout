@@ -15,10 +15,10 @@
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
-  import nativePlatformService from '$services/NativePlatformService.svelte';
+  import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
-  import WorkoutAPIService from '$services/WorkoutAPIService';
-  import WorkoutHydrationService from '$services/WorkoutHydrationService';
+  import WorkoutAPIService from '$services/WorkoutAPI.service';
+  import WorkoutHydrationService from '$services/WorkoutHydration.service';
   import { password } from '$stores/local/password';
   import { translations } from '$stores/local/translations';
   import { userConfig } from '$stores/local/userConfig/userConfig';

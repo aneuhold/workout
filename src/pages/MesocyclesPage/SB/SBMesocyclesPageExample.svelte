@@ -9,7 +9,7 @@
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/mesocycleMapService.mock';
+  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockData from '$testUtils/MockData';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
