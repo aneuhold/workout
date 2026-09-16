@@ -11,7 +11,7 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import MockData from '$testUtils/MockData';
+import MockData from '$testUtils/MockData/MockData';
 import TestSetup from '$testUtils/TestSetup';
 import TestUsers from '$testUtils/TestUsers';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';

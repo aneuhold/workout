@@ -29,7 +29,7 @@
   } from '$services/documentMapServices/MesocycleMap.service.mock';
   import timerService from '$services/TimerService';
   import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData, { type MockBaseData } from '$testUtils/MockData';
+  import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
   import SessionPage from '../SessionPage.svelte';
 
   let {

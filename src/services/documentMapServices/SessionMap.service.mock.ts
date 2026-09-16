@@ -1,6 +1,6 @@
 import { type WorkoutSession, WorkoutSessionSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockData, { type MockBaseData } from '$testUtils/MockData';
+import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
 import TestUsers from '$testUtils/TestUsers';
 import sessionMapService from './SessionMap.service.svelte';
 

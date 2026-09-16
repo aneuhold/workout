@@ -9,7 +9,7 @@ import {
   type WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockData, { type MockBaseData } from '$testUtils/MockData';
+import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
 import TestUsers from '$testUtils/TestUsers';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 
