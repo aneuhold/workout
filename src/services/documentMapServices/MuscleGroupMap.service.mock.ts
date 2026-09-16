@@ -1,4 +1,5 @@
 import { type WorkoutMuscleGroup, WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
+import type { UUID } from 'crypto';
 import TestUsers from '$testUtils/TestUsers';
 import muscleGroupMapService from './MuscleGroupMap.service.svelte';
 
@@ -16,21 +17,26 @@ export enum MockDefaultMuscleGroup {
 }
 
 export default class MuscleGroupMapServiceMock {
-  static readonly defaultMuscleGroups: Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> = {
-    [MockDefaultMuscleGroup.Chest]: this.createMuscleGroup(MockDefaultMuscleGroup.Chest),
-    [MockDefaultMuscleGroup.Lats]: this.createMuscleGroup(
-      MockDefaultMuscleGroup.Lats,
-      'Largest back muscle; key for pull movements.'
-    ),
-    [MockDefaultMuscleGroup.Quadriceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Quadriceps),
-    [MockDefaultMuscleGroup.Hamstrings]: this.createMuscleGroup(MockDefaultMuscleGroup.Hamstrings),
-    [MockDefaultMuscleGroup.Glutes]: this.createMuscleGroup(MockDefaultMuscleGroup.Glutes),
-    [MockDefaultMuscleGroup.FrontDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.FrontDelts),
-    [MockDefaultMuscleGroup.SideDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.SideDelts),
-    [MockDefaultMuscleGroup.RearDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.RearDelts),
-    [MockDefaultMuscleGroup.Triceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Triceps),
-    [MockDefaultMuscleGroup.Biceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Biceps)
-  };
+  static #defaultMuscleGroups: Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> | null = null;
+  static #defaultsOwnerId: UUID | null = null;
+
+  /**
+   * The default muscle groups, built on first read and rebuilt whenever the
+   * current test user changes, so they always belong to whoever
+   * `TestUsers.currentUserCto` is now.
+   */
+  static get defaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
+    const ownerId = TestUsers.currentUserCto._id;
+    if (
+      !MuscleGroupMapServiceMock.#defaultMuscleGroups ||
+      MuscleGroupMapServiceMock.#defaultsOwnerId !== ownerId
+    ) {
+      MuscleGroupMapServiceMock.#defaultMuscleGroups =
+        MuscleGroupMapServiceMock.#createDefaultMuscleGroups();
+      MuscleGroupMapServiceMock.#defaultsOwnerId = ownerId;
+    }
+    return MuscleGroupMapServiceMock.#defaultMuscleGroups;
+  }
 
   reset(): void {
     muscleGroupMapService.setMap({});
@@ -57,5 +63,41 @@ export default class MuscleGroupMapServiceMock {
       name,
       description
     });
+  }
+
+  static #createDefaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
+    return {
+      [MockDefaultMuscleGroup.Chest]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Chest
+      ),
+      [MockDefaultMuscleGroup.Lats]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Lats,
+        'Largest back muscle; key for pull movements.'
+      ),
+      [MockDefaultMuscleGroup.Quadriceps]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Quadriceps
+      ),
+      [MockDefaultMuscleGroup.Hamstrings]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Hamstrings
+      ),
+      [MockDefaultMuscleGroup.Glutes]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Glutes
+      ),
+      [MockDefaultMuscleGroup.FrontDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.FrontDelts
+      ),
+      [MockDefaultMuscleGroup.SideDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.SideDelts
+      ),
+      [MockDefaultMuscleGroup.RearDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.RearDelts
+      ),
+      [MockDefaultMuscleGroup.Triceps]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Triceps
+      ),
+      [MockDefaultMuscleGroup.Biceps]: MuscleGroupMapServiceMock.createMuscleGroup(
+        MockDefaultMuscleGroup.Biceps
+      )
+    };
   }
 }

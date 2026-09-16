@@ -13,6 +13,12 @@ export default defineConfig({
   globalSetup: './testUtils/playwrightGlobalSetup.ts',
   fullyParallel: false,
   workers: 1,
+  /**
+   * A slow-profile measurement runs about 30 seconds on its own, and each
+   * wait inside a measurement caps at 60 seconds, so the 30 second default
+   * would cut runs short before those waits ever report.
+   */
+  timeout: 120_000,
   reporter: [['list']],
   outputDir: 'scripts/commands/perf/perfTemp/test-results',
   use: { baseURL, headless: true, viewport },
