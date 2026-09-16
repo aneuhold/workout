@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import Button from '$ui/Button/Button.svelte';
   import SingletonMuscleGroupFormDialog from './SingletonMuscleGroupFormDialog.svelte';
   import { muscleGroupFormDialog } from './SingletonMuscleGroupFormDialog.svelte';

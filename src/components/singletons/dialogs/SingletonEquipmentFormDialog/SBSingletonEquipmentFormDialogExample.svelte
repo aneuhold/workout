@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import Button from '$ui/Button/Button.svelte';
   import SingletonEquipmentFormDialog from './SingletonEquipmentFormDialog.svelte';
   import { equipmentFormDialog } from './SingletonEquipmentFormDialog.svelte';

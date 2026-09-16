@@ -15,7 +15,7 @@
 <script lang="ts">
   import { IconBarbell, IconCalendar } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import OnboardingEmptyState from './OnboardingEmptyState.svelte';
 
   let { storyMode = OnboardingStoryMode.HomePageReady }: { storyMode?: OnboardingStoryMode } =

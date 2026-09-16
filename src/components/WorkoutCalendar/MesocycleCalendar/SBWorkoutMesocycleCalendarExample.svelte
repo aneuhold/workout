@@ -12,7 +12,7 @@
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import WorkoutMesocycleCalendar from './WorkoutMesocycleCalendar.svelte';
 
   let {

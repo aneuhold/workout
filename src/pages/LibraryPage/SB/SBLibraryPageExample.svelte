@@ -4,7 +4,7 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import { MockDefaultExercise } from '$services/documentMapServices/ExerciseMap.service.mock';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import LibraryPage from '../LibraryPage.svelte';
 
   let { populateDefaultData = true }: { populateDefaultData?: boolean } = $props();

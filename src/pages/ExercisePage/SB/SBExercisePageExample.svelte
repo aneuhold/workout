@@ -5,7 +5,7 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import ExercisePage from '../ExercisePage.svelte';
 
   let {

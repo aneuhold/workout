@@ -22,7 +22,7 @@
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import { daysAgo } from '$testUtils/dateUtils';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import { getPendingReviewSessions } from '../../homePageUtils';
   import HomePageHeroCard from '../HomePageHeroCard.svelte';
 

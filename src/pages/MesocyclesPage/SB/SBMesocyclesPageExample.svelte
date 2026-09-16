@@ -10,7 +10,7 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
   let { storyMode = MesocyclesPageStoryMode.Default }: { storyMode?: MesocyclesPageStoryMode } =

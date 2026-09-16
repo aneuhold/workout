@@ -25,7 +25,7 @@
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import HomePage from '../HomePage.svelte';
 
   let { storyMode = HomePageStoryMode.Default }: { storyMode?: HomePageStoryMode } = $props();

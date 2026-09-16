@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import Button from '$ui/Button/Button.svelte';
   import SingletonExercisePickerDialog from './SingletonExercisePickerDialog.svelte';
   import { exercisePickerDialog } from './SingletonExercisePickerDialog.svelte';

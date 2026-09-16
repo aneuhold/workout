@@ -14,7 +14,24 @@ import SessionExerciseMapServiceMock from '$services/documentMapServices/Session
 import SessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
 import SetMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
 import UserConfigMock from '$stores/local/userConfig/userConfig.mock';
-import TestUsers from './TestUsers';
+import MockScenarioService from './MockScenario.service';
+
+/**
+ * Named sets of example workout data that {@link MockData.setupScenario}
+ * builds.
+ */
+export enum FullAppScenario {
+  MidTrainingWithHistory = 'midTrainingWithHistory',
+  CompletelyFresh = 'completelyFresh',
+  FreshStart = 'freshStart',
+  FreeFormWorkout = 'freeFormWorkout',
+  AllComplete = 'allComplete',
+  ReviewPending = 'reviewPending',
+  MesocycleStart = 'mesocycleStart',
+  VeryLateSession = 'veryLateSession',
+  DeloadTrigger = 'deloadTrigger',
+  HistoricalData = 'historicalData'
+}
 
 export type MockBaseData = {
   exercises: WorkoutExercise[];
@@ -24,10 +41,11 @@ export type MockBaseData = {
 };
 
 /**
- * Global mock data for tests.
+ * Global mock data: the mock document map services, and the base data and
+ * scenarios built in them.
  */
 export default class MockData {
-  static userConfigMock = new UserConfigMock(TestUsers.currentUserCto._id);
+  static userConfigMock = new UserConfigMock();
 
   static muscleGroupMapServiceMock = new MuscleGroupMapServiceMock();
   static equipmentTypeMapServiceMock = new EquipmentTypeMapServiceMock();
@@ -70,5 +88,16 @@ export default class MockData {
     );
 
     return { exercises, calibrations, equipmentTypes, exerciseCTOs };
+  }
+
+  /**
+   * Resets all mock data and builds the given scenario in the mock services.
+   * Returns the URL of the page the scenario starts on, or `null` when it
+   * starts on the home page.
+   *
+   * @param scenario The scenario to set up
+   */
+  static setupScenario(scenario: FullAppScenario): string | null {
+    return MockScenarioService.setupScenario(scenario);
   }
 }

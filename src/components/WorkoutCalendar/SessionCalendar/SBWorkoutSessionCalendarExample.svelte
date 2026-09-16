@@ -10,7 +10,7 @@
   import ExerciseMapServiceMock, {
     MockDefaultExercise
   } from '$services/documentMapServices/ExerciseMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import MockData from '$testUtils/MockData/MockData';
   import WorkoutSessionCalendar from './WorkoutSessionCalendar.svelte';
 
   let {
