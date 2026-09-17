@@ -1,7 +1,8 @@
 import { type WorkoutSession, WorkoutSessionSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
-import TestUsers from '$testUtils/TestUsers';
+import MockDataService from '$services/MockDataService/MockData.service';
+import { type MockBaseData } from '$services/MockDataService/types';
+import MockUsers from '$util/MockUsers';
 import sessionMapService from './SessionMap.service.svelte';
 
 export type AddMockSessionInfo = {
@@ -32,7 +33,7 @@ export default class SessionMapServiceMock {
 
   addSession(config: AddMockSessionInfo): WorkoutSession {
     const doc = WorkoutSessionSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       workoutMicrocycleId: config.workoutMicrocycleId,
       title: config.title,
       startTime: config.startTime,
@@ -71,7 +72,7 @@ export default class SessionMapServiceMock {
 
     for (let i = 0; i < config.exerciseCount; i++) {
       const exercise = baseData.exercises[i % baseData.exercises.length];
-      const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+      const se = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
         workoutSessionId: session._id,
         workoutExerciseId: exercise._id,
         setOrder: []
@@ -79,7 +80,7 @@ export default class SessionMapServiceMock {
       const setIds: UUID[] = [];
       for (let j = 0; j < setsPerExercise; j++) {
         const shouldLog = logged < loggedSetCount;
-        const set = MockData.setMapServiceMock.addSet({
+        const set = MockDataService.setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: se._id,

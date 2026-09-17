@@ -1,6 +1,6 @@
 import { type WorkoutSet, WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import setMapService from './SetMap.service.svelte';
 
 export type AddMockSetInfo = {
@@ -22,7 +22,7 @@ export default class SetMapServiceMock {
 
   addSet(config: AddMockSetInfo): WorkoutSet {
     const doc = WorkoutSetSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       workoutExerciseId: config.workoutExerciseId,
       workoutSessionId: config.workoutSessionId,
       workoutSessionExerciseId: config.workoutSessionExerciseId,

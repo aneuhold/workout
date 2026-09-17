@@ -12,7 +12,7 @@
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import WorkoutMesocycleCalendar from './WorkoutMesocycleCalendar.svelte';
 
   let {
@@ -51,9 +51,9 @@
     const _hasRecovery = hasRecoveryExercises;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Parse rest days from comma-separated string
       const parsedRestDays = _restDays
@@ -99,7 +99,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

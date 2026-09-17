@@ -5,7 +5,7 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import ExercisePage from '../ExercisePage.svelte';
 
   let {
@@ -29,9 +29,9 @@
     const noFatigue = noFatigueGuess;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const { exercises, calibrations, equipmentTypes } = baseData;
 
       // Generate a mesocycle with completed sessions so map services are
@@ -44,7 +44,7 @@
 
       // Rebuild CTOs — bestSet/lastSessionExercise are derived from
       // the already-populated session/set map services
-      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
         calibrations,
         exercises,
         equipmentTypes
@@ -74,7 +74,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

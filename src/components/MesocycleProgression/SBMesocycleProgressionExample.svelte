@@ -11,7 +11,7 @@
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import MesocycleProgression from './MesocycleProgression.svelte';
 
   let {
@@ -31,8 +31,8 @@
     const _completedCount = completedSessionCount;
 
     untrack(() => {
-      MockData.resetAll();
-      const baseData = MockData.setupBaseData();
+      MockDataService.resetAll();
+      const baseData = MockDataService.setupBaseData();
 
       const generated: MockGeneratedMesocycleData = MesocycleMapServiceMock.generateFullMesocycle(
         baseData,
@@ -54,7 +54,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

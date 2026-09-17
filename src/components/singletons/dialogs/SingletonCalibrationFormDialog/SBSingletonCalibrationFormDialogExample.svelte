@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkoutExercise } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import Button from '$ui/Button/Button.svelte';
   import SingletonCalibrationFormDialog from './SingletonCalibrationFormDialog.svelte';
   import { calibrationFormDialog } from './SingletonCalibrationFormDialog.svelte';
@@ -10,15 +10,15 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       exercises = baseData.exercises;
     });
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

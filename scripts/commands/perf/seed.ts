@@ -10,9 +10,10 @@ import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
-import MockData, { FullAppScenario } from '$testUtils/MockData/MockData';
+import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
+import { FullAppScenario } from '$services/MockScenarioService/types';
 import perfTestUtils from '$testUtils/perfTestUtils';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import type { WorkoutApiInsertKey } from '$util/workoutPersistenceUtils';
 
 /**
@@ -38,10 +39,10 @@ test('seed perf user', async () => {
   const authedUserId = auth.data.userInfo.user._id;
   APIService.setAccessToken(auth.data.accessToken);
 
-  // The mock factories build documents with `TestUsers.currentUserCto._id`,
+  // The mock factories build documents with `MockUsers.currentUserCto._id`,
   // so point it at the perf user before generating the scenario.
-  TestUsers.currentUserCto._id = authedUserId;
-  MockData.setupScenario(FullAppScenario.MidTrainingWithHistory);
+  MockUsers.currentUserCto._id = authedUserId;
+  MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
 
   const insertPayload: Required<NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>> = {
     mesocycles: mesocycleMapService.allDocs,

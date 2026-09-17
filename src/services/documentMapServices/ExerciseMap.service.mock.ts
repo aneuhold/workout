@@ -14,7 +14,7 @@ import {
   type WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import EquipmentTypeMapServiceMock, {
   MockDefaultEquipmentType
 } from './EquipmentTypeMap.service.mock';
@@ -67,10 +67,10 @@ export default class ExerciseMapServiceMock {
   /**
    * The default exercises, built on first read and rebuilt whenever the
    * current test user changes, so they always belong to whoever
-   * `TestUsers.currentUserCto` is now.
+   * `MockUsers.currentUserCto` is now.
    */
   static get defaultExercises(): Record<MockDefaultExercise, WorkoutExercise> {
-    const ownerId = TestUsers.currentUserCto._id;
+    const ownerId = MockUsers.currentUserCto._id;
     if (
       !ExerciseMapServiceMock.#defaultExercises ||
       ExerciseMapServiceMock.#defaultsOwnerId !== ownerId
@@ -102,7 +102,7 @@ export default class ExerciseMapServiceMock {
 
   static createExercise(options: AddMockExerciseInfo): WorkoutExercise {
     return WorkoutExerciseSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       exerciseName: options.exerciseName,
       workoutEquipmentTypeId: options.workoutEquipmentTypeId,
       repRange: options.repRange,

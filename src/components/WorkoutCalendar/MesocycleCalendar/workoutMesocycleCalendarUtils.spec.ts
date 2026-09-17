@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import ExerciseMapServiceMock, {
   MockDefaultExercise
 } from '$services/documentMapServices/ExerciseMap.service.mock';
-import MockData from '$testUtils/MockData/MockData';
+import MockDataService from '$services/MockDataService/MockData.service';
 import workoutMesocycleCalendarUtils from './workoutMesocycleCalendarUtils';
 
 describe('workoutMesocycleCalendarUtils', () => {
@@ -38,12 +38,12 @@ describe('workoutMesocycleCalendarUtils', () => {
   describe('buildCalendarData', () => {
     // ── Helper to build two standard 7-day microcycles starting on 2026-02-15 ──
     function buildTwoMicrocycles(mesocycleId: UUID) {
-      const micro1 = MockData.microcycleMapServiceMock.addMicrocycle({
+      const micro1 = MockDataService.microcycleMapServiceMock.addMicrocycle({
         workoutMesocycleId: mesocycleId,
         startDate: new Date(2026, 1, 15), // Sunday
         endDate: new Date(2026, 1, 21)
       });
-      const micro2 = MockData.microcycleMapServiceMock.addMicrocycle({
+      const micro2 = MockDataService.microcycleMapServiceMock.addMicrocycle({
         workoutMesocycleId: mesocycleId,
         startDate: new Date(2026, 1, 22),
         endDate: new Date(2026, 1, 28)
@@ -53,7 +53,7 @@ describe('workoutMesocycleCalendarUtils', () => {
 
     describe('grid structure', () => {
       it('returns empty data when there are no microcycles', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle();
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle();
         const result = workoutMesocycleCalendarUtils.buildCalendarData({
           mesocycle,
           microcycles: [],
@@ -67,7 +67,7 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('produces no leading null cells when the mesocycle starts on Sunday', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const micros = buildTwoMicrocycles(mesocycle._id);
@@ -84,16 +84,16 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('produces 3 leading null cells when the mesocycle starts on Wednesday', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         // 2026-02-18 is a Wednesday
-        const micro1 = MockData.microcycleMapServiceMock.addMicrocycle({
+        const micro1 = MockDataService.microcycleMapServiceMock.addMicrocycle({
           workoutMesocycleId: mesocycle._id,
           startDate: new Date(2026, 1, 18),
           endDate: new Date(2026, 1, 24)
         });
-        const micro2 = MockData.microcycleMapServiceMock.addMicrocycle({
+        const micro2 = MockDataService.microcycleMapServiceMock.addMicrocycle({
           workoutMesocycleId: mesocycle._id,
           startDate: new Date(2026, 1, 25),
           endDate: new Date(2026, 2, 3)
@@ -115,22 +115,22 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('computes totalDays and microcycleLengthDays from mesocycle configuration', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 3,
           plannedMicrocycleLengthInDays: 8
         });
         const micros = [
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 15),
             endDate: new Date(2026, 1, 22)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 23),
             endDate: new Date(2026, 2, 2)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 2, 3),
             endDate: new Date(2026, 2, 10)
@@ -151,7 +151,7 @@ describe('workoutMesocycleCalendarUtils', () => {
 
     describe('day types', () => {
       it('marks planned rest days by their microcycle-relative position', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2,
           plannedMicrocycleRestDays: [0, 6]
         });
@@ -171,21 +171,21 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('marks the last cycle as deload', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 3
         });
         const micros = [
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 15),
             endDate: new Date(2026, 1, 21)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 22),
             endDate: new Date(2026, 1, 28)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 2, 1),
             endDate: new Date(2026, 2, 7)
@@ -206,18 +206,18 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('handles non-7-day microcycles with correct rest days and cycle boundaries', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2,
           plannedMicrocycleLengthInDays: 5,
           plannedMicrocycleRestDays: [4]
         });
         const micros = [
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 15),
             endDate: new Date(2026, 1, 19)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 20),
             endDate: new Date(2026, 1, 24)
@@ -244,11 +244,11 @@ describe('workoutMesocycleCalendarUtils', () => {
 
     describe('session mapping', () => {
       it('places sessions on the correct calendar day', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const [micro1, micro2] = buildTwoMicrocycles(mesocycle._id);
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: micro1._id,
           title: 'Push Day',
           startTime: new Date(2026, 1, 16) // dayIndex 1 (Monday)
@@ -269,11 +269,11 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('sets isFreeForm to false for all sessions in a mesocycle', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const [micro1, micro2] = buildTwoMicrocycles(mesocycle._id);
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: micro1._id,
           title: 'Push Day',
           startTime: new Date(2026, 1, 16)
@@ -292,23 +292,23 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('maps planned exercises and sets onto a session day', () => {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
         const exercise =
           ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const [micro1, micro2] = buildTwoMicrocycles(mesocycle._id);
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: micro1._id,
           title: 'Push',
           startTime: new Date(2026, 1, 16)
         });
-        const sessionExercise = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+        const sessionExercise = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
           workoutSessionId: session._id,
           workoutExerciseId: exercise._id
         });
-        const set1 = MockData.setMapServiceMock.addSet({
+        const set1 = MockDataService.setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: sessionExercise._id,
@@ -316,7 +316,7 @@ describe('workoutMesocycleCalendarUtils', () => {
           plannedWeight: 185,
           plannedRir: 3
         });
-        const set2 = MockData.setMapServiceMock.addSet({
+        const set2 = MockDataService.setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: sessionExercise._id,
@@ -343,24 +343,24 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('maps actual set data for completed sessions', () => {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
         const exercise =
           ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const [micro1, micro2] = buildTwoMicrocycles(mesocycle._id);
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: micro1._id,
           title: 'Push',
           startTime: new Date(2026, 1, 16),
           complete: true
         });
-        const sessionExercise = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+        const sessionExercise = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
           workoutSessionId: session._id,
           workoutExerciseId: exercise._id
         });
-        const set1 = MockData.setMapServiceMock.addSet({
+        const set1 = MockDataService.setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: sessionExercise._id,
@@ -371,7 +371,7 @@ describe('workoutMesocycleCalendarUtils', () => {
           actualWeight: 185,
           rir: 2
         });
-        const set2 = MockData.setMapServiceMock.addSet({
+        const set2 = MockDataService.setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: sessionExercise._id,
@@ -403,25 +403,25 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('sets isRecoveryExercise per exercise and hasRecoveryExercise on the session', () => {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
         const exercise1 =
           ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
         const exercise2 = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         const [micro1, micro2] = buildTwoMicrocycles(mesocycle._id);
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: micro1._id,
           title: 'Push',
           startTime: new Date(2026, 1, 16)
         });
-        const se1 = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+        const se1 = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
           workoutSessionId: session._id,
           workoutExerciseId: exercise1._id
         });
         se1.isRecoveryExercise = true;
-        const se2 = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+        const se2 = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
           workoutSessionId: session._id,
           workoutExerciseId: exercise2._id
         });
@@ -444,7 +444,7 @@ describe('workoutMesocycleCalendarUtils', () => {
 
     describe('label rows', () => {
       it('generates cycle-start labels at the beginning of each microcycle', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 2
         });
         // Both microcycles start on Sunday so each lands at column 0
@@ -464,22 +464,22 @@ describe('workoutMesocycleCalendarUtils', () => {
       });
 
       it('generates a month label when the date crosses a month boundary', () => {
-        const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+        const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
           plannedMicrocycleCount: 3
         });
         // Spans Feb 22 → Mar 14, crossing the Feb/Mar boundary
         const micros = [
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 1, 22),
             endDate: new Date(2026, 1, 28)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 2, 1),
             endDate: new Date(2026, 2, 7)
           }),
-          MockData.microcycleMapServiceMock.addMicrocycle({
+          MockDataService.microcycleMapServiceMock.addMicrocycle({
             workoutMesocycleId: mesocycle._id,
             startDate: new Date(2026, 2, 8),
             endDate: new Date(2026, 2, 14)

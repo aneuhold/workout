@@ -19,7 +19,7 @@ You are a senior reviewer for this repository. Your job is to review Pull Reques
   - `src/routes/` – SvelteKit routes
   - `src/components/` – UI components (including `src/components/singletons/` for singleton widgets)
   - `src/stores/`, `src/services/` – core state + service patterns
-  - `testUtils/` – test helpers
+  - `testUtils/` – test-runner setup (Vitest, Playwright, perf harness)
 
 ## PR review workflow (what to do)
 

@@ -11,16 +11,16 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import MockData from '$testUtils/MockData/MockData';
-import TestSetup from '$testUtils/TestSetup';
-import TestUsers from '$testUtils/TestUsers';
+import MockDataService from '$services/MockDataService/MockData.service';
+import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
+import MockUsers from '$util/MockUsers';
 import exerciseMapService from './ExerciseMap.service.svelte';
 import MesocycleMapServiceMock from './MesocycleMap.service.mock';
 
 describe('exerciseMapService CTO update methods', () => {
   beforeEach(() => {
-    TestSetup.setupGlobalMocks(vi.spyOn);
+    mockEnvSetupService.setupGlobalMocks(vi.spyOn);
   });
 
   afterEach(() => {
@@ -29,7 +29,7 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('updateCTOBestCalibration', () => {
     it('should create a CTO when none exists', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       // Clear CTOs so none exist
       exerciseMapService.setExerciseCTOs([]);
 
@@ -53,7 +53,7 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should replace bestCalibration when new cal has higher 1RM', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       const exercise = baseData.exercises[0];
       const existingCTO = exerciseMapService.getCTO(exercise._id);
@@ -64,7 +64,7 @@ describe('exerciseMapService CTO update methods', () => {
 
       // Create a calibration with higher 1RM
       const higherCalibration = WorkoutExerciseCalibrationSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         workoutExerciseId: exercise._id,
         weight: existingCTO.bestCalibration.weight + 50,
         reps: existingCTO.bestCalibration.reps,
@@ -80,7 +80,7 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should keep existing when new cal has lower 1RM', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       const exercise = baseData.exercises[0];
       const existingCTO = exerciseMapService.getCTO(exercise._id);
@@ -90,7 +90,7 @@ describe('exerciseMapService CTO update methods', () => {
 
       // Create a calibration with lower 1RM
       const lowerCalibration = WorkoutExerciseCalibrationSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         workoutExerciseId: exercise._id,
         weight: 5,
         reps: 1,
@@ -106,11 +106,11 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('createNewExercise', () => {
     it('should seed a CTO with null best fields for a brand-new exercise', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const equipmentType = baseData.equipmentTypes[0];
 
       const newExercise = WorkoutExerciseSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         exerciseName: 'Totally New Exercise',
         workoutEquipmentTypeId: equipmentType._id,
         repRange: ExerciseRepRange.Medium,
@@ -137,11 +137,11 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should allow updateCTOBestSet to take effect on the seeded CTO', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const equipmentType = baseData.equipmentTypes[0];
 
       const newExercise = WorkoutExerciseSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         exerciseName: 'First-Time Exercise',
         workoutEquipmentTypeId: equipmentType._id,
         repRange: ExerciseRepRange.Heavy,
@@ -153,7 +153,7 @@ describe('exerciseMapService CTO update methods', () => {
       exerciseMapService.createNewExercise(newExercise);
 
       const loggedSet = WorkoutSetSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         workoutExerciseId: newExercise._id,
         workoutSessionExerciseId: DocumentService.generateID(),
         workoutSessionId: DocumentService.generateID(),
@@ -169,14 +169,14 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('updateCTOBestSet', () => {
     it('should replace bestSet when higher 1RM', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       const exercise = baseData.exercises[0];
       const cto = exerciseMapService.getCTO(exercise._id);
       expect(cto).toBeDefined();
 
       const newSet = WorkoutSetSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         workoutExerciseId: exercise._id,
         workoutSessionExerciseId: DocumentService.generateID(),
         workoutSessionId: DocumentService.generateID(),
@@ -194,11 +194,11 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should skip when no CTO exists', () => {
-      MockData.setupBaseData();
+      MockDataService.setupBaseData();
       exerciseMapService.setExerciseCTOs([]);
 
       const fakeSet = WorkoutSetSchema.parse({
-        userId: TestUsers.currentUserCto._id,
+        userId: MockUsers.currentUserCto._id,
         workoutExerciseId: DocumentService.generateID(),
         workoutSessionExerciseId: DocumentService.generateID(),
         workoutSessionId: DocumentService.generateID(),
@@ -216,7 +216,7 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('updateCTOsForCompletedSession', () => {
     it('should update lastSessionExercise and lastSessionSets', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
@@ -224,7 +224,7 @@ describe('exerciseMapService CTO update methods', () => {
       });
 
       // Re-setup CTOs with session data
-      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -268,7 +268,7 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should preserve lastAccumulationSessionExercise but update lastSessionExercise for deload exercises', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
@@ -276,7 +276,7 @@ describe('exerciseMapService CTO update methods', () => {
       });
 
       // Re-setup CTOs with session data
-      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -363,7 +363,7 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should update bestSet from session sets', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
@@ -371,7 +371,7 @@ describe('exerciseMapService CTO update methods', () => {
       });
 
       // Re-setup CTOs with session data
-      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -401,7 +401,7 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('removeCTO', () => {
     it('should remove CTO from map', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       const exercise = baseData.exercises[0];
       expect(exerciseMapService.getCTO(exercise._id)).toBeDefined();
@@ -414,7 +414,7 @@ describe('exerciseMapService CTO update methods', () => {
 
   describe('getCTOsForCalibrationIds utility', () => {
     it('should return CTOs for given calibration IDs after move to utility', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const calibrationIds = baseData.calibrations.map((c) => c._id);
 
       const ctos = getCTOsForCalibrationIds(calibrationIds);
@@ -428,11 +428,11 @@ describe('exerciseMapService CTO update methods', () => {
     });
 
     it('should deduplicate CTOs for same exercise', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Add a second calibration for the same exercise
       const exercise = baseData.exercises[0];
-      const extraCal = MockData.exerciseCalibrationMapServiceMock.addCalibration({
+      const extraCal = MockDataService.exerciseCalibrationMapServiceMock.addCalibration({
         workoutExerciseId: exercise._id,
         weight: 100,
         reps: 10

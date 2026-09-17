@@ -27,9 +27,10 @@
   import MesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
+  import { type MockBaseData } from '$services/MockDataService/types';
   import timerService from '$services/TimerService';
-  import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
+  import { daysAgo, daysFromNow } from '$util/dateUtils';
   import SessionPage from '../SessionPage.svelte';
 
   let {
@@ -73,42 +74,42 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
       planning = false;
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Free-form modes don't generate a mesocycle
       if (freeFormModes.has(mode)) {
         if (mode === SessionPageStoryMode.FreeFormEmpty) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormMidWorkout) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 2
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormAllDone) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormCompleted) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6,
             complete: true
           })._id;
         } else if (mode === SessionPageStoryMode.PlanningEmpty) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
           planning = true;
         } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
             title: 'Upper Body Day',
             startTime: daysFromNow(2),
             exerciseCount: 3,
@@ -168,7 +169,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
         timerService.stop();
       });
     };
@@ -181,13 +182,13 @@
    * @param baseData The base mock data used for session and CTO creation
    */
   function addPriorSessionPreviewData(baseData: MockBaseData): void {
-    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
       exerciseCount: 3,
       setsPerExercise: 3,
       loggedSetCount: 9,
       complete: true
     });
-    MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+    MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
       baseData.calibrations,
       baseData.exercises,
       baseData.equipmentTypes

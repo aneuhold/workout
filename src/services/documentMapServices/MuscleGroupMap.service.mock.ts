@@ -1,6 +1,6 @@
 import { type WorkoutMuscleGroup, WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import muscleGroupMapService from './MuscleGroupMap.service.svelte';
 
 export enum MockDefaultMuscleGroup {
@@ -23,10 +23,10 @@ export default class MuscleGroupMapServiceMock {
   /**
    * The default muscle groups, built on first read and rebuilt whenever the
    * current test user changes, so they always belong to whoever
-   * `TestUsers.currentUserCto` is now.
+   * `MockUsers.currentUserCto` is now.
    */
   static get defaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
-    const ownerId = TestUsers.currentUserCto._id;
+    const ownerId = MockUsers.currentUserCto._id;
     if (
       !MuscleGroupMapServiceMock.#defaultMuscleGroups ||
       MuscleGroupMapServiceMock.#defaultsOwnerId !== ownerId
@@ -59,7 +59,7 @@ export default class MuscleGroupMapServiceMock {
 
   static createMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
     return WorkoutMuscleGroupSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       name,
       description
     });

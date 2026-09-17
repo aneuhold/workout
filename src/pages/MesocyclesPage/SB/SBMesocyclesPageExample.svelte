@@ -10,7 +10,7 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
   let { storyMode = MesocyclesPageStoryMode.Default }: { storyMode?: MesocyclesPageStoryMode } =
@@ -28,9 +28,9 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === MesocyclesPageStoryMode.Default) {
         // Active mesocycle (started ~3 weeks ago, 8 completed sessions)
@@ -74,7 +74,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

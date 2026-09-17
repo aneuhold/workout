@@ -10,7 +10,7 @@
   import ExerciseMapServiceMock, {
     MockDefaultExercise
   } from '$services/documentMapServices/ExerciseMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import WorkoutSessionCalendar from './WorkoutSessionCalendar.svelte';
 
   let {
@@ -29,7 +29,7 @@
     const _empty = empty;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
       if (_empty) {
         exercises = [];
@@ -39,7 +39,7 @@
         return;
       }
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const bench = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
       const pullUps = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
       const squat = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
@@ -51,10 +51,10 @@
       const d = now.getDate();
 
       // Create a mesocycle + microcycle spanning prev month through next month
-      const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+      const mesocycle = MockDataService.mesocycleMapServiceMock.addMesocycle({
         plannedMicrocycleCount: 2
       });
-      const microcycle = MockData.microcycleMapServiceMock.addMicrocycle({
+      const microcycle = MockDataService.microcycleMapServiceMock.addMicrocycle({
         workoutMesocycleId: mesocycle._id,
         startDate: new Date(yr, mo - 1, 1),
         endDate: new Date(yr, mo + 2, 0)
@@ -81,7 +81,7 @@
         workoutMicrocycleId: UUID | null,
         configs: Array<{ ex: WorkoutExercise; setCount: number; isRecovery?: boolean }>
       ): void {
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = MockDataService.sessionMapServiceMock.addSession({
           workoutMicrocycleId: workoutMicrocycleId ?? undefined,
           title,
           startTime,
@@ -90,7 +90,7 @@
         allSessions.push(session);
 
         for (const cfg of configs) {
-          const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+          const se = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
             workoutSessionId: session._id,
             workoutExerciseId: cfg.ex._id
           });
@@ -98,7 +98,7 @@
           allSEs.push(se);
 
           for (let i = 0; i < cfg.setCount; i++) {
-            const set = MockData.setMapServiceMock.addSet({
+            const set = MockDataService.setMapServiceMock.addSet({
               workoutExerciseId: cfg.ex._id,
               workoutSessionId: session._id,
               workoutSessionExerciseId: se._id,
@@ -186,7 +186,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

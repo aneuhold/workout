@@ -24,8 +24,8 @@
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
+  import { daysAgo, daysFromNow } from '$util/dateUtils';
   import HomePage from '../HomePage.svelte';
 
   let { storyMode = HomePageStoryMode.Default }: { storyMode?: HomePageStoryMode } = $props();
@@ -34,9 +34,9 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === HomePageStoryMode.AllComplete) {
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -202,7 +202,7 @@
 
       if (mode === HomePageStoryMode.FreeFormInProgress) {
         // No mesocycle, one free-form session in progress with 2 exercises
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           exerciseCount: 2,
           setsPerExercise: 1,
           loggedSetCount: 1
@@ -212,7 +212,7 @@
 
       if (mode === HomePageStoryMode.FreeFormPlanned) {
         // No mesocycle — two upcoming planned free-form sessions
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Upper Body Day',
           startTime: daysFromNow(1),
           exerciseCount: 3,
@@ -221,7 +221,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Lower Body Day',
           startTime: daysFromNow(3),
           exerciseCount: 4,
@@ -235,14 +235,14 @@
 
       if (mode === HomePageStoryMode.FreeFormInProgressAndPlanned) {
         // One session in progress + two planned — home section shows all three
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
           startTime: daysAgo(0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
           startTime: daysFromNow(2),
           exerciseCount: 3,
@@ -251,7 +251,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
           startTime: daysFromNow(4),
           exerciseCount: 4,
@@ -274,7 +274,7 @@
           completedSessionCount: 8
         });
         MesocycleMapServiceMock.fillLateFields(data);
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
           startTime: daysAgo(1),
           exerciseCount: 3,
@@ -297,7 +297,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

@@ -3,8 +3,10 @@ import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/MesocycleMap.service.mock';
 import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
-import { daysAgo, daysFromNow } from '../dateUtils';
-import MockData, { FullAppScenario, type MockBaseData } from './MockData';
+import MockDataService from '$services/MockDataService/MockData.service';
+import { type MockBaseData } from '$services/MockDataService/types';
+import { daysAgo, daysFromNow } from '$util/dateUtils';
+import { FullAppScenario } from './types';
 
 /**
  * Builds the data for each {@link FullAppScenario} in the mock document map
@@ -19,7 +21,7 @@ export default class MockScenarioService {
    * @param scenario The scenario to set up
    */
   static setupScenario(scenario: FullAppScenario): string | null {
-    MockData.resetAll();
+    MockDataService.resetAll();
 
     if (scenario === FullAppScenario.CompletelyFresh) {
       // Brand-new user: no muscle groups, equipment, exercises, or mesocycles.
@@ -27,7 +29,7 @@ export default class MockScenarioService {
       return null;
     }
 
-    const baseData = MockData.setupBaseData();
+    const baseData = MockDataService.setupBaseData();
 
     switch (scenario) {
       case FullAppScenario.MidTrainingWithHistory: {
@@ -48,7 +50,7 @@ export default class MockScenarioService {
         MesocycleMapServiceMock.fillLateFields(data);
         MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         // Completed free-form sessions
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — 5 days ago',
           startTime: daysAgo(5),
           complete: true,
@@ -56,7 +58,7 @@ export default class MockScenarioService {
           setsPerExercise: 3,
           loggedSetCount: 9
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — 12 days ago',
           startTime: daysAgo(12),
           complete: true,
@@ -65,14 +67,14 @@ export default class MockScenarioService {
           loggedSetCount: 8
         });
         // In-progress free-form sessions
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
           startTime: daysAgo(0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Accessory Work',
           startTime: daysAgo(1),
           exerciseCount: 2,
@@ -80,7 +82,7 @@ export default class MockScenarioService {
           loggedSetCount: 1
         });
         // Planned free-form sessions
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
           startTime: daysFromNow(2),
           exerciseCount: 3,
@@ -89,7 +91,7 @@ export default class MockScenarioService {
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
           startTime: daysFromNow(5),
           exerciseCount: 4,
@@ -335,7 +337,7 @@ export default class MockScenarioService {
 
     for (const config of completedFreeFormConfigs) {
       const startTime = daysAgo(config.daysAgoCount + daysOffset);
-      MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+      MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
         title: sessionMapService.getFormattedSessionTitle(startTime),
         startTime,
         complete: true,
@@ -354,7 +356,7 @@ export default class MockScenarioService {
    * @param baseData The base exercise/calibration/equipment data
    */
   static #setupFreeFormWorkoutScenario(baseData: MockBaseData): string {
-    const session = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    const session = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
       exerciseCount: 2,
       setsPerExercise: 3,
       loggedSetCount: 2

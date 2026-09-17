@@ -54,10 +54,11 @@
     isDemoMode = SessionData.getDemoModeEnabled();
 
     if (isDemoMode) {
-      // Imported on demand to keep the mock, scenario, and test utility code
-      // out of the bundle every visitor downloads at startup
-      const { default: TestSetup } = await import('$testUtils/TestSetup');
-      await TestSetup.setupDemo();
+      // Imported on demand to keep the mock environment code out of the
+      // bundle every visitor downloads at startup
+      const { default: mockEnvSetupService } =
+        await import('$services/MockEnvSetupService/MockEnvSetup.service');
+      await mockEnvSetupService.setupDemo();
     } else {
       await LocalData.init();
       await Promise.all([

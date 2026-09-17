@@ -16,7 +16,7 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclePage from '../MesocyclePage.svelte';
 
   let { storyMode = MesocyclePageStoryMode.New }: { storyMode?: MesocyclePageStoryMode } = $props();
@@ -35,16 +35,16 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
       if (mode === MesocyclePageStoryMode.New) {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
         mesocycleId = null;
         return;
       }
 
       if (mode === MesocyclePageStoryMode.NewWithExisting) {
-        const baseData = MockData.setupBaseData();
+        const baseData = MockDataService.setupBaseData();
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Current Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
@@ -57,7 +57,7 @@
       }
 
       if (mode === MesocyclePageStoryMode.NewOverlapping) {
-        const baseData = MockData.setupBaseData();
+        const baseData = MockDataService.setupBaseData();
 
         // Active mesocycle ending in ~7 days
         MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -87,7 +87,7 @@
         return;
       }
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === MesocyclePageStoryMode.Edit) {
         const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -130,7 +130,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

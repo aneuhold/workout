@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { FullAppScenario } from '$services/MockScenarioService/types';
   import { createEnumArgType } from '$storybook/storybookUtil';
-  import { FullAppScenario } from '$testUtils/MockData/MockData';
   import SBFullAppExample from './SBFullAppExample.svelte';
   import routeState from './sbFullAppRouteState.svelte';
 

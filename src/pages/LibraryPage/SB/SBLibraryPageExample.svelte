@@ -4,7 +4,7 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import { MockDefaultExercise } from '$services/documentMapServices/ExerciseMap.service.mock';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import LibraryPage from '../LibraryPage.svelte';
 
   let { populateDefaultData = true }: { populateDefaultData?: boolean } = $props();
@@ -14,10 +14,10 @@
     const populate = populateDefaultData;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
       if (populate) {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
 
         // Remove calibration and CTO for Dumbbell Lateral Raise so the library
         // shows at least one uncalibrated exercise with the warning state
@@ -41,7 +41,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

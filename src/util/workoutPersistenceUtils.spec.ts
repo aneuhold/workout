@@ -1,7 +1,7 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { DocumentService, type WorkoutSet, WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
 import { describe, expect, it } from 'vitest';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import { createWorkoutPrepareForSave } from './workoutPersistenceUtils';
 
 /**
@@ -9,7 +9,7 @@ import { createWorkoutPrepareForSave } from './workoutPersistenceUtils';
  */
 const makeSet = (): WorkoutSet =>
   WorkoutSetSchema.parse({
-    userId: TestUsers.currentUserCto._id,
+    userId: MockUsers.currentUserCto._id,
     workoutExerciseId: DocumentService.generateID(),
     workoutSessionId: DocumentService.generateID(),
     workoutSessionExerciseId: DocumentService.generateID()

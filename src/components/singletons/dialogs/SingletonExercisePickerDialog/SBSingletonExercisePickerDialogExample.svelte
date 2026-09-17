@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import Button from '$ui/Button/Button.svelte';
   import SingletonExercisePickerDialog from './SingletonExercisePickerDialog.svelte';
   import { exercisePickerDialog } from './SingletonExercisePickerDialog.svelte';
@@ -9,13 +9,13 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.resetAll();
-      MockData.setupBaseData();
+      MockDataService.resetAll();
+      MockDataService.setupBaseData();
     });
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

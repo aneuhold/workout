@@ -3,7 +3,7 @@ import {
   WorkoutExerciseCalibrationSchema
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
 import ExerciseMapServiceMock, { MockDefaultExercise } from './ExerciseMap.service.mock';
 
@@ -21,7 +21,7 @@ export default class ExerciseCalibrationMapServiceMock {
 
   static createCalibration(options: AddMockCalibrationInfo): WorkoutExerciseCalibration {
     return WorkoutExerciseCalibrationSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       workoutExerciseId: options.workoutExerciseId,
       reps: options.reps,
       weight: options.weight,

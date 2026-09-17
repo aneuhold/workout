@@ -1,6 +1,6 @@
 import { type WorkoutEquipmentType, WorkoutEquipmentTypeSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import equipmentTypeMapService from './EquipmentTypeMap.service.svelte';
 
 export enum MockDefaultEquipmentType {
@@ -19,10 +19,10 @@ export default class EquipmentTypeMapServiceMock {
   /**
    * The default equipment types, built on first read and rebuilt whenever the
    * current test user changes, so they always belong to whoever
-   * `TestUsers.currentUserCto` is now.
+   * `MockUsers.currentUserCto` is now.
    */
   static get defaultEquipmentTypes(): Record<MockDefaultEquipmentType, WorkoutEquipmentType> {
-    const ownerId = TestUsers.currentUserCto._id;
+    const ownerId = MockUsers.currentUserCto._id;
     if (
       !EquipmentTypeMapServiceMock.#defaultEquipmentTypes ||
       EquipmentTypeMapServiceMock.#defaultsOwnerId !== ownerId
@@ -54,7 +54,7 @@ export default class EquipmentTypeMapServiceMock {
 
   static createEquipmentType(title: string, weightOptions: number[]): WorkoutEquipmentType {
     return WorkoutEquipmentTypeSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       title,
       weightOptions
     });

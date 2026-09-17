@@ -9,8 +9,9 @@ import {
   type WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockData, { type MockBaseData } from '$testUtils/MockData/MockData';
-import TestUsers from '$testUtils/TestUsers';
+import MockDataService from '$services/MockDataService/MockData.service';
+import { type MockBaseData } from '$services/MockDataService/types';
+import MockUsers from '$util/MockUsers';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 
 export type AddMockMesocycleInfo = {
@@ -54,7 +55,7 @@ export default class MesocycleMapServiceMock {
 
   addMesocycle(config: AddMockMesocycleInfo = {}): WorkoutMesocycle {
     const doc = WorkoutMesocycleSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       cycleType: config.cycleType ?? CycleType.MuscleGain,
       plannedSessionCountPerMicrocycle: config.plannedSessionCountPerMicrocycle ?? 5,
       plannedMicrocycleLengthInDays: config.plannedMicrocycleLengthInDays ?? 7,
@@ -78,7 +79,7 @@ export default class MesocycleMapServiceMock {
     baseData: MockBaseData,
     config: MockGenerateFullMesocycleConfig
   ): MockGeneratedMesocycleData {
-    const mesoDoc = MockData.mesocycleMapServiceMock.addMesocycle({
+    const mesoDoc = MockDataService.mesocycleMapServiceMock.addMesocycle({
       title: config.title,
       cycleType: config.cycleType ?? CycleType.MuscleGain,
       plannedMicrocycleCount: config.microcycleCount ?? 4,
@@ -163,10 +164,10 @@ export default class MesocycleMapServiceMock {
       });
     }
 
-    MockData.microcycleMapServiceMock.addManyMicrocycles(microcycles);
-    MockData.sessionMapServiceMock.addManySessions(sessions);
-    MockData.sessionExerciseMapServiceMock.addManySessionExercises(sessionExercises);
-    MockData.setMapServiceMock.addManySets(sets);
+    MockDataService.microcycleMapServiceMock.addManyMicrocycles(microcycles);
+    MockDataService.sessionMapServiceMock.addManySessions(sessions);
+    MockDataService.sessionExerciseMapServiceMock.addManySessionExercises(sessionExercises);
+    MockDataService.setMapServiceMock.addManySets(sets);
 
     return data;
   }

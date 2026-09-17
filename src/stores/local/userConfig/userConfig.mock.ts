@@ -1,4 +1,4 @@
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import { type UserConfig, userConfig } from './userConfig';
 
 /**
@@ -12,7 +12,7 @@ export default class UserConfigMock {
    */
   reset(): void {
     const mockConfig: UserConfig = {
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       username: 'Mock User',
       accessToken: null,
       refreshTokenString: null

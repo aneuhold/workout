@@ -1,11 +1,11 @@
 import 'fake-indexeddb/auto';
 import { cleanup } from '@testing-library/svelte';
 import { afterEach, beforeEach, vi } from 'vitest';
-import TestSetup from './TestSetup';
+import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 
 // Run global setup before each test
 beforeEach(() => {
-  TestSetup.setupGlobalMocks(vi.spyOn);
+  mockEnvSetupService.setupGlobalMocks(vi.spyOn);
 
   // Prevent requestAnimationFrame-driven UI libraries from scheduling callbacks that can fire
   // after component teardown in JSDOM and surface as unhandled errors.

@@ -7,7 +7,9 @@
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import MockData, { FullAppScenario } from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
+  import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
+  import { FullAppScenario } from '$services/MockScenarioService/types';
   import routeState from './sbFullAppRouteState.svelte';
   import SBFullAppShell from './SBFullAppShell.svelte';
 
@@ -19,7 +21,7 @@
 
     untrack(() => {
       routeState.reset();
-      const startUrl = MockData.setupScenario(currentScenario);
+      const startUrl = MockScenarioService.setupScenario(currentScenario);
       if (startUrl) {
         routeState.navigate(startUrl);
       }
@@ -27,7 +29,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

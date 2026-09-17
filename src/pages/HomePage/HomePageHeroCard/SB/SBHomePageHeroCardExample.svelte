@@ -21,8 +21,8 @@
   import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
-  import { daysAgo } from '$testUtils/dateUtils';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
+  import { daysAgo } from '$util/dateUtils';
   import { getPendingReviewSessions } from '../../homePageUtils';
   import HomePageHeroCard from '../HomePageHeroCard.svelte';
 
@@ -36,8 +36,8 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
-      const baseData = MockData.setupBaseData();
+      MockDataService.resetAll();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === HomePageHeroCardStoryMode.ContinueSession) {
         const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -53,7 +53,7 @@
       }
 
       if (mode === HomePageHeroCardStoryMode.FreeFormInProgress) {
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           exerciseCount: 2,
           setsPerExercise: 1,
           loggedSetCount: 1
@@ -70,7 +70,7 @@
           completedSessionCount: 8
         });
         MesocycleMapServiceMock.fillLateFields(data);
-        MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
           startTime: daysAgo(1),
           exerciseCount: 3,
@@ -185,7 +185,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

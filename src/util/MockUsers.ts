@@ -1,9 +1,10 @@
 import { DocumentService, type UserCTO } from '@aneuhold/core-ts-db-lib';
 
 /**
- * Static user data for testing to avoid circular dependencies.
+ * The user identities that all mock data belongs to. Kept standalone so the
+ * mock document builders can share an owner without importing each other.
  */
-export default class TestUsers {
+export default class MockUsers {
   static currentUserCto: UserCTO = {
     _id: DocumentService.generateID(),
     userName: 'storybookUser'

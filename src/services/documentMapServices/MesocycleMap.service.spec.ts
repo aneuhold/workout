@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import MockDataService from '$services/MockDataService/MockData.service';
+import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import WorkoutAPIService from '$services/WorkoutAPI.service';
-import MockData from '$testUtils/MockData/MockData';
-import TestSetup from '$testUtils/TestSetup';
 import MesocycleMapServiceMock from './MesocycleMap.service.mock';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 
 describe('Unit Tests', () => {
   beforeEach(() => {
-    TestSetup.setupGlobalMocks(vi.spyOn);
+    mockEnvSetupService.setupGlobalMocks(vi.spyOn);
   });
 
   afterEach(() => {
@@ -16,7 +16,7 @@ describe('Unit Tests', () => {
 
   describe('categorizedMesocycles', () => {
     it('should return null active and empty arrays when no mesocycles exist', () => {
-      MockData.setupBaseData();
+      MockDataService.setupBaseData();
 
       const { active, past, future } = mesocycleMapService.categorizedMesocycles;
 
@@ -26,7 +26,7 @@ describe('Unit Tests', () => {
     });
 
     it('should partition mesocycles into active, past, and future', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Past mesocycle (completed)
       const pastData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -60,7 +60,7 @@ describe('Unit Tests', () => {
     });
 
     it('should only have one active mesocycle (the first without completedDate)', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Two mesocycles without completedDate — first should be active, second future
       const firstData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -83,7 +83,7 @@ describe('Unit Tests', () => {
     });
 
     it('should sort past mesocycles by completedDate descending', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       const olderPast = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Older Past',
@@ -107,7 +107,7 @@ describe('Unit Tests', () => {
     });
 
     it('should sort future mesocycles by effective start date ascending', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Active mesocycle
       MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -139,7 +139,7 @@ describe('Unit Tests', () => {
 
   describe('endMesocycle', () => {
     it('should set completedDate to the last completed session date', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
@@ -163,7 +163,7 @@ describe('Unit Tests', () => {
     });
 
     it('should delete all incomplete sessions and their children', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -206,7 +206,7 @@ describe('Unit Tests', () => {
     });
 
     it('should delete microcycles whose sessions are ALL incomplete', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -239,7 +239,7 @@ describe('Unit Tests', () => {
     });
 
     it('should preserve completed sessions, their children, and their microcycles', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -282,7 +282,7 @@ describe('Unit Tests', () => {
 
   describe('initiateEarlyDeload', () => {
     it('should delete all incomplete sessions and their children', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -309,7 +309,7 @@ describe('Unit Tests', () => {
     });
 
     it('should generate a deload microcycle with reduced sets and reps', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -386,7 +386,7 @@ describe('Unit Tests', () => {
     });
 
     it('should preserve completed data', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -412,7 +412,7 @@ describe('Unit Tests', () => {
     });
 
     it('should call WorkoutAPIService.queryApi exactly once', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
       const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
@@ -431,7 +431,7 @@ describe('Unit Tests', () => {
     });
 
     it('should handle partially-complete microcycle by setting completedDate and pruning sessionOrder', () => {
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       // 8 completed = microcycle 1 fully complete (5) + microcycle 2 partially complete (3/5)
       const completedSessionCount = sessionsPerMicrocycle + 3;

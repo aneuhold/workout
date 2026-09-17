@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkoutEquipmentType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import Button from '$ui/Button/Button.svelte';
   import SingletonEquipmentFormDialog from './SingletonEquipmentFormDialog.svelte';
   import { equipmentFormDialog } from './SingletonEquipmentFormDialog.svelte';
@@ -10,13 +10,13 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.equipmentTypeMapServiceMock.reset();
-      equipment = MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
+      MockDataService.equipmentTypeMapServiceMock.reset();
+      equipment = MockDataService.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
     });
 
     return () => {
       untrack(() => {
-        MockData.equipmentTypeMapServiceMock.reset();
+        MockDataService.equipmentTypeMapServiceMock.reset();
       });
     };
   });
