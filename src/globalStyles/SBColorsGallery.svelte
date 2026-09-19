@@ -14,9 +14,9 @@
   };
 
   type ColorSwatch = {
-    /** CSS custom property that sets the swatch background, without the leading `--`. */
+    /** Theme color that sets the swatch background, as used in classes (`bg-{name}`). */
     name: string;
-    /** Paired CSS custom property for content drawn on top of `name`, when the theme defines one. */
+    /** Paired theme color for content drawn on top of `name`, when the theme defines one. */
     foreground?: string;
     /** Full class names, written out so Tailwind detects them. */
     className: string;
@@ -66,6 +66,15 @@
       ]
     },
     {
+      title: 'Status',
+      swatches: [
+        { name: 'success', className: 'bg-success' },
+        { name: 'warning', className: 'bg-warning' },
+        { name: 'info', className: 'bg-info' },
+        { name: 'free-form', className: 'bg-free-form' }
+      ]
+    },
+    {
       title: 'Borders and focus',
       swatches: [
         { name: 'border', className: 'bg-border' },
@@ -104,6 +113,22 @@
         { name: 'chart-4', className: 'bg-chart-4' },
         { name: 'chart-5', className: 'bg-chart-5' }
       ]
+    },
+    {
+      title: 'Positive scores',
+      swatches: [
+        { name: 'score-positive-1', className: 'bg-score-positive-1' },
+        { name: 'score-positive-2', className: 'bg-score-positive-2' },
+        { name: 'score-positive-3', className: 'bg-score-positive-3' }
+      ]
+    },
+    {
+      title: 'Negative scores',
+      swatches: [
+        { name: 'score-negative-1', className: 'bg-score-negative-1' },
+        { name: 'score-negative-2', className: 'bg-score-negative-2' },
+        { name: 'score-negative-3', className: 'bg-score-negative-3' }
+      ]
     }
   ];
 </script>
@@ -124,8 +149,8 @@
               {#if foreground}Aa{/if}
             </div>
             <div class="text-muted-foreground flex flex-col font-mono text-xs">
-              <span>--{name}</span>
-              {#if foreground}<span>--{foreground}</span>{/if}
+              <span>--color-{name}</span>
+              {#if foreground}<span>--color-{foreground}</span>{/if}
             </div>
           </div>
         {/each}

@@ -17,7 +17,7 @@
 <div
   class="flex gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground"
 >
-  <IconBulb size={16} class="shrink-0 text-amber-500" />
+  <IconBulb size={16} class="shrink-0 text-warning" />
   <div>
     {@render children()}
   </div>

@@ -50,18 +50,23 @@
     if (colorMode === SessionPageSliderColorMode.Positive) {
       const colors = [
         'text-muted-foreground',
-        'text-green-500',
-        'text-green-600',
-        'text-green-700'
+        'text-score-positive-1',
+        'text-score-positive-2',
+        'text-score-positive-3'
       ];
       return colors[score] ?? 'text-muted-foreground';
     }
-    const colors = ['text-muted-foreground', 'text-orange-500', 'text-red-500', 'text-red-700'];
+    const colors = [
+      'text-muted-foreground',
+      'text-score-negative-1',
+      'text-score-negative-2',
+      'text-score-negative-3'
+    ];
     return colors[score] ?? 'text-muted-foreground';
   }
 </script>
 
-<div class={highlight && value == null ? 'rounded-lg ring-2 ring-amber-500/50 p-2' : ''}>
+<div class={highlight && value == null ? 'rounded-lg ring-2 ring-warning/50 p-2' : ''}>
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-1.5">
       <Label>{label}</Label>

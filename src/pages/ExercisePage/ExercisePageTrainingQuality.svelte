@@ -48,9 +48,9 @@
 
   let sfrColorClass = $derived.by(() => {
     if (sfr === null) return 'text-muted-foreground';
-    if (sfr >= 1.5) return 'text-green-600 dark:text-green-400';
+    if (sfr >= 1.5) return 'text-success';
     if (sfr >= 1.0) return 'text-foreground';
-    return 'text-amber-500';
+    return 'text-warning';
   });
 
   let estimateTotal = $derived(
@@ -87,10 +87,10 @@
           <p>SFR = RSM total / Fatigue total. Indicates training efficiency:</p>
           <ul class="mt-1 flex flex-col gap-0.5">
             <li>
-              <span class="text-green-600 dark:text-green-400">1.5+</span> — Excellent efficiency
+              <span class="text-success">1.5+</span> — Excellent efficiency
             </li>
             <li>1.0–1.49 — Adequate efficiency</li>
-            <li><span class="text-amber-500">Below 1.0</span> — High cost relative to stimulus</li>
+            <li><span class="text-warning">Below 1.0</span> — High cost relative to stimulus</li>
           </ul>
         </InfoPopover>
       </div>
