@@ -17,7 +17,7 @@ import { SvelteSet } from 'svelte/reactivity';
 import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
 import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import {
@@ -73,7 +73,12 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSession>(LocalData.storedKeyNames.sessionMap),
       persistToDb: createWorkoutPersistToDb('sessions'),
-      prepareForSave: createWorkoutPrepareForSave('sessions')
+      prepareForSave: createWorkoutPrepareForSave('sessions'),
+      handleApiOutput: (output, input) => {
+        if (output.sessions && input.get?.sessions?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.sessions));
+        }
+      }
     });
   }
 

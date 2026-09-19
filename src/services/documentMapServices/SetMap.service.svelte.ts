@@ -19,7 +19,12 @@ class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSet>(LocalData.storedKeyNames.setMap),
       persistToDb: createWorkoutPersistToDb('sets'),
-      prepareForSave: createWorkoutPrepareForSave('sets')
+      prepareForSave: createWorkoutPrepareForSave('sets'),
+      handleApiOutput: (output, input) => {
+        if (output.sets && input.get?.sets?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.sets));
+        }
+      }
     });
   }
 

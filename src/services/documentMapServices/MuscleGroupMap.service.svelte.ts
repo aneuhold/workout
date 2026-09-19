@@ -32,7 +32,15 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMuscleGroup>(LocalData.storedKeyNames.muscleGroupMap),
       persistToDb: createWorkoutPersistToDb('muscleGroups'),
-      prepareForSave: createWorkoutPrepareForSave('muscleGroups')
+      prepareForSave: createWorkoutPrepareForSave('muscleGroups'),
+      handleApiOutput: (output, input) => {
+        if (output.muscleGroups && input.get?.muscleGroups?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.muscleGroups));
+        }
+        if (output.muscleGroupVolumeCTOs && input.get?.muscleGroupVolumeCTOs?.all) {
+          this.setVolumeCTOs(output.muscleGroupVolumeCTOs);
+        }
+      }
     });
   }
 
@@ -61,11 +69,7 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
    * @param ctos The new muscle group volume CTOs from the backend
    */
   setVolumeCTOs(ctos: WorkoutMuscleGroupVolumeCTO[]): void {
-    const map: DocumentMap<WorkoutMuscleGroupVolumeCTO> = {};
-    for (const cto of ctos) {
-      map[cto._id] = cto;
-    }
-    this.#volumeCTOMapState = map;
+    this.#volumeCTOMapState = this.convertDocumentArrayToMap(ctos);
   }
 
   /**

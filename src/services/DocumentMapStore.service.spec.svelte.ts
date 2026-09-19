@@ -20,6 +20,7 @@ function createTestService() {
     persistToLocalData: persistToLocalDataMock,
     persistToDb: persistToDbMock,
     prepareForSave: prepareForSaveMock,
+    handleApiOutput: vi.fn(),
     loadFromLocalData: loadFromLocalDataMock
   });
 }

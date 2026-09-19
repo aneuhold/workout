@@ -19,7 +19,12 @@ class ExerciseCalibrationDocumentMapService extends DocumentMapStoreService<Work
           LocalData.storedKeyNames.exerciseCalibrationMap
         ),
       persistToDb: createWorkoutPersistToDb('exerciseCalibrations'),
-      prepareForSave: createWorkoutPrepareForSave('exerciseCalibrations')
+      prepareForSave: createWorkoutPrepareForSave('exerciseCalibrations'),
+      handleApiOutput: (output, input) => {
+        if (output.exerciseCalibrations && input.get?.exerciseCalibrations?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.exerciseCalibrations));
+        }
+      }
     });
   }
 

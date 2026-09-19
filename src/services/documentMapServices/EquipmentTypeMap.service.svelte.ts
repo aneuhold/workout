@@ -17,7 +17,12 @@ class EquipmentTypeDocumentMapService extends DocumentMapStoreService<WorkoutEqu
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutEquipmentType>(LocalData.storedKeyNames.equipmentTypeMap),
       persistToDb: createWorkoutPersistToDb('equipmentTypes'),
-      prepareForSave: createWorkoutPrepareForSave('equipmentTypes')
+      prepareForSave: createWorkoutPrepareForSave('equipmentTypes'),
+      handleApiOutput: (output, input) => {
+        if (output.equipmentTypes && input.get?.equipmentTypes?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
+        }
+      }
     });
   }
 

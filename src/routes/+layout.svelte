@@ -3,8 +3,8 @@
 
   Root layout. Persists across both `(app)` and `(marketing)` route groups,
   so it owns one-time concerns: global CSS, light/dark mode, view
-  transitions, app-state hydration, demo mode, and the document visibility
-  listener.
+  transitions, API output handler registration, app-state hydration, demo
+  mode, and the document visibility listener.
 
   Group layouts handle their own UI: `(app)` gates chrome on `loginState`,
   `(marketing)` just renders. Hydration runs even on marketing pages so
@@ -20,7 +20,8 @@
   import demoModeService from '$services/DemoMode.service.svelte';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
-  import WorkoutAPIService from '$services/WorkoutAPI.service';
+  import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';
+  import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
   import WorkoutHydrationService from '$services/WorkoutHydration.service';
   import { password } from '$stores/local/password';
   import { translations } from '$stores/local/translations';
@@ -47,6 +48,7 @@
   // pages and app routes, it doesn't break the app. This should be a no-op though and looks like
   // it still loads incredibly fast.
   onMount(async () => {
+    WorkoutAPIService.setApiOutputHandlers(apiResponseHandlingOrder);
     const isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled;
     if (!isDemoMode) {
       await LocalData.init();

@@ -6,7 +6,7 @@ import {
 } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
 import googleAuthService from '$services/GoogleAuth.service';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { password } from '$stores/local/password';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { LoginState, loginState } from '$stores/session/loginState';

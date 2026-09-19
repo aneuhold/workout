@@ -1,7 +1,11 @@
-import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
+import type {
+  ProjectWorkoutPrimaryEndpointOptions,
+  ProjectWorkoutPrimaryOutput
+} from '@aneuhold/core-ts-api-lib';
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
+import AbstractDocumentMapStoreService from '$services/AbstractDocumentMapStore.service';
 import { createLogger } from '$util/logging/logger';
 
 export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
@@ -25,6 +29,15 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
     info: DocumentInsertOrUpdateInfo<T>
   ) => void;
   /**
+   * Applies this map's part of the combined output of a processed batch of
+   * API requests. `input` is the combined input across that batch, so the map
+   * can check what was requested.
+   */
+  handleApiOutput: (
+    output: ProjectWorkoutPrimaryOutput,
+    input: ProjectWorkoutPrimaryEndpointOptions
+  ) => void;
+  /**
    * Reads a cached map from local storage. If provided, `hydrate()` uses it
    * to populate the reactive state on startup before any API data arrives.
    * Resolve to `null` if nothing is cached.
@@ -40,7 +53,9 @@ export interface DocumentMapStoreConfig<T extends BaseDocument> {
  * Configure via constructor and export the instance as a default export
  * for singleton behavior.
  */
-export default class DocumentMapStoreService<T extends BaseDocument> {
+export default class DocumentMapStoreService<
+  T extends BaseDocument
+> extends AbstractDocumentMapStoreService {
   readonly #log = createLogger('DocumentMapStoreService.ts');
   #mapState: DocumentMap<T> = $state({});
   #config: DocumentMapStoreConfig<T>;
@@ -55,6 +70,7 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
   );
 
   constructor(config: DocumentMapStoreConfig<T>) {
+    super();
     this.#config = config;
   }
 
@@ -199,12 +215,18 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     this.#config.persistToLocalData(this.#mapState);
   }
 
-  /**
-   * Populates the reactive state from local-storage cache, if available,
-   * without re-persisting. Intended to run once on app startup so the UI
-   * can show the last-known-good data before the API responds.
-   */
-  public async hydrate(): Promise<void> {
+  public override persistDocumentMap(): void {
+    this.setMap(this.convertDocumentArrayToMap(this.allDocs));
+  }
+
+  public override handleApiOutput(
+    output: ProjectWorkoutPrimaryOutput,
+    input: ProjectWorkoutPrimaryEndpointOptions
+  ): void {
+    this.#config.handleApiOutput(output, input);
+  }
+
+  public override async hydrate(): Promise<void> {
     if (!this.#config.loadFromLocalData) return;
     const cached = await this.#config.loadFromLocalData();
     if (cached) {
@@ -234,5 +256,19 @@ export default class DocumentMapStoreService<T extends BaseDocument> {
     this.#config.persistToLocalData(this.#mapState);
     this.#config.prepareForSave(apiOptions, info);
     return apiOptions;
+  }
+
+  /**
+   * Builds a document map keyed by each document's `_id`.
+   *
+   * @param documents The documents to put in the map
+   */
+  protected convertDocumentArrayToMap<TDoc extends BaseDocument>(
+    documents: TDoc[]
+  ): DocumentMap<TDoc> {
+    return documents.reduce<DocumentMap<TDoc>>((map, document) => {
+      map[document._id] = document;
+      return map;
+    }, {});
   }
 }

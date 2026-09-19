@@ -2,7 +2,7 @@ import type { WorkoutSessionExercise, WorkoutSet } from '@aneuhold/core-ts-db-li
 import { WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import LocalData from '$util/LocalData/LocalData';
 import {
   createWorkoutPersistToDb,
@@ -21,7 +21,12 @@ class SessionExerciseDocumentMapService extends DocumentMapStoreService<WorkoutS
           LocalData.storedKeyNames.sessionExerciseMap
         ),
       persistToDb: createWorkoutPersistToDb('sessionExercises'),
-      prepareForSave: createWorkoutPrepareForSave('sessionExercises')
+      prepareForSave: createWorkoutPrepareForSave('sessionExercises'),
+      handleApiOutput: (output, input) => {
+        if (output.sessionExercises && input.get?.sessionExercises?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.sessionExercises));
+        }
+      }
     });
   }
 

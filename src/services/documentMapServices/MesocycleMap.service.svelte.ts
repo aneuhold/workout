@@ -16,7 +16,7 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
 import {
@@ -53,7 +53,12 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMesocycle>(LocalData.storedKeyNames.mesocycleMap),
       persistToDb: createWorkoutPersistToDb('mesocycles'),
-      prepareForSave: createWorkoutPrepareForSave('mesocycles')
+      prepareForSave: createWorkoutPrepareForSave('mesocycles'),
+      handleApiOutput: (output, input) => {
+        if (output.mesocycles && input.get?.mesocycles?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.mesocycles));
+        }
+      }
     });
   }
 

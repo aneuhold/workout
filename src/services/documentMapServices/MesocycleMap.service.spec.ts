@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MockDataService from '$services/MockDataService/MockData.service';
 import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import mesocycleMapServiceMock from './MesocycleMap.service.mock';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 

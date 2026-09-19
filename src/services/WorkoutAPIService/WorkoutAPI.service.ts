@@ -3,14 +3,14 @@ import {
   type ProjectWorkoutPrimaryEndpointOptions,
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
+import type AbstractDocumentMapStoreService from '$services/AbstractDocumentMapStore.service';
 import apiActivityService from '$services/ApiActivityService/ApiActivity.service.svelte';
+import updateCheckService from '$services/UpdateCheck.service.svelte';
 import WebSocketService from '$services/WebSocket.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
 import { createLogger } from '$util/logging/logger';
 import { PerfMark } from '$util/perfMarks';
-import updateCheckService from './UpdateCheck.service.svelte';
-import WorkoutAPIResponseHandlingService from './WorkoutAPIResponseHandling.service';
 
 export default class WorkoutAPIService {
   static readonly #log = createLogger('WorkoutAPIService.ts');
@@ -23,6 +23,11 @@ export default class WorkoutAPIService {
    * Determines if the initial hydration performance marker has been set yet.
    */
   static #initialHydrationMarked = false;
+  /**
+   * The document map services that handle API output, in the order in which
+   * they are executed.
+   */
+  static #apiOutputHandlers: AbstractDocumentMapStoreService[] = [];
 
   /**
    * In-memory mirror of the persisted queue. The disk copy in
@@ -54,6 +59,18 @@ export default class WorkoutAPIService {
     ]);
     this.#inMemoryApiRequestQueue = queue;
     this.#inMemoryCurrentApiRequest = current;
+  }
+
+  /**
+   * Sets the document map services that apply the combined output of each
+   * processed batch of API requests to app state. Call once at app startup,
+   * before any request is queued.
+   *
+   * @param apiOutputHandlers The services that handle API output, in the order
+   *   in which they are executed
+   */
+  static setApiOutputHandlers(apiOutputHandlers: AbstractDocumentMapStoreService[]): void {
+    this.#apiOutputHandlers = apiOutputHandlers;
   }
 
   /**
@@ -181,7 +198,7 @@ export default class WorkoutAPIService {
         // Only set the stores if there are no more requests to process. This
         // should help prevent the stores from being set to an old value if
         // the user refreshes the page while the task queue is being processed.
-        WorkoutAPIResponseHandlingService.processWorkoutApiOutput(combinedOutput, combinedInput);
+        this.#handleOutput(combinedOutput, combinedInput);
         if (!this.#initialHydrationMarked && combinedInput.get?.mesocycles?.all) {
           this.#initialHydrationMarked = true;
           performance.mark(PerfMark.HydrationNetworkComplete);
@@ -198,6 +215,26 @@ export default class WorkoutAPIService {
     } else {
       apiActivityService.setSuccess();
     }
+  }
+
+  /**
+   * Passes the combined output of a processed batch to each API output
+   * handler, in order.
+   *
+   * @param output The combined output of the batch
+   * @param input The combined input across the batch
+   */
+  static #handleOutput(
+    output: ProjectWorkoutPrimaryOutput,
+    input: ProjectWorkoutPrimaryEndpointOptions
+  ): void {
+    if (this.#apiOutputHandlers.length === 0) {
+      this.#log.error('No API output handlers are set, so the API output was not applied.');
+      return;
+    }
+    this.#apiOutputHandlers.forEach((handler) => {
+      handler.handleApiOutput(output, input);
+    });
   }
 
   static async #callWorkoutAPI(

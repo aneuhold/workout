@@ -2,7 +2,7 @@ import { APIService } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import WebSocketService from '$services/WebSocket.service';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { sessionExpired } from '$stores/session/sessionExpired';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
@@ -95,7 +95,7 @@ function createHandleLoginStateChangeForWebSocket(): (newLoginState: LoginState)
           log.info('Received WebSocket payload:', payload);
           // TODO: Implement this part, probably so it is surgical about what gets added / updated
           // in the associated document map services.
-          // WorkoutAPIResponseHandlingService.processWorkoutApiOutput(payload, input, false);
+          // apiResponseHandlingOrder.forEach((service) => service.handleApiOutput(payload, input));
         });
         subscribedToWebSocket = true;
       } else {

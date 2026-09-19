@@ -7,6 +7,8 @@ import MockDataService from '$services/MockDataService/MockData.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
 import WebSocketService from '$services/WebSocket.service';
+import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import WorkoutHydrationService from '$services/WorkoutHydration.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import userConfigMock from '$stores/local/userConfig/userConfig.mock';
@@ -22,13 +24,14 @@ class MockEnvSetupService {
   readonly #apiBackend = new MockAPIBackend();
 
   /**
-   * Installs the network-free API and WebSocket, then resets the mock
-   * document maps and user config.
+   * Registers the API output handlers, installs the network-free API and
+   * WebSocket, then resets the mock document maps and user config.
    *
    * @param useRealBackend Leaves the API and WebSocket on their real backends
    *   instead of installing the network-free ones
    */
   setupGlobalMocks(useRealBackend = false): void {
+    WorkoutAPIService.setApiOutputHandlers(apiResponseHandlingOrder);
     if (!useRealBackend) {
       this.#installMockBackends();
     }

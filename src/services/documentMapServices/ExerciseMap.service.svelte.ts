@@ -46,7 +46,15 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutExercise>(LocalData.storedKeyNames.exerciseMap),
       persistToDb: createWorkoutPersistToDb('exercises'),
-      prepareForSave: createWorkoutPrepareForSave('exercises')
+      prepareForSave: createWorkoutPrepareForSave('exercises'),
+      handleApiOutput: (output, input) => {
+        if (output.exercises && input.get?.exercises?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.exercises));
+        }
+        if (output.exerciseCTOs && input.get?.exerciseCTOs?.all) {
+          this.setExerciseCTOs(output.exerciseCTOs);
+        }
+      }
     });
   }
 
@@ -65,11 +73,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    * @param ctos The new exercise CTOs from the backend
    */
   setExerciseCTOs(ctos: WorkoutExerciseCTO[]): void {
-    const map: DocumentMap<WorkoutExerciseCTO> = {};
-    for (const cto of ctos) {
-      map[cto._id] = cto;
-    }
-    this.#exerciseCTOMapState = map;
+    this.#exerciseCTOMapState = this.convertDocumentArrayToMap(ctos);
   }
 
   /**

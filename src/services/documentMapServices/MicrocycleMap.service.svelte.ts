@@ -18,7 +18,12 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMicrocycle>(LocalData.storedKeyNames.microcycleMap),
       persistToDb: createWorkoutPersistToDb('microcycles'),
-      prepareForSave: createWorkoutPrepareForSave('microcycles')
+      prepareForSave: createWorkoutPrepareForSave('microcycles'),
+      handleApiOutput: (output, input) => {
+        if (output.microcycles && input.get?.microcycles?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.microcycles));
+        }
+      }
     });
   }
 
