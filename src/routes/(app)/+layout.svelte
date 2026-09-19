@@ -42,8 +42,8 @@
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->
     <main
-      class="[view-transition-name:main-content] md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48
-        {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-(--top-nav-height)' : ''}"
+      class="[view-transition-name:main-content] md:pt-top-nav pb-bottom-nav md:pb-0 md:pl-48
+        {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-top-nav' : ''}"
     >
       {@render children?.()}
     </main>
