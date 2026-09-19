@@ -22,6 +22,7 @@
 
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
@@ -32,7 +33,6 @@
   import MockDataService from '$services/MockDataService/MockData.service';
   import { type MockBaseData } from '$services/MockDataService/types';
   import timerService from '$services/TimerService';
-  import { daysAgo, daysFromNow } from '$util/dateUtils';
   import SessionPage from '../SessionPage.svelte';
 
   let {
@@ -113,7 +113,7 @@
           addPriorSessionPreviewData(baseData);
           sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             title: 'Upper Body Day',
-            startTime: daysFromNow(2),
+            startTime: DateService.addDays(new Date(), 2),
             exerciseCount: 3,
             setsPerExercise: 3,
             loggedSetCount: 0,
@@ -130,13 +130,13 @@
         cycleType: CycleType.MuscleGain,
         microcycleCount: 3,
         sessionsPerMicrocycle: 3,
-        startDate: daysAgo(14),
+        startDate: DateService.addDays(new Date(), -14),
         completedSessionCount: completedSessionCounts[mode] ?? 0
       });
 
       // Start mesocycle for active modes with no completed sessions
       if (completedSessionCounts[mode] === 0) {
-        data.mesocycle.startDate = daysAgo(7);
+        data.mesocycle.startDate = DateService.addDays(new Date(), -7);
       }
 
       // Unlock second microcycle by completing the first

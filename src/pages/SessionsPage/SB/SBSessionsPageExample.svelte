@@ -13,11 +13,11 @@
 
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
-  import { daysAgo, daysFromNow } from '$util/dateUtils';
   import SessionsPage from '../SessionsPage.svelte';
 
   let { storyMode = SessionsPageStoryMode.Default }: { storyMode?: SessionsPageStoryMode } =
@@ -36,7 +36,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(28),
+          startDate: DateService.addDays(new Date(), -28),
           completedSessionCount: 999
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -49,7 +49,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
         return;
@@ -59,14 +59,14 @@
         // No mesocycle, only free-form sessions
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
-          startTime: daysAgo(1),
+          startTime: DateService.addDays(new Date(), -1),
           complete: true,
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 9
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 2,
           setsPerExercise: 3,
           loggedSetCount: 3
@@ -79,21 +79,21 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
         mesocycleMapServiceMock.fillLateFields(data);
         mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 27 Workout',
-          startTime: daysAgo(2),
+          startTime: DateService.addDays(new Date(), -2),
           complete: true,
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 9
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 2,
           setsPerExercise: 3,
           loggedSetCount: 3
@@ -105,7 +105,7 @@
         // Free-form only: two upcoming planned sessions with targets
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Upper Body Day',
-          startTime: daysFromNow(1),
+          startTime: DateService.addDays(new Date(), 1),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 0,
@@ -114,7 +114,7 @@
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Lower Body Day',
-          startTime: daysFromNow(3),
+          startTime: DateService.addDays(new Date(), 3),
           exerciseCount: 4,
           setsPerExercise: 2,
           loggedSetCount: 0,
@@ -128,7 +128,7 @@
         // Completed, in-progress, and planned sessions all visible
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — Apr 1',
-          startTime: daysAgo(3),
+          startTime: DateService.addDays(new Date(), -3),
           complete: true,
           exerciseCount: 3,
           setsPerExercise: 3,
@@ -136,14 +136,14 @@
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
-          startTime: daysFromNow(2),
+          startTime: DateService.addDays(new Date(), 2),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 0,
@@ -152,7 +152,7 @@
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
-          startTime: daysFromNow(4),
+          startTime: DateService.addDays(new Date(), 4),
           exerciseCount: 4,
           setsPerExercise: 2,
           loggedSetCount: 0,
@@ -167,7 +167,7 @@
         for (let i = 0; i < 12; i++) {
           sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `Completed Session ${i + 1}`,
-            startTime: daysAgo(i + 1),
+            startTime: DateService.addDays(new Date(), -(i + 1)),
             complete: true,
             exerciseCount: 2,
             setsPerExercise: 2,
@@ -175,14 +175,14 @@
           });
           sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `In Progress Session ${i + 1}`,
-            startTime: daysAgo(i),
+            startTime: DateService.addDays(new Date(), -i),
             exerciseCount: 3,
             setsPerExercise: 3,
             loggedSetCount: 2
           });
           sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `Planned Session ${i + 1}`,
-            startTime: daysFromNow(i + 1),
+            startTime: DateService.addDays(new Date(), i + 1),
             exerciseCount: 3,
             setsPerExercise: 2,
             loggedSetCount: 0,
@@ -198,7 +198,7 @@
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(21),
+        startDate: DateService.addDays(new Date(), -21),
         completedSessionCount: 8
       });
       mesocycleMapServiceMock.fillLateFields(data);
@@ -207,7 +207,7 @@
       for (let i = 0; i < 3; i++) {
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Full Body — ${3 - i} days ago`,
-          startTime: daysAgo(i + 1),
+          startTime: DateService.addDays(new Date(), -(i + 1)),
           complete: true,
           exerciseCount: 3,
           setsPerExercise: 3,
@@ -218,7 +218,7 @@
       for (let i = 0; i < 3; i++) {
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Push Session ${i + 1}`,
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 3
@@ -228,7 +228,7 @@
       for (let i = 0; i < 3; i++) {
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Planned Session ${i + 1}`,
-          startTime: daysFromNow(i + 1),
+          startTime: DateService.addDays(new Date(), i + 1),
           exerciseCount: 3,
           setsPerExercise: 2,
           loggedSetCount: 0,

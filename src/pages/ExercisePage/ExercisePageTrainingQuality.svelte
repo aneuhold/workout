@@ -87,10 +87,10 @@
           <p>SFR = RSM total / Fatigue total. Indicates training efficiency:</p>
           <ul class="mt-1 flex flex-col gap-0.5">
             <li>
-              <span class="text-success">1.5+</span> — Excellent efficiency
+              <span class="text-success">1.5+</span>: Excellent efficiency
             </li>
-            <li>1.0–1.49 — Adequate efficiency</li>
-            <li><span class="text-warning">Below 1.0</span> — High cost relative to stimulus</li>
+            <li>1.0–1.49: Adequate efficiency</li>
+            <li><span class="text-warning">Below 1.0</span>: High cost relative to stimulus</li>
           </ul>
         </InfoPopover>
       </div>

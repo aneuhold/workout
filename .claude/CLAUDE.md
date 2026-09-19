@@ -68,7 +68,7 @@ You are encouraged to modify this library when the change involves document type
 
 - Use the `add-new-shadcn-component` skill to add new shadcn-svelte components to the project, unless you are currently that agent, in which case follow your defined workflow directly.
 - Merge classes with the `cn()` utility from `$util/svelte-shadcn-util`.
-- Theme colors are defined in `src/globalStyles/global.css` as CSS custom properties (`--primary`, `--background`).
+- Theme colors are defined in `src/globalStyles/global.css` as CSS custom properties (`--color-primary`, `--color-background`).
 - Icon library: Tabler icons via `@tabler/icons-svelte`.
 - Dark mode is managed by the `mode-watcher` package. Use the `.dark` class variant in Tailwind.
 

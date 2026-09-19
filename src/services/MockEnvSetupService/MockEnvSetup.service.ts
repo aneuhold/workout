@@ -46,12 +46,7 @@ class MockEnvSetupService {
   async resumeDemo(): Promise<void> {
     this.#installMockBackends();
     await Promise.all([userConfig.hydrate(), WorkoutHydrationService.hydrateDocumentMaps()]);
-    // Exercise CTOs are not stored, so they are rebuilt from the stored documents
-    exerciseMapServiceMock.setDefaultExerciseCTOs(
-      exerciseCalibrationMapService.allDocs,
-      exerciseMapService.allDocs,
-      equipmentTypeMapService.allDocs
-    );
+    this.#rebuildExerciseCTOs();
   }
 
   /**
@@ -62,6 +57,7 @@ class MockEnvSetupService {
   seedDemo(): void {
     this.#installMockBackends();
     MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
+    this.#rebuildExerciseCTOs();
     // The scenario adds its documents without persisting them
     WorkoutHydrationService.persistDocumentMaps();
     userConfig.set({
@@ -70,6 +66,19 @@ class MockEnvSetupService {
       accessToken: 'demo-mode-token',
       refreshTokenString: null
     });
+  }
+
+  /**
+   * Rebuilds the exercise CTOs from the documents the map services hold. CTOs
+   * are derived rather than stored, so the sessions, calibrations, and
+   * equipment they summarize have to exist before they are built.
+   */
+  #rebuildExerciseCTOs(): void {
+    exerciseMapServiceMock.setDefaultExerciseCTOs(
+      exerciseCalibrationMapService.allDocs,
+      exerciseMapService.allDocs,
+      equipmentTypeMapService.allDocs
+    );
   }
 
   /**

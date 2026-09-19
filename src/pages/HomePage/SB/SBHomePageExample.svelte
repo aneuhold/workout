@@ -22,11 +22,11 @@
 
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
   import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
-  import { daysAgo, daysFromNow } from '$util/dateUtils';
   import HomePage from '../HomePage.svelte';
 
   let { storyMode = HomePageStoryMode.Default }: { storyMode?: HomePageStoryMode } = $props();
@@ -44,7 +44,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(28),
+          startDate: DateService.addDays(new Date(), -28),
           completedSessionCount: 999
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -57,7 +57,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(28),
+          startDate: DateService.addDays(new Date(), -28),
           completedSessionCount: 999
         });
         return;
@@ -69,7 +69,7 @@
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           // Line up so that a review is needed, but it isn't late
-          startDate: daysAgo(11),
+          startDate: DateService.addDays(new Date(), -11),
           completedSessionCount: 8
         });
         return;
@@ -80,7 +80,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -93,7 +93,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
         // Fill late fields only for the first 5 completed sessions, leaving 3 needing review
@@ -116,7 +116,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
-          startDate: daysAgo(14),
+          startDate: DateService.addDays(new Date(), -14),
           completedSessionCount: 10
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -129,7 +129,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
-          startDate: daysAgo(14),
+          startDate: DateService.addDays(new Date(), -14),
           completedSessionCount: 10
         });
         return;
@@ -143,7 +143,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 15
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -164,7 +164,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
-          startDate: daysAgo(0),
+          startDate: DateService.addDays(new Date(), 0),
           completedSessionCount: 0
         });
         return;
@@ -176,7 +176,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(12),
+          startDate: DateService.addDays(new Date(), -12),
           completedSessionCount: 8
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -189,7 +189,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(25),
+          startDate: DateService.addDays(new Date(), -25),
           completedSessionCount: 8
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -215,7 +215,7 @@
         // No mesocycle — two upcoming planned free-form sessions
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Upper Body Day',
-          startTime: daysFromNow(1),
+          startTime: DateService.addDays(new Date(), 1),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 0,
@@ -224,7 +224,7 @@
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Lower Body Day',
-          startTime: daysFromNow(3),
+          startTime: DateService.addDays(new Date(), 3),
           exerciseCount: 4,
           setsPerExercise: 2,
           loggedSetCount: 0,
@@ -238,14 +238,14 @@
         // One session in progress + two planned — home section shows all three
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
-          startTime: daysFromNow(2),
+          startTime: DateService.addDays(new Date(), 2),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 0,
@@ -254,7 +254,7 @@
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
-          startTime: daysFromNow(4),
+          startTime: DateService.addDays(new Date(), 4),
           exerciseCount: 4,
           setsPerExercise: 2,
           loggedSetCount: 0,
@@ -271,13 +271,13 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(11),
+          startDate: DateService.addDays(new Date(), -11),
           completedSessionCount: 8
         });
         mesocycleMapServiceMock.fillLateFields(data);
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
-          startTime: daysAgo(1),
+          startTime: DateService.addDays(new Date(), -1),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
@@ -290,7 +290,7 @@
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(11),
+        startDate: DateService.addDays(new Date(), -11),
         completedSessionCount: 8
       });
       mesocycleMapServiceMock.fillLateFields(data);

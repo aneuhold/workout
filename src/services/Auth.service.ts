@@ -5,6 +5,7 @@ import {
   type AuthValidateUserOutput
 } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
+import demoModeService from '$services/DemoMode.service.svelte';
 import googleAuthService from '$services/GoogleAuth.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { password } from '$stores/local/password';
@@ -125,9 +126,15 @@ class AuthService {
 
   /**
    * Tears down local session state so the app returns to the login screen.
-   * Google sign-out is best-effort — failure does not block local cleanup.
+   * Google sign-out is best-effort, and failure does not block local cleanup.
+   * A demo holds everything in session storage, so leaving the demo takes the
+   * place of the teardown.
    */
   async #clearLocalSession(): Promise<void> {
+    if (demoModeService.isEnabled) {
+      demoModeService.exit();
+      return;
+    }
     userConfig.clear();
     WorkoutAPIService.reset();
     await LocalData.clearWorkoutMaps();

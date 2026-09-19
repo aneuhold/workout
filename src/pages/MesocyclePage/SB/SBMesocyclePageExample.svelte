@@ -21,14 +21,6 @@
 
   let { storyMode = MesocyclePageStoryMode.New }: { storyMode?: MesocyclePageStoryMode } = $props();
 
-  function daysAgo(n: number): Date {
-    return DateService.addDays(new Date(), -n);
-  }
-
-  function daysFromNow(n: number): Date {
-    return DateService.addDays(new Date(), n);
-  }
-
   let mesocycleId = $state<UUID | null>(null);
 
   $effect(() => {
@@ -49,7 +41,7 @@
           title: 'Current Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(14),
+          startDate: DateService.addDays(new Date(), -14),
           completedSessionCount: 6
         });
         mesocycleId = null;
@@ -64,7 +56,7 @@
           title: 'Current Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 2,
-          startDate: daysAgo(7),
+          startDate: DateService.addDays(new Date(), -7),
           completedSessionCount: 4
         });
 
@@ -74,7 +66,7 @@
           title: 'Upcoming Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 2,
-          startDate: daysFromNow(14),
+          startDate: DateService.addDays(new Date(), 14),
           completedSessionCount: 0
         });
 
@@ -107,9 +99,9 @@
           title: 'Completed Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(35),
+          startDate: DateService.addDays(new Date(), -35),
           completedSessionCount: 20,
-          completedDate: daysAgo(7)
+          completedDate: DateService.addDays(new Date(), -7)
         });
 
         mesocycleId = mesocycle._id;
@@ -121,7 +113,7 @@
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(21),
+        startDate: DateService.addDays(new Date(), -21),
         completedSessionCount: 8
       });
 

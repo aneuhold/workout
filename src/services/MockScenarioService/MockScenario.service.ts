@@ -1,4 +1,5 @@
 import { CycleType } from '@aneuhold/core-ts-db-lib';
+import { DateService } from '@aneuhold/core-ts-lib';
 import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/MesocycleMap.service.mock';
 import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
@@ -6,7 +7,6 @@ import sessionMapServiceMock from '$services/documentMapServices/SessionMap.serv
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import MockDataService from '$services/MockDataService/MockData.service';
 import { type MockBaseData } from '$services/MockDataService/types';
-import { daysAgo, daysFromNow } from '$util/dateUtils';
 import { FullAppScenario } from './types';
 
 /**
@@ -41,7 +41,7 @@ export default class MockScenarioService {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(blockStartDaysAgo),
+          startDate: DateService.addDays(new Date(), -blockStartDaysAgo),
           completedSessionCount: 8
         });
         // generateFullMesocycle leaves the last fully-completed microcycle
@@ -52,16 +52,16 @@ export default class MockScenarioService {
         mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         // Completed free-form sessions
         sessionMapServiceMock.addFreeFormSession(baseData, {
-          title: 'Full Body — 5 days ago',
-          startTime: daysAgo(5),
+          title: 'Full Body, 5 days ago',
+          startTime: DateService.addDays(new Date(), -5),
           complete: true,
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 9
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
-          title: 'Full Body — 12 days ago',
-          startTime: daysAgo(12),
+          title: 'Full Body, 12 days ago',
+          startTime: DateService.addDays(new Date(), -12),
           complete: true,
           exerciseCount: 2,
           setsPerExercise: 4,
@@ -70,14 +70,14 @@ export default class MockScenarioService {
         // In-progress free-form sessions
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
-          startTime: daysAgo(0),
+          startTime: DateService.addDays(new Date(), 0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Accessory Work',
-          startTime: daysAgo(1),
+          startTime: DateService.addDays(new Date(), -1),
           exerciseCount: 2,
           setsPerExercise: 3,
           loggedSetCount: 1
@@ -85,7 +85,7 @@ export default class MockScenarioService {
         // Planned free-form sessions
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
-          startTime: daysFromNow(2),
+          startTime: DateService.addDays(new Date(), 2),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 0,
@@ -94,7 +94,7 @@ export default class MockScenarioService {
         });
         sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
-          startTime: daysFromNow(5),
+          startTime: DateService.addDays(new Date(), 5),
           exerciseCount: 4,
           setsPerExercise: 2,
           loggedSetCount: 0,
@@ -116,7 +116,7 @@ export default class MockScenarioService {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(28),
+          startDate: DateService.addDays(new Date(), -28),
           completedSessionCount: 999
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -129,7 +129,7 @@ export default class MockScenarioService {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
         break;
@@ -140,7 +140,7 @@ export default class MockScenarioService {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
-          startDate: daysAgo(0),
+          startDate: DateService.addDays(new Date(), 0),
           completedSessionCount: 0
         });
         break;
@@ -151,7 +151,7 @@ export default class MockScenarioService {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(28),
+          startDate: DateService.addDays(new Date(), -28),
           completedSessionCount: 10
         });
         mesocycleMapServiceMock.fillLateFields(data);
@@ -229,7 +229,7 @@ export default class MockScenarioService {
       cycleType: CycleType.MuscleGain,
       microcycleCount,
       sessionsPerMicrocycle,
-      startDate: daysAgo(microcycleCount * 7),
+      startDate: DateService.addDays(new Date(), -(microcycleCount * 7)),
       completedSessionCount
     });
 
@@ -301,9 +301,12 @@ export default class MockScenarioService {
         cycleType: CycleType.MuscleGain,
         microcycleCount,
         sessionsPerMicrocycle,
-        startDate: daysAgo(mesoStartDaysAgo),
+        startDate: DateService.addDays(new Date(), -mesoStartDaysAgo),
         completedSessionCount: totalSessions,
-        completedDate: daysAgo(mesoIndex === 2 ? lastCompletedDaysAgo : completedDaysAgo)
+        completedDate: DateService.addDays(
+          new Date(),
+          -(mesoIndex === 2 ? lastCompletedDaysAgo : completedDaysAgo)
+        )
       });
 
       // Fill late fields (mid-session fields already set by generateFullMesocycle)
@@ -337,7 +340,7 @@ export default class MockScenarioService {
     ];
 
     for (const config of completedFreeFormConfigs) {
-      const startTime = daysAgo(config.daysAgoCount + daysOffset);
+      const startTime = DateService.addDays(new Date(), -(config.daysAgoCount + daysOffset));
       sessionMapServiceMock.addFreeFormSession(baseData, {
         title: sessionMapService.getFormattedSessionTitle(startTime),
         startTime,

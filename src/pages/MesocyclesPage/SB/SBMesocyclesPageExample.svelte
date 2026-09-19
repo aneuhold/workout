@@ -16,14 +16,6 @@
   let { storyMode = MesocyclesPageStoryMode.Default }: { storyMode?: MesocyclesPageStoryMode } =
     $props();
 
-  function daysAgo(n: number): Date {
-    return DateService.addDays(new Date(), -n);
-  }
-
-  function daysFromNow(n: number): Date {
-    return DateService.addDays(new Date(), n);
-  }
-
   $effect(() => {
     const mode = storyMode;
 
@@ -38,7 +30,7 @@
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
 
@@ -47,7 +39,7 @@
           title: 'Strength Phase',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysFromNow(14),
+          startDate: DateService.addDays(new Date(), 14),
           completedSessionCount: 0
         });
       }
@@ -57,18 +49,18 @@
         title: 'Foundation Phase',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(70),
+        startDate: DateService.addDays(new Date(), -70),
         completedSessionCount: 20,
-        completedDate: daysAgo(42)
+        completedDate: DateService.addDays(new Date(), -42)
       });
 
       mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Deload & Recovery',
         cycleType: CycleType.Resensitization,
         microcycleCount: 2,
-        startDate: daysAgo(98),
+        startDate: DateService.addDays(new Date(), -98),
         completedSessionCount: 10,
-        completedDate: daysAgo(72)
+        completedDate: DateService.addDays(new Date(), -72)
       });
     });
 
