@@ -27,8 +27,19 @@ const measure = async (browser: Browser, mode: PerfMode): Promise<void> => {
       { timeout: 60_000 }
     );
 
-    // Wait for the sessions navigation to finish
-    await page.locator('a[href="/sessions"]').first().click();
+    // Wait for the sessions navigation to finish. The NavBar's Sessions item
+    // opens the in-progress session rather than the list whenever one exists.
+    // We also want the performance marks to only happen once. If we used
+    // page.goto, then that would do a full page reload and hit the other
+    // marks a second time. So instead, we do this thing where we create
+    // a link and then click it to create a client-side navigation.
+    await page.evaluate(() => {
+      const link = document.createElement('a');
+      link.href = '/sessions';
+      document.body.append(link);
+      link.click();
+      link.remove();
+    });
     await page.waitForFunction(
       (mark) => performance.getEntriesByName(mark).length > 0,
       PerfMark.SessionsListRendered,

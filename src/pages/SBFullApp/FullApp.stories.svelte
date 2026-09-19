@@ -1,9 +1,9 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { FullAppScenario } from '$services/MockScenarioService/types';
   import { createEnumArgType } from '$storybook/storybookUtil';
   import SBFullAppExample from './SBFullAppExample.svelte';
   import routeState from './sbFullAppRouteState.svelte';
-  import { FullAppScenario } from './sbFullAppScenarios';
 
   const { Story } = defineMeta({
     title: 'Full App',
@@ -32,12 +32,15 @@
       scenario: createEnumArgType(FullAppScenario)
     },
     args: {
-      scenario: FullAppScenario.MidTraining
+      scenario: FullAppScenario.MidTrainingWithHistory
     }
   });
 </script>
 
-<Story name="Mid-Training" args={{ scenario: FullAppScenario.MidTraining }} />
+<Story
+  name="Mid-Training With History"
+  args={{ scenario: FullAppScenario.MidTrainingWithHistory }}
+/>
 
 <Story name="Completely Fresh" args={{ scenario: FullAppScenario.CompletelyFresh }} />
 

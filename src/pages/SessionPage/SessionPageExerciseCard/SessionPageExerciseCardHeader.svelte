@@ -34,7 +34,7 @@
 >
   <div class="flex w-4 shrink-0 items-center justify-center">
     {#if cardState === SessionPageExerciseCardState.Completed}
-      <IconCheck size={16} class="text-green-600" />
+      <IconCheck size={16} class="text-success" />
     {:else if cardState === SessionPageExerciseCardState.Current}
       <span class="relative flex h-2.5 w-2.5">
         <span
@@ -56,9 +56,7 @@
         </Badge>
       {/if}
       {#if sessionExercise.isRecoveryExercise}
-        <Badge variant="outline" class="border-amber-500 text-amber-600 dark:text-amber-400">
-          Recovery
-        </Badge>
+        <Badge variant="outline" class="border-warning text-warning">Recovery</Badge>
       {/if}
       {#if exercise}
         {#each exercise.primaryMuscleGroups as muscleGroupId (muscleGroupId)}

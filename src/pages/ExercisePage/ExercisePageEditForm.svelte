@@ -209,9 +209,7 @@
     bind:this={nameFieldRef}
     class={cn(
       'flex flex-col gap-1.5',
-      validationAttempted &&
-        formName.trim().length === 0 &&
-        'rounded-lg p-2 ring-2 ring-amber-500/50'
+      validationAttempted && formName.trim().length === 0 && 'rounded-lg p-2 ring-2 ring-warning/50'
     )}
   >
     <Label for="ex-name">Exercise Name *</Label>
@@ -227,9 +225,7 @@
     bind:this={equipmentFieldRef}
     class={cn(
       'flex flex-col gap-1.5',
-      validationAttempted &&
-        formEquipmentId.length === 0 &&
-        'rounded-lg p-2 ring-2 ring-amber-500/50'
+      validationAttempted && formEquipmentId.length === 0 && 'rounded-lg p-2 ring-2 ring-warning/50'
     )}
   >
     <Label>Equipment *</Label>
@@ -310,7 +306,7 @@
     bind:this={muscleGroupFieldRef}
     class={cn(
       'flex flex-col gap-3 rounded-lg border border-border p-3',
-      validationAttempted && formPrimary.size === 0 && 'ring-2 ring-amber-500/50'
+      validationAttempted && formPrimary.size === 0 && 'ring-2 ring-warning/50'
     )}
   >
     <div class="flex flex-col gap-1">

@@ -7,10 +7,15 @@
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import ExerciseMapServiceMock, {
+  import exerciseMapServiceMock, {
     MockDefaultExercise
   } from '$services/documentMapServices/ExerciseMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import microcycleMapServiceMock from '$services/documentMapServices/MicrocycleMap.service.mock';
+  import sessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+  import setMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import WorkoutSessionCalendar from './WorkoutSessionCalendar.svelte';
 
   let {
@@ -29,7 +34,7 @@
     const _empty = empty;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
       if (_empty) {
         exercises = [];
@@ -39,11 +44,11 @@
         return;
       }
 
-      const baseData = MockData.setupBaseData();
-      const bench = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
-      const pullUps = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
-      const squat = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
-      const rdl = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.RomanianDeadlift];
+      const baseData = MockDataService.setupBaseData();
+      const bench = exerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellBenchPress];
+      const pullUps = exerciseMapServiceMock.defaultExercises[MockDefaultExercise.PullUps];
+      const squat = exerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
+      const rdl = exerciseMapServiceMock.defaultExercises[MockDefaultExercise.RomanianDeadlift];
 
       const now = new Date();
       const yr = now.getFullYear();
@@ -51,10 +56,10 @@
       const d = now.getDate();
 
       // Create a mesocycle + microcycle spanning prev month through next month
-      const mesocycle = MockData.mesocycleMapServiceMock.addMesocycle({
+      const mesocycle = mesocycleMapServiceMock.addMesocycle({
         plannedMicrocycleCount: 2
       });
-      const microcycle = MockData.microcycleMapServiceMock.addMicrocycle({
+      const microcycle = microcycleMapServiceMock.addMicrocycle({
         workoutMesocycleId: mesocycle._id,
         startDate: new Date(yr, mo - 1, 1),
         endDate: new Date(yr, mo + 2, 0)
@@ -81,7 +86,7 @@
         workoutMicrocycleId: UUID | null,
         configs: Array<{ ex: WorkoutExercise; setCount: number; isRecovery?: boolean }>
       ): void {
-        const session = MockData.sessionMapServiceMock.addSession({
+        const session = sessionMapServiceMock.addSession({
           workoutMicrocycleId: workoutMicrocycleId ?? undefined,
           title,
           startTime,
@@ -90,7 +95,7 @@
         allSessions.push(session);
 
         for (const cfg of configs) {
-          const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+          const se = sessionExerciseMapServiceMock.addSessionExercise({
             workoutSessionId: session._id,
             workoutExerciseId: cfg.ex._id
           });
@@ -98,7 +103,7 @@
           allSEs.push(se);
 
           for (let i = 0; i < cfg.setCount; i++) {
-            const set = MockData.setMapServiceMock.addSet({
+            const set = setMapServiceMock.addSet({
               workoutExerciseId: cfg.ex._id,
               workoutSessionId: session._id,
               workoutSessionExerciseId: se._id,
@@ -186,7 +191,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

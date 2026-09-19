@@ -9,9 +9,13 @@ import {
   type WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockData, { type MockBaseData } from '$testUtils/MockData';
-import TestUsers from '$testUtils/TestUsers';
+import { type MockBaseData } from '$services/MockDataService/types';
+import MockUsers from '$util/MockUsers';
 import mesocycleMapService from './MesocycleMap.service.svelte';
+import microcycleMapServiceMock from './MicrocycleMap.service.mock';
+import sessionExerciseMapServiceMock from './SessionExerciseMap.service.mock';
+import sessionMapServiceMock from './SessionMap.service.mock';
+import setMapServiceMock from './SetMap.service.mock';
 
 export type AddMockMesocycleInfo = {
   cycleType?: CycleType;
@@ -47,14 +51,14 @@ export type MockGeneratedMesocycleData = {
   sets: WorkoutSet[];
 };
 
-export default class MesocycleMapServiceMock {
+class MesocycleMapServiceMock {
   reset(): void {
     mesocycleMapService.setMap({});
   }
 
   addMesocycle(config: AddMockMesocycleInfo = {}): WorkoutMesocycle {
     const doc = WorkoutMesocycleSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       cycleType: config.cycleType ?? CycleType.MuscleGain,
       plannedSessionCountPerMicrocycle: config.plannedSessionCountPerMicrocycle ?? 5,
       plannedMicrocycleLengthInDays: config.plannedMicrocycleLengthInDays ?? 7,
@@ -74,11 +78,11 @@ export default class MesocycleMapServiceMock {
    * @param baseData Base data containing calibrations, exercises, and equipment types to use for generation
    * @param config Configuration for how to generate the mesocycle and related data, including dates and completion status
    */
-  static generateFullMesocycle(
+  generateFullMesocycle(
     baseData: MockBaseData,
     config: MockGenerateFullMesocycleConfig
   ): MockGeneratedMesocycleData {
-    const mesoDoc = MockData.mesocycleMapServiceMock.addMesocycle({
+    const mesoDoc = this.addMesocycle({
       title: config.title,
       cycleType: config.cycleType ?? CycleType.MuscleGain,
       plannedMicrocycleCount: config.microcycleCount ?? 4,
@@ -145,6 +149,12 @@ export default class MesocycleMapServiceMock {
     }
 
     // Fill mid-session metrics for completed session exercises
+    for (const se of sessionExercises) {
+      if (completedSessionIds.has(se.workoutSessionId)) {
+        this.#fillMidSessionFields(se);
+      }
+    }
+
     const data: MockGeneratedMesocycleData = {
       mesocycle: mesoDoc,
       microcycles,
@@ -152,7 +162,6 @@ export default class MesocycleMapServiceMock {
       sessionExercises,
       sets
     };
-    MesocycleMapServiceMock.fillMidSessionFields(data);
 
     // Mark mesocycle as completed if needed
     if (config.completedDate) {
@@ -163,31 +172,12 @@ export default class MesocycleMapServiceMock {
       });
     }
 
-    MockData.microcycleMapServiceMock.addManyMicrocycles(microcycles);
-    MockData.sessionMapServiceMock.addManySessions(sessions);
-    MockData.sessionExerciseMapServiceMock.addManySessionExercises(sessionExercises);
-    MockData.setMapServiceMock.addManySets(sets);
+    microcycleMapServiceMock.addManyMicrocycles(microcycles);
+    sessionMapServiceMock.addManySessions(sessions);
+    sessionExerciseMapServiceMock.addManySessionExercises(sessionExercises);
+    setMapServiceMock.addManySets(sets);
 
     return data;
-  }
-
-  /**
-   * Fills in mid-session metrics on session exercises belonging to completed
-   * sessions. Mid-session metrics are filled during the workout:
-   * mindMuscleConnection, pump, unusedMusclePerformance,
-   * and performanceScore.
-   *
-   * @param data The mock mesocycle data to modify in-place
-   */
-  static fillMidSessionFields(data: MockGeneratedMesocycleData): void {
-    const completedSessionIds = new Set(data.sessions.filter((s) => s.complete).map((s) => s._id));
-    for (const se of data.sessionExercises) {
-      if (completedSessionIds.has(se.workoutSessionId)) {
-        se.rsm = { ...se.rsm, mindMuscleConnection: 2, pump: 2 };
-        se.fatigue = { ...se.fatigue, unusedMusclePerformance: 1 };
-        se.performanceScore = 1;
-      }
-    }
   }
 
   /**
@@ -198,7 +188,7 @@ export default class MesocycleMapServiceMock {
    *
    * @param data The mock mesocycle data to modify in-place
    */
-  static fillLateFields(data: MockGeneratedMesocycleData): void {
+  fillLateFields(data: MockGeneratedMesocycleData): void {
     const completedSessionIds = new Set(data.sessions.filter((s) => s.complete).map((s) => s._id));
     for (const se of data.sessionExercises) {
       if (completedSessionIds.has(se.workoutSessionId)) {
@@ -210,23 +200,28 @@ export default class MesocycleMapServiceMock {
   }
 
   /**
-   * Adds actual data to a few sets of the first incomplete session, making
-   * it appear "in-progress".
+   * Completes the first session exercise of the first incomplete session,
+   * making the session appear "in-progress".
    *
    * @param data The mock mesocycle data to modify in-place
    */
-  static makeFirstIncompleteSessionInProgress(data: MockGeneratedMesocycleData): void {
+  makeFirstIncompleteSessionInProgress(data: MockGeneratedMesocycleData): void {
     const firstIncomplete = data.sessions.find((s) => !s.complete);
     if (!firstIncomplete) return;
-    const setsForSession = data.sets.filter((s) => s.workoutSessionId === firstIncomplete._id);
-    for (let i = 0; i < Math.min(2, setsForSession.length); i++) {
-      const set = setsForSession[i];
-      set.actualReps = (set.plannedReps ?? 8) + 1;
-      set.actualWeight = set.plannedWeight ?? 135;
-      if (set.plannedRir != null) {
-        set.rir = Math.max(0, set.plannedRir - 1);
+    const firstSessionExercise = data.sessionExercises.find(
+      (se) => se._id === firstIncomplete.sessionExerciseOrder[0]
+    );
+    if (!firstSessionExercise) return;
+    for (const set of data.sets) {
+      if (set.workoutSessionExerciseId === firstSessionExercise._id) {
+        set.actualReps = (set.plannedReps ?? 8) + 1;
+        set.actualWeight = set.plannedWeight ?? 135;
+        if (set.plannedRir != null) {
+          set.rir = Math.max(0, set.plannedRir - 1);
+        }
       }
     }
+    this.#fillMidSessionFields(firstSessionExercise);
   }
 
   /**
@@ -240,7 +235,7 @@ export default class MesocycleMapServiceMock {
    * @param data The mock mesocycle data to modify in-place
    * @param sessionIds The IDs of sessions whose sets should show performance drops
    */
-  static applyPerformanceDrops(data: MockGeneratedMesocycleData, sessionIds: Set<UUID>): void {
+  applyPerformanceDrops(data: MockGeneratedMesocycleData, sessionIds: Set<UUID>): void {
     for (const set of data.sets) {
       if (sessionIds.has(set.workoutSessionId)) {
         set.actualReps = Math.max(1, (set.plannedReps ?? 8) - 4);
@@ -262,7 +257,7 @@ export default class MesocycleMapServiceMock {
    * @param options Optional overrides for the fill behaviour
    * @param options.performanceDrop Whether to apply a performance drop (surplus <= -3) instead of normal performance
    */
-  static fillSessionSets(
+  fillSessionSets(
     data: MockGeneratedMesocycleData,
     sessionId: UUID,
     options: { performanceDrop?: boolean } = {}
@@ -281,5 +276,25 @@ export default class MesocycleMapServiceMock {
         }
       }
     }
+    for (const se of data.sessionExercises) {
+      if (se.workoutSessionId === sessionId) {
+        this.#fillMidSessionFields(se);
+      }
+    }
+  }
+
+  /**
+   * Fills in the mid-session metrics a lifter records right after performing
+   * an exercise.
+   *
+   * @param sessionExercise The session exercise to modify in-place
+   */
+  #fillMidSessionFields(sessionExercise: WorkoutSessionExercise): void {
+    sessionExercise.rsm = { ...sessionExercise.rsm, mindMuscleConnection: 2, pump: 2 };
+    sessionExercise.fatigue = { ...sessionExercise.fatigue, unusedMusclePerformance: 1 };
+    sessionExercise.performanceScore = 1;
   }
 }
+
+const mesocycleMapServiceMock = new MesocycleMapServiceMock();
+export default mesocycleMapServiceMock;

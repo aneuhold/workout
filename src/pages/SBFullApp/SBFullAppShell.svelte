@@ -40,7 +40,7 @@
 {:else}
   <TopBar username="Storybook" currentPath={routeState.path} />
   <NavBar currentPath={routeState.path} />
-  <main class="md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48">
+  <main class="md:pt-top-nav pb-bottom-nav md:pb-0 md:pl-48">
     <SBFullAppRouter />
   </main>
 {/if}

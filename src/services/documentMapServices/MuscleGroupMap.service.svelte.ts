@@ -6,12 +6,8 @@ import type {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import {
-  createWorkoutPersistToDb,
-  createWorkoutPrepareForSave
-} from '$util/workoutPersistenceUtils';
 
 class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscleGroup> {
   /** Keyed by muscle group ID (same as the CTO's `_id`). */
@@ -26,13 +22,20 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
 
   constructor() {
     super({
+      workoutApiInsertKey: 'muscleGroups',
       persistToLocalData: (map) => {
         void LocalData.setDocumentMap(LocalData.storedKeyNames.muscleGroupMap, map);
       },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMuscleGroup>(LocalData.storedKeyNames.muscleGroupMap),
-      persistToDb: createWorkoutPersistToDb('muscleGroups'),
-      prepareForSave: createWorkoutPrepareForSave('muscleGroups')
+      handleApiOutput: (output, input) => {
+        if (output.muscleGroups && input.get?.muscleGroups?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.muscleGroups));
+        }
+        if (output.muscleGroupVolumeCTOs && input.get?.muscleGroupVolumeCTOs?.all) {
+          this.setVolumeCTOs(output.muscleGroupVolumeCTOs);
+        }
+      }
     });
   }
 
@@ -61,11 +64,7 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
    * @param ctos The new muscle group volume CTOs from the backend
    */
   setVolumeCTOs(ctos: WorkoutMuscleGroupVolumeCTO[]): void {
-    const map: DocumentMap<WorkoutMuscleGroupVolumeCTO> = {};
-    for (const cto of ctos) {
-      map[cto._id] = cto;
-    }
-    this.#volumeCTOMapState = map;
+    this.#volumeCTOMapState = this.convertDocumentArrayToMap(ctos);
   }
 
   /**

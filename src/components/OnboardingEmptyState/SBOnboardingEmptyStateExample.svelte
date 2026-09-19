@@ -15,7 +15,12 @@
 <script lang="ts">
   import { IconBarbell, IconCalendar } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
-  import MockData from '$testUtils/MockData';
+  import equipmentTypeMapServiceMock from '$services/documentMapServices/EquipmentTypeMap.service.mock';
+  import exerciseCalibrationMapServiceMock from '$services/documentMapServices/ExerciseCalibrationMap.service.mock';
+  import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
+  import muscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import OnboardingEmptyState from './OnboardingEmptyState.svelte';
 
   let { storyMode = OnboardingStoryMode.HomePageReady }: { storyMode?: OnboardingStoryMode } =
@@ -39,16 +44,16 @@
       case OnboardingStoryMode.ChecklistFreshStart:
         return;
       case OnboardingStoryMode.ChecklistMuscleGroupsAdded:
-        MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
+        muscleGroupMapServiceMock.addDefaultMuscleGroups();
         return;
       case OnboardingStoryMode.ChecklistEquipmentAdded:
-        MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-        MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
+        muscleGroupMapServiceMock.addDefaultMuscleGroups();
+        equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
         return;
       case OnboardingStoryMode.ChecklistExercisesAdded:
-        MockData.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-        MockData.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-        MockData.exerciseMapServiceMock.addDefaultExercises();
+        muscleGroupMapServiceMock.addDefaultMuscleGroups();
+        equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
+        exerciseMapServiceMock.addDefaultExercises();
         return;
     }
   }
@@ -57,8 +62,8 @@
     // Calibration-branch modes need the checklist gate to close. Base data
     // plus a free-form session provides both the exercises and the session
     // that exits checklist mode.
-    const baseData = MockData.setupBaseData();
-    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    const baseData = MockDataService.setupBaseData();
+    sessionMapServiceMock.addFreeFormSession(baseData, {
       complete: true,
       exerciseCount: 1,
       setsPerExercise: 1,
@@ -69,13 +74,13 @@
       case OnboardingStoryMode.HomePageNoCalibrations:
         // setupBaseData adds 12 calibrations; drop them all to hit the
         // 0-calibration branch.
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        exerciseCalibrationMapServiceMock.reset();
         return;
       case OnboardingStoryMode.HomePageFewCalibrations: {
         const firstTwo = baseData.calibrations.slice(0, 2);
-        MockData.exerciseCalibrationMapServiceMock.reset();
+        exerciseCalibrationMapServiceMock.reset();
         for (const cal of firstTwo) {
-          MockData.exerciseCalibrationMapServiceMock.addCalibration({
+          exerciseCalibrationMapServiceMock.addCalibration({
             workoutExerciseId: cal.workoutExerciseId,
             reps: cal.reps,
             weight: cal.weight
@@ -90,7 +95,7 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
       if (checklistModes.has(mode)) {
         setupChecklistMode(mode);
       } else {
@@ -100,7 +105,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

@@ -9,10 +9,10 @@
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import MesocycleMapServiceMock, {
+  import mesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import WorkoutMesocycleCalendar from './WorkoutMesocycleCalendar.svelte';
 
   let {
@@ -51,9 +51,9 @@
     const _hasRecovery = hasRecoveryExercises;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Parse rest days from comma-separated string
       const parsedRestDays = _restDays
@@ -64,7 +64,7 @@
       const parsedStart = new Date(_startDate);
 
       let generated: MockGeneratedMesocycleData;
-      generated = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      generated = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         microcycleCount: _mcCount,
         microcycleLengthInDays: _mcLength,
         restDays: parsedRestDays,
@@ -99,7 +99,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

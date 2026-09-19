@@ -41,7 +41,7 @@
     }))
   );
 
-  const ringClass = $derived(isLate ? 'ring-amber-500/30 ring-2' : 'ring-primary/30 ring-2');
+  const ringClass = $derived(isLate ? 'ring-warning/30 ring-2' : 'ring-primary/30 ring-2');
 </script>
 
 <Card class={ringClass}>
@@ -60,14 +60,14 @@
       <Badge
         variant="outline"
         class={cn(
-          isSeverelyLate ? 'border-destructive text-destructive' : 'border-amber-500 text-amber-500'
+          isSeverelyLate ? 'border-destructive text-destructive' : 'border-warning text-warning'
         )}
       >
         {lateLabel}
       </Badge>
     {/if}
     {#if isLate}
-      <div class={cn('text-xs', isSeverelyLate ? 'text-destructive' : 'text-amber-500')}>
+      <div class={cn('text-xs', isSeverelyLate ? 'text-destructive' : 'text-warning')}>
         Scheduled for {scheduledDateFormatted} &mdash; {daysLate} day{daysLate === 1 ? '' : 's'} behind
       </div>
     {:else}

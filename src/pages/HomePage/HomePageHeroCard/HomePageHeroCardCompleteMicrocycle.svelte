@@ -22,11 +22,11 @@
   } = $props();
 </script>
 
-<Card class="ring-green-500/30 ring-2">
+<Card class="ring-success/30 ring-2">
   <CardHeader>
     <div class="flex items-center gap-2">
-      <IconTrophy size={18} class="text-green-500" />
-      <span class="text-sm font-semibold text-green-600 dark:text-green-400">
+      <IconTrophy size={18} class="text-success" />
+      <span class="text-sm font-semibold text-success">
         Microcycle {completedMicrocycleNumber} Complete!
       </span>
     </div>

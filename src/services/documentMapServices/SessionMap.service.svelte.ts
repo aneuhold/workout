@@ -16,15 +16,11 @@ import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
-import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
-import WorkoutAPIService from '$services/WorkoutAPI.service';
+import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
+import { ctoGet } from '$util/ctoGet';
 import LocalData from '$util/LocalData/LocalData';
-import {
-  createWorkoutPersistToDb,
-  createWorkoutPrepareForSave,
-  ctoGet
-} from '$util/workoutPersistenceUtils';
 import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
 import exerciseMapService from './ExerciseMap.service.svelte';
 import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
@@ -67,13 +63,17 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
 
   constructor() {
     super({
+      workoutApiInsertKey: 'sessions',
       persistToLocalData: (map) => {
         void LocalData.setDocumentMap(LocalData.storedKeyNames.sessionMap, map);
       },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSession>(LocalData.storedKeyNames.sessionMap),
-      persistToDb: createWorkoutPersistToDb('sessions'),
-      prepareForSave: createWorkoutPrepareForSave('sessions')
+      handleApiOutput: (output, input) => {
+        if (output.sessions && input.get?.sessions?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.sessions));
+        }
+      }
     });
   }
 

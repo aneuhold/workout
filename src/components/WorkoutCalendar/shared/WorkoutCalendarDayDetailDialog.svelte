@@ -63,9 +63,7 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-sm font-semibold">{session.title}</h3>
                 {#if showSourceLabels && session.isFreeForm}
-                  <Badge
-                    variant="secondary"
-                    class="bg-violet-500/20 text-violet-700 dark:text-violet-300">Free Form</Badge
+                  <Badge variant="secondary" class="bg-free-form/20 text-free-form">Free Form</Badge
                   >
                 {/if}
                 {#if session.completed}
@@ -88,9 +86,7 @@
                 <p class="text-sm font-medium">
                   {exercise.exerciseName}
                   {#if exercise.isRecoveryExercise}
-                    <span class="text-xs font-normal text-amber-600 dark:text-amber-400"
-                      >Recovery</span
-                    >
+                    <span class="text-xs font-normal text-warning">Recovery</span>
                   {/if}
                 </p>
                 {#if session.completed}

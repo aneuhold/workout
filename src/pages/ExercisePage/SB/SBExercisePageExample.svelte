@@ -3,9 +3,10 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import ExercisePage from '../ExercisePage.svelte';
 
   let {
@@ -29,26 +30,22 @@
     const noFatigue = noFatigueGuess;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
       const { exercises, calibrations, equipmentTypes } = baseData;
 
       // Generate a mesocycle with completed sessions so map services are
       // populated with real session/set data for CTO derivation
-      const mesoData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const mesoData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-05'),
         completedSessionCount: 10
       });
-      MesocycleMapServiceMock.fillLateFields(mesoData);
+      mesocycleMapServiceMock.fillLateFields(mesoData);
 
       // Rebuild CTOs — bestSet/lastSessionExercise are derived from
       // the already-populated session/set map services
-      MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
-        calibrations,
-        exercises,
-        equipmentTypes
-      );
+      exerciseMapServiceMock.setDefaultExerciseCTOs(calibrations, exercises, equipmentTypes);
 
       if (missing) {
         exerciseId = '00000000-0000-0000-0000-000000000000';
@@ -74,7 +71,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

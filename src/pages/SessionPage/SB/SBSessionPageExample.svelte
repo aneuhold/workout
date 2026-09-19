@@ -22,14 +22,17 @@
 
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
+  import { DateService } from '@aneuhold/core-ts-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock, {
+  import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
+  import mesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
+  import { type MockBaseData } from '$services/MockDataService/types';
   import timerService from '$services/TimerService';
-  import { daysAgo, daysFromNow } from '$testUtils/dateUtils';
-  import MockData, { type MockBaseData } from '$testUtils/MockData';
   import SessionPage from '../SessionPage.svelte';
 
   let {
@@ -73,44 +76,44 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
       planning = false;
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       // Free-form modes don't generate a mesocycle
       if (freeFormModes.has(mode)) {
         if (mode === SessionPageStoryMode.FreeFormEmpty) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormMidWorkout) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 2
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormAllDone) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormCompleted) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6,
             complete: true
           })._id;
         } else if (mode === SessionPageStoryMode.PlanningEmpty) {
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
           planning = true;
         } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             title: 'Upper Body Day',
-            startTime: daysFromNow(2),
+            startTime: DateService.addDays(new Date(), 2),
             exerciseCount: 3,
             setsPerExercise: 3,
             loggedSetCount: 0,
@@ -122,18 +125,18 @@
         return;
       }
 
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 3,
         sessionsPerMicrocycle: 3,
-        startDate: daysAgo(14),
+        startDate: DateService.addDays(new Date(), -14),
         completedSessionCount: completedSessionCounts[mode] ?? 0
       });
 
       // Start mesocycle for active modes with no completed sessions
       if (completedSessionCounts[mode] === 0) {
-        data.mesocycle.startDate = daysAgo(7);
+        data.mesocycle.startDate = DateService.addDays(new Date(), -7);
       }
 
       // Unlock second microcycle by completing the first
@@ -147,11 +150,11 @@
         mode === SessionPageStoryMode.ActivePrevSoreness ||
         mode === SessionPageStoryMode.ViewSorenessEditable
       ) {
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
       }
 
       if (mode === SessionPageStoryMode.ActiveMid) {
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
       }
 
       if (mode === SessionPageStoryMode.Deload) {
@@ -168,7 +171,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
         timerService.stop();
       });
     };
@@ -181,13 +184,13 @@
    * @param baseData The base mock data used for session and CTO creation
    */
   function addPriorSessionPreviewData(baseData: MockBaseData): void {
-    MockData.sessionMapServiceMock.addFreeFormSession(baseData, {
+    sessionMapServiceMock.addFreeFormSession(baseData, {
       exerciseCount: 3,
       setsPerExercise: 3,
       loggedSetCount: 9,
       complete: true
     });
-    MockData.exerciseMapServiceMock.setDefaultExerciseCTOs(
+    exerciseMapServiceMock.setDefaultExerciseCTOs(
       baseData.calibrations,
       baseData.exercises,
       baseData.equipmentTypes

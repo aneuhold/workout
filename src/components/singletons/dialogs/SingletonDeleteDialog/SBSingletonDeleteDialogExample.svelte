@@ -2,7 +2,7 @@
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
-  import MockData from '$testUtils/MockData';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import Button from '$ui/Button/Button.svelte';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
   import SingletonDeleteDialog from './SingletonDeleteDialog.svelte';
@@ -14,9 +14,9 @@
 
   $effect(() => {
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       exercises = baseData.exercises;
       muscleGroups = muscleGroupMapService.allDocs;
@@ -25,7 +25,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

@@ -27,11 +27,11 @@
   const chartConfig = {
     desktop: {
       label: 'Desktop',
-      color: 'var(--chart-1)'
+      color: 'var(--color-chart-1)'
     },
     mobile: {
       label: 'Mobile',
-      color: 'var(--chart-3)'
+      color: 'var(--color-chart-3)'
     }
   } satisfies ChartConfig;
 </script>
