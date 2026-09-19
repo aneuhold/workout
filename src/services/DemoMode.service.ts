@@ -34,7 +34,7 @@ class DemoModeService {
     if (this.isEnabled()) {
       await mockEnvSetupService.resumeDemo();
     } else {
-      await mockEnvSetupService.seedDemo();
+      mockEnvSetupService.seedDemo();
       window.sessionStorage.setItem(this.#flagKey, 'true');
     }
   }

@@ -7,7 +7,7 @@ import mesocycleMapService from './MesocycleMap.service.svelte';
 
 describe('Unit Tests', () => {
   beforeEach(() => {
-    mockEnvSetupService.setupGlobalMocks(vi.spyOn);
+    mockEnvSetupService.setupGlobalMocks();
   });
 
   afterEach(() => {

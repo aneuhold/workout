@@ -6,13 +6,13 @@
   rather than another way to do it.
 -->
 <script lang="ts">
-  import demoModeService from '$services/DemoMode.service';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardDescription from '$ui/Card/CardDescription.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
   import CardTitle from '$ui/Card/CardTitle.svelte';
+  import navInfo from '$util/navInfo';
 </script>
 
 <Card class="w-full max-w-sm">
@@ -24,7 +24,16 @@
     </CardDescription>
   </CardHeader>
   <CardContent>
-    <Button variant="outline" class="w-full" onclick={() => demoModeService.enter()}>
+    <!--
+      The page is already loaded, so LocalData has chosen its backend. Reloading into ?demo makes
+      it choose demo storage at startup and load the seed data.
+    -->
+    <Button
+      variant="outline"
+      class="w-full"
+      href={`${navInfo.home.url}?demo`}
+      data-sveltekit-reload
+    >
       Open the demo
     </Button>
   </CardContent>

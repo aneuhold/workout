@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
+import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 import demoModeService from './DemoMode.service';
 
 describe('DemoModeService', () => {
@@ -17,6 +18,10 @@ describe('DemoModeService', () => {
   });
 
   describe('enter', () => {
+    beforeEach(async () => {
+      await LocalData.init(new SessionStorageBackend());
+    });
+
     it('seeds the demo into session storage', async () => {
       await demoModeService.enter();
 

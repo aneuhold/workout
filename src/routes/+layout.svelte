@@ -18,6 +18,7 @@
   import { onNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import DemoModeButton from '$components/DemoModeButton/DemoModeButton.svelte';
+  import demoModeService from '$services/DemoMode.service';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
   import WorkoutAPIService from '$services/WorkoutAPI.service';
@@ -28,7 +29,7 @@
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
-  import SessionData from '$util/LocalData/SessionData';
+  import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 
   let { children }: { children?: Snippet } = $props();
   let isDemoMode = $state(false);
@@ -48,18 +49,8 @@
   // pages and app routes, it doesn't break the app. This should be a no-op though and looks like
   // it still loads incredibly fast.
   onMount(async () => {
-    if (page.url.searchParams.has('demo')) {
-      SessionData.setDemoModeEnabled(true);
-    }
-    isDemoMode = SessionData.getDemoModeEnabled();
-
-    if (isDemoMode) {
-      // Imported on demand to keep the mock environment code out of the
-      // bundle every visitor downloads at startup
-      const { default: mockEnvSetupService } =
-        await import('$services/MockEnvSetupService/MockEnvSetup.service');
-      await mockEnvSetupService.setupDemo();
-    } else {
+    isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled();
+    if (!isDemoMode) {
       await LocalData.init();
       await Promise.all([
         password.hydrate(),
@@ -68,8 +59,11 @@
         WorkoutAPIService.hydrate(),
         WorkoutHydrationService.hydrateDocumentMaps()
       ]);
-      loginState.init();
+    } else {
+      await LocalData.init(new SessionStorageBackend());
+      await demoModeService.enter();
     }
+    loginState.init();
     timerService.init();
     nativePlatformService.init();
   });
