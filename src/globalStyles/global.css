@@ -5,6 +5,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* If any colors are removed / added, please make sure to update SBColorsGallery.svelte as well */
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);

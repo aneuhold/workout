@@ -32,7 +32,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Pages', 'Components', 'Singletons', '*']
+        order: ['Pages', 'Components', 'Singletons', 'UI Components', 'Design System', '*']
       }
     }
   },
