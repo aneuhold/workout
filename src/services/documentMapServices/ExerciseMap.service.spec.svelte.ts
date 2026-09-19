@@ -20,7 +20,7 @@ import MesocycleMapServiceMock from './MesocycleMap.service.mock';
 
 describe('exerciseMapService CTO update methods', () => {
   beforeEach(() => {
-    mockEnvSetupService.setupGlobalMocks(vi.spyOn);
+    mockEnvSetupService.setupGlobalMocks();
   });
 
   afterEach(() => {

@@ -1,36 +1,52 @@
-import SessionData from '$util/LocalData/SessionData';
 import navInfo from '$util/navInfo';
 
 /**
- * Moves the tab into and out of demo mode, where the app runs on scenario data
- * with the API stubbed and `LocalData` held in memory.
- *
- * Both transitions load the home page as a full page load rather than a
- * client-side navigation. `LocalData` chooses its backend once per page load
- * and the root layout reads the demo flag in `onMount`, so a flag change only
- * takes effect on the next load.
+ * Owns demo mode, where the app runs on scenario data with the API stubbed.
  */
 class DemoModeService {
   /**
-   * Turns demo mode on for this tab and opens the app on mock data.
+   * Unversioned, because sessionData gets wiped on each new tab open.
+   *
+   * Note that there is an edge-case here where if the user has the demo open, there is
+   * a new version of the app released, and the page reloads. It will wipe out their existing
+   * demo data but still look like it is successfully seeded. That is expected and a rare enough
+   * event (because only new people will really ever use demo mode) that it doesn't seem worth
+   * addressing at this time.
    */
-  enter(): void {
-    SessionData.setDemoModeEnabled(true);
-    this.#loadHome();
+  readonly #flagKey = 'mesoProDemoMode';
+
+  /**
+   * Whether this tab is currently in demo mode.
+   */
+  isEnabled(): boolean {
+    return window.sessionStorage.getItem(this.#flagKey) === 'true';
   }
 
   /**
-   * Turns demo mode off for this tab and returns to the real app. Nothing the
-   * demo did was persisted, so the stored session and cache are untouched.
+   * Resumes the demo stored in this tab, or turns demo mode on and seeds a
+   * fresh demo if there isn't one.
    */
+  async enter(): Promise<void> {
+    // Imported on demand to keep the mock environment code out of the bundle
+    // every visitor downloads at startup
+    const { default: mockEnvSetupService } =
+      await import('$services/MockEnvSetupService/MockEnvSetup.service');
+    if (this.isEnabled()) {
+      await mockEnvSetupService.resumeDemo();
+    } else {
+      await mockEnvSetupService.seedDemo();
+      window.sessionStorage.setItem(this.#flagKey, 'true');
+    }
+  }
+
   exit(): void {
-    SessionData.setDemoModeEnabled(false);
+    window.sessionStorage.clear();
     this.#loadHome();
   }
 
   /**
-   * Navigates to the home page with a full page load, which is what lets the
-   * changed demo flag take effect.
+   * Navigates to the home page with a full page load, so the next page load
+   * starts without demo mode.
    */
   #loadHome(): void {
     window.location.assign(navInfo.home.url);

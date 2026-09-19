@@ -1,99 +1,83 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
+import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
 import MockDataService from '$services/MockDataService/MockData.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
 import WebSocketService from '$services/WebSocket.service';
+import WorkoutHydrationService from '$services/WorkoutHydration.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { loginState } from '$stores/session/loginState';
-import InMemoryBackend from '$util/LocalData/InMemoryBackend';
 import LocalData from '$util/LocalData/LocalData';
-import { createLogger } from '$util/logging/logger';
+import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 import MockUsers from '$util/MockUsers';
-import type { MockLike, SpyOnFn } from './types';
+import DemoAPIBackend from './DemoAPIBackend';
 
 /**
- * Stands up the mock environment: the API and WebSocket stubs that Vitest and
- * Storybook install, and the full demo boot that runs the app on mock data.
+ * Stands up the mock environment: the network-free API and WebSocket that
+ * Vitest and Storybook install, and the full demo boot that runs the app on
+ * mock data kept in the tab's session storage.
  */
 class MockEnvSetupService {
-  readonly #log = createLogger('MockEnvSetupService');
+  readonly #apiBackend = new DemoAPIBackend();
 
   /**
-   * Stubs the API and WebSocket with the given spy function, then resets the
-   * mock document maps and user config.
-   *
-   * @param spyOnFn The spy function to use (e.g. spyOn from storybook/test or vi.spyOn from vitest)
+   * Installs the network-free API and WebSocket, then resets the mock
+   * document maps and user config.
    */
-  setupGlobalMocks(spyOnFn: SpyOnFn) {
-    // Mock API
-    spyOnFn(APIService, 'callWorkoutAPI').mockImplementation((_) => {
-      return Promise.resolve({
-        success: true,
-        errors: [],
-        data: {}
-      });
-    });
-
-    spyOnFn(APIService, 'deleteAccount').mockImplementation(() => {
-      return Promise.resolve({
-        success: true,
-        errors: [],
-        data: {}
-      });
-    });
-
-    spyOnFn(APIService, 'logout').mockImplementation(() => {
-      return Promise.resolve({
-        success: true,
-        errors: [],
-        data: undefined
-      });
-    });
-
-    spyOnFn(WebSocketService, 'connect').mockImplementation(() => {
-      this.#log.debug('Mocked WebSocketService.connect called');
-    });
-
-    // Reset all document map service mocks
+  setupGlobalMocks(): void {
+    this.#installBackends();
     MockDataService.resetAll();
-
-    // Reset user config (includes apiKey)
     MockDataService.userConfigMock.reset();
   }
 
   /**
    * Runs the app on the `MidTrainingWithHistory` mock scenario as a logged-in
    * demo user, booting through the same startup path a signed-in visitor
-   * takes. `LocalData` is held in memory and the API and WebSocket are
-   * stubbed.
+   * takes. `LocalData` is backed by the tab's session storage, and the API
+   * and WebSocket never touch the network.
+   *
+   * The first load in a tab seeds the scenario and writes it to session
+   * storage. Every later load in that tab resumes from what is stored, so
+   * changes made during the demo survive a reload.
    */
   async setupDemo(): Promise<void> {
-    // Resetting the mocks writes through `LocalData`, so the in-memory backend goes first
-    await LocalData.init(new InMemoryBackend());
-    this.setupGlobalMocks(this.#defaultMock);
-    MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
-    userConfig.setWithoutPropagation({
-      userId: MockUsers.currentUserCto._id,
-      username: 'Demo User',
-      accessToken: 'demo-mode-token',
-      refreshTokenString: null
-    });
+    // Decides which storage every later read and write hits, so it goes first
+    await LocalData.init(new SessionStorageBackend());
+    this.#installBackends();
+
+    // A stored config means this tab already seeded the demo
+    if (await LocalData.getUserConfig()) {
+      await Promise.all([userConfig.hydrate(), WorkoutHydrationService.hydrateDocumentMaps()]);
+      // Exercise CTOs are not stored, so they are rebuilt from the stored documents
+      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+        exerciseCalibrationMapService.allDocs,
+        exerciseMapService.allDocs,
+        equipmentTypeMapService.allDocs
+      );
+    } else {
+      MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
+      // The scenario adds its documents without persisting them
+      WorkoutHydrationService.persistDocumentMaps();
+      userConfig.set({
+        userId: MockUsers.currentUserCto._id,
+        username: 'Demo User',
+        accessToken: 'demo-mode-token',
+        refreshTokenString: null
+      });
+    }
+
     loginState.init();
   }
 
   /**
-   * A {@link SpyOnFn} that replaces the method outright, for stubbing outside
-   * a test runner.
-   *
-   * @param obj The object that owns the method
-   * @param method The name of the method to replace
+   * Routes the API and WebSocket away from the network. Resets stay out of
+   * this method, because a reset erases what `LocalData` has stored.
    */
-  #defaultMock<TObject, TKey extends keyof TObject>(obj: TObject, method: TKey): MockLike {
-    return {
-      mockImplementation: (implementation) => {
-        Object.defineProperty(obj, method, { value: implementation });
-      }
-    };
+  #installBackends(): void {
+    APIService.setBackend(this.#apiBackend);
+    WebSocketService.disable();
   }
 }
 

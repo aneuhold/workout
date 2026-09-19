@@ -19,8 +19,8 @@
   <CardHeader>
     <CardTitle>Just looking?</CardTitle>
     <CardDescription>
-      Explore the full app with a sample training history. Nothing is saved, and the demo ends when
-      you close the tab.
+      Explore the full app with a sample training history. Nothing is saved. Reloading keeps your
+      place, and the demo ends when you close the tab.
     </CardDescription>
   </CardHeader>
   <CardContent>
