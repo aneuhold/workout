@@ -11,9 +11,9 @@
 </script>
 
 <Button
-  class="[view-transition-name:match-element] animate-fade-in-up fixed bottom-bottom-nav left-0 z-40 m-4 md:bottom-0"
+  class="[view-transition-name:match-element] animate-fade-in-up fixed bottom-bottom-nav left-0 z-40 m-4 bg-warning text-background hover:bg-warning/80 md:bottom-0"
   title="Exit demo mode"
   onclick={() => demoModeService.exit()}
 >
-  Demo
+  Exit Demo
 </Button>
