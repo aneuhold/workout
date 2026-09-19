@@ -1,6 +1,6 @@
 import { APIService, type ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
-import { test, vi } from 'vitest';
+import { test } from 'vitest';
 import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
 import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
 import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
@@ -10,6 +10,7 @@ import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
 import perfTestUtils from '$testUtils/perfTestUtils';
@@ -22,10 +23,7 @@ import type { WorkoutApiInsertKey } from '$util/workoutPersistenceUtils';
  * wiped and reseeded when its document counts differ from the scenario's.
  */
 test('seed perf user', async () => {
-  // The shared vitest setup file installs a mock on APIService.callWorkoutAPI
-  // (and is required for module-resolution reasons). Restore the original here
-  // so the seed actually hits the backend.
-  vi.restoreAllMocks();
+  mockEnvSetupService.setupGlobalMocks(true);
 
   const { username, password } = perfTestUtils.getPerfCreds();
   const auth = await APIService.validateUser({

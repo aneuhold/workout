@@ -9,7 +9,7 @@
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
@@ -34,7 +34,7 @@
 
       if (mode === MesocyclesPageStoryMode.Default) {
         // Active mesocycle (started ~3 weeks ago, 8 completed sessions)
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -43,7 +43,7 @@
         });
 
         // Future mesocycle (starts in ~2 weeks, no sessions completed)
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Strength Phase',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -53,7 +53,7 @@
       }
 
       // Past mesocycles for both "default" and "noActive"
-      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Foundation Phase',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
@@ -62,7 +62,7 @@
         completedDate: daysAgo(42)
       });
 
-      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Deload & Recovery',
         cycleType: CycleType.Resensitization,
         microcycleCount: 2,

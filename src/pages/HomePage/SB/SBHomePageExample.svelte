@@ -23,7 +23,8 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
   import { daysAgo, daysFromNow } from '$util/dateUtils';
   import HomePage from '../HomePage.svelte';
@@ -39,20 +40,20 @@
       const baseData = MockDataService.setupBaseData();
 
       if (mode === HomePageStoryMode.AllComplete) {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(28),
           completedSessionCount: 999
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 
       if (mode === HomePageStoryMode.AllCompleteBlocked) {
         // All sessions complete but reviews NOT filled — blocks mesocycle completion
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -63,7 +64,7 @@
       }
 
       if (mode === HomePageStoryMode.Review) {
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -75,20 +76,20 @@
       }
 
       if (mode === HomePageStoryMode.InProgress) {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(21),
           completedSessionCount: 8
         });
-        MesocycleMapServiceMock.fillLateFields(data);
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        mesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         return;
       }
 
       if (mode === HomePageStoryMode.InProgressReview) {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -105,26 +106,26 @@
             se.sorenessScore = 1;
           }
         }
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         return;
       }
 
       if (mode === HomePageStoryMode.MicrocycleComplete) {
         // 6-microcycle mesocycle, 2 microcycles complete with reviews filled
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: daysAgo(14),
           completedSessionCount: 10
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 
       if (mode === HomePageStoryMode.MicrocycleCompleteBlocked) {
         // Same as microcycleComplete but reviews NOT filled — shows blocked state
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
@@ -138,14 +139,14 @@
         // 6 microcycles, 3 complete with reviews filled. Performance drops in
         // microcycles 2 and 3 trigger the consecutive-drop deload rule when
         // the user clicks "Advance to Next Microcycle".
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: daysAgo(21),
           completedSessionCount: 15
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         const mc2Sessions = data.sessions.filter(
           (s) => s.workoutMicrocycleId === data.microcycles[1]._id
         );
@@ -153,13 +154,13 @@
           (s) => s.workoutMicrocycleId === data.microcycles[2]._id
         );
         const dropSessionIds = new Set([...mc2Sessions, ...mc3Sessions].map((s) => s._id));
-        MesocycleMapServiceMock.applyPerformanceDrops(data, dropSessionIds);
+        mesocycleMapServiceMock.applyPerformanceDrops(data, dropSessionIds);
         return;
       }
 
       if (mode === HomePageStoryMode.MesocycleStart) {
         // Mesocycle exists with generated microcycles, but no sessions started
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
@@ -171,27 +172,27 @@
 
       if (mode === HomePageStoryMode.LateSession) {
         // Next session is 1 day late
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(12),
           completedSessionCount: 8
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 
       if (mode === HomePageStoryMode.SeverelyLateSession) {
         // Next session is 4+ days late (started 25 days ago, 8 completed)
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(25),
           completedSessionCount: 8
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 
@@ -202,7 +203,7 @@
 
       if (mode === HomePageStoryMode.FreeFormInProgress) {
         // No mesocycle, one free-form session in progress with 2 exercises
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           exerciseCount: 2,
           setsPerExercise: 1,
           loggedSetCount: 1
@@ -212,7 +213,7 @@
 
       if (mode === HomePageStoryMode.FreeFormPlanned) {
         // No mesocycle — two upcoming planned free-form sessions
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Upper Body Day',
           startTime: daysFromNow(1),
           exerciseCount: 3,
@@ -221,7 +222,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Lower Body Day',
           startTime: daysFromNow(3),
           exerciseCount: 4,
@@ -235,14 +236,14 @@
 
       if (mode === HomePageStoryMode.FreeFormInProgressAndPlanned) {
         // One session in progress + two planned — home section shows all three
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
           startTime: daysAgo(0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
           startTime: daysFromNow(2),
           exerciseCount: 3,
@@ -251,7 +252,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
           startTime: daysFromNow(4),
           exerciseCount: 4,
@@ -266,15 +267,15 @@
       if (mode === HomePageStoryMode.FreeFormWithMesocycle) {
         // Active mesocycle with no session currently in progress + free-form in progress.
         // The free-form hero card takes priority over the "Next Up" mesocycle recommendation.
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(11),
           completedSessionCount: 8
         });
-        MesocycleMapServiceMock.fillLateFields(data);
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        mesocycleMapServiceMock.fillLateFields(data);
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
           startTime: daysAgo(1),
           exerciseCount: 3,
@@ -285,14 +286,14 @@
       }
 
       // Default: mix of Completed, NextUp, Upcoming (no in-progress)
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: daysAgo(11),
         completedSessionCount: 8
       });
-      MesocycleMapServiceMock.fillLateFields(data);
+      mesocycleMapServiceMock.fillLateFields(data);
     });
 
     return () => {

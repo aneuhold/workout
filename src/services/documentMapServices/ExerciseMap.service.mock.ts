@@ -15,11 +15,11 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import MockUsers from '$util/MockUsers';
-import EquipmentTypeMapServiceMock, {
+import equipmentTypeMapServiceMock, {
   MockDefaultEquipmentType
 } from './EquipmentTypeMap.service.mock';
 import exerciseMapService from './ExerciseMap.service.svelte';
-import MuscleGroupMapServiceMock, { MockDefaultMuscleGroup } from './MuscleGroupMap.service.mock';
+import muscleGroupMapServiceMock, { MockDefaultMuscleGroup } from './MuscleGroupMap.service.mock';
 import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
 import sessionMapService from './SessionMap.service.svelte';
 import setMapService from './SetMap.service.svelte';
@@ -60,25 +60,22 @@ type DerivedExerciseCTOFields = Pick<
   | 'lastAccumulationSessionSets'
 >;
 
-export default class ExerciseMapServiceMock {
-  static #defaultExercises: Record<MockDefaultExercise, WorkoutExercise> | null = null;
-  static #defaultsOwnerId: UUID | null = null;
+class ExerciseMapServiceMock {
+  #defaultExercises: Record<MockDefaultExercise, WorkoutExercise> | null = null;
+  #defaultsOwnerId: UUID | null = null;
 
   /**
    * The default exercises, built on first read and rebuilt whenever the
    * current test user changes, so they always belong to whoever
    * `MockUsers.currentUserCto` is now.
    */
-  static get defaultExercises(): Record<MockDefaultExercise, WorkoutExercise> {
+  get defaultExercises(): Record<MockDefaultExercise, WorkoutExercise> {
     const ownerId = MockUsers.currentUserCto._id;
-    if (
-      !ExerciseMapServiceMock.#defaultExercises ||
-      ExerciseMapServiceMock.#defaultsOwnerId !== ownerId
-    ) {
-      ExerciseMapServiceMock.#defaultExercises = ExerciseMapServiceMock.#createDefaultExercises();
-      ExerciseMapServiceMock.#defaultsOwnerId = ownerId;
+    if (!this.#defaultExercises || this.#defaultsOwnerId !== ownerId) {
+      this.#defaultExercises = this.#createDefaultExercises();
+      this.#defaultsOwnerId = ownerId;
     }
-    return ExerciseMapServiceMock.#defaultExercises;
+    return this.#defaultExercises;
   }
 
   reset(): void {
@@ -87,7 +84,7 @@ export default class ExerciseMapServiceMock {
   }
 
   addDefaultExercises(): WorkoutExercise[] {
-    const docs = Object.values(ExerciseMapServiceMock.defaultExercises);
+    const docs = Object.values(this.defaultExercises);
     for (const doc of docs) {
       exerciseMapService.addDocWithoutPersist(doc);
     }
@@ -95,12 +92,12 @@ export default class ExerciseMapServiceMock {
   }
 
   addExercise(options: AddMockExerciseInfo): WorkoutExercise {
-    const doc = ExerciseMapServiceMock.createExercise(options);
+    const doc = this.createExercise(options);
     exerciseMapService.addDocWithoutPersist(doc);
     return doc;
   }
 
-  static createExercise(options: AddMockExerciseInfo): WorkoutExercise {
+  createExercise(options: AddMockExerciseInfo): WorkoutExercise {
     return WorkoutExerciseSchema.parse({
       userId: MockUsers.currentUserCto._id,
       exerciseName: options.exerciseName,
@@ -134,7 +131,7 @@ export default class ExerciseMapServiceMock {
   ): WorkoutExerciseCTO[] {
     const hasSessionData = sessionMapService.allDocs.length > 0;
     const derivedFields = hasSessionData
-      ? ExerciseMapServiceMock.#deriveCTOFields()
+      ? this.#deriveCTOFields()
       : new Map<UUID, DerivedExerciseCTOFields>();
 
     const exerciseCTOs = calibrations.map((cal) => {
@@ -158,11 +155,11 @@ export default class ExerciseMapServiceMock {
     return exerciseCTOs;
   }
 
-  static #createDefaultExercises(): Record<MockDefaultExercise, WorkoutExercise> {
-    const muscleGroups = MuscleGroupMapServiceMock.defaultMuscleGroups;
-    const equipmentTypes = EquipmentTypeMapServiceMock.defaultEquipmentTypes;
+  #createDefaultExercises(): Record<MockDefaultExercise, WorkoutExercise> {
+    const muscleGroups = muscleGroupMapServiceMock.defaultMuscleGroups;
+    const equipmentTypes = equipmentTypeMapServiceMock.defaultEquipmentTypes;
     return {
-      [MockDefaultExercise.BarbellBenchPress]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.BarbellBenchPress]: this.createExercise({
         exerciseName: MockDefaultExercise.BarbellBenchPress,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Heavy,
@@ -179,7 +176,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 1
         }
       }),
-      [MockDefaultExercise.PullUps]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.PullUps]: this.createExercise({
         exerciseName: MockDefaultExercise.PullUps,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Bodyweight]._id,
         repRange: ExerciseRepRange.Medium,
@@ -197,7 +194,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 1
         }
       }),
-      [MockDefaultExercise.BarbellSquat]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.BarbellSquat]: this.createExercise({
         exerciseName: MockDefaultExercise.BarbellSquat,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Heavy,
@@ -215,7 +212,7 @@ export default class ExerciseMapServiceMock {
         }
       }),
       // Dumbbell Lateral Raise intentionally has no fatigue guess
-      [MockDefaultExercise.DumbbellLateralRaise]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.DumbbellLateralRaise]: this.createExercise({
         exerciseName: MockDefaultExercise.DumbbellLateralRaise,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Dumbbells]._id,
         repRange: ExerciseRepRange.Light,
@@ -223,7 +220,7 @@ export default class ExerciseMapServiceMock {
         primaryMuscleGroups: [muscleGroups[MockDefaultMuscleGroup.SideDelts]._id],
         restSeconds: 60
       }),
-      [MockDefaultExercise.CableTricepPushdown]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.CableTricepPushdown]: this.createExercise({
         exerciseName: MockDefaultExercise.CableTricepPushdown,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.CableMachine]._id,
         repRange: ExerciseRepRange.Medium,
@@ -236,7 +233,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 0
         }
       }),
-      [MockDefaultExercise.RomanianDeadlift]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.RomanianDeadlift]: this.createExercise({
         exerciseName: MockDefaultExercise.RomanianDeadlift,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Medium,
@@ -254,7 +251,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 2
         }
       }),
-      [MockDefaultExercise.InclineDumbbellPress]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.InclineDumbbellPress]: this.createExercise({
         exerciseName: MockDefaultExercise.InclineDumbbellPress,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Dumbbells]._id,
         repRange: ExerciseRepRange.Medium,
@@ -271,7 +268,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 1
         }
       }),
-      [MockDefaultExercise.BarbellRow]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.BarbellRow]: this.createExercise({
         exerciseName: MockDefaultExercise.BarbellRow,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Heavy,
@@ -288,7 +285,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 1
         }
       }),
-      [MockDefaultExercise.BulgarianSplitSquat]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.BulgarianSplitSquat]: this.createExercise({
         exerciseName: MockDefaultExercise.BulgarianSplitSquat,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Dumbbells]._id,
         repRange: ExerciseRepRange.Medium,
@@ -302,7 +299,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 1
         }
       }),
-      [MockDefaultExercise.BarbellCurl]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.BarbellCurl]: this.createExercise({
         exerciseName: MockDefaultExercise.BarbellCurl,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Medium,
@@ -315,7 +312,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 0
         }
       }),
-      [MockDefaultExercise.CableFacePull]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.CableFacePull]: this.createExercise({
         exerciseName: MockDefaultExercise.CableFacePull,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.CableMachine]._id,
         repRange: ExerciseRepRange.Light,
@@ -329,7 +326,7 @@ export default class ExerciseMapServiceMock {
           unusedMusclePerformance: 0
         }
       }),
-      [MockDefaultExercise.HipThrust]: ExerciseMapServiceMock.createExercise({
+      [MockDefaultExercise.HipThrust]: this.createExercise({
         exerciseName: MockDefaultExercise.HipThrust,
         workoutEquipmentTypeId: equipmentTypes[MockDefaultEquipmentType.Barbell]._id,
         repRange: ExerciseRepRange.Heavy,
@@ -358,7 +355,7 @@ export default class ExerciseMapServiceMock {
    *   sessions
    * - Sets arrays: all sets from each variant's setOrder
    */
-  static #deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
+  #deriveCTOFields(): Map<UUID, DerivedExerciseCTOFields> {
     const completedSessionIds = new Set<UUID>();
     for (const session of sessionMapService.allDocs) {
       if (session.complete) {
@@ -440,3 +437,6 @@ export default class ExerciseMapServiceMock {
     return result;
   }
 }
+
+const exerciseMapServiceMock = new ExerciseMapServiceMock();
+export default exerciseMapServiceMock;

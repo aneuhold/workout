@@ -10,7 +10,7 @@ export type AddMockMicrocycleInfo = {
   sessionOrder?: UUID[];
 };
 
-export default class MicrocycleMapServiceMock {
+class MicrocycleMapServiceMock {
   reset(): void {
     microcycleMapService.setMap({});
   }
@@ -31,3 +31,6 @@ export default class MicrocycleMapServiceMock {
     docs.forEach((doc) => microcycleMapService.addDocWithoutPersist(doc));
   }
 }
+
+const microcycleMapServiceMock = new MicrocycleMapServiceMock();
+export default microcycleMapServiceMock;

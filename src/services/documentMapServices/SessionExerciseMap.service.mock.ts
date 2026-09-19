@@ -18,7 +18,7 @@ export type AddMockSessionExerciseInfo = {
   performanceScore?: number;
 };
 
-export default class SessionExerciseMapServiceMock {
+class SessionExerciseMapServiceMock {
   reset(): void {
     sessionExerciseMapService.setMap({});
   }
@@ -42,3 +42,6 @@ export default class SessionExerciseMapServiceMock {
     docs.forEach((doc) => sessionExerciseMapService.addDocWithoutPersist(doc));
   }
 }
+
+const sessionExerciseMapServiceMock = new SessionExerciseMapServiceMock();
+export default sessionExerciseMapServiceMock;

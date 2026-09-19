@@ -9,7 +9,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import MesocycleMapServiceMock, {
+  import mesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
@@ -64,7 +64,7 @@
       const parsedStart = new Date(_startDate);
 
       let generated: MockGeneratedMesocycleData;
-      generated = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      generated = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         microcycleCount: _mcCount,
         microcycleLengthInDays: _mcLength,
         restDays: parsedRestDays,

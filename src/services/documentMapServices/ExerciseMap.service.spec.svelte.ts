@@ -15,8 +15,10 @@ import MockDataService from '$services/MockDataService/MockData.service';
 import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import MockUsers from '$util/MockUsers';
+import exerciseCalibrationMapServiceMock from './ExerciseCalibrationMap.service.mock';
+import exerciseMapServiceMock from './ExerciseMap.service.mock';
 import exerciseMapService from './ExerciseMap.service.svelte';
-import MesocycleMapServiceMock from './MesocycleMap.service.mock';
+import mesocycleMapServiceMock from './MesocycleMap.service.mock';
 
 describe('exerciseMapService CTO update methods', () => {
   beforeEach(() => {
@@ -217,14 +219,14 @@ describe('exerciseMapService CTO update methods', () => {
   describe('updateCTOsForCompletedSession', () => {
     it('should update lastSessionExercise and lastSessionSets', () => {
       const baseData = MockDataService.setupBaseData();
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
         sessionsPerMicrocycle: 5
       });
 
       // Re-setup CTOs with session data
-      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -269,14 +271,14 @@ describe('exerciseMapService CTO update methods', () => {
 
     it('should preserve lastAccumulationSessionExercise but update lastSessionExercise for deload exercises', () => {
       const baseData = MockDataService.setupBaseData();
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
         sessionsPerMicrocycle: 5
       });
 
       // Re-setup CTOs with session data
-      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -364,14 +366,14 @@ describe('exerciseMapService CTO update methods', () => {
 
     it('should update bestSet from session sets', () => {
       const baseData = MockDataService.setupBaseData();
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5,
         sessionsPerMicrocycle: 5
       });
 
       // Re-setup CTOs with session data
-      MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+      exerciseMapServiceMock.setDefaultExerciseCTOs(
         baseData.calibrations,
         baseData.exercises,
         baseData.equipmentTypes
@@ -432,7 +434,7 @@ describe('exerciseMapService CTO update methods', () => {
 
       // Add a second calibration for the same exercise
       const exercise = baseData.exercises[0];
-      const extraCal = MockDataService.exerciseCalibrationMapServiceMock.addCalibration({
+      const extraCal = exerciseCalibrationMapServiceMock.addCalibration({
         workoutExerciseId: exercise._id,
         weight: 100,
         reps: 10

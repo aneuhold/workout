@@ -5,7 +5,7 @@ import { type UserConfig, userConfig } from './userConfig';
  * A mock provider for the UserConfig store. This depends on the backend API
  * being mocked already so it doesn't try to contact the server.
  */
-export default class UserConfigMock {
+class UserConfigMock {
   /**
    * Sets the store to a mock user with the current test user's ID, without
    * persisting it.
@@ -20,3 +20,6 @@ export default class UserConfigMock {
     userConfig.setWithoutPropagation(mockConfig);
   }
 }
+
+const userConfigMock = new UserConfigMock();
+export default userConfigMock;

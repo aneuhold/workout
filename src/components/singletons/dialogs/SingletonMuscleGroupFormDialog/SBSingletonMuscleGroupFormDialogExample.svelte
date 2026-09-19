@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { WorkoutMuscleGroup } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MockDataService from '$services/MockDataService/MockData.service';
+  import muscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
   import Button from '$ui/Button/Button.svelte';
   import SingletonMuscleGroupFormDialog from './SingletonMuscleGroupFormDialog.svelte';
   import { muscleGroupFormDialog } from './SingletonMuscleGroupFormDialog.svelte';
@@ -10,13 +10,13 @@
 
   $effect(() => {
     untrack(() => {
-      MockDataService.muscleGroupMapServiceMock.reset();
-      muscleGroups = MockDataService.muscleGroupMapServiceMock.addDefaultMuscleGroups();
+      muscleGroupMapServiceMock.reset();
+      muscleGroups = muscleGroupMapServiceMock.addDefaultMuscleGroups();
     });
 
     return () => {
       untrack(() => {
-        MockDataService.muscleGroupMapServiceMock.reset();
+        muscleGroupMapServiceMock.reset();
       });
     };
   });

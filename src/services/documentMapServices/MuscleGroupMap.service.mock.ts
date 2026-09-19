@@ -16,26 +16,22 @@ export enum MockDefaultMuscleGroup {
   Biceps = 'Biceps'
 }
 
-export default class MuscleGroupMapServiceMock {
-  static #defaultMuscleGroups: Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> | null = null;
-  static #defaultsOwnerId: UUID | null = null;
+class MuscleGroupMapServiceMock {
+  #defaultMuscleGroups: Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> | null = null;
+  #defaultsOwnerId: UUID | null = null;
 
   /**
    * The default muscle groups, built on first read and rebuilt whenever the
    * current test user changes, so they always belong to whoever
    * `MockUsers.currentUserCto` is now.
    */
-  static get defaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
+  get defaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
     const ownerId = MockUsers.currentUserCto._id;
-    if (
-      !MuscleGroupMapServiceMock.#defaultMuscleGroups ||
-      MuscleGroupMapServiceMock.#defaultsOwnerId !== ownerId
-    ) {
-      MuscleGroupMapServiceMock.#defaultMuscleGroups =
-        MuscleGroupMapServiceMock.#createDefaultMuscleGroups();
-      MuscleGroupMapServiceMock.#defaultsOwnerId = ownerId;
+    if (!this.#defaultMuscleGroups || this.#defaultsOwnerId !== ownerId) {
+      this.#defaultMuscleGroups = this.#createDefaultMuscleGroups();
+      this.#defaultsOwnerId = ownerId;
     }
-    return MuscleGroupMapServiceMock.#defaultMuscleGroups;
+    return this.#defaultMuscleGroups;
   }
 
   reset(): void {
@@ -44,7 +40,7 @@ export default class MuscleGroupMapServiceMock {
   }
 
   addDefaultMuscleGroups(): WorkoutMuscleGroup[] {
-    const docs = Object.values(MuscleGroupMapServiceMock.defaultMuscleGroups);
+    const docs = Object.values(this.defaultMuscleGroups);
     for (const doc of docs) {
       muscleGroupMapService.addDocWithoutPersist(doc);
     }
@@ -52,12 +48,12 @@ export default class MuscleGroupMapServiceMock {
   }
 
   addMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
-    const doc = MuscleGroupMapServiceMock.createMuscleGroup(name, description);
+    const doc = this.createMuscleGroup(name, description);
     muscleGroupMapService.addDocWithoutPersist(doc);
     return doc;
   }
 
-  static createMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
+  createMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
     return WorkoutMuscleGroupSchema.parse({
       userId: MockUsers.currentUserCto._id,
       name,
@@ -65,39 +61,30 @@ export default class MuscleGroupMapServiceMock {
     });
   }
 
-  static #createDefaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
+  #createDefaultMuscleGroups(): Record<MockDefaultMuscleGroup, WorkoutMuscleGroup> {
     return {
-      [MockDefaultMuscleGroup.Chest]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.Chest
-      ),
-      [MockDefaultMuscleGroup.Lats]: MuscleGroupMapServiceMock.createMuscleGroup(
+      [MockDefaultMuscleGroup.Chest]: this.createMuscleGroup(MockDefaultMuscleGroup.Chest),
+      [MockDefaultMuscleGroup.Lats]: this.createMuscleGroup(
         MockDefaultMuscleGroup.Lats,
         'Largest back muscle; key for pull movements.'
       ),
-      [MockDefaultMuscleGroup.Quadriceps]: MuscleGroupMapServiceMock.createMuscleGroup(
+      [MockDefaultMuscleGroup.Quadriceps]: this.createMuscleGroup(
         MockDefaultMuscleGroup.Quadriceps
       ),
-      [MockDefaultMuscleGroup.Hamstrings]: MuscleGroupMapServiceMock.createMuscleGroup(
+      [MockDefaultMuscleGroup.Hamstrings]: this.createMuscleGroup(
         MockDefaultMuscleGroup.Hamstrings
       ),
-      [MockDefaultMuscleGroup.Glutes]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.Glutes
-      ),
-      [MockDefaultMuscleGroup.FrontDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
+      [MockDefaultMuscleGroup.Glutes]: this.createMuscleGroup(MockDefaultMuscleGroup.Glutes),
+      [MockDefaultMuscleGroup.FrontDelts]: this.createMuscleGroup(
         MockDefaultMuscleGroup.FrontDelts
       ),
-      [MockDefaultMuscleGroup.SideDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.SideDelts
-      ),
-      [MockDefaultMuscleGroup.RearDelts]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.RearDelts
-      ),
-      [MockDefaultMuscleGroup.Triceps]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.Triceps
-      ),
-      [MockDefaultMuscleGroup.Biceps]: MuscleGroupMapServiceMock.createMuscleGroup(
-        MockDefaultMuscleGroup.Biceps
-      )
+      [MockDefaultMuscleGroup.SideDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.SideDelts),
+      [MockDefaultMuscleGroup.RearDelts]: this.createMuscleGroup(MockDefaultMuscleGroup.RearDelts),
+      [MockDefaultMuscleGroup.Triceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Triceps),
+      [MockDefaultMuscleGroup.Biceps]: this.createMuscleGroup(MockDefaultMuscleGroup.Biceps)
     };
   }
 }
+
+const muscleGroupMapServiceMock = new MuscleGroupMapServiceMock();
+export default muscleGroupMapServiceMock;

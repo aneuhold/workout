@@ -8,7 +8,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock, {
+  import mesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
@@ -34,7 +34,7 @@
       MockDataService.resetAll();
       const baseData = MockDataService.setupBaseData();
 
-      const generated: MockGeneratedMesocycleData = MesocycleMapServiceMock.generateFullMesocycle(
+      const generated: MockGeneratedMesocycleData = mesocycleMapServiceMock.generateFullMesocycle(
         baseData,
         {
           title: 'Progression Demo',

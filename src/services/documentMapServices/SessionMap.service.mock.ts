@@ -1,9 +1,10 @@
 import { type WorkoutSession, WorkoutSessionSchema } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import MockDataService from '$services/MockDataService/MockData.service';
 import { type MockBaseData } from '$services/MockDataService/types';
 import MockUsers from '$util/MockUsers';
+import sessionExerciseMapServiceMock from './SessionExerciseMap.service.mock';
 import sessionMapService from './SessionMap.service.svelte';
+import setMapServiceMock from './SetMap.service.mock';
 
 export type AddMockSessionInfo = {
   workoutMicrocycleId?: UUID;
@@ -26,7 +27,7 @@ export type AddMockFreeFormSessionInfo = {
   plannedWeightPerSet?: number;
 };
 
-export default class SessionMapServiceMock {
+class SessionMapServiceMock {
   reset(): void {
     sessionMapService.setMap({});
   }
@@ -72,7 +73,7 @@ export default class SessionMapServiceMock {
 
     for (let i = 0; i < config.exerciseCount; i++) {
       const exercise = baseData.exercises[i % baseData.exercises.length];
-      const se = MockDataService.sessionExerciseMapServiceMock.addSessionExercise({
+      const se = sessionExerciseMapServiceMock.addSessionExercise({
         workoutSessionId: session._id,
         workoutExerciseId: exercise._id,
         setOrder: []
@@ -80,7 +81,7 @@ export default class SessionMapServiceMock {
       const setIds: UUID[] = [];
       for (let j = 0; j < setsPerExercise; j++) {
         const shouldLog = logged < loggedSetCount;
-        const set = MockDataService.setMapServiceMock.addSet({
+        const set = setMapServiceMock.addSet({
           workoutExerciseId: exercise._id,
           workoutSessionId: session._id,
           workoutSessionExerciseId: se._id,
@@ -100,3 +101,6 @@ export default class SessionMapServiceMock {
     return session;
   }
 }
+
+const sessionMapServiceMock = new SessionMapServiceMock();
+export default sessionMapServiceMock;

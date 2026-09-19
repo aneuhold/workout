@@ -1,7 +1,8 @@
 import { CycleType } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/MesocycleMap.service.mock';
-import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import MockDataService from '$services/MockDataService/MockData.service';
 import { type MockBaseData } from '$services/MockDataService/types';
@@ -36,7 +37,7 @@ export default class MockScenarioService {
         const blockStartDaysAgo = 21;
         // Completed mesocycles that end a week before this block starts
         MockScenarioService.#setupHistoricalDataScenario(baseData, blockStartDaysAgo + 7);
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -47,10 +48,10 @@ export default class MockScenarioService {
         // without completedDate (for the hero card). With 8 sessions that's
         // microcycle 0. Mark it completed so microcycle 1 sessions are unlocked.
         data.microcycles[0].completedDate = new Date();
-        MesocycleMapServiceMock.fillLateFields(data);
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        mesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
         // Completed free-form sessions
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — 5 days ago',
           startTime: daysAgo(5),
           complete: true,
@@ -58,7 +59,7 @@ export default class MockScenarioService {
           setsPerExercise: 3,
           loggedSetCount: 9
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — 12 days ago',
           startTime: daysAgo(12),
           complete: true,
@@ -67,14 +68,14 @@ export default class MockScenarioService {
           loggedSetCount: 8
         });
         // In-progress free-form sessions
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
           startTime: daysAgo(0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Accessory Work',
           startTime: daysAgo(1),
           exerciseCount: 2,
@@ -82,7 +83,7 @@ export default class MockScenarioService {
           loggedSetCount: 1
         });
         // Planned free-form sessions
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
           startTime: daysFromNow(2),
           exerciseCount: 3,
@@ -91,7 +92,7 @@ export default class MockScenarioService {
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
           startTime: daysFromNow(5),
           exerciseCount: 4,
@@ -111,20 +112,20 @@ export default class MockScenarioService {
         return MockScenarioService.#setupFreeFormWorkoutScenario(baseData);
 
       case FullAppScenario.AllComplete: {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(28),
           completedSessionCount: 999
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         break;
       }
 
       case FullAppScenario.ReviewPending:
         // 8 completed sessions but late fields NOT filled, which shows the "Review" state
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -135,7 +136,7 @@ export default class MockScenarioService {
 
       case FullAppScenario.MesocycleStart:
         // Mesocycle with generated microcycles, no sessions started
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
@@ -146,14 +147,14 @@ export default class MockScenarioService {
 
       case FullAppScenario.VeryLateSession: {
         // 2 full microcycles complete with all reviews done, next session ~14 days late
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(28),
           completedSessionCount: 10
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         break;
       }
 
@@ -223,7 +224,7 @@ export default class MockScenarioService {
     // Complete all sessions in microcycles 0-3 (4 * 5 = 20)
     const completedSessionCount = sessionsPerMicrocycle * 4;
 
-    const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+    const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
       title: 'Overreaching Block',
       cycleType: CycleType.MuscleGain,
       microcycleCount,
@@ -241,17 +242,17 @@ export default class MockScenarioService {
     // Apply performance drops to all sessions in microcycles 2 and 3
     // This ensures 2+ consecutive drops for each exercise across those microcycles
     const dropSessionIds = MockScenarioService.#getSessionIdsForMicrocycles(data, [2, 3]);
-    MesocycleMapServiceMock.applyPerformanceDrops(data, dropSessionIds);
+    mesocycleMapServiceMock.applyPerformanceDrops(data, dropSessionIds);
 
     // Fill late fields for completed sessions (mid-session fields already set by generateFullMesocycle)
-    MesocycleMapServiceMock.fillLateFields(data);
+    mesocycleMapServiceMock.fillLateFields(data);
 
     // Fill all sets on the first incomplete session (microcycle 4, first session)
     // so it appears ready to complete with continued poor performance
     const firstIncomplete = data.sessions.find((s) => !s.complete);
     if (!firstIncomplete) return null;
 
-    MesocycleMapServiceMock.fillSessionSets(data, firstIncomplete._id, {
+    mesocycleMapServiceMock.fillSessionSets(data, firstIncomplete._id, {
       performanceDrop: true
     });
 
@@ -295,7 +296,7 @@ export default class MockScenarioService {
       const mesoStartDaysAgo = (3 - mesoIndex) * weeksPerMeso * 7 + daysOffset;
       const completedDaysAgo = mesoStartDaysAgo - microcycleCount * 7;
 
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: `Hypertrophy Block ${mesoIndex + 1}`,
         cycleType: CycleType.MuscleGain,
         microcycleCount,
@@ -306,7 +307,7 @@ export default class MockScenarioService {
       });
 
       // Fill late fields (mid-session fields already set by generateFullMesocycle)
-      MesocycleMapServiceMock.fillLateFields(data);
+      mesocycleMapServiceMock.fillLateFields(data);
 
       // Override RSM and soreness data with varied values per mesocycle
       for (const se of data.sessionExercises) {
@@ -337,7 +338,7 @@ export default class MockScenarioService {
 
     for (const config of completedFreeFormConfigs) {
       const startTime = daysAgo(config.daysAgoCount + daysOffset);
-      MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+      sessionMapServiceMock.addFreeFormSession(baseData, {
         title: sessionMapService.getFormattedSessionTitle(startTime),
         startTime,
         complete: true,
@@ -356,7 +357,7 @@ export default class MockScenarioService {
    * @param baseData The base exercise/calibration/equipment data
    */
   static #setupFreeFormWorkoutScenario(baseData: MockBaseData): string {
-    const session = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+    const session = sessionMapServiceMock.addFreeFormSession(baseData, {
       exerciseCount: 2,
       setsPerExercise: 3,
       loggedSetCount: 2

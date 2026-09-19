@@ -15,7 +15,7 @@ export type AddMockSetInfo = {
   rir?: number;
 };
 
-export default class SetMapServiceMock {
+class SetMapServiceMock {
   reset(): void {
     setMapService.setMap({});
   }
@@ -41,3 +41,6 @@ export default class SetMapServiceMock {
     docs.forEach((doc) => setMapService.addDocWithoutPersist(doc));
   }
 }
+
+const setMapServiceMock = new SetMapServiceMock();
+export default setMapServiceMock;

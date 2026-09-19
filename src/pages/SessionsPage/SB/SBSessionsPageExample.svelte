@@ -14,7 +14,8 @@
 <script lang="ts">
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
   import { daysAgo, daysFromNow } from '$util/dateUtils';
   import SessionsPage from '../SessionsPage.svelte';
@@ -31,20 +32,20 @@
       const baseData = MockDataService.setupBaseData();
 
       if (mode === SessionsPageStoryMode.AllComplete) {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(28),
           completedSessionCount: 999
         });
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
         return;
       }
 
       if (mode === SessionsPageStoryMode.Review) {
         // 8 completed sessions but late fields NOT filled → shows as "Review"
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -56,7 +57,7 @@
 
       if (mode === SessionsPageStoryMode.FreeFormOnly) {
         // No mesocycle, only free-form sessions
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 28 Workout',
           startTime: daysAgo(1),
           complete: true,
@@ -64,7 +65,7 @@
           setsPerExercise: 3,
           loggedSetCount: 9
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           startTime: daysAgo(0),
           exerciseCount: 2,
           setsPerExercise: 3,
@@ -74,16 +75,16 @@
       }
 
       if (mode === SessionsPageStoryMode.FreeFormWithMesocycle) {
-        const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: daysAgo(21),
           completedSessionCount: 8
         });
-        MesocycleMapServiceMock.fillLateFields(data);
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        mesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'March 27 Workout',
           startTime: daysAgo(2),
           complete: true,
@@ -91,7 +92,7 @@
           setsPerExercise: 3,
           loggedSetCount: 9
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           startTime: daysAgo(0),
           exerciseCount: 2,
           setsPerExercise: 3,
@@ -102,7 +103,7 @@
 
       if (mode === SessionsPageStoryMode.PlannedSessions) {
         // Free-form only: two upcoming planned sessions with targets
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Upper Body Day',
           startTime: daysFromNow(1),
           exerciseCount: 3,
@@ -111,7 +112,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Lower Body Day',
           startTime: daysFromNow(3),
           exerciseCount: 4,
@@ -125,7 +126,7 @@
 
       if (mode === SessionsPageStoryMode.MixedFreeForm) {
         // Completed, in-progress, and planned sessions all visible
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Full Body — Apr 1',
           startTime: daysAgo(3),
           complete: true,
@@ -133,14 +134,14 @@
           setsPerExercise: 3,
           loggedSetCount: 9
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Push Day',
           startTime: daysAgo(0),
           exerciseCount: 3,
           setsPerExercise: 3,
           loggedSetCount: 4
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Pull Day',
           startTime: daysFromNow(2),
           exerciseCount: 3,
@@ -149,7 +150,7 @@
           plannedRepsPerSet: 10,
           plannedWeightPerSet: 135
         });
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: 'Leg Day',
           startTime: daysFromNow(4),
           exerciseCount: 4,
@@ -164,7 +165,7 @@
       if (mode === SessionsPageStoryMode.PaginatedFreeForm) {
         // 12 completed, 12 in-progress, 12 planned — tests pagination in all 3 subsections
         for (let i = 0; i < 12; i++) {
-          MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `Completed Session ${i + 1}`,
             startTime: daysAgo(i + 1),
             complete: true,
@@ -172,14 +173,14 @@
             setsPerExercise: 2,
             loggedSetCount: 4
           });
-          MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `In Progress Session ${i + 1}`,
             startTime: daysAgo(i),
             exerciseCount: 3,
             setsPerExercise: 3,
             loggedSetCount: 2
           });
-          MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionMapServiceMock.addFreeFormSession(baseData, {
             title: `Planned Session ${i + 1}`,
             startTime: daysFromNow(i + 1),
             exerciseCount: 3,
@@ -193,18 +194,18 @@
       }
 
       // Default: mesocycle mix + 3 free-form sessions of each type
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: daysAgo(21),
         completedSessionCount: 8
       });
-      MesocycleMapServiceMock.fillLateFields(data);
-      MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+      mesocycleMapServiceMock.fillLateFields(data);
+      mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
       // 3 completed free-form
       for (let i = 0; i < 3; i++) {
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Full Body — ${3 - i} days ago`,
           startTime: daysAgo(i + 1),
           complete: true,
@@ -215,7 +216,7 @@
       }
       // 3 in-progress free-form
       for (let i = 0; i < 3; i++) {
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Push Session ${i + 1}`,
           startTime: daysAgo(0),
           exerciseCount: 3,
@@ -225,7 +226,7 @@
       }
       // 3 planned free-form
       for (let i = 0; i < 3; i++) {
-        MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+        sessionMapServiceMock.addFreeFormSession(baseData, {
           title: `Planned Session ${i + 1}`,
           startTime: daysFromNow(i + 1),
           exerciseCount: 3,

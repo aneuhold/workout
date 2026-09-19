@@ -24,9 +24,11 @@
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock, {
+  import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
+  import mesocycleMapServiceMock, {
     type MockGeneratedMesocycleData
   } from '$services/documentMapServices/MesocycleMap.service.mock';
+  import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
   import { type MockBaseData } from '$services/MockDataService/types';
   import timerService from '$services/TimerService';
@@ -81,35 +83,35 @@
       // Free-form modes don't generate a mesocycle
       if (freeFormModes.has(mode)) {
         if (mode === SessionPageStoryMode.FreeFormEmpty) {
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormMidWorkout) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 2
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormAllDone) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6
           })._id;
         } else if (mode === SessionPageStoryMode.FreeFormCompleted) {
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 3,
             loggedSetCount: 6,
             complete: true
           })._id;
         } else if (mode === SessionPageStoryMode.PlanningEmpty) {
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             exerciseCount: 0
           })._id;
           planning = true;
         } else if (mode === SessionPageStoryMode.PlanningWithExercises) {
           addPriorSessionPreviewData(baseData);
-          sessionId = MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+          sessionId = sessionMapServiceMock.addFreeFormSession(baseData, {
             title: 'Upper Body Day',
             startTime: daysFromNow(2),
             exerciseCount: 3,
@@ -123,7 +125,7 @@
         return;
       }
 
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 3,
@@ -148,11 +150,11 @@
         mode === SessionPageStoryMode.ActivePrevSoreness ||
         mode === SessionPageStoryMode.ViewSorenessEditable
       ) {
-        MesocycleMapServiceMock.fillLateFields(data);
+        mesocycleMapServiceMock.fillLateFields(data);
       }
 
       if (mode === SessionPageStoryMode.ActiveMid) {
-        MesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
       }
 
       if (mode === SessionPageStoryMode.Deload) {
@@ -182,13 +184,13 @@
    * @param baseData The base mock data used for session and CTO creation
    */
   function addPriorSessionPreviewData(baseData: MockBaseData): void {
-    MockDataService.sessionMapServiceMock.addFreeFormSession(baseData, {
+    sessionMapServiceMock.addFreeFormSession(baseData, {
       exerciseCount: 3,
       setsPerExercise: 3,
       loggedSetCount: 9,
       complete: true
     });
-    MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+    exerciseMapServiceMock.setDefaultExerciseCTOs(
       baseData.calibrations,
       baseData.exercises,
       baseData.equipmentTypes

@@ -1,6 +1,7 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
 import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
 import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
 import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
 import MockDataService from '$services/MockDataService/MockData.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
@@ -8,6 +9,7 @@ import { FullAppScenario } from '$services/MockScenarioService/types';
 import WebSocketService from '$services/WebSocket.service';
 import WorkoutHydrationService from '$services/WorkoutHydration.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
+import userConfigMock from '$stores/local/userConfig/userConfig.mock';
 import MockUsers from '$util/MockUsers';
 import MockAPIBackend from './MockAPIBackend';
 
@@ -22,11 +24,16 @@ class MockEnvSetupService {
   /**
    * Installs the network-free API and WebSocket, then resets the mock
    * document maps and user config.
+   *
+   * @param useRealBackend Leaves the API and WebSocket on their real backends
+   *   instead of installing the network-free ones
    */
-  setupGlobalMocks(): void {
-    this.#installBackends();
+  setupGlobalMocks(useRealBackend = false): void {
+    if (!useRealBackend) {
+      this.#installMockBackends();
+    }
     MockDataService.resetAll();
-    MockDataService.userConfigMock.reset();
+    userConfigMock.reset();
   }
 
   /**
@@ -34,10 +41,10 @@ class MockEnvSetupService {
    * in `LocalData`.
    */
   async resumeDemo(): Promise<void> {
-    this.#installBackends();
+    this.#installMockBackends();
     await Promise.all([userConfig.hydrate(), WorkoutHydrationService.hydrateDocumentMaps()]);
     // Exercise CTOs are not stored, so they are rebuilt from the stored documents
-    MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+    exerciseMapServiceMock.setDefaultExerciseCTOs(
       exerciseCalibrationMapService.allDocs,
       exerciseMapService.allDocs,
       equipmentTypeMapService.allDocs
@@ -50,7 +57,7 @@ class MockEnvSetupService {
    * writes both to `LocalData`, replacing any demo already stored there.
    */
   seedDemo(): void {
-    this.#installBackends();
+    this.#installMockBackends();
     MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
     // The scenario adds its documents without persisting them
     WorkoutHydrationService.persistDocumentMaps();
@@ -66,7 +73,7 @@ class MockEnvSetupService {
    * Routes the API and WebSocket away from the network. Resets stay out of
    * this method, because a reset erases what `LocalData` has stored.
    */
-  #installBackends(): void {
+  #installMockBackends(): void {
     APIService.setBackend(this.#apiBackend);
     WebSocketService.disable();
   }

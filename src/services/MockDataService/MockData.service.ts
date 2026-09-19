@@ -1,45 +1,32 @@
-import EquipmentTypeMapServiceMock from '$services/documentMapServices/EquipmentTypeMap.service.mock';
-import ExerciseCalibrationMapServiceMock from '$services/documentMapServices/ExerciseCalibrationMap.service.mock';
-import ExerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
-import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-import MicrocycleMapServiceMock from '$services/documentMapServices/MicrocycleMap.service.mock';
-import MuscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
-import SessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
-import SessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
-import SetMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
-import UserConfigMock from '$stores/local/userConfig/userConfig.mock';
+import equipmentTypeMapServiceMock from '$services/documentMapServices/EquipmentTypeMap.service.mock';
+import exerciseCalibrationMapServiceMock from '$services/documentMapServices/ExerciseCalibrationMap.service.mock';
+import exerciseMapServiceMock from '$services/documentMapServices/ExerciseMap.service.mock';
+import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import microcycleMapServiceMock from '$services/documentMapServices/MicrocycleMap.service.mock';
+import muscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
+import sessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
+import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+import setMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
 import type { MockBaseData } from './types';
 
 /**
- * Global mock data: the mock document map services, and the base data built
- * in them.
+ * Resets the mock document map services together, and builds the base data
+ * every scenario starts from.
  */
 export default class MockDataService {
-  static userConfigMock = new UserConfigMock();
-
-  static muscleGroupMapServiceMock = new MuscleGroupMapServiceMock();
-  static equipmentTypeMapServiceMock = new EquipmentTypeMapServiceMock();
-  static exerciseMapServiceMock = new ExerciseMapServiceMock();
-  static exerciseCalibrationMapServiceMock = new ExerciseCalibrationMapServiceMock();
-  static mesocycleMapServiceMock = new MesocycleMapServiceMock();
-  static microcycleMapServiceMock = new MicrocycleMapServiceMock();
-  static sessionMapServiceMock = new SessionMapServiceMock();
-  static sessionExerciseMapServiceMock = new SessionExerciseMapServiceMock();
-  static setMapServiceMock = new SetMapServiceMock();
-
   /**
    * Resets all 9 document map service mocks to empty state.
    */
   static resetAll(): void {
-    MockDataService.muscleGroupMapServiceMock.reset();
-    MockDataService.equipmentTypeMapServiceMock.reset();
-    MockDataService.exerciseMapServiceMock.reset();
-    MockDataService.exerciseCalibrationMapServiceMock.reset();
-    MockDataService.mesocycleMapServiceMock.reset();
-    MockDataService.microcycleMapServiceMock.reset();
-    MockDataService.sessionMapServiceMock.reset();
-    MockDataService.sessionExerciseMapServiceMock.reset();
-    MockDataService.setMapServiceMock.reset();
+    muscleGroupMapServiceMock.reset();
+    equipmentTypeMapServiceMock.reset();
+    exerciseMapServiceMock.reset();
+    exerciseCalibrationMapServiceMock.reset();
+    mesocycleMapServiceMock.reset();
+    microcycleMapServiceMock.reset();
+    sessionMapServiceMock.reset();
+    sessionExerciseMapServiceMock.reset();
+    setMapServiceMock.reset();
   }
 
   /**
@@ -47,11 +34,11 @@ export default class MockDataService {
    * calibrations into the mock services.
    */
   static setupBaseData(): MockBaseData {
-    MockDataService.muscleGroupMapServiceMock.addDefaultMuscleGroups();
-    const equipmentTypes = MockDataService.equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
-    const exercises = MockDataService.exerciseMapServiceMock.addDefaultExercises();
-    const calibrations = MockDataService.exerciseCalibrationMapServiceMock.addDefaultCalibrations();
-    const exerciseCTOs = MockDataService.exerciseMapServiceMock.setDefaultExerciseCTOs(
+    muscleGroupMapServiceMock.addDefaultMuscleGroups();
+    const equipmentTypes = equipmentTypeMapServiceMock.addDefaultEquipmentTypes();
+    const exercises = exerciseMapServiceMock.addDefaultExercises();
+    const calibrations = exerciseCalibrationMapServiceMock.addDefaultCalibrations();
+    const exerciseCTOs = exerciseMapServiceMock.setDefaultExerciseCTOs(
       calibrations,
       exercises,
       equipmentTypes

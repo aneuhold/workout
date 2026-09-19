@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MockDataService from '$services/MockDataService/MockData.service';
 import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import WorkoutAPIService from '$services/WorkoutAPI.service';
-import MesocycleMapServiceMock from './MesocycleMap.service.mock';
+import mesocycleMapServiceMock from './MesocycleMap.service.mock';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 
 describe('Unit Tests', () => {
@@ -29,7 +29,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
 
       // Past mesocycle (completed)
-      const pastData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const pastData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Past Block',
         startDate: new Date('2025-10-01T00:00:00.000Z'),
         completedSessionCount: 20,
@@ -37,14 +37,14 @@ describe('Unit Tests', () => {
       });
 
       // Active mesocycle (in progress, no completedDate)
-      const activeData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const activeData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Active Block',
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 5
       });
 
       // Future mesocycle (no completedDate, created after active)
-      const futureData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const futureData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Future Block',
         startDate: new Date('2026-04-01T00:00:00.000Z'),
         completedSessionCount: 0
@@ -63,13 +63,13 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
 
       // Two mesocycles without completedDate — first should be active, second future
-      const firstData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const firstData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'First Block',
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 3
       });
 
-      const secondData = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const secondData = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Second Block',
         startDate: new Date('2026-03-01T00:00:00.000Z'),
         completedSessionCount: 0
@@ -85,14 +85,14 @@ describe('Unit Tests', () => {
     it('should sort past mesocycles by completedDate descending', () => {
       const baseData = MockDataService.setupBaseData();
 
-      const olderPast = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const olderPast = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Older Past',
         startDate: new Date('2025-06-01T00:00:00.000Z'),
         completedSessionCount: 20,
         completedDate: new Date('2025-07-01T00:00:00.000Z')
       });
 
-      const newerPast = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const newerPast = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Newer Past',
         startDate: new Date('2025-09-01T00:00:00.000Z'),
         completedSessionCount: 20,
@@ -110,20 +110,20 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
 
       // Active mesocycle
-      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Active',
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: 3
       });
 
       // Two future mesocycles — later start date first in insertion order
-      const laterFuture = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const laterFuture = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Later Future',
         startDate: new Date('2026-06-01T00:00:00.000Z'),
         completedSessionCount: 0
       });
 
-      const soonerFuture = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const soonerFuture = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Sooner Future',
         startDate: new Date('2026-04-01T00:00:00.000Z'),
         completedSessionCount: 0
@@ -141,7 +141,7 @@ describe('Unit Tests', () => {
     it('should set completedDate to the last completed session date', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount: sessionsPerMicrocycle,
         sessionsPerMicrocycle
@@ -166,7 +166,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle
@@ -209,7 +209,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -242,7 +242,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -285,7 +285,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -312,7 +312,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -389,7 +389,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -415,7 +415,7 @@ describe('Unit Tests', () => {
       const baseData = MockDataService.setupBaseData();
       const sessionsPerMicrocycle = 5;
       const completedSessionCount = sessionsPerMicrocycle * 2;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
@@ -435,7 +435,7 @@ describe('Unit Tests', () => {
       const sessionsPerMicrocycle = 5;
       // 8 completed = microcycle 1 fully complete (5) + microcycle 2 partially complete (3/5)
       const completedSessionCount = sessionsPerMicrocycle + 3;
-      const data = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         startDate: new Date('2026-01-01T00:00:00.000Z'),
         completedSessionCount,
         sessionsPerMicrocycle,
