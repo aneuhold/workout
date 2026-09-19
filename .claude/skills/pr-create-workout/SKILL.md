@@ -12,7 +12,7 @@ Then you execute the following. Note that you do have permissions to commit if t
 
 1. If the version needs to be bumped, run `pnpm bump <patch|minor|major>` and commit. Always pass the bump kind as an argument, since omitting it opens an interactive prompt that needs a TTY to answer.
 2. Push up the changes to a new PR
-3. (If the user did ask for a PR review to be done) Run another sub-agent (Opus) to do a code-review on the work, then address any low-hanging fruit issues the reviewer brings up, but for larger issues, or something that isn't clear if it should be updated, ask the user first. After this iteration is complete locally, then push again. up again.
+3. (If the user did ask for a PR review to be done) Run another sub-agent (Opus) to do a code-review on the work, then address any low-hanging fruit issues the reviewer brings up, but for larger issues, or something that isn't clear if it should be updated, ask the user first. During this phase, do not commit the changes you make. The user needs to review them locally, and will commit on their own for this part.
 4. Open the PR as ready to review, and make sure all the checks pass
 5. While waiting for the checks to pass, write an extremely concise PR description
 6. If something doesn't pass or some little bit of code needs to be modified, feel free to make another commit and push it up then wait for checks again. If the change is architectural in nature, or would have a lot of impacts, stop and ask the user first.
