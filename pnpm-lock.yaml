@@ -117,23 +117,23 @@ importers:
         version: 4.8.3(supports-color@10.2.2)
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.44
-        version: 3.0.44
+        specifier: ^3.0.46
+        version: 3.0.46
       '@aneuhold/core-ts-db-lib':
-        specifier: ^5.0.13
-        version: 5.0.13
+        specifier: ^5.0.15
+        version: 5.0.15
       '@aneuhold/core-ts-lib':
-        specifier: ^2.4.8
-        version: 2.4.8
+        specifier: ^2.4.10
+        version: 2.4.10
       '@aneuhold/eslint-config':
         specifier: ^3.0.3
         version: 3.0.3(@angular/cli@21.0.3(@types/node@26.2.0)(supports-color@10.2.2))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.9.6)(supports-color@10.2.2)(svelte@5.56.8(@typescript-eslint/types@8.67.0))(ts-node@10.9.2(@types/node@26.2.0)(typescript@6.0.3))(typescript@6.0.3)
       '@aneuhold/local-npm-registry':
-        specifier: ^1.0.1
-        version: 1.0.1(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
+        specifier: ^1.0.3
+        version: 1.0.3(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
       '@aneuhold/robot-instructions':
-        specifier: ^0.1.4
-        version: 0.1.4
+        specifier: ^0.3.0
+        version: 0.3.0
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -406,14 +406,14 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.44':
-    resolution: {integrity: sha512-/vnSJZbpBP2vsXPlWy8+2Ju8l8Oyf2VksHmzslYTgF+DuLo62BGmZ7Tv7El4yUM3SaFwaZqPO61sXUaRsNh6oQ==}
+  '@aneuhold/core-ts-api-lib@3.0.46':
+    resolution: {integrity: sha512-3/fTe9Sfk1r9AJLqouTJxljqFV81HpcezgcMbWV24D0xh0iSKoWE8FXohBdTfzpXxwQB6LHmkp1Kn30Wa3MiAg==}
 
-  '@aneuhold/core-ts-db-lib@5.0.13':
-    resolution: {integrity: sha512-SXHgkXFpLxHum5DgJTQSpLGGj21foN5tDBGnPvOeDiaklAEvyIilD/7KxovaTN5WVng0lVOmVA/oWjPj/n14vQ==}
+  '@aneuhold/core-ts-db-lib@5.0.15':
+    resolution: {integrity: sha512-T0PEN9sWK2SfH2M8tcJSnPmO1fK7ER46nG2npTL98lxS9WaJ/4vdMB6zsUyynWg0BHXOG3CvSjYibsug1q4c1Q==}
 
-  '@aneuhold/core-ts-lib@2.4.8':
-    resolution: {integrity: sha512-itc+ae1R/qqPOwGODR+bDd/+EePABxY6DlnHcdbwoUg+1XUVuude3quVoIUlGSJH5ANX6NtpA6oUMPSCZN5hRg==}
+  '@aneuhold/core-ts-lib@2.4.10':
+    resolution: {integrity: sha512-An2DRCDvce3QbC08vm8GsCRUKnrh7klHWZQ8DzxEDQdWZJ614TidfEpK+en0kg0tgPirlKe2L+YJKBwPl6Xtkg==}
 
   '@aneuhold/eslint-config@3.0.3':
     resolution: {integrity: sha512-jfjaXO5iC4VZGDtCKTBm1hHf6dn2nNeqa+aHe6o7sUo81+tQXnIlv65S3PScGwh2VIDCAaj8ACpPO11vu/sLLQ==}
@@ -421,12 +421,12 @@ packages:
       eslint: '>= 10.2.1'
       prettier: '>= 3.8.3'
 
-  '@aneuhold/local-npm-registry@1.0.1':
-    resolution: {integrity: sha512-v5CSi7EbKV0G+m/Whl3tUVVGqpPqC7dAqltUYlvUC8v/o19ZmiJ5gYc3pgyG9hkFlDzmB+uKDkYJw3qlkbSwkQ==}
+  '@aneuhold/local-npm-registry@1.0.3':
+    resolution: {integrity: sha512-1Q78sX7njP8drIGYMcnBZ9N+Be7RGpWcEwFa8ZbYD7dtJNTsP91Iam9hcMxMXJ7nrVol9x0v7Ix2LKQHh1rG7g==}
     hasBin: true
 
-  '@aneuhold/robot-instructions@0.1.4':
-    resolution: {integrity: sha512-E+6BAo9GiPPKFW+RTzmY82D37b/ulUAlejKWMTXS4/FKGY/UZQ2Abxz+58ruNGO6JBEz5r8vkmWdFa01/RLsoA==}
+  '@aneuhold/robot-instructions@0.3.0':
+    resolution: {integrity: sha512-LEC+8z70hxBzqRTZVoP6fSnVq72PnAL76MHr51RCFiP4CvfGE2d2dQBAqDzZqUMEkz98O5iHAnj9OwtLoG7UKQ==}
 
   '@angular-devkit/architect@0.2100.3':
     resolution: {integrity: sha512-PcruWF0+IxXOTZd9MN/3y4A5aTfblALzT/+zWym26PtisaBgWQ3tRPQsf/CgT8EdmZl8eUOAWlNBSkbUj/S/lQ==}
@@ -8602,19 +8602,19 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.44':
+  '@aneuhold/core-ts-api-lib@3.0.46':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 5.0.13
-      '@aneuhold/core-ts-lib': 2.4.8
+      '@aneuhold/core-ts-db-lib': 5.0.15
+      '@aneuhold/core-ts-lib': 2.4.10
       bson: 7.3.2
 
-  '@aneuhold/core-ts-db-lib@5.0.13':
+  '@aneuhold/core-ts-db-lib@5.0.15':
     dependencies:
-      '@aneuhold/core-ts-lib': 2.4.8
+      '@aneuhold/core-ts-lib': 2.4.10
       uuid: 14.0.2
       zod: 4.4.3
 
-  '@aneuhold/core-ts-lib@2.4.8': {}
+  '@aneuhold/core-ts-lib@2.4.10': {}
 
   '@aneuhold/eslint-config@3.0.3(@angular/cli@21.0.3(@types/node@26.2.0)(supports-color@10.2.2))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.9.6)(supports-color@10.2.2)(svelte@5.56.8(@typescript-eslint/types@8.67.0))(ts-node@10.9.2(@types/node@26.2.0)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
@@ -8652,9 +8652,9 @@ snapshots:
       - ts-node
       - typescript
 
-  '@aneuhold/local-npm-registry@1.0.1(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)':
+  '@aneuhold/local-npm-registry@1.0.3(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)':
     dependencies:
-      '@aneuhold/core-ts-lib': 2.4.8
+      '@aneuhold/core-ts-lib': 2.4.10
       commander: 15.0.0
       execa: 10.0.1
       fs-extra: 11.4.0
@@ -8669,7 +8669,7 @@ snapshots:
       - supports-color
       - typanion
 
-  '@aneuhold/robot-instructions@0.1.4': {}
+  '@aneuhold/robot-instructions@0.3.0': {}
 
   '@angular-devkit/architect@0.2100.3':
     dependencies:
