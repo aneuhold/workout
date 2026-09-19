@@ -17,8 +17,7 @@
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
   import { page } from '$app/state';
-  import DemoModeButton from '$components/DemoModeButton/DemoModeButton.svelte';
-  import demoModeService from '$services/DemoMode.service';
+  import demoModeService from '$services/DemoMode.service.svelte';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
   import WorkoutAPIService from '$services/WorkoutAPI.service';
@@ -32,7 +31,6 @@
   import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 
   let { children }: { children?: Snippet } = $props();
-  let isDemoMode = $state(false);
 
   onNavigate((navigation) => {
     const transition = document.startViewTransition?.bind(document);
@@ -49,7 +47,7 @@
   // pages and app routes, it doesn't break the app. This should be a no-op though and looks like
   // it still loads incredibly fast.
   onMount(async () => {
-    isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled();
+    const isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled;
     if (!isDemoMode) {
       await LocalData.init();
       await Promise.all([
@@ -86,7 +84,3 @@
 <ModeWatcher />
 
 {@render children?.()}
-
-{#if isDemoMode}
-  <DemoModeButton />
-{/if}

@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import navInfo from '$util/navInfo';
 
 /**
@@ -14,12 +15,13 @@ class DemoModeService {
    * addressing at this time.
    */
   readonly #flagKey = 'mesoProDemoMode';
+  #enabled: boolean = $state(browser && window.sessionStorage.getItem(this.#flagKey) === 'true');
 
   /**
    * Whether this tab is currently in demo mode.
    */
-  isEnabled(): boolean {
-    return window.sessionStorage.getItem(this.#flagKey) === 'true';
+  get isEnabled(): boolean {
+    return this.#enabled;
   }
 
   /**
@@ -31,16 +33,18 @@ class DemoModeService {
     // every visitor downloads at startup
     const { default: mockEnvSetupService } =
       await import('$services/MockEnvSetupService/MockEnvSetup.service');
-    if (this.isEnabled()) {
+    if (this.isEnabled) {
       await mockEnvSetupService.resumeDemo();
     } else {
       mockEnvSetupService.seedDemo();
       window.sessionStorage.setItem(this.#flagKey, 'true');
+      this.#enabled = true;
     }
   }
 
   exit(): void {
     window.sessionStorage.clear();
+    this.#enabled = false;
     this.#loadHome();
   }
 
