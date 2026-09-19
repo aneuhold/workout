@@ -132,8 +132,8 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
       '@aneuhold/robot-instructions':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -425,8 +425,8 @@ packages:
     resolution: {integrity: sha512-1Q78sX7njP8drIGYMcnBZ9N+Be7RGpWcEwFa8ZbYD7dtJNTsP91Iam9hcMxMXJ7nrVol9x0v7Ix2LKQHh1rG7g==}
     hasBin: true
 
-  '@aneuhold/robot-instructions@0.3.0':
-    resolution: {integrity: sha512-LEC+8z70hxBzqRTZVoP6fSnVq72PnAL76MHr51RCFiP4CvfGE2d2dQBAqDzZqUMEkz98O5iHAnj9OwtLoG7UKQ==}
+  '@aneuhold/robot-instructions@0.4.0':
+    resolution: {integrity: sha512-Uc88AKardYw4bIHQY3ves+03w+VAEfO7rNG/PSrj9IGBfLT928yBL+unfxdNJ8OdTFVOABFZx8RY2srnAYg6cA==}
 
   '@angular-devkit/architect@0.2100.3':
     resolution: {integrity: sha512-PcruWF0+IxXOTZd9MN/3y4A5aTfblALzT/+zWym26PtisaBgWQ3tRPQsf/CgT8EdmZl8eUOAWlNBSkbUj/S/lQ==}
@@ -8645,7 +8645,7 @@ snapshots:
       - supports-color
       - typanion
 
-  '@aneuhold/robot-instructions@0.3.0': {}
+  '@aneuhold/robot-instructions@0.4.0': {}
 
   '@angular-devkit/architect@0.2100.3':
     dependencies:

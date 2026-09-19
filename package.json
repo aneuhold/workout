@@ -45,7 +45,7 @@
     "@aneuhold/core-ts-lib": "^2.4.10",
     "@aneuhold/eslint-config": "^3.0.3",
     "@aneuhold/local-npm-registry": "^1.0.3",
-    "@aneuhold/robot-instructions": "^0.3.0",
+    "@aneuhold/robot-instructions": "^0.4.0",
     "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor-community/sqlite": "^8.1.1",
     "@capacitor/android": "^8.5.0",
