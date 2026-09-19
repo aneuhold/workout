@@ -3,8 +3,8 @@ import {
   type ProjectWorkoutPrimaryEndpointOptions,
   type ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import type AbstractDocumentMapStoreService from '$services/AbstractDocumentMapStore.service';
 import apiActivityService from '$services/ApiActivityService/ApiActivity.service.svelte';
+import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
 import updateCheckService from '$services/UpdateCheck.service.svelte';
 import WebSocketService from '$services/WebSocket.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';

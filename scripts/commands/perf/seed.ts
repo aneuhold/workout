@@ -10,12 +10,12 @@ import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import type { WorkoutApiInsertKey } from '$services/DocumentMapStoreService/types';
 import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
 import perfTestUtils from '$testUtils/perfTestUtils';
 import MockUsers from '$util/MockUsers';
-import type { WorkoutApiInsertKey } from '$util/workoutPersistenceUtils';
 
 /**
  * Seeds the perf user with the documents of the

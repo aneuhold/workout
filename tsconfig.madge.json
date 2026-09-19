@@ -1,0 +1,9 @@
+{
+  // Lets madge resolve the SvelteKit `$` aliases. The generated `paths` are
+  // relative to `.svelte-kit`, and madge loses that base path when it hands the
+  // parsed config to its resolver, so `baseUrl` sets it explicitly.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".svelte-kit"
+  }
+}

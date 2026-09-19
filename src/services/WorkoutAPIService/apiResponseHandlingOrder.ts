@@ -1,4 +1,3 @@
-import type AbstractDocumentMapStoreService from '$services/AbstractDocumentMapStore.service';
 import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
 import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
 import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
@@ -8,6 +7,7 @@ import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
 
 /**
  * The document map services that handle API output, in the order in which API

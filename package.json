@@ -19,8 +19,8 @@
     "test:perf": "pnpm test:perf:seed && tsx scripts/commands/perf/runPerf.ts",
     "test:perf:seed": "vitest run -c vite.perf.config.ts",
     "check": "svelte-check && pnpm check:circular",
-    "check:circular": "madge --circular --extensions ts,svelte src/",
-    "check:visual": "madge --image deps.svg --extensions ts,svelte src/",
+    "check:circular": "madge --circular --extensions ts,svelte --ts-config tsconfig.madge.json src/",
+    "check:visual": "madge --image deps.svg --extensions ts,svelte --ts-config tsconfig.madge.json src/",
     "upgrade:core": "pnpm up '@aneuhold/*' --latest",
     "storybook": "storybook dev -p 6006",
     "sub": "pnpm sub:core-ts-api-lib",
@@ -121,5 +121,12 @@
     "svg2vectordrawable": "Used by scripts/commands/generate-icons/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs.",
     "culori": "Used by scripts/commands/generate-icons/generate-icons-utils.ts to convert the OKLCH --background tokens from src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires.",
     "devtools-protocol": "Provides the `Protocol` namespace used in testUtils/perfTestUtils.ts to type the CDP throttling inputs (`Network.emulateNetworkConditionsRequest`, `Emulation.SetCPUThrottlingRateRequest`). Playwright depends on this transitively but doesn't re-export it."
+  },
+  "madge": {
+    "detectiveOptions": {
+      "ts": {
+        "skipTypeImports": true
+      }
+    }
   }
 }

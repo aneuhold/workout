@@ -5,45 +5,10 @@ import type {
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
-import AbstractDocumentMapStoreService from '$services/AbstractDocumentMapStore.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { createLogger } from '$util/logging/logger';
-
-export type DocumentInsertOrUpdateInfo<T extends BaseDocument> = {
-  insert?: T[];
-  update?: T[];
-  delete?: UUID[];
-  get?: ProjectWorkoutPrimaryEndpointOptions['get'];
-};
-
-export type UpsertManyInfo<T> = {
-  filter: (currentChild: T) => boolean;
-  mutator: Updater<T>;
-  newDocs: T[];
-};
-
-export interface DocumentMapStoreConfig<T extends BaseDocument> {
-  persistToLocalData: (map: DocumentMap<T>) => void;
-  persistToDb: (updateInfo: DocumentInsertOrUpdateInfo<T>) => void;
-  prepareForSave: (
-    options: ProjectWorkoutPrimaryEndpointOptions,
-    info: DocumentInsertOrUpdateInfo<T>
-  ) => void;
-  /**
-   * Applies this map's part of the combined output of a processed batch of
-   * API requests. `input` is the combined input across that batch, so the map
-   * can check what was requested.
-   */
-  handleApiOutput: (
-    output: ProjectWorkoutPrimaryOutput,
-    input: ProjectWorkoutPrimaryEndpointOptions
-  ) => void;
-  /**
-   * Reads a cached map from local storage. If provided, `hydrate()` uses it
-   * to populate the reactive state on startup before any API data arrives.
-   * Resolve to `null` if nothing is cached.
-   */
-  loadFromLocalData?: () => Promise<DocumentMap<T> | null>;
-}
+import AbstractDocumentMapStoreService from './AbstractDocumentMapStore.service';
+import type { DocumentInsertOrUpdateInfo, DocumentMapStoreConfig, UpsertManyInfo } from './types';
 
 /**
  * A service which manages a Svelte reactive store that directly maps to a
@@ -128,7 +93,7 @@ export default class DocumentMapStoreService<
       this.addDocWithoutPersist(doc);
     });
     this.#config.persistToLocalData(this.#mapState);
-    this.#config.persistToDb({ insert: docs, get });
+    this.#persistToDb({ insert: docs, get });
   }
 
   public updateDoc(
@@ -146,29 +111,7 @@ export default class DocumentMapStoreService<
   ): void {
     const docsToUpdate = this.#updateManyDocsWithoutPersist(filterOrDocIds, mutator);
     this.#config.persistToLocalData(this.#mapState);
-    this.#config.persistToDb({ update: docsToUpdate, get });
-  }
-
-  #updateManyDocsWithoutPersist(
-    filterOrDocIds: ((currentDoc: T) => boolean) | UUID[],
-    mutator: Updater<T>
-  ): T[] {
-    let docsToUpdate: T[] = [];
-    if (Array.isArray(filterOrDocIds)) {
-      const docIds = filterOrDocIds;
-      docIds.forEach((docId) => {
-        const currentDoc = this.#mapState[docId];
-        if (!currentDoc) {
-          this.#log.error(`Document with ID ${docId} does not exist in the map.`);
-          return;
-        }
-        docsToUpdate.push(mutator(currentDoc));
-      });
-    } else {
-      docsToUpdate = this.allDocs.filter(filterOrDocIds);
-      docsToUpdate.forEach(mutator);
-    }
-    return docsToUpdate;
+    this.#persistToDb({ update: docsToUpdate, get });
   }
 
   public deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
@@ -184,7 +127,7 @@ export default class DocumentMapStoreService<
       delete this.#mapState[id];
     });
     this.#config.persistToLocalData(this.#mapState);
-    this.#config.persistToDb({ delete: docIds, get });
+    this.#persistToDb({ delete: docIds, get });
   }
 
   public upsertManyDocs(
@@ -197,7 +140,7 @@ export default class DocumentMapStoreService<
     });
     const docsToUpdate = this.#updateManyDocsWithoutPersist(filter, mutator);
     this.#config.persistToLocalData(this.#mapState);
-    this.#config.persistToDb({
+    this.#persistToDb({
       insert: newDocs,
       update: docsToUpdate,
       get
@@ -254,7 +197,7 @@ export default class DocumentMapStoreService<
       info.delete.forEach((id) => delete this.#mapState[id]);
     }
     this.#config.persistToLocalData(this.#mapState);
-    this.#config.prepareForSave(apiOptions, info);
+    this.#prepareForSave(apiOptions, info);
     return apiOptions;
   }
 
@@ -270,5 +213,76 @@ export default class DocumentMapStoreService<
       map[document._id] = document;
       return map;
     }, {});
+  }
+
+  #updateManyDocsWithoutPersist(
+    filterOrDocIds: ((currentDoc: T) => boolean) | UUID[],
+    mutator: Updater<T>
+  ): T[] {
+    let docsToUpdate: T[] = [];
+    if (Array.isArray(filterOrDocIds)) {
+      const docIds = filterOrDocIds;
+      docIds.forEach((docId) => {
+        const currentDoc = this.#mapState[docId];
+        if (!currentDoc) {
+          this.#log.error(`Document with ID ${docId} does not exist in the map.`);
+          return;
+        }
+        docsToUpdate.push(mutator(currentDoc));
+      });
+    } else {
+      docsToUpdate = this.allDocs.filter(filterOrDocIds);
+      docsToUpdate.forEach(mutator);
+    }
+    return docsToUpdate;
+  }
+
+  /**
+   * Sends this document type's insert / update / delete operations to the
+   * workout API.
+   *
+   * @param info The operations to send
+   */
+  #persistToDb(info: DocumentInsertOrUpdateInfo<T>): void {
+    const options: ProjectWorkoutPrimaryEndpointOptions = {};
+    this.#prepareForSave(options, info);
+    WorkoutAPIService.queryApi(options);
+  }
+
+  /**
+   * Stages this document type's insert / update / delete operations on an API
+   * options object instead of sending them immediately.
+   *
+   * @param options The API options to stage the operations on
+   * @param info The operations to stage
+   */
+  #prepareForSave(
+    options: ProjectWorkoutPrimaryEndpointOptions,
+    info: DocumentInsertOrUpdateInfo<T>
+  ): void {
+    const { workoutApiInsertKey: key } = this.#config;
+    if (info.insert) {
+      // Looks complicated, but it just makes it so the things are additive in the arrrays, and
+      // don't overwrite. The info wins over options.
+      options.insert = {
+        ...options.insert,
+        [key]: [...(options.insert?.[key] ?? []), ...info.insert]
+      };
+    }
+    if (info.update) {
+      options.update = {
+        ...options.update,
+        [key]: [...(options.update?.[key] ?? []), ...info.update]
+      };
+    }
+    if (info.delete) {
+      options.delete = {
+        ...options.delete,
+        [key]: [...(options.delete?.[key] ?? []), ...info.delete]
+      };
+    }
+    if (info.get) {
+      options.get = { ...options.get, ...info.get };
+    }
   }
 }

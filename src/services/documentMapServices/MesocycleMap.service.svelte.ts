@@ -15,15 +15,11 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
+import { ctoGet } from '$util/ctoGet';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import LocalData from '$util/LocalData/LocalData';
-import {
-  createWorkoutPersistToDb,
-  createWorkoutPrepareForSave,
-  ctoGet
-} from '$util/workoutPersistenceUtils';
 import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
 import exerciseMapService from './ExerciseMap.service.svelte';
 import microcycleMapService from './MicrocycleMap.service.svelte';
@@ -47,13 +43,12 @@ export type MesocycleAssociatedDocs = MesocycleChildDocs & {
 class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocycle> {
   constructor() {
     super({
+      workoutApiInsertKey: 'mesocycles',
       persistToLocalData: (map) => {
         void LocalData.setDocumentMap(LocalData.storedKeyNames.mesocycleMap, map);
       },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutMesocycle>(LocalData.storedKeyNames.mesocycleMap),
-      persistToDb: createWorkoutPersistToDb('mesocycles'),
-      prepareForSave: createWorkoutPrepareForSave('mesocycles'),
       handleApiOutput: (output, input) => {
         if (output.mesocycles && input.get?.mesocycles?.all) {
           this.setMap(this.convertDocumentArrayToMap(output.mesocycles));

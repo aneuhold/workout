@@ -1,25 +1,20 @@
 import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
-import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
+import { ctoGet } from '$util/ctoGet';
 import LocalData from '$util/LocalData/LocalData';
-import {
-  createWorkoutPersistToDb,
-  createWorkoutPrepareForSave,
-  ctoGet
-} from '$util/workoutPersistenceUtils';
 import exerciseMapService from './ExerciseMap.service.svelte';
 
 class SetDocumentMapService extends DocumentMapStoreService<WorkoutSet> {
   constructor() {
     super({
+      workoutApiInsertKey: 'sets',
       persistToLocalData: (map) => {
         void LocalData.setDocumentMap(LocalData.storedKeyNames.setMap, map);
       },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutSet>(LocalData.storedKeyNames.setMap),
-      persistToDb: createWorkoutPersistToDb('sets'),
-      prepareForSave: createWorkoutPrepareForSave('sets'),
       handleApiOutput: (output, input) => {
         if (output.sets && input.get?.sets?.all) {
           this.setMap(this.convertDocumentArrayToMap(output.sets));
