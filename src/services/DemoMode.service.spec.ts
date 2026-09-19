@@ -29,6 +29,8 @@ describe('DemoModeService', () => {
       expect(demoModeService.isEnabled).toBe(true);
       expect(Object.keys(storedSessionMap ?? {}).length).toBeGreaterThan(0);
       expect(exerciseMapService.exerciseCTOs.length).toBeGreaterThan(0);
+      // A freshly seeded demo derives the same exercise history a resumed one has
+      expect(exerciseMapService.exerciseCTOs.every((cto) => cto.bestSet !== null)).toBe(true);
       expect(window.localStorage).toHaveLength(0);
 
       userConfig.update((config) => ({ ...config, username: 'Returning Visitor' }));
