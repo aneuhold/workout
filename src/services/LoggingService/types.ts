@@ -30,7 +30,10 @@ export enum LogLevel {
 }
 
 /**
- * Structured log data. Only primitives are allowed because that is the common denominator
- * across structured logging backends.
+ * Structured log data. Primitives and arrays of a single primitive type are the common
+ * denominator across structured logging backends, which type them natively rather than
+ * storing them as an opaque string.
  */
-export type LogAttributes = Record<string, string | number | boolean>;
+export type LogAttributes = Record<string, LogAttributeValue>;
+
+export type LogAttributeValue = string | number | boolean | string[] | number[] | boolean[];

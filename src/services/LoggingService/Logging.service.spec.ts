@@ -99,6 +99,26 @@ describe('LoggingService', () => {
       expect(arg0).toBe('Request failed');
     });
 
+    it('passes an array of one primitive type through untouched', () => {
+      expect(LoggingService.getAttributes(buildEntry([['accessToken', 'userInfo']])).arg0).toEqual([
+        'accessToken',
+        'userInfo'
+      ]);
+      expect(LoggingService.getAttributes(buildEntry([[1, 2, 3]])).arg0).toEqual([1, 2, 3]);
+      expect(LoggingService.getAttributes(buildEntry([[true, false]])).arg0).toEqual([true, false]);
+    });
+
+    it('serializes a mixed array, which backends cannot type', () => {
+      const { arg0 } = LoggingService.getAttributes(buildEntry([['a', 1]]));
+      expect(arg0).toBe('["a",1]');
+    });
+
+    it('serializes an array that busts the size budget', () => {
+      const { arg0 } = LoggingService.getAttributes(buildEntry([['x'.repeat(2001)]]));
+      expect(typeof arg0).toBe('string');
+      expect(String(arg0)).toHaveLength(2003);
+    });
+
     it('serializes objects to JSON', () => {
       const { arg0 } = LoggingService.getAttributes(buildEntry([{ userId: 1, nested: true }]));
       expect(arg0).toBe('{"userId":1,"nested":true}');

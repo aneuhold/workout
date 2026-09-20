@@ -1,6 +1,7 @@
 import ConsoleLoggingService from '$services/LoggingService/ConsoleLogging.service';
 import {
   type LogAttributes,
+  type LogAttributeValue,
   type LogEntry,
   LogLevel,
   type LogSink,
@@ -44,8 +45,8 @@ class LoggingService {
   }
 
   /**
-   * Flatten an entry's tag and arguments into structured attributes, serializing each
-   * argument to a primitive and clamping its size.
+   * Flatten an entry's tag and arguments into structured attributes, reducing each argument
+   * to a primitive or an array of one primitive type and clamping its size.
    *
    * @param entry Entry handed to a log sink
    */
@@ -104,7 +105,7 @@ class LoggingService {
     }
   }
 
-  #toAttributeValue(arg: unknown): string | number | boolean {
+  #toAttributeValue(arg: unknown): LogAttributeValue {
     if (typeof arg === 'number' || typeof arg === 'boolean') {
       return arg;
     }
@@ -114,6 +115,10 @@ class LoggingService {
     if (arg instanceof Error) {
       return this.#truncate(arg.message);
     }
+    const primitiveArray = this.#toPrimitiveArray(arg);
+    if (primitiveArray) {
+      return primitiveArray;
+    }
     try {
       // Returns undefined for values JSON has no representation for, such as functions.
       return this.#truncate(JSON.stringify(arg) ?? String(arg));
@@ -121,6 +126,31 @@ class LoggingService {
       // JSON.stringify throws on cyclic references and on BigInt.
       return '[unserializable]';
     }
+  }
+
+  // Narrows to an array a backend can type natively, which means every element shares one
+  // primitive type. Anything else, including an array past the size budget, is left to the
+  // caller to serialize and clamp.
+  #toPrimitiveArray(arg: unknown): string[] | number[] | boolean[] | undefined {
+    if (!Array.isArray(arg)) {
+      return undefined;
+    }
+
+    const size = arg.reduce((total: number, item) => total + String(item).length, 0);
+    if (size > LoggingService.#maxAttributeLength) {
+      return undefined;
+    }
+
+    if (arg.every((item) => typeof item === 'string')) {
+      return arg;
+    }
+    if (arg.every((item) => typeof item === 'number')) {
+      return arg;
+    }
+    if (arg.every((item) => typeof item === 'boolean')) {
+      return arg;
+    }
+    return undefined;
   }
 
   #truncate(value: string): string {
