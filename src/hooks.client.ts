@@ -53,8 +53,22 @@ if (initializeSentry) {
   }
 
   LoggingService.setSink((entry) => {
-    // `LogLevel` values are exactly the `logger` method names.
-    logger[entry.level](entry.message, LoggingService.getAttributes(entry));
+    let logToSentry: typeof logger.debug;
+    switch (entry.level) {
+      case LogLevel.Debug:
+        logToSentry = logger.debug;
+        break;
+      case LogLevel.Info:
+        logToSentry = logger.info;
+        break;
+      case LogLevel.Warn:
+        logToSentry = logger.warn;
+        break;
+      case LogLevel.Error:
+        logToSentry = logger.error;
+        break;
+    }
+    logToSentry(entry.message, LoggingService.getAttributes(entry));
 
     if (entry.level !== LogLevel.Error) return;
 
