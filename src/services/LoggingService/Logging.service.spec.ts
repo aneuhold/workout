@@ -48,6 +48,17 @@ describe('LoggingService', () => {
   });
 
   describe('setSink', () => {
+    it('keeps a throwing sink from reaching the caller, and still writes the console line', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const log = LoggingService.createLogger('WorkoutAPIService.ts');
+      LoggingService.setSink(() => {
+        throw new Error('Sink is down');
+      });
+
+      expect(() => log.error('Request failed')).not.toThrow();
+      expect(consoleSpy).toHaveBeenCalledOnce();
+    });
+
     it('stops forwarding once cleared', () => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const log = LoggingService.createLogger('WorkoutAPIService.ts');

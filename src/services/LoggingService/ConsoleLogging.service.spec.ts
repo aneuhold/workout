@@ -12,6 +12,7 @@ const buildEntry = (level: LogLevel, tag = 'WorkoutAPIService.ts'): LogEntry => 
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('ConsoleLoggingService', () => {
@@ -57,6 +58,26 @@ describe('ConsoleLoggingService', () => {
       ConsoleLoggingService.write(buildEntry(LogLevel.Warn, 'loginState.ts'));
 
       expect(spy.mock.calls[0]).not.toEqual(spy.mock.calls[1]);
+    });
+
+    // The browser and the Android WebView take this branch, so it is the one that runs in
+    // production. Vitest itself runs in Node, hence the stubbed global.
+    describe('outside a Node runtime', () => {
+      it('pairs every %c substitution with a style argument, then passes the args through', () => {
+        vi.stubGlobal('process', undefined);
+        const spy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const entry = buildEntry(LogLevel.Warn);
+
+        ConsoleLoggingService.write(entry);
+
+        const [message, ...rest] = spy.mock.calls[0] ?? [];
+        const substitutionCount = String(message).match(/%c/g)?.length ?? 0;
+        const styleArgs = rest.slice(0, substitutionCount);
+
+        expect(substitutionCount).toBeGreaterThan(0);
+        expect(styleArgs.every((style) => typeof style === 'string')).toBe(true);
+        expect(rest.slice(substitutionCount)).toEqual(entry.args);
+      });
     });
   });
 });

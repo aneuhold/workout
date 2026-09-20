@@ -64,8 +64,14 @@ class LoggingService {
 
     const entry: LogEntry = { level, tag, message, args, timestampMs: Date.now() };
 
-    this.#sink?.(entry);
     ConsoleLoggingService.write(entry);
+
+    try {
+      this.#sink?.(entry);
+    } catch {
+      // A sink is instrumentation, so a broken one must not change control flow in the code
+      // it instruments.
+    }
   }
 
   #shouldLog(level: LogLevel): boolean {

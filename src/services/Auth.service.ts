@@ -120,7 +120,8 @@ class AuthService {
     } else if (!response.success) {
       loginState.set(LoginState.LoggedOut);
     } else {
-      this.#log.error('Unexpected response from validateUser', response);
+      // Only the field names, since the payload carries the access and refresh tokens.
+      this.#log.error('Unexpected response from validateUser', Object.keys(response.data));
     }
   }
 
