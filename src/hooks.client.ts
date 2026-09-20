@@ -1,9 +1,16 @@
 import { Capacitor } from '@capacitor/core';
-import * as SentryCapacitor from '@sentry/capacitor';
-import * as Sentry from '@sentry/sveltekit';
-import { handleErrorWithSentry } from '@sentry/sveltekit';
+import { init as capacitorInit } from '@sentry/capacitor';
+import {
+  captureException,
+  captureMessage,
+  handleErrorWithSentry,
+  init,
+  logger,
+  withScope
+} from '@sentry/sveltekit';
+import LoggingService from '$services/LoggingService/Logging.service';
+import { LogLevel } from '$services/LoggingService/types';
 import localOverride from '$util/localOverride';
-import { LogLevel, setLogSink } from '$util/logging/logger';
 
 // Override API URL for local development before anything else runs
 localOverride();
@@ -28,6 +35,7 @@ if (initializeSentry) {
     tracePropagationTargets: ['https://api.antonneuhold.com'],
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
+    enableLogs: true,
     ignoreSpans: [
       // Socket.IO long-polling spans are constant noise
       { op: 'http.client', name: /socket\.io/ },
@@ -39,15 +47,18 @@ if (initializeSentry) {
   };
 
   if (Capacitor.isNativePlatform()) {
-    SentryCapacitor.init(sentryOptions, Sentry.init);
+    capacitorInit(sentryOptions, init);
   } else {
-    Sentry.init(sentryOptions);
+    init(sentryOptions);
   }
 
-  setLogSink((entry) => {
+  LoggingService.setSink((entry) => {
+    // `LogLevel` values are exactly the `logger` method names.
+    logger[entry.level](entry.message, LoggingService.getAttributes(entry));
+
     if (entry.level !== LogLevel.Error) return;
 
-    Sentry.withScope((scope) => {
+    withScope((scope) => {
       // Makes it so that you can filter by `logger_tag: HomePage.svelte` for example in Sentry.
       scope.setTag('logger_tag', entry.tag);
       const extras: Record<string, unknown> = {};
@@ -58,9 +69,9 @@ if (initializeSentry) {
 
       const errorArg = entry.args.find((a) => a instanceof Error);
       if (errorArg instanceof Error) {
-        Sentry.captureException(errorArg);
+        captureException(errorArg);
       } else {
-        Sentry.captureMessage(`[${entry.tag}] ${entry.message}`, 'error');
+        captureMessage(`[${entry.tag}] ${entry.message}`, 'error');
       }
     });
   });

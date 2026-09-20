@@ -1,0 +1,118 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import LoggingService from './Logging.service';
+import { type LogEntry, LogLevel } from './types';
+
+/**
+ * Collect the entries a logger produces through the sink.
+ *
+ * @param write Callback that emits the log lines under test
+ */
+const captureEntries = (write: () => void): LogEntry[] => {
+  const entries: LogEntry[] = [];
+  LoggingService.setSink((entry) => entries.push(entry));
+  write();
+  return entries;
+};
+
+afterEach(() => {
+  LoggingService.setSink(null);
+  vi.restoreAllMocks();
+});
+
+describe('LoggingService', () => {
+  describe('createLogger', () => {
+    it('tags entries and forwards the level, message, and args', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const log = LoggingService.createLogger('WorkoutAPIService.ts');
+
+      const [entry] = captureEntries(() => log.error('Request failed', 500));
+
+      expect(entry).toMatchObject({
+        level: LogLevel.Error,
+        tag: 'WorkoutAPIService.ts',
+        message: 'Request failed',
+        args: [500]
+      });
+    });
+
+    it('drops entries below the minimum level, which is warn under Vitest', () => {
+      const log = LoggingService.createLogger('WorkoutAPIService.ts');
+
+      const entries = captureEntries(() => {
+        log.debug('Not forwarded');
+        log.info('Not forwarded');
+      });
+
+      expect(entries).toEqual([]);
+    });
+  });
+
+  describe('setSink', () => {
+    it('stops forwarding once cleared', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const log = LoggingService.createLogger('WorkoutAPIService.ts');
+      const entries = captureEntries(() => log.warn('Forwarded'));
+
+      LoggingService.setSink(null);
+      log.warn('Not forwarded');
+
+      expect(entries).toHaveLength(1);
+    });
+  });
+
+  describe('getAttributes', () => {
+    const buildEntry = (args: unknown[]): LogEntry => ({
+      level: LogLevel.Info,
+      tag: 'WorkoutAPIService.ts',
+      message: 'Processing API request',
+      args,
+      timestampMs: Date.now()
+    });
+
+    it('carries the tag under logger_tag', () => {
+      expect(LoggingService.getAttributes(buildEntry([]))).toEqual({
+        logger_tag: 'WorkoutAPIService.ts'
+      });
+    });
+
+    it('passes primitives through and indexes them by position', () => {
+      expect(LoggingService.getAttributes(buildEntry(['a', 2, true]))).toMatchObject({
+        arg0: 'a',
+        arg1: 2,
+        arg2: true
+      });
+    });
+
+    it('reduces an Error to its message', () => {
+      const { arg0 } = LoggingService.getAttributes(buildEntry([new Error('Request failed')]));
+      expect(arg0).toBe('Request failed');
+    });
+
+    it('serializes objects to JSON', () => {
+      const { arg0 } = LoggingService.getAttributes(buildEntry([{ userId: 1, nested: true }]));
+      expect(arg0).toBe('{"userId":1,"nested":true}');
+    });
+
+    it('marks values JSON refuses to serialize', () => {
+      const cyclic: { self?: unknown } = {};
+      cyclic.self = cyclic;
+
+      expect(LoggingService.getAttributes(buildEntry([cyclic])).arg0).toBe('[unserializable]');
+    });
+
+    it('falls back to the string form for values JSON has no representation for', () => {
+      expect(LoggingService.getAttributes(buildEntry([undefined])).arg0).toBe('undefined');
+      expect(LoggingService.getAttributes(buildEntry([() => 1])).arg0).toBe('() => 1');
+    });
+
+    it('clamps oversized values', () => {
+      const { arg0 } = LoggingService.getAttributes(buildEntry(['x'.repeat(5000)]));
+      expect(arg0).toBe(`${'x'.repeat(2000)}...`);
+    });
+
+    it('leaves values within the budget untouched', () => {
+      const withinBudget = 'x'.repeat(2000);
+      expect(LoggingService.getAttributes(buildEntry([withinBudget])).arg0).toBe(withinBudget);
+    });
+  });
+});
