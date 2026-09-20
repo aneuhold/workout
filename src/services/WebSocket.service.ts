@@ -1,14 +1,14 @@
 import { APIService, type WorkoutWebSocketServerToClientEvents } from '@aneuhold/core-ts-api-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { io, Socket } from 'socket.io-client';
+import LoggingService from '$services/LoggingService/Logging.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
-import { createLogger } from '$util/logging/logger';
 
 /**
  * A service for handling WebSocket connections used in the application.
  */
 export default class WebSocketService {
-  static readonly #log = createLogger('WebSocketService.ts');
+  static readonly #log = LoggingService.createLogger('WebSocketService.ts');
   static #socket?: Socket<WorkoutWebSocketServerToClientEvents, never>;
   static #unsubs: (() => void)[] = [];
   static #disabled = false;

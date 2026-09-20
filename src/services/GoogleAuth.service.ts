@@ -1,6 +1,6 @@
 import { GOOGLE_CLIENT_ID } from '@aneuhold/core-ts-db-lib';
 import { SocialLogin } from '@capgo/capacitor-social-login';
-import { createLogger } from '$util/logging/logger';
+import LoggingService from '$services/LoggingService/Logging.service';
 
 /**
  * Google Sign-In service backed by `@capgo/capacitor-social-login`.
@@ -15,7 +15,7 @@ class GoogleAuthService {
    */
   static readonly #userCancelledCode = 'USER_CANCELLED';
 
-  readonly #log = createLogger('GoogleAuthService');
+  readonly #log = LoggingService.createLogger('GoogleAuthService');
 
   #initPromise: Promise<void> | undefined;
 

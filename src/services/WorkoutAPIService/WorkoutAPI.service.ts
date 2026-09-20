@@ -5,15 +5,15 @@ import {
 } from '@aneuhold/core-ts-api-lib';
 import apiActivityService from '$services/ApiActivityService/ApiActivity.service.svelte';
 import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
+import LoggingService from '$services/LoggingService/Logging.service';
 import updateCheckService from '$services/UpdateCheck.service.svelte';
 import WebSocketService from '$services/WebSocket.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import LocalData from '$util/LocalData/LocalData';
-import { createLogger } from '$util/logging/logger';
 import { PerfMark } from '$util/perfMarks';
 
 export default class WorkoutAPIService {
-  static readonly #log = createLogger('WorkoutAPIService.ts');
+  static readonly #log = LoggingService.createLogger('WorkoutAPIService.ts');
 
   static readonly #secondsToWaitBeforeFetchingInitialData = 10;
 
@@ -246,7 +246,7 @@ export default class WorkoutAPIService {
       socketId: WebSocketService.getSocketId()
     });
     if (result.success) {
-      this.#log.info('Successfully processed API request', input);
+      this.#log.info('Successfully processed API request');
       return result.data;
     } else {
       this.#log.error('Error processing API request', input, result);
