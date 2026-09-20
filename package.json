@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/commands/dev-android.ts",
@@ -36,7 +36,7 @@
   "type": "module",
   "license": "BUSL-1.1",
   "dependencies": {
-    "@sentry/sveltekit": "10.60.0",
+    "@sentry/sveltekit": "10.69.0",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
@@ -63,7 +63,7 @@
     "@internationalized/date": "^3.12.3",
     "@neoconfetti/svelte": "^2.2.2",
     "@playwright/test": "^1.62.1",
-    "@sentry/capacitor": "^4.2.0",
+    "@sentry/capacitor": "4.3.0",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-links": "^10.6.0",
     "@storybook/addon-svelte-csf": "^5.1.3",

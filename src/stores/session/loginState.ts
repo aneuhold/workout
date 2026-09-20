@@ -1,14 +1,14 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import LoggingService from '$services/LoggingService/Logging.service';
 import WebSocketService from '$services/WebSocket.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { sessionExpired } from '$stores/session/sessionExpired';
 import { createLazyModuleGetter } from '$util/createLazyModuleGetter';
-import { createLogger } from '$util/logging/logger';
 
-const log = createLogger('loginState.ts');
+const log = LoggingService.createLogger('loginState.ts');
 
 export enum LoginState {
   Initializing = 'Initializing',

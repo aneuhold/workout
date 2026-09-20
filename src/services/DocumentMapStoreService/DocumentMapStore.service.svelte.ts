@@ -5,8 +5,8 @@ import type {
 import { type BaseDocument, type DocumentMap, DocumentService } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import type { Updater } from 'svelte/store';
+import LoggingService from '$services/LoggingService/Logging.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
-import { createLogger } from '$util/logging/logger';
 import AbstractDocumentMapStoreService from './AbstractDocumentMapStore.service';
 import type { DocumentInsertOrUpdateInfo, DocumentMapStoreConfig, UpsertManyInfo } from './types';
 
@@ -21,7 +21,7 @@ import type { DocumentInsertOrUpdateInfo, DocumentMapStoreConfig, UpsertManyInfo
 export default class DocumentMapStoreService<
   T extends BaseDocument
 > extends AbstractDocumentMapStoreService {
-  readonly #log = createLogger('DocumentMapStoreService.ts');
+  readonly #log = LoggingService.createLogger('DocumentMapStoreService.ts');
   #mapState: DocumentMap<T> = $state({});
   #config: DocumentMapStoreConfig<T>;
 

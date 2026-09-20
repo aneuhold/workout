@@ -7,12 +7,12 @@ import {
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
 import demoModeService from '$services/DemoMode.service.svelte';
 import googleAuthService from '$services/GoogleAuth.service';
+import LoggingService from '$services/LoggingService/Logging.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { password } from '$stores/local/password';
 import { userConfig } from '$stores/local/userConfig/userConfig';
 import { LoginState, loginState } from '$stores/session/loginState';
 import LocalData from '$util/LocalData/LocalData';
-import { createLogger } from '$util/logging/logger';
 
 /**
  * Auth orchestration singleton. Centralizes login (Google + password),
@@ -21,7 +21,7 @@ import { createLogger } from '$util/logging/logger';
  * returned `APIResponse`.
  */
 class AuthService {
-  readonly #log = createLogger('AuthService');
+  readonly #log = LoggingService.createLogger('AuthService');
 
   /**
    * Validates a Google ID token and applies the result. Returns the raw
@@ -120,7 +120,8 @@ class AuthService {
     } else if (!response.success) {
       loginState.set(LoginState.LoggedOut);
     } else {
-      this.#log.error('Unexpected response from validateUser', response);
+      // Only the field names, since the payload carries the access and refresh tokens.
+      this.#log.error('Unexpected response from validateUser', Object.keys(response.data));
     }
   }
 

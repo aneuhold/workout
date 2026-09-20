@@ -1,7 +1,7 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
-import { createLogger } from '$util/logging/logger';
+import LoggingService from '$services/LoggingService/Logging.service';
 
-const log = createLogger('localOverride.ts');
+const log = LoggingService.createLogger('localOverride.ts');
 
 /**
  * Overrides various things for local development if set to true.

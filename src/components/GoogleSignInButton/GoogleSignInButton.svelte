@@ -11,10 +11,10 @@
 -->
 <script lang="ts">
   import googleAuthService from '$services/GoogleAuth.service';
-  import { createLogger } from '$util/logging/logger';
+  import LoggingService from '$services/LoggingService/Logging.service';
   import GoogleSignInButtonPresentational from './GoogleSignInButtonPresentational.svelte';
 
-  const log = createLogger('GoogleSignInButton.svelte');
+  const log = LoggingService.createLogger('GoogleSignInButton.svelte');
 
   let {
     onIdToken,
