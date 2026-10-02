@@ -1,49 +1,29 @@
 import { APIService, type ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
-import { test, vi } from 'vitest';
-import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-import MuscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
-import MockData from '$testUtils/MockData';
+import { test } from 'vitest';
+import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import type { WorkoutApiInsertKey } from '$services/DocumentMapStoreService/types';
+import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
+import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
+import { FullAppScenario } from '$services/MockScenarioService/types';
 import perfTestUtils from '$testUtils/perfTestUtils';
-import TestUsers from '$testUtils/TestUsers';
-import type { WorkoutApiInsertKey } from '$util/workoutPersistenceUtils';
+import MockUsers from '$util/MockUsers';
 
 /**
- * Document counts the seeded perf user is expected to have. Single source of
- * truth: the keys drive every collection iteration below, and the values are
- * compared against the live response to decide whether to wipe + reseed.
+ * Seeds the perf user with the documents of the
+ * `FullAppScenario.MidTrainingWithHistory` mock scenario. The account is only
+ * wiped and reseeded when its document counts differ from the scenario's.
  */
-const EXPECTED_COUNTS: Record<WorkoutApiInsertKey, number> = {
-  mesocycles: 1,
-  microcycles: 4,
-  sessions: 20,
-  sessionExercises: 48,
-  sets: 117,
-  exercises: 12,
-  exerciseCalibrations: 12,
-  muscleGroups: 10,
-  equipmentTypes: 5
-};
-
-/**
- * Type-guarded keys of `EXPECTED_COUNTS`. `Object.keys` widens to `string[]`,
- * so we narrow with a predicate to keep the static union throughout.
- */
-const COLLECTION_KEYS = Object.keys(EXPECTED_COUNTS).filter(
-  (key): key is WorkoutApiInsertKey => key in EXPECTED_COUNTS
-);
-
-/**
- * Fixed start date for the generated mesocycle so the seeded data is
- * deterministic across runs.
- */
-const SEED_START_DATE = new Date('2026-01-05T00:00:00.000Z');
-
 test('seed perf user', async () => {
-  // The shared vitest setup file installs a mock on APIService.callWorkoutAPI
-  // (and is required for module-resolution reasons). Restore the original here
-  // so the seed actually hits the backend.
-  vi.restoreAllMocks();
+  mockEnvSetupService.setupGlobalMocks(true);
 
   const { username, password } = perfTestUtils.getPerfCreds();
   const auth = await APIService.validateUser({
@@ -57,53 +37,55 @@ test('seed perf user', async () => {
   const authedUserId = auth.data.userInfo.user._id;
   APIService.setAccessToken(auth.data.accessToken);
 
+  // The mock factories build documents with `MockUsers.currentUserCto._id`,
+  // so point it at the perf user before generating the scenario.
+  MockUsers.currentUserCto._id = authedUserId;
+  MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
+
+  const insertPayload: Required<NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>> = {
+    mesocycles: mesocycleMapService.allDocs,
+    microcycles: microcycleMapService.allDocs,
+    sessions: sessionMapService.allDocs,
+    sessionExercises: sessionExerciseMapService.allDocs,
+    sets: setMapService.allDocs,
+    exercises: exerciseMapService.allDocs,
+    exerciseCalibrations: exerciseCalibrationMapService.allDocs,
+    muscleGroups: muscleGroupMapService.allDocs,
+    equipmentTypes: equipmentTypeMapService.allDocs
+  };
+
+  /**
+   * Type-guarded keys of `insertPayload`. `Object.keys` widens to `string[]`,
+   * so we narrow with a predicate to keep the static union throughout.
+   */
+  const collectionKeys = Object.keys(insertPayload).filter(
+    (key): key is WorkoutApiInsertKey => key in insertPayload
+  );
+
   const getAllOptions: ProjectWorkoutPrimaryEndpointOptions = {
-    get: Object.fromEntries(COLLECTION_KEYS.map((key) => [key, { all: true }]))
+    get: Object.fromEntries(collectionKeys.map((key) => [key, { all: true }]))
   };
   const existing = await APIService.callWorkoutAPI({ options: getAllOptions });
   if (!existing.success) {
     throw new Error(`Failed to fetch existing docs: ${JSON.stringify(existing.errors)}`);
   }
 
-  const currentCounts = Object.fromEntries(
-    COLLECTION_KEYS.map((key) => [key, existing.data[key]?.length ?? 0])
+  const expectedCounts = Object.fromEntries(
+    collectionKeys.map((key) => [key, insertPayload[key].length])
   );
+  const currentCounts = Object.fromEntries(
+    collectionKeys.map((key) => [key, existing.data[key]?.length ?? 0])
+  );
+  console.log('Expected counts:', expectedCounts);
   console.log('Current counts:', currentCounts);
-  if (COLLECTION_KEYS.every((key) => currentCounts[key] === EXPECTED_COUNTS[key])) {
+  if (collectionKeys.every((key) => currentCounts[key] === expectedCounts[key])) {
     console.log('Counts match expected. Skipping wipe + reinsert.');
     return;
   }
   console.log('Counts do not match. Wiping and reseeding.');
 
-  // The mock factories build documents using `TestUsers.currentUserCto._id`,
-  // some at class-load time. Point it at the perf user, then rebuild the data
-  // and overwrite the userId on every doc so all collections belong to them.
-  TestUsers.currentUserCto._id = authedUserId;
-  MockData.resetAll();
-  const baseData = MockData.setupBaseData();
-  const muscleGroups = Object.values(MuscleGroupMapServiceMock.defaultMuscleGroups);
-  const generated = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
-    title: 'Perf seed mesocycle',
-    startDate: SEED_START_DATE
-  });
-
-  const insertPayload: ProjectWorkoutPrimaryEndpointOptions['insert'] = {
-    mesocycles: [generated.mesocycle],
-    microcycles: generated.microcycles,
-    sessions: generated.sessions,
-    sessionExercises: generated.sessionExercises,
-    sets: generated.sets,
-    exercises: baseData.exercises,
-    exerciseCalibrations: baseData.calibrations,
-    muscleGroups,
-    equipmentTypes: baseData.equipmentTypes
-  };
-  for (const docs of Object.values(insertPayload)) {
-    for (const doc of docs) doc.userId = authedUserId;
-  }
-
   const deletePayload: ProjectWorkoutPrimaryEndpointOptions['delete'] = Object.fromEntries(
-    COLLECTION_KEYS.map((key) => [key, (existing.data[key] ?? []).map((doc) => doc._id)])
+    collectionKeys.map((key) => [key, (existing.data[key] ?? []).map((doc) => doc._id)])
   );
 
   const result = await APIService.callWorkoutAPI({

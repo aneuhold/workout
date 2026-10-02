@@ -1,18 +1,18 @@
-import type { UUID } from 'crypto';
+import MockUsers from '$util/MockUsers';
 import { type UserConfig, userConfig } from './userConfig';
 
 /**
  * A mock provider for the UserConfig store. This depends on the backend API
  * being mocked already so it doesn't try to contact the server.
  */
-export default class UserConfigMock {
-  constructor(private userId: UUID) {
-    this.reset();
-  }
-
+class UserConfigMock {
+  /**
+   * Sets the store to a mock user with the current test user's ID, without
+   * persisting it.
+   */
   reset(): void {
     const mockConfig: UserConfig = {
-      userId: this.userId,
+      userId: MockUsers.currentUserCto._id,
       username: 'Mock User',
       accessToken: null,
       refreshTokenString: null
@@ -20,3 +20,6 @@ export default class UserConfigMock {
     userConfig.setWithoutPropagation(mockConfig);
   }
 }
+
+const userConfigMock = new UserConfigMock();
+export default userConfigMock;

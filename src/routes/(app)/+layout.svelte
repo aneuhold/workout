@@ -1,13 +1,14 @@
 <!--
   @component
 
-  Layout for the authenticated app. Owns TopBar/NavBar and the
-  singleton dialogs, and gates rendering on `loginState`. Hydration and
+  Layout for the authenticated app. Owns TopBar/NavBar, the demo mode
+  button, and the singleton dialogs, and gates rendering on `loginState`. Hydration and
   app-init run in the root layout, which persists across route groups.
 -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { page } from '$app/state';
+  import DemoModeButton from '$components/DemoModeButton/DemoModeButton.svelte';
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
   import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
@@ -20,6 +21,7 @@
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import SingletonUpdateNotification from '$components/singletons/dialogs/SingletonUpdateNotification/SingletonUpdateNotification.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
+  import demoModeService from '$services/DemoMode.service.svelte';
   import timerService from '$services/TimerService';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import { LoginState, loginState } from '$stores/session/loginState';
@@ -40,8 +42,8 @@
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->
     <main
-      class="[view-transition-name:main-content] md:pt-(--top-nav-height) pb-(--bottom-nav-height) md:pb-0 md:pl-48
-        {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-(--top-nav-height)' : ''}"
+      class="[view-transition-name:main-content] md:pt-top-nav pb-bottom-nav md:pb-0 md:pl-48
+        {timerService.isActive && page.url.pathname !== '/timer' ? 'pt-top-nav' : ''}"
     >
       {@render children?.()}
     </main>
@@ -54,5 +56,8 @@
     <SingletonMuscleGroupFormDialog />
     <SingletonRescheduleMesocycleDialog />
     <SingletonUpdateNotification />
+    {#if demoModeService.isEnabled}
+      <DemoModeButton />
+    {/if}
   {/if}
 </div>

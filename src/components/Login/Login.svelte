@@ -9,6 +9,7 @@
   import { onMount } from 'svelte';
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
+  import DemoModeCard from '$components/DemoModeCard/DemoModeCard.svelte';
   import GoogleSignInButton from '$components/GoogleSignInButton';
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
   import authService from '$services/Auth.service';
@@ -138,5 +139,6 @@
       </Button>
     </CardFooter>
   </Card>
+  <DemoModeCard />
   <MarketingLinks />
 </form>

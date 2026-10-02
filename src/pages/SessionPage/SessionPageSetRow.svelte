@@ -96,7 +96,7 @@
 
   let numberClass = $derived(
     setState === SessionPageSetState.Completed
-      ? 'text-green-600'
+      ? 'text-success'
       : setState === SessionPageSetState.Current
         ? 'text-primary'
         : 'text-muted-foreground'

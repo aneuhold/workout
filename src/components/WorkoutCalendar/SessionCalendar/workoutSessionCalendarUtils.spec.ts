@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import ExerciseMapServiceMock, {
+import exerciseMapServiceMock, {
   MockDefaultExercise
 } from '$services/documentMapServices/ExerciseMap.service.mock';
-import MockData from '$testUtils/MockData';
+import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+import microcycleMapServiceMock from '$services/documentMapServices/MicrocycleMap.service.mock';
+import sessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
+import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
+import setMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
+import MockDataService from '$services/MockDataService/MockData.service';
 import workoutSessionCalendarUtils from './workoutSessionCalendarUtils';
 
 describe('buildMonthGrid', () => {
@@ -43,7 +48,7 @@ describe('buildMonthGrid', () => {
   });
 
   it('maps sessions to the correct days', () => {
-    const session = MockData.sessionMapServiceMock.addSession({
+    const session = sessionMapServiceMock.addSession({
       title: 'Test Session',
       startTime: new Date(2026, 2, 10) // March 10, 2026
     });
@@ -64,16 +69,16 @@ describe('buildMonthGrid', () => {
   });
 
   it('sets isFreeForm based on workoutMicrocycleId', () => {
-    const microcycle = MockData.microcycleMapServiceMock.addMicrocycle({
-      workoutMesocycleId: MockData.mesocycleMapServiceMock.addMesocycle()._id,
+    const microcycle = microcycleMapServiceMock.addMicrocycle({
+      workoutMesocycleId: mesocycleMapServiceMock.addMesocycle()._id,
       startDate: new Date(2026, 2, 1),
       endDate: new Date(2026, 2, 7)
     });
-    const freeFormSession = MockData.sessionMapServiceMock.addSession({
+    const freeFormSession = sessionMapServiceMock.addSession({
       title: 'Free Form',
       startTime: new Date(2026, 2, 5)
     });
-    const mesocycleSession = MockData.sessionMapServiceMock.addSession({
+    const mesocycleSession = sessionMapServiceMock.addSession({
       workoutMicrocycleId: microcycle._id,
       title: 'Meso Session',
       startTime: new Date(2026, 2, 7),
@@ -135,18 +140,18 @@ describe('buildMonthGrid', () => {
   });
 
   it('maps exercises and sets to sessions', () => {
-    MockData.setupBaseData();
-    const exercise = ExerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
+    MockDataService.setupBaseData();
+    const exercise = exerciseMapServiceMock.defaultExercises[MockDefaultExercise.BarbellSquat];
 
-    const session = MockData.sessionMapServiceMock.addSession({
+    const session = sessionMapServiceMock.addSession({
       title: 'Test Session',
       startTime: new Date(2026, 2, 15)
     });
-    const se = MockData.sessionExerciseMapServiceMock.addSessionExercise({
+    const se = sessionExerciseMapServiceMock.addSessionExercise({
       workoutSessionId: session._id,
       workoutExerciseId: exercise._id
     });
-    const set = MockData.setMapServiceMock.addSet({
+    const set = setMapServiceMock.addSet({
       workoutExerciseId: exercise._id,
       workoutSessionId: session._id,
       workoutSessionExerciseId: se._id,
@@ -161,7 +166,7 @@ describe('buildMonthGrid', () => {
       sessions: [session],
       sessionExercises: [se],
       sets: [set],
-      exercises: Object.values(ExerciseMapServiceMock.defaultExercises)
+      exercises: Object.values(exerciseMapServiceMock.defaultExercises)
     });
     const allDays = result.weekRows.flat();
     const day15 = allDays.find((d) => !d.isOutsideMonth && d.date.getDate() === 15);
@@ -172,16 +177,16 @@ describe('buildMonthGrid', () => {
   });
 
   it('handles sessions from different sources on the same day', () => {
-    const microcycle = MockData.microcycleMapServiceMock.addMicrocycle({
-      workoutMesocycleId: MockData.mesocycleMapServiceMock.addMesocycle()._id,
+    const microcycle = microcycleMapServiceMock.addMicrocycle({
+      workoutMesocycleId: mesocycleMapServiceMock.addMesocycle()._id,
       startDate: new Date(2026, 2, 15),
       endDate: new Date(2026, 2, 21)
     });
-    const session1 = MockData.sessionMapServiceMock.addSession({
+    const session1 = sessionMapServiceMock.addSession({
       title: 'Free Form',
       startTime: new Date(2026, 2, 20)
     });
-    const session2 = MockData.sessionMapServiceMock.addSession({
+    const session2 = sessionMapServiceMock.addSession({
       workoutMicrocycleId: microcycle._id,
       title: 'Meso Session',
       startTime: new Date(2026, 2, 20),

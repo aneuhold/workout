@@ -3,7 +3,8 @@
 
   Root layout. Persists across both `(app)` and `(marketing)` route groups,
   so it owns one-time concerns: global CSS, light/dark mode, view
-  transitions, app-state hydration, and the document visibility listener.
+  transitions, API output handler registration, app-state hydration, demo
+  mode, and the document visibility listener.
 
   Group layouts handle their own UI: `(app)` gates chrome on `loginState`,
   `(marketing)` just renders. Hydration runs even on marketing pages so
@@ -15,9 +16,12 @@
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
+  import { page } from '$app/state';
+  import demoModeService from '$services/DemoMode.service.svelte';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
-  import WorkoutAPIService from '$services/WorkoutAPI.service';
+  import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';
+  import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
   import WorkoutHydrationService from '$services/WorkoutHydration.service';
   import { password } from '$stores/local/password';
   import { translations } from '$stores/local/translations';
@@ -25,6 +29,7 @@
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
+  import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 
   let { children }: { children?: Snippet } = $props();
 
@@ -43,14 +48,21 @@
   // pages and app routes, it doesn't break the app. This should be a no-op though and looks like
   // it still loads incredibly fast.
   onMount(async () => {
-    await LocalData.init();
-    await Promise.all([
-      password.hydrate(),
-      translations.hydrate(),
-      userConfig.hydrate(),
-      WorkoutAPIService.hydrate(),
-      WorkoutHydrationService.hydrateDocumentMaps()
-    ]);
+    WorkoutAPIService.setApiOutputHandlers(apiResponseHandlingOrder);
+    const isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled;
+    if (!isDemoMode) {
+      await LocalData.init();
+      await Promise.all([
+        password.hydrate(),
+        translations.hydrate(),
+        userConfig.hydrate(),
+        WorkoutAPIService.hydrate(),
+        WorkoutHydrationService.hydrateDocumentMaps()
+      ]);
+    } else {
+      await LocalData.init(new SessionStorageBackend());
+      await demoModeService.enter();
+    }
     loginState.init();
     timerService.init();
     nativePlatformService.init();
@@ -72,4 +84,5 @@
 </script>
 
 <ModeWatcher />
+
 {@render children?.()}

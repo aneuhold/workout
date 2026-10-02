@@ -19,7 +19,7 @@ const config: StorybookConfig = {
       // Paths here seem to be from the root directory
       server: {
         fs: {
-          allow: ['./static', './testUtils']
+          allow: ['./static']
         }
       }
     });

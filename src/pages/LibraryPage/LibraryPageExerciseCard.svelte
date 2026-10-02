@@ -21,6 +21,9 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import Alert from '$ui/Alert/Alert.svelte';
+  import AlertDescription from '$ui/Alert/AlertDescription.svelte';
+  import AlertTitle from '$ui/Alert/AlertTitle.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
@@ -58,7 +61,7 @@
     <div class="flex items-center gap-1.5">
       <span class="font-medium">{exercise.exerciseName}</span>
       {#if !bestCalibration}
-        <IconAlertTriangle size={14} class="shrink-0 text-amber-500" />
+        <IconAlertTriangle size={14} class="shrink-0 text-warning" />
       {/if}
     </div>
     <div class="flex flex-wrap gap-1">
@@ -118,7 +121,7 @@
     {#if bestCalibration}
       <div class="rounded-lg bg-muted/50 p-3">
         <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <IconCheck size={14} class="text-green-600" />
+          <IconCheck size={14} class="text-success" />
           Best calibration on {bestCalibration.dateRecorded.toLocaleDateString()}
         </div>
         <div class="mt-2 grid grid-cols-3 text-center">
@@ -139,17 +142,13 @@
         </div>
       </div>
     {:else}
-      <div
-        class="rounded-lg border border-amber-300/50 bg-amber-50 p-3 dark:border-amber-600/30 dark:bg-amber-950/30"
-      >
-        <div class="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400">
-          <IconAlertTriangle size={14} />
-          Not Calibrated
-        </div>
-        <p class="mt-1 text-xs text-amber-600 dark:text-amber-500">
+      <Alert variant="warn">
+        <IconAlertTriangle />
+        <AlertTitle>Not Calibrated</AlertTitle>
+        <AlertDescription>
           Calibration data is needed for accurate load recommendations.
-        </p>
-      </div>
+        </AlertDescription>
+      </Alert>
       <Button variant="outline" size="sm" class="w-full" onclick={onAddCalibration}>
         <IconBarbell size={14} />
         Add Calibration

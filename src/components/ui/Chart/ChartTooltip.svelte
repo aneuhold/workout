@@ -118,13 +118,16 @@
               <itemConfig.icon />
             {:else if !hideIndicator}
               <div
-                style="--color-bg: {indicatorColor}; --color-border: {indicatorColor};"
-                class={cn('shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)', {
-                  'size-2.5': indicator === 'dot',
-                  'h-full w-1': indicator === 'line',
-                  'w-0 border-[1.5px] border-dashed bg-transparent': indicator === 'dashed',
-                  'my-0.5': nestLabel && indicator === 'dashed'
-                })}
+                style="--color-chart-bg: {indicatorColor}; --color-chart-border: {indicatorColor};"
+                class={cn(
+                  'shrink-0 rounded-[2px] border-(--color-chart-border) bg-(--color-chart-bg)',
+                  {
+                    'size-2.5': indicator === 'dot',
+                    'h-full w-1': indicator === 'line',
+                    'w-0 border-[1.5px] border-dashed bg-transparent': indicator === 'dashed',
+                    'my-0.5': nestLabel && indicator === 'dashed'
+                  }
+                )}
               ></div>
             {/if}
             <div

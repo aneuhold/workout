@@ -12,7 +12,7 @@ import { mode } from 'mode-watcher';
  * differ.
  */
 class NativePlatformService {
-  // Match `--sidebar` from global.css (TopBar's `bg-sidebar`).
+  // Match `--color-sidebar` from global.css (TopBar's `bg-sidebar`).
   static readonly #statusBarBackgroundLight = '#fafafa';
   static readonly #statusBarBackgroundDark = '#18181b';
 

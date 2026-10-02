@@ -1,19 +1,20 @@
 import { APIService, type WorkoutWebSocketServerToClientEvents } from '@aneuhold/core-ts-api-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { io, Socket } from 'socket.io-client';
+import LoggingService from '$services/LoggingService/Logging.service';
 import { userConfig } from '$stores/local/userConfig/userConfig';
-import { createLogger } from '$util/logging/logger';
 
 /**
  * A service for handling WebSocket connections used in the application.
  */
 export default class WebSocketService {
-  static readonly #log = createLogger('WebSocketService.ts');
+  static readonly #log = LoggingService.createLogger('WebSocketService.ts');
   static #socket?: Socket<WorkoutWebSocketServerToClientEvents, never>;
   static #unsubs: (() => void)[] = [];
+  static #disabled = false;
 
   static connect() {
-    if (this.#socket) {
+    if (this.#disabled || this.#socket) {
       return;
     } else {
       // Use the namespace `/workout` to ensure that we only connect to the workout parts
@@ -32,6 +33,13 @@ export default class WebSocketService {
         this.#log.info('Disconnected from WebSocket server');
       });
     }
+  }
+
+  /**
+   * Makes `connect()` a no-op, so the app runs without a WebSocket server.
+   */
+  static disable() {
+    this.#disabled = true;
   }
 
   /**

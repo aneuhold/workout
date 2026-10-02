@@ -56,15 +56,15 @@
   }
 
   const highlightVariantClasses: Record<PlanComparisonHighlight['variant'], string> = {
-    info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    warning: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
-    success: 'bg-green-500/10 text-green-600 dark:text-green-400'
+    info: 'bg-info/10 text-info',
+    warning: 'bg-warning/10 text-warning',
+    success: 'bg-success/10 text-success'
   };
 
   const highlightBadgeVariantClasses: Record<PlanComparisonHighlight['variant'], string> = {
-    info: 'border-blue-500/30 text-blue-600 dark:text-blue-400',
-    warning: 'border-yellow-500/30 text-yellow-600 dark:text-yellow-400',
-    success: 'border-green-500/30 text-green-600 dark:text-green-400'
+    info: 'border-info/30 text-info',
+    warning: 'border-warning/30 text-warning',
+    success: 'border-success/30 text-success'
   };
 
   const gridColsClass = $derived(

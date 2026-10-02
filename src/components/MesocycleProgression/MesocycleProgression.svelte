@@ -259,13 +259,13 @@
 
   function deltaClass(delta: number | null): string {
     if (delta == null || delta === 0) return '';
-    return delta > 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400';
+    return delta > 0 ? 'text-success' : 'text-warning';
   }
 
   function rirDeltaClass(delta: number | null): string {
     if (delta == null || delta === 0) return '';
     // Lower RIR = closer to failure = improvement = green
-    return delta < 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400';
+    return delta < 0 ? 'text-success' : 'text-warning';
   }
 
   function deltaArrow(delta: number | null): string {
@@ -312,7 +312,7 @@
                         : '',
                       row.isDeload ? 'bg-muted' : '',
                       row.isNewSet
-                        ? 'text-green-600 dark:text-green-400'
+                        ? 'text-success'
                         : row.isPlannedOnly
                           ? 'text-muted-foreground'
                           : ''

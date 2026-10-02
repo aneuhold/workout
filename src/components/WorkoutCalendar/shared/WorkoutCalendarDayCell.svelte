@@ -64,8 +64,8 @@
    * @param session - The session to get the checkmark color for
    */
   function checkClass(session: WorkoutCalendarSession): string {
-    if (session.hasRecoveryExercise) return 'text-amber-500';
-    if (session.isFreeForm) return 'text-violet-500';
+    if (session.hasRecoveryExercise) return 'text-warning';
+    if (session.isFreeForm) return 'text-free-form';
     return 'text-primary';
   }
 
@@ -75,8 +75,8 @@
    * @param session - The session to get the dot color for
    */
   function dotClass(session: WorkoutCalendarSession): string {
-    if (session.hasRecoveryExercise) return 'bg-amber-500/60';
-    if (session.isFreeForm) return 'bg-violet-500/60';
+    if (session.hasRecoveryExercise) return 'bg-warning/60';
+    if (session.isFreeForm) return 'bg-free-form/60';
     return 'bg-primary/60';
   }
 </script>

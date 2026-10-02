@@ -30,8 +30,8 @@
 <Card>
   <CardHeader>
     <div class="flex items-center gap-2">
-      <IconClock size={16} class="text-amber-500" />
-      <span class="text-sm font-semibold text-amber-500">Pending Logs</span>
+      <IconClock size={16} class="text-warning" />
+      <span class="text-sm font-semibold text-warning">Pending Logs</span>
     </div>
   </CardHeader>
   <CardContent class="flex flex-col gap-1">

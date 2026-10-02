@@ -1,23 +1,23 @@
 import type { WorkoutEquipmentType, WorkoutExercise } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
-import DocumentMapStoreService from '$services/DocumentMapStore.service.svelte';
+import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
-import {
-  createWorkoutPersistToDb,
-  createWorkoutPrepareForSave
-} from '$util/workoutPersistenceUtils';
 
 class EquipmentTypeDocumentMapService extends DocumentMapStoreService<WorkoutEquipmentType> {
   constructor() {
     super({
+      workoutApiInsertKey: 'equipmentTypes',
       persistToLocalData: (map) => {
         void LocalData.setDocumentMap(LocalData.storedKeyNames.equipmentTypeMap, map);
       },
       loadFromLocalData: () =>
         LocalData.getDocumentMap<WorkoutEquipmentType>(LocalData.storedKeyNames.equipmentTypeMap),
-      persistToDb: createWorkoutPersistToDb('equipmentTypes'),
-      prepareForSave: createWorkoutPrepareForSave('equipmentTypes')
+      handleApiOutput: (output, input) => {
+        if (output.equipmentTypes && input.get?.equipmentTypes?.all) {
+          this.setMap(this.convertDocumentArrayToMap(output.equipmentTypes));
+        }
+      }
     });
   }
 

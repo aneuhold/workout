@@ -63,12 +63,19 @@ export default class LocalData {
 
   /**
    * Opens any backend resources (SQLite connection, IndexedDB upgrade) and
-   * fires off the legacy-prefix cleanup. Safe to call multiple times — only
+   * fires off the legacy-prefix cleanup. Safe to call multiple times; only
    * the first call has effect.
+   *
+   * @param backend Replaces the platform's small-tier and large-tier backends
+   *   with this one backend
    */
-  static async init(): Promise<void> {
+  static async init(backend?: ILocalDataBackend): Promise<void> {
     if (this.#initialized) return;
     this.#initialized = true;
+    if (backend) {
+      this.#smallBackend = backend;
+      this.#largeBackend = backend;
+    }
     if (this.#smallBackend === this.#largeBackend) {
       await this.#smallBackend.init?.();
     } else {

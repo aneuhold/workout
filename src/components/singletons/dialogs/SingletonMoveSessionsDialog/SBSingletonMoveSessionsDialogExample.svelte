@@ -15,15 +15,15 @@
 <script lang="ts">
   import { WorkoutSessionSchema } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
-  import TestUsers from '$testUtils/TestUsers';
   import Button from '$ui/Button/Button.svelte';
+  import MockUsers from '$util/MockUsers';
   import SingletonMoveSessionsDialog from './SingletonMoveSessionsDialog.svelte';
   import { moveSessionsDialog } from './SingletonMoveSessionsDialog.svelte';
 
   let { storyMode = MoveSessionsStoryMode.Late }: { storyMode?: MoveSessionsStoryMode } = $props();
 
   const mockSession = WorkoutSessionSchema.parse({
-    userId: TestUsers.currentUserCto._id,
+    userId: MockUsers.currentUserCto._id,
     title: 'Upper Push A',
     startTime: new Date()
   });

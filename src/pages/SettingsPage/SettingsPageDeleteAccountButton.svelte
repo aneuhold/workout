@@ -9,6 +9,7 @@
 <script lang="ts">
   import { IconTrash } from '@tabler/icons-svelte';
   import authService from '$services/Auth.service';
+  import LoggingService from '$services/LoggingService/Logging.service';
   import { userConfig } from '$stores/local/userConfig/userConfig';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
@@ -21,9 +22,8 @@
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
-  import { createLogger } from '$util/logging/logger';
 
-  const log = createLogger('SettingsPageDeleteAccountButton.svelte');
+  const log = LoggingService.createLogger('SettingsPageDeleteAccountButton.svelte');
 
   let confirmOpen = $state(false);
   let processing = $state(false);

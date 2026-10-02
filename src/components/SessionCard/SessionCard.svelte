@@ -78,9 +78,9 @@
         <div class="flex items-center gap-2">
           <span class="truncate text-sm font-medium">{session.title}</span>
           {#if status === SessionStatus.Completed}
-            <Badge variant="default" class="shrink-0 bg-green-600">Done</Badge>
+            <Badge variant="default" class="shrink-0 bg-success">Done</Badge>
           {:else if status === SessionStatus.Review}
-            <Badge variant="outline" class="shrink-0 border-amber-500 text-amber-500">Review</Badge>
+            <Badge variant="outline" class="shrink-0 border-warning text-warning">Review</Badge>
           {:else if status === SessionStatus.InProgress}
             <Badge variant="secondary" class="shrink-0">In Progress</Badge>
           {:else if status === SessionStatus.NextUp}
@@ -100,7 +100,7 @@
             <div class="text-xs text-muted-foreground">
               <span>{exerciseCount} exercises</span>
               <span>·</span>
-              <span class="text-amber-500">{exercisesNeedingReview} need review</span>
+              <span class="text-warning">{exercisesNeedingReview} need review</span>
             </div>
           {:else if status === SessionStatus.Completed}
             <div class="flex items-center gap-2 text-xs text-muted-foreground">

@@ -15,19 +15,11 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclePage from '../MesocyclePage.svelte';
 
   let { storyMode = MesocyclePageStoryMode.New }: { storyMode?: MesocyclePageStoryMode } = $props();
-
-  function daysAgo(n: number): Date {
-    return DateService.addDays(new Date(), -n);
-  }
-
-  function daysFromNow(n: number): Date {
-    return DateService.addDays(new Date(), n);
-  }
 
   let mesocycleId = $state<UUID | null>(null);
 
@@ -35,21 +27,21 @@
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
       if (mode === MesocyclePageStoryMode.New) {
-        MockData.setupBaseData();
+        MockDataService.setupBaseData();
         mesocycleId = null;
         return;
       }
 
       if (mode === MesocyclePageStoryMode.NewWithExisting) {
-        const baseData = MockData.setupBaseData();
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const baseData = MockDataService.setupBaseData();
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Current Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(14),
+          startDate: DateService.addDays(new Date(), -14),
           completedSessionCount: 6
         });
         mesocycleId = null;
@@ -57,24 +49,24 @@
       }
 
       if (mode === MesocyclePageStoryMode.NewOverlapping) {
-        const baseData = MockData.setupBaseData();
+        const baseData = MockDataService.setupBaseData();
 
         // Active mesocycle ending in ~7 days
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Current Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 2,
-          startDate: daysAgo(7),
+          startDate: DateService.addDays(new Date(), -7),
           completedSessionCount: 4
         });
 
         // Future mesocycle starting 14 days from now (not yet started, 2 microcycles
         // so its end date stays close to the gap for calendar visibility)
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Upcoming Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 2,
-          startDate: daysFromNow(14),
+          startDate: DateService.addDays(new Date(), 14),
           completedSessionCount: 0
         });
 
@@ -87,10 +79,10 @@
         return;
       }
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === MesocyclePageStoryMode.Edit) {
-        const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const { mesocycle } = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
@@ -103,13 +95,13 @@
       }
 
       if (mode === MesocyclePageStoryMode.Completed) {
-        const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        const { mesocycle } = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Completed Strength Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(35),
+          startDate: DateService.addDays(new Date(), -35),
           completedSessionCount: 20,
-          completedDate: daysAgo(7)
+          completedDate: DateService.addDays(new Date(), -7)
         });
 
         mesocycleId = mesocycle._id;
@@ -117,11 +109,11 @@
       }
 
       // static mode — active mesocycle with dropdown showing Deload / End
-      const { mesocycle } = MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      const { mesocycle } = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(21),
+        startDate: DateService.addDays(new Date(), -21),
         completedSessionCount: 8
       });
 
@@ -130,7 +122,7 @@
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });

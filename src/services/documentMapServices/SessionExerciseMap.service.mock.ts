@@ -5,7 +5,7 @@ import {
   WorkoutSessionExerciseSchema
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
-import TestUsers from '$testUtils/TestUsers';
+import MockUsers from '$util/MockUsers';
 import sessionExerciseMapService from './SessionExerciseMap.service.svelte';
 
 export type AddMockSessionExerciseInfo = {
@@ -18,14 +18,14 @@ export type AddMockSessionExerciseInfo = {
   performanceScore?: number;
 };
 
-export default class SessionExerciseMapServiceMock {
+class SessionExerciseMapServiceMock {
   reset(): void {
     sessionExerciseMapService.setMap({});
   }
 
   addSessionExercise(config: AddMockSessionExerciseInfo): WorkoutSessionExercise {
     const doc = WorkoutSessionExerciseSchema.parse({
-      userId: TestUsers.currentUserCto._id,
+      userId: MockUsers.currentUserCto._id,
       workoutSessionId: config.workoutSessionId,
       workoutExerciseId: config.workoutExerciseId,
       setOrder: config.setOrder ?? [],
@@ -42,3 +42,6 @@ export default class SessionExerciseMapServiceMock {
     docs.forEach((doc) => sessionExerciseMapService.addDocWithoutPersist(doc));
   }
 }
+
+const sessionExerciseMapServiceMock = new SessionExerciseMapServiceMock();
+export default sessionExerciseMapServiceMock;

@@ -15,7 +15,7 @@
         const cssVars = colorConfig
           .map(([colorKey, itemConfig]) => {
             const color = itemConfig.theme?.[theme] ?? itemConfig.color;
-            return color ? `\t--color-${colorKey}: ${color};` : null;
+            return color ? `\t--color-chart-${colorKey}: ${color};` : null;
           })
           .filter((line): line is string => line !== null)
           .join('\n');

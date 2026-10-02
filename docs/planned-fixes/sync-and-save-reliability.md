@@ -1,7 +1,7 @@
 # Sync + Save Reliability (API queue hardening)
 
 This doc covers **four issues that all live in the same choke point**:
-`src/services/WorkoutAPI.service.ts` → `#processApiRequests()` / `#callWorkoutAPI()`.
+`src/services/WorkoutAPIService/WorkoutAPI.service.ts` → `#processApiRequests()` / `#callWorkoutAPI()`.
 Issues 1-3 are reported; Issue 4 (dropped-write-on-failure) surfaced while investigating the others.
 
 Because all edit the same method, they must be done in **one worktree / one pass**
@@ -36,7 +36,7 @@ Batched API output clobbers full stores with a mutation's echoed subset.
    - `combinedInput.get = { ...combinedInput.get, ...currentRequest.get }` (`:172`) keeps the `all: true` flags.
    - `combinedOutput = { ...combinedOutput, ...result }` (`:178`) shallow-merges — **last write wins per doctype**.
 4. When an initial-data request and a set/session-exercise mutation land in the **same batch**, the later mutation overwrites `combinedOutput.sets` / `combinedOutput.sessionExercises` with just its one or two echoed docs, while `combinedInput.get.sets.all` is still `true`.
-5. `WorkoutAPIResponseHandlingService.processWorkoutApiOutput` (`src/services/WorkoutAPIResponseHandling.service.ts:38-46`) sees `get.sets.all` truthy and calls `setMapService.setMap(<subset>)` — **replacing the whole set store with the tiny subset**. Same for `sessionExercises`.
+5. The `handleApiOutput` config in `src/services/documentMapServices/SetMap.service.svelte.ts` sees `get.sets.all` truthy and calls `this.setMap(<subset>)`, **replacing the whole set store with the tiny subset**. Same for `sessionExercises` in `SessionExerciseMap.service.svelte.ts`.
 
 Why the symptoms match: home/session views assemble via order-array walks that silently drop IDs missing from the child map (`DocumentMapStore.service.svelte.ts:76-78` `getDocsWithIds` filters `undefined`; chained through `SessionMap.getOrderedSetsForSession`, `SessionExerciseMap.getOrderedSetsForSessionExercise`). Clobber the set/sessionExercise store to a subset → "very few sets" and "half the workouts."
 
@@ -130,8 +130,8 @@ write. Be careful not to re-queue a `get` the same way, and cap retries to avoid
 ## Key files
 
 App:
-- `src/services/WorkoutAPI.service.ts` — the queue loop; all three issues converge here.
-- `src/services/WorkoutAPIResponseHandling.service.ts` — the `all`-gated full-store replacement (Issue 1).
+- `src/services/WorkoutAPIService/WorkoutAPI.service.ts`: the queue loop; all three issues converge here.
+- `src/services/documentMapServices/*Map.service.svelte.ts`: each map's `handleApiOutput`, the `all`-gated full-store replacement (Issue 1). `src/services/WorkoutAPIService/apiResponseHandlingOrder.ts` sets the order they run in.
 - `src/services/DocumentMapStore.service.svelte.ts` — `setMap` / silent-drop assembly (`:76-78`, `:197-200`).
 - `src/services/ApiActivityService/ApiActivity.service.svelte.ts` — sync state machine (Issue 2).
 - `src/components/TopBar/SyncIndicator.svelte` — cloud icon UI.
@@ -153,7 +153,7 @@ Backend (reference only, confirms Issue 1 echo behavior):
 4. **Issue 1**: fix the combined-output application so a mutation echo never full-replaces a store that a batched `all` get was supposed to populate. This is more self-contained but lives in the same method/response handler, so keep it in the same worktree.
 
 ## How to reproduce
-- Issue 1: log in (or background/foreground to trigger initial fetch); while it's in flight, log/add a set; observe the current mesocycle drop to a handful of sets and the session show half its exercises until the next clean refetch. Add a temp log in `processWorkoutApiOutput` printing `output.sets.length` vs the request's `get.sets.all`.
+- Issue 1: log in (or background/foreground to trigger initial fetch); while it's in flight, log/add a set; observe the current mesocycle drop to a handful of sets and the session show half its exercises until the next clean refetch. Add a temp log in `SetMap`'s `handleApiOutput` printing `output.sets.length` vs the request's `get.sets.all`.
 - Issue 2: force a transport-level fetch rejection (go offline mid-sync) and confirm the icon sticks and subsequent saves stop.
 - Issue 3: invalidate/expire the refresh token and confirm the app shows the error icon with no re-login prompt.
 

@@ -9,72 +9,64 @@
   import { CycleType } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
   import { untrack } from 'svelte';
-  import MesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
-  import MockData from '$testUtils/MockData';
+  import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclesPage from '../MesocyclesPage.svelte';
 
   let { storyMode = MesocyclesPageStoryMode.Default }: { storyMode?: MesocyclesPageStoryMode } =
     $props();
 
-  function daysAgo(n: number): Date {
-    return DateService.addDays(new Date(), -n);
-  }
-
-  function daysFromNow(n: number): Date {
-    return DateService.addDays(new Date(), n);
-  }
-
   $effect(() => {
     const mode = storyMode;
 
     untrack(() => {
-      MockData.resetAll();
+      MockDataService.resetAll();
 
-      const baseData = MockData.setupBaseData();
+      const baseData = MockDataService.setupBaseData();
 
       if (mode === MesocyclesPageStoryMode.Default) {
         // Active mesocycle (started ~3 weeks ago, 8 completed sessions)
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysAgo(21),
+          startDate: DateService.addDays(new Date(), -21),
           completedSessionCount: 8
         });
 
         // Future mesocycle (starts in ~2 weeks, no sessions completed)
-        MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+        mesocycleMapServiceMock.generateFullMesocycle(baseData, {
           title: 'Strength Phase',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
-          startDate: daysFromNow(14),
+          startDate: DateService.addDays(new Date(), 14),
           completedSessionCount: 0
         });
       }
 
       // Past mesocycles for both "default" and "noActive"
-      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Foundation Phase',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
-        startDate: daysAgo(70),
+        startDate: DateService.addDays(new Date(), -70),
         completedSessionCount: 20,
-        completedDate: daysAgo(42)
+        completedDate: DateService.addDays(new Date(), -42)
       });
 
-      MesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         title: 'Deload & Recovery',
         cycleType: CycleType.Resensitization,
         microcycleCount: 2,
-        startDate: daysAgo(98),
+        startDate: DateService.addDays(new Date(), -98),
         completedSessionCount: 10,
-        completedDate: daysAgo(72)
+        completedDate: DateService.addDays(new Date(), -72)
       });
     });
 
     return () => {
       untrack(() => {
-        MockData.resetAll();
+        MockDataService.resetAll();
       });
     };
   });
