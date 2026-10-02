@@ -30,18 +30,13 @@ Required image assets ([Play asset specs](https://support.google.com/googleplay/
 
 | Asset | Spec | Source |
 |---|---|---|
-| App icon | 512×512 PNG, 32-bit, ≤1 MB | Render from `docs/officialAssets/logo-light-icon-circle-gradient-background.svg` |
-| Feature graphic | 1024×500 PNG/JPG | Compose new — logo + tagline on brand background |
-| Phone screenshots | 2–8, 16:9 or 9:16, min side 320 px, max 3840 px | Capture from emulator at 1080×1920 |
+| App icon | 512×512 PNG, 32-bit, ≤1 MB | Done: rendered from `docs/officialAssets/logo-dark-icon-gradient-background.svg` |
+| Feature graphic | 1024×500 PNG/JPG | Done: rendered from `scripts/commands/renderPlayStoreAssets/feature-graphic.html` |
+| Phone screenshots | 2–8, 16:9 or 9:16, min side 320 px, max 3840 px | Done: rendered from Storybook at 1080×1920 |
 | 7" tablet screenshots | optional, 1–8 | Skip for v1 unless tablet-targeted |
 | 10" tablet screenshots | optional, 1–8 | Skip for v1 |
 
-Sub-steps:
-
-1. Pick **5–6 screen flows** to screenshot: Sessions list, active session with set logging, mesocycle planner, exercise library, analytics, settings.
-2. Capture from `pnpm dev:android` on a Pixel-class emulator (1080×1920). Optionally annotate with text overlays in Figma/Affinity.
-3. Generate the 512 icon and 1024×500 feature graphic. Reuse existing brand colors from `src/globalStyles/global.css`.
-4. Drop everything in `docs/play-store-assets/` (new folder) so it's versioned with the repo.
+All generated assets are done. `pnpm generate:assets` regenerates them into `android/play-store-assets/`, so they are versioned with the repo. See [`asset-info.md`](./asset-info.md) for the pipeline and how to add a screenshot.
 
 ---
 
