@@ -221,7 +221,7 @@
       <ValidatedInput
         id="meso-title"
         required
-        placeholder="e.g. Hypertrophy Block"
+        placeholder="e.g. Bulking Cycle 1"
         bind:value={title}
       />
     </div>

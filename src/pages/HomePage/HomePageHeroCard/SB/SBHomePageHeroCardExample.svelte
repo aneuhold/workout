@@ -42,7 +42,6 @@
 
       if (mode === HomePageHeroCardStoryMode.ContinueSession) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -21),
@@ -64,7 +63,6 @@
 
       if (mode === HomePageHeroCardStoryMode.FreeFormWithMesocycle) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -11),
@@ -83,7 +81,6 @@
 
       if (mode === HomePageHeroCardStoryMode.StartSession) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -11),
@@ -95,7 +92,6 @@
 
       if (mode === HomePageHeroCardStoryMode.StartSessionLate) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -12),
@@ -107,7 +103,6 @@
 
       if (mode === HomePageHeroCardStoryMode.StartSessionSeverelyLate) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -25),
@@ -119,7 +114,6 @@
 
       if (mode === HomePageHeroCardStoryMode.CompleteMicrocycle) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: DateService.addDays(new Date(), -14),
@@ -131,7 +125,6 @@
 
       if (mode === HomePageHeroCardStoryMode.CompleteMicrocycleBlocked) {
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: DateService.addDays(new Date(), -14),
@@ -142,7 +135,6 @@
 
       if (mode === HomePageHeroCardStoryMode.EditMesocycle) {
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -153,7 +145,6 @@
 
       if (mode === HomePageHeroCardStoryMode.StartMesocycle) {
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: DateService.addDays(new Date(), 0),
@@ -164,7 +155,6 @@
 
       if (mode === HomePageHeroCardStoryMode.CompleteMesocycle) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -28),
@@ -176,7 +166,6 @@
 
       // CompleteMesocycleBlocked (last remaining variant)
       mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-        title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: DateService.addDays(new Date(), -28),

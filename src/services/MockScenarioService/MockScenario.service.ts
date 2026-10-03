@@ -34,11 +34,13 @@ export default class MockScenarioService {
 
     switch (scenario) {
       case FullAppScenario.MidTrainingWithHistory: {
-        const blockStartDaysAgo = 21;
+        // Starts on the Sunday two weeks before this week's, so each microcycle
+        // fills one calendar row and the default rest days land on weekends
+        const blockStartDaysAgo = 14 + new Date().getDay();
         // Completed mesocycles that end a week before this block starts
         MockScenarioService.#setupHistoricalDataScenario(baseData, blockStartDaysAgo + 7);
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
+          title: 'Bulking 4',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -blockStartDaysAgo),
@@ -113,7 +115,6 @@ export default class MockScenarioService {
 
       case FullAppScenario.AllComplete: {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -28),
@@ -126,7 +127,6 @@ export default class MockScenarioService {
       case FullAppScenario.ReviewPending:
         // 8 completed sessions but late fields NOT filled, which shows the "Review" state
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -21),
@@ -137,7 +137,6 @@ export default class MockScenarioService {
       case FullAppScenario.MesocycleStart:
         // Mesocycle with generated microcycles, no sessions started
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 6,
           startDate: DateService.addDays(new Date(), 0),
@@ -148,7 +147,6 @@ export default class MockScenarioService {
       case FullAppScenario.VeryLateSession: {
         // 2 full microcycles complete with all reviews done, next session ~14 days late
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -28),
@@ -297,7 +295,7 @@ export default class MockScenarioService {
       const completedDaysAgo = mesoStartDaysAgo - microcycleCount * 7;
 
       const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-        title: `Hypertrophy Block ${mesoIndex + 1}`,
+        title: `Bulking ${mesoIndex + 1}`,
         cycleType: CycleType.MuscleGain,
         microcycleCount,
         sessionsPerMicrocycle,

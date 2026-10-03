@@ -26,7 +26,7 @@
 
 <Story
   name="Mesocycles"
-  args={{ scenario: FullAppScenario.HistoricalData, route: '/mesocycles' }}
+  args={{ scenario: FullAppScenario.MidTrainingWithHistory, route: '/mesocycles' }}
 />
 
 <Story
