@@ -5,7 +5,6 @@
   import MockDataService from '$services/MockDataService/MockData.service';
   import Button from '$ui/Button/Button.svelte';
   import { WorkoutDocumentType } from '$util/WorkoutDocumentType';
-  import SingletonDeleteDialog from './SingletonDeleteDialog.svelte';
   import { deleteDialog } from './SingletonDeleteDialog.svelte';
 
   let exercises = $state<{ _id: UUID; exerciseName: string }[]>([]);
@@ -71,4 +70,3 @@
     {/if}
   </div>
 </div>
-<SingletonDeleteDialog />

@@ -19,7 +19,6 @@
   import { WorkoutDeloadSeverity, WorkoutDeloadTriggerRule } from '@aneuhold/core-ts-db-lib';
   import { DateService } from '@aneuhold/core-ts-lib';
   import Button from '$ui/Button/Button.svelte';
-  import SingletonDeloadDialog from './SingletonDeloadDialog.svelte';
   import { deloadDialog } from './SingletonDeloadDialog.svelte';
 
   let { storyMode = DeloadDialogStoryMode.WithScheduled }: { storyMode?: DeloadDialogStoryMode } =
@@ -75,4 +74,3 @@
     Open Dialog ({storyModeLabels[storyMode]})
   </Button>
 </div>
-<SingletonDeloadDialog />
