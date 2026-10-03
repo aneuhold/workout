@@ -2,8 +2,8 @@
   @component
 
   Top-level wrapper for Full App Storybook stories. Resets route state, sets
-  up mock data for the chosen scenario, opens the page the scenario starts
-  on, and renders the app shell.
+  up mock data for the chosen scenario, opens `route` when given (otherwise
+  the page the scenario starts on), and renders the app shell.
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
@@ -13,17 +13,21 @@
   import routeState from './sbFullAppRouteState.svelte';
   import SBFullAppShell from './SBFullAppShell.svelte';
 
-  let { scenario = FullAppScenario.MidTrainingWithHistory }: { scenario?: FullAppScenario } =
-    $props();
+  let {
+    scenario = FullAppScenario.MidTrainingWithHistory,
+    route
+  }: { scenario?: FullAppScenario; route?: string } = $props();
 
   $effect(() => {
     const currentScenario = scenario;
+    const currentRoute = route;
 
     untrack(() => {
       routeState.reset();
       const startUrl = MockScenarioService.setupScenario(currentScenario);
-      if (startUrl) {
-        routeState.navigate(startUrl);
+      const openUrl = currentRoute ?? startUrl;
+      if (openUrl) {
+        routeState.navigate(openUrl);
       }
     });
 

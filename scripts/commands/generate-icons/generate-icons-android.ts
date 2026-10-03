@@ -35,7 +35,7 @@ function createAndroidAssetsSettings() {
       iconOnly: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       iconForeground: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
       /** Source for the Play Store 512×512 listing icon. */
-      playStoreIcon: `${ASSETS_DIR}/logo-dark-icon-circle-gradient-background.svg`,
+      playStoreIcon: `${ASSETS_DIR}/logo-dark-icon-gradient-background.svg`,
       /** Source for the Android 12+ splash icon (windowSplashScreenAnimatedIcon). */
       splashIconLight: `${ASSETS_DIR}/logo-light-square.svg`,
       splashIconDark: `${ASSETS_DIR}/logo-dark-square.svg`
