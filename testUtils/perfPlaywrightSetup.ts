@@ -13,7 +13,7 @@ import perfTestUtils, { PERF_TEST_CONSTANTS } from './perfTestUtils';
  * @param config Playwright config injected by the test runner; only used for
  *   the project's baseURL.
  */
-const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
+const perfPlaywrightSetup = async (config: FullConfig): Promise<void> => {
   // vite.config.ts loads `.env` for `pnpm dev`/`vitest`, but Playwright runs
   // under tsx and doesn't pick that up. Mirror the load here so `getPerfCreds`
   // below can read PERF_* vars from `process.env`.
@@ -29,7 +29,7 @@ const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
     password
   });
   if (!auth.success || !auth.data.accessToken || !auth.data.userInfo?.user) {
-    throw new Error(`Auth failed in playwrightGlobalSetup: ${JSON.stringify(auth.errors)}`);
+    throw new Error(`Auth failed in perfPlaywrightSetup: ${JSON.stringify(auth.errors)}`);
   }
   const { user } = auth.data.userInfo;
   const userConfigValue = JSON.stringify({
@@ -63,4 +63,4 @@ const playwrightGlobalSetup = async (config: FullConfig): Promise<void> => {
   }
 };
 
-export default playwrightGlobalSetup;
+export default perfPlaywrightSetup;

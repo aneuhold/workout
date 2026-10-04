@@ -2,7 +2,7 @@
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { userEvent, within } from 'storybook/test';
   import { FullAppScenario } from '$services/MockScenarioService/types';
-  import { PLAY_STORE_VIEWPORT } from '$storybook/playStoreViewport';
+  import { PLAY_STORE_VIEWPORT } from '../../../scripts/constants/playStoreViewport';
   import sbFullAppMetaBase from './FullApp.stories.base';
 
   /**

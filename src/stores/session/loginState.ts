@@ -20,7 +20,7 @@ export enum LoginState {
 // Sentry dynamic import to avoid loading it during tests. This also avoids top-level await
 // which is broken in Safari as of 11/2025.
 const getSentry = createLazyModuleGetter(
-  !process.env.VITEST ? import('@sentry/sveltekit') : undefined
+  import.meta.env.MODE !== 'test' ? import('@sentry/sveltekit') : undefined
 );
 
 function createLoginStateStore() {
