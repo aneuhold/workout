@@ -17,7 +17,7 @@
    */
   const { Story } = defineMeta({
     ...sbFullAppMetaBase,
-    title: 'Full App/Screenshots',
+    title: 'Full App/Store Assets',
     tags: ['playstore-asset', '!autodocs'],
     parameters: { ...sbFullAppMetaBase.parameters, ...viewportConfig.parameters },
     globals: viewportConfig.globals

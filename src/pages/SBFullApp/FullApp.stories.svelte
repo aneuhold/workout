@@ -5,6 +5,7 @@
 
   const { Story } = defineMeta({
     ...sbFullAppMetaBase,
+    title: 'Full App',
     tags: ['!autodocs']
   });
 </script>
