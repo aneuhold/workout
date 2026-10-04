@@ -31,7 +31,7 @@ Required image assets ([Play asset specs](https://support.google.com/googleplay/
 | Asset | Spec | Source |
 |---|---|---|
 | App icon | 512×512 PNG, 32-bit, ≤1 MB | Done: rendered from `docs/officialAssets/logo-dark-icon-gradient-background.svg` |
-| Feature graphic | 1024×500 PNG/JPG | Done: rendered from `scripts/commands/renderPlayStoreAssets/feature-graphic.html` |
+| Feature graphic | 1024×500 PNG/JPG | Done: rendered from `scripts/commands/renderFeatureGraphic/feature-graphic.html` |
 | Phone screenshots | 2–8, 16:9 or 9:16, min side 320 px, max 3840 px | Done: rendered from Storybook at 1080×1920 |
 | 7" tablet screenshots | optional, 1–8 | Skip for v1 unless tablet-targeted |
 | 10" tablet screenshots | optional, 1–8 | Skip for v1 |

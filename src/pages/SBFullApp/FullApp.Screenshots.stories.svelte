@@ -2,17 +2,34 @@
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { userEvent, within } from 'storybook/test';
   import { FullAppScenario } from '$services/MockScenarioService/types';
+  import { PLAY_STORE_VIEWPORT } from '$storybook/playStoreViewport';
   import sbFullAppMetaBase from './FullApp.stories.base';
 
   /**
-   * Play Store listing screenshots. `pnpm generate:assets` renders every story
-   * tagged `playstore-screenshot` at 1080×1920.
+   * Play Store listing screenshots. `pnpm generate:assets` runs every story
+   * tagged `playstore-screenshot` as a Vitest browser test and saves a
+   * 1080×1920 capture of each.
    */
   const { Story } = defineMeta({
     ...sbFullAppMetaBase,
     title: 'Full App/Screenshots',
     tags: ['playstore-screenshot', '!autodocs'],
-    parameters: { ...sbFullAppMetaBase.parameters }
+    parameters: {
+      ...sbFullAppMetaBase.parameters,
+      viewport: {
+        options: {
+          playStore: {
+            name: `Play Store (${PLAY_STORE_VIEWPORT.width}x${PLAY_STORE_VIEWPORT.height})`,
+            styles: {
+              width: `${PLAY_STORE_VIEWPORT.width}px`,
+              height: `${PLAY_STORE_VIEWPORT.height}px`
+            },
+            type: 'mobile'
+          }
+        }
+      }
+    },
+    globals: { viewport: { value: 'playStore', isRotated: false } }
   });
 </script>
 
