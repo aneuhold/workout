@@ -3,12 +3,12 @@
   import { userEvent, within } from 'storybook/test';
   import { FullAppScenario } from '$services/MockScenarioService/types';
   import {
-    PLAY_STORE_VIEWPORT,
+    PLAY_STORE_VIEWPORTS,
     playStoreViewportStoryConfig
   } from '../../../scripts/constants/playStoreViewport';
   import sbFullAppMetaBase from './FullApp.stories.base';
 
-  const viewportConfig = playStoreViewportStoryConfig(PLAY_STORE_VIEWPORT);
+  const viewportConfig = playStoreViewportStoryConfig(PLAY_STORE_VIEWPORTS.screenshot);
 
   /**
    * Play Store listing screenshots. `pnpm generate:assets` runs every story
