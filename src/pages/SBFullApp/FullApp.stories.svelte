@@ -1,39 +1,12 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { FullAppScenario } from '$services/MockScenarioService/types';
-  import { createEnumArgType } from '$storybook/storybookUtil';
-  import SBFullAppExample from './SBFullAppExample.svelte';
-  import routeState from './sbFullAppRouteState.svelte';
+  import sbFullAppMetaBase from './FullApp.stories.base';
 
   const { Story } = defineMeta({
+    ...sbFullAppMetaBase,
     title: 'Full App',
-    tags: ['!autodocs'],
-    component: SBFullAppExample,
-    parameters: {
-      layout: 'fullscreen',
-      sveltekit_experimental: {
-        hrefs: {
-          '/.*': {
-            callback: (url: string) => {
-              routeState.navigate(url);
-            },
-            asRegex: true
-          }
-        },
-        navigation: {
-          goto: (url: string | URL) => {
-            routeState.navigate(typeof url === 'string' ? url : url.toString());
-            return Promise.resolve();
-          }
-        }
-      }
-    },
-    argTypes: {
-      scenario: createEnumArgType(FullAppScenario)
-    },
-    args: {
-      scenario: FullAppScenario.MidTrainingWithHistory
-    }
+    tags: ['!autodocs']
   });
 </script>
 

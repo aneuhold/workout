@@ -27,7 +27,6 @@
       if (mode === MesocyclesPageStoryMode.Default) {
         // Active mesocycle (started ~3 weeks ago, 8 completed sessions)
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -21),

@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
+  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
   import SessionPageSliderField from '../SessionPageSliderField.svelte';
@@ -17,14 +18,20 @@
   }: {
     previousSessionExercise: WorkoutSessionExercise;
   } = $props();
+
+  let previousSession = $derived(
+    sessionMapService.getDoc(previousSessionExercise.workoutSessionId)
+  );
 </script>
 
 <div class="flex flex-col gap-2 rounded-lg border border-dashed border-muted-foreground/30 p-3">
   <div class="flex items-center justify-between">
     <h4 class="text-xs font-medium text-muted-foreground">Previous Session Soreness</h4>
-    <span class="text-xs text-muted-foreground">
-      {new Date(previousSessionExercise.createdDate).toLocaleDateString()}
-    </span>
+    {#if previousSession}
+      <span class="text-xs text-muted-foreground">
+        {previousSession.startTime.toLocaleDateString()}
+      </span>
+    {/if}
   </div>
   <SessionPageSliderField
     label="Soreness"

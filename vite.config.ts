@@ -1,9 +1,11 @@
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
+import { fileURLToPath } from 'url';
 import { loadEnv, type UserConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { defineConfig, mergeConfig } from 'vitest/config';
+import browserSupportService from './scripts/services/BrowserSupport.service';
 
 // Setup the environment file if it exists. Update the list of prefixes as needed to be used either
 // in tests or in the Vite build. The prefixes need to be specified for it to pick up stuff.
@@ -46,7 +48,10 @@ if (process.env.VITEST) {
   };
 }
 
-const viteConfig: UserConfig = {
+export const viteConfig: UserConfig = {
+  // Vitest uses a config file's own folder as the root, so this pins it to the
+  // repo root for configs in other folders that extend this one
+  root: fileURLToPath(new URL('.', import.meta.url)),
   plugins: [
     // Make sure `sentrySvelteKit` is registered before `sveltekit`
     shouldUploadSourceMaps &&
@@ -58,6 +63,7 @@ const viteConfig: UserConfig = {
         }
       }),
     tailwindcss(),
+    browserSupportService.polyfillsPlugin(),
     sveltekit(),
     // Added so that certain node packages work in the browser. The below
     // 3 are needed specifically for crypto it seems.
@@ -84,6 +90,9 @@ const viteConfig: UserConfig = {
     })
     */
   ],
+  build: {
+    target: browserSupportService.buildTarget
+  },
   resolve: {
     dedupe: ['svelte'],
     // This is needed to make sure that Svelte uses the browser build when running tests with Vitest

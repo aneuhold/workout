@@ -15,6 +15,6 @@ export default [
     }
   },
   {
-    ignores: ['android/**']
+    ignores: ['android/**', 'storybook-static/**']
   }
 ];

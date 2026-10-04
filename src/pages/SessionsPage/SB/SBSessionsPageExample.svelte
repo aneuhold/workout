@@ -33,7 +33,6 @@
 
       if (mode === SessionsPageStoryMode.AllComplete) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -28),
@@ -46,7 +45,6 @@
       if (mode === SessionsPageStoryMode.Review) {
         // 8 completed sessions but late fields NOT filled → shows as "Review"
         mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -21),
@@ -76,7 +74,6 @@
 
       if (mode === SessionsPageStoryMode.FreeFormWithMesocycle) {
         const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-          title: 'Hypertrophy Block',
           cycleType: CycleType.MuscleGain,
           microcycleCount: 4,
           startDate: DateService.addDays(new Date(), -21),
@@ -195,7 +192,6 @@
 
       // Default: mesocycle mix + 3 free-form sessions of each type
       const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-        title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: DateService.addDays(new Date(), -21),

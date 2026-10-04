@@ -17,7 +17,6 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import Button from '$ui/Button/Button.svelte';
   import MockUsers from '$util/MockUsers';
-  import SingletonMoveSessionsDialog from './SingletonMoveSessionsDialog.svelte';
   import { moveSessionsDialog } from './SingletonMoveSessionsDialog.svelte';
 
   let { storyMode = MoveSessionsStoryMode.Late }: { storyMode?: MoveSessionsStoryMode } = $props();
@@ -68,4 +67,3 @@
         : 'Error on Confirm'})
   </Button>
 </div>
-<SingletonMoveSessionsDialog />

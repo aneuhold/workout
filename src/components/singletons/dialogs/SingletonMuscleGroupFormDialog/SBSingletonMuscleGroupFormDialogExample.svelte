@@ -3,7 +3,6 @@
   import { untrack } from 'svelte';
   import muscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroupMap.service.mock';
   import Button from '$ui/Button/Button.svelte';
-  import SingletonMuscleGroupFormDialog from './SingletonMuscleGroupFormDialog.svelte';
   import { muscleGroupFormDialog } from './SingletonMuscleGroupFormDialog.svelte';
 
   let muscleGroups = $state<WorkoutMuscleGroup[]>([]);
@@ -33,4 +32,3 @@
     {/if}
   </div>
 </div>
-<SingletonMuscleGroupFormDialog />

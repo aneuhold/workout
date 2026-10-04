@@ -24,4 +24,4 @@ include ':capgo-capacitor-social-login'
 project(':capgo-capacitor-social-login').projectDir = new File('../node_modules/.pnpm/@capgo+capacitor-social-login@8.3.40_@capacitor+core@8.5.0/node_modules/@capgo/capacitor-social-login/android')
 
 include ':sentry-capacitor'
-project(':sentry-capacitor').projectDir = new File('../node_modules/.pnpm/@sentry+capacitor@4.2.0_@capacitor+core@8.5.0/node_modules/@sentry/capacitor/android')
+project(':sentry-capacitor').projectDir = new File('../node_modules/.pnpm/@sentry+capacitor@4.3.0_@capacitor+core@8.5.0/node_modules/@sentry/capacitor/android')

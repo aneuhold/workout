@@ -10,7 +10,7 @@ const viewport = { width: 1280, height: 800 };
 export default defineConfig({
   testDir: './scripts/commands/perf',
   testMatch: /.*\.spec\.ts$/,
-  globalSetup: './testUtils/playwrightGlobalSetup.ts',
+  globalSetup: './testUtils/perfPlaywrightSetup.ts',
   fullyParallel: false,
   workers: 1,
   /**

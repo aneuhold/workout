@@ -59,6 +59,7 @@
   {#each navBarItems as item (item.url)}
     <a
       href={getHref(item.url)}
+      data-testid={`nav-${item.shortTitle.toLowerCase()}`}
       class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors
         md:flex-initial md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-md md:px-3 md:py-2.5
         {isActive(item.url, currentPath)

@@ -17,6 +17,9 @@
   "eslint.run": "onSave",
   // Below is super important for ESLint to run at all with Svelte
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "svelte"],
+  // Limits the Vitest extension to the unit test config. Without this it also
+  // loads the configs in testUtils/configs and runs them from that folder.
+  "vitest.rootConfig": "vite.config.ts",
   "markdown.copyFiles.destination": {
     "/docs/**/*": "${documentDirName}/images/"
   }

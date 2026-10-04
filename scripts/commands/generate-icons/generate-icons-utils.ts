@@ -9,18 +9,18 @@ export const ASSETS_DIR = 'docs/officialAssets';
 const GLOBAL_CSS_PATH = 'src/globalStyles/global.css';
 
 /**
- * Reads the `--background` token from `:root` (light) and `.dark` (dark) in
- * `global.css` and returns each as an sRGB `#rrggbb` hex string. Lets the
+ * Reads the `--color-background` token from `@theme static` (light) and
+ * `.dark` (dark) in `global.css` and returns each as an sRGB `#rrggbb` hex string. Lets the
  * native Android splash background inherit from the same tokens as the app.
  */
 export const readThemeBackgroundColors = (): { light: string; dark: string } => {
   const css = readFileSync(GLOBAL_CSS_PATH, 'utf8');
   const extract = (selector: string): string => {
     const match = css.match(
-      new RegExp(`${selector}\\s*\\{[\\s\\S]*?--background\\s*:\\s*([^;]+);`)
+      new RegExp(`${selector}\\s*\\{[\\s\\S]*?--color-background\\s*:\\s*([^;]+);`)
     );
     if (!match) {
-      throw new Error(`Could not find --background under ${selector} in ${GLOBAL_CSS_PATH}`);
+      throw new Error(`Could not find --color-background under ${selector} in ${GLOBAL_CSS_PATH}`);
     }
     const hex = formatHex(parse(match[1].trim()));
     if (!hex) {
@@ -28,7 +28,7 @@ export const readThemeBackgroundColors = (): { light: string; dark: string } => 
     }
     return hex;
   };
-  return { light: extract(':root'), dark: extract('\\.dark') };
+  return { light: extract('@theme static'), dark: extract('\\.dark') };
 };
 
 /**

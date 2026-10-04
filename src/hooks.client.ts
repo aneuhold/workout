@@ -1,3 +1,4 @@
+import 'virtual:core-js-polyfills';
 import { Capacitor } from '@capacitor/core';
 import { init as capacitorInit } from '@sentry/capacitor';
 import {

@@ -3,7 +3,6 @@
   import { untrack } from 'svelte';
   import equipmentTypeMapServiceMock from '$services/documentMapServices/EquipmentTypeMap.service.mock';
   import Button from '$ui/Button/Button.svelte';
-  import SingletonEquipmentFormDialog from './SingletonEquipmentFormDialog.svelte';
   import { equipmentFormDialog } from './SingletonEquipmentFormDialog.svelte';
 
   let equipment = $state<WorkoutEquipmentType[]>([]);
@@ -33,4 +32,3 @@
     {/if}
   </div>
 </div>
-<SingletonEquipmentFormDialog />

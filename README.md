@@ -53,6 +53,8 @@ The reason that the `pageInfo.ts` files are separate and not done in the module 
 
 For first-time setup, you may need to add your local Android debug key to Google Cloud. See [the overview docs here for how the key-signing system + process for that works](docs/android-signing-and-publishing.md).
 
+For an inventory of brand SVGs and where every generated icon, splash, and Play Store asset lands, see [`docs/asset-info.md`](docs/asset-info.md).
+
 #### Commands
 
 - 🛠️ Development of site

@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/commands/dev-android.ts",
@@ -17,7 +17,7 @@
     "lint": "eslint --cache",
     "test": "vitest run",
     "test:perf": "pnpm test:perf:seed && tsx scripts/commands/perf/runPerf.ts",
-    "test:perf:seed": "vitest run -c vite.perf.config.ts",
+    "test:perf:seed": "vitest run -c testUtils/configs/vitest.perf.config.ts",
     "check": "svelte-check && pnpm check:circular",
     "check:circular": "madge --circular --extensions ts,svelte --ts-config tsconfig.madge.json src/",
     "check:visual": "madge --image deps.svg --extensions ts,svelte --ts-config tsconfig.madge.json src/",
@@ -30,15 +30,11 @@
     "sub:eslint-config": "local-npm subscribe @aneuhold/eslint-config",
     "unsub:core-ts-api-lib": "local-npm unsubscribe @aneuhold/core-ts-api-lib",
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
-    "generate:icons": "tsx scripts/commands/generate-icons/generate-icons.ts"
+    "generate:assets": "tsx scripts/commands/generate-icons/generate-icons.ts && vitest run -c testUtils/configs/vitest.screenshots.config.ts"
   },
   "packageManager": "pnpm@12.2.1",
   "type": "module",
   "license": "BUSL-1.1",
-  "dependencies": {
-    "@sentry/sveltekit": "10.69.0",
-    "socket.io-client": "^4.8.3"
-  },
   "devDependencies": {
     "@aneuhold/core-ts-api-lib": "^3.0.47",
     "@aneuhold/core-ts-db-lib": "^5.0.15",
@@ -64,10 +60,12 @@
     "@neoconfetti/svelte": "^2.2.2",
     "@playwright/test": "^1.62.1",
     "@sentry/capacitor": "4.3.0",
+    "@sentry/sveltekit": "10.69.0",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-links": "^10.6.0",
     "@storybook/addon-svelte-csf": "^5.1.3",
     "@storybook/addon-themes": "^10.6.0",
+    "@storybook/addon-vitest": "^10.6.0",
     "@storybook/sveltekit": "^10.6.0",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.70.2",
@@ -83,9 +81,12 @@
     "@types/node": "^26.2.0",
     "@typescript-eslint/eslint-plugin": "^8.66.0",
     "@typescript-eslint/parser": "^8.66.0",
+    "@vitest/browser-playwright": "^4.1.11",
     "bits-ui": "^2.18.1",
     "clsx": "^2.1.1",
     "concurrently": "^10.0.4",
+    "core-js": "^3.50.0",
+    "core-js-builder": "^3.50.0",
     "culori": "^4.0.2",
     "d3-scale": "^4.0.2",
     "devtools-protocol": "^0.0.1674729",
@@ -101,6 +102,7 @@
     "prettier-plugin-svelte": "^4.1.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "smui-theme": "^9.0.3",
+    "socket.io-client": "^4.8.3",
     "storybook": "^10.6.0",
     "svelte": "^5.56.8",
     "svelte-check": "^4.7.5",
@@ -115,11 +117,11 @@
     "typescript": "^6.0.3",
     "vite": "^8.2.1",
     "vite-plugin-node-polyfills": "^0.28.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "devDependenciesComments": {
     "svg2vectordrawable": "Used by scripts/commands/generate-icons/generate-icons-android.ts to convert the splash logo SVG into an Android <vector> drawable for windowSplashScreenAnimatedIcon. Android's official converter (vd-tool) ships with Android Studio and requires the SDK; this is the practical npm equivalent. The alternative — rasterizing to multi-density PNGs via sharp — would force every icon-generation run to write out 6+ density variants, while a single vector drawable scales across all DPIs.",
-    "culori": "Used by scripts/commands/generate-icons/generate-icons-utils.ts to convert the OKLCH --background tokens from src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires.",
+    "culori": "Used by scripts/commands/generate-icons/generate-icons-utils.ts to convert the OKLCH --color-background tokens (light from @theme static, dark from .dark) in src/globalStyles/global.css into the sRGB hex values that Android's splash_screen_background color resource requires.",
     "devtools-protocol": "Provides the `Protocol` namespace used in testUtils/perfTestUtils.ts to type the CDP throttling inputs (`Network.emulateNetworkConditionsRequest`, `Emulation.SetCPUThrottlingRateRequest`). Playwright depends on this transitively but doesn't re-export it."
   },
   "madge": {

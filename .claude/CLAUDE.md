@@ -91,7 +91,7 @@ Do not animate individual set rows, badge lists, or other fine-grained items. Ke
 
 - Service file naming is enforced by linting.
 - Use the mock utilities in the services folder whenever possible to avoid duplication in tests.
-- `testUtils/` holds test-runner setup only: the Vitest setup file, the Playwright global setup, and the perf harness.
+- `testUtils/` holds test-runner setup only: the Vitest setup files, the extra Vitest configs in `testUtils/configs/`.
 
 ### Tool information
 

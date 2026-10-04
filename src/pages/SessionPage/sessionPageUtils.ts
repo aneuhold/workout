@@ -174,9 +174,11 @@ export function deriveCardState(
   if (mode === SessionPageMode.View) return SessionPageExerciseCardState.Completed;
 
   if (isFreeForm) {
-    const se = sessionExercises[index];
-    if (isExerciseDone(se._id)) return SessionPageExerciseCardState.Completed;
-    return SessionPageExerciseCardState.Current;
+    if (isExerciseDone(sessionExercises[index]._id)) return SessionPageExerciseCardState.Completed;
+    const firstNotDoneIndex = sessionExercises.findIndex((se) => !isExerciseDone(se._id));
+    return index === firstNotDoneIndex
+      ? SessionPageExerciseCardState.Current
+      : SessionPageExerciseCardState.Future;
   }
 
   if (index < currentExerciseIndex) return SessionPageExerciseCardState.Completed;

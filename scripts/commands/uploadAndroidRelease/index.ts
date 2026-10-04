@@ -2,14 +2,16 @@ import capacitorConfig from '../../../capacitor.config';
 import androidProjectService from '../../services/AndroidProject.service';
 import playReleaseService from './PlayRelease.service';
 import releaseNotesService from './ReleaseNotes.service';
-import { PlayTrack } from './types';
+import { type PlayReleaseRequest, PlayTrack } from './types';
 
 /**
- * Where merges land. Switch to `PlayTrack.ClosedTesting` once the 12-tester
- * cohort is assembled and the 14-day clock starts, so the closed track keeps
- * receiving builds without a Play Console visit.
+ * Where merges land. Every track receives the same build, so testers on any of
+ * them stay current without a Play Console visit.
  */
-const TARGET_TRACK = PlayTrack.InternalTesting;
+const TARGET_TRACKS: PlayReleaseRequest['tracks'] = [
+  PlayTrack.InternalTesting,
+  PlayTrack.ClosedTesting
+];
 
 const main = async (): Promise<void> => {
   const { appId } = capacitorConfig;
@@ -20,8 +22,8 @@ const main = async (): Promise<void> => {
   await playReleaseService.publish({
     packageName: appId,
     bundlePath: androidProjectService.aabPath,
-    track: TARGET_TRACK,
-    description: releaseNotesService.read()
+    tracks: TARGET_TRACKS,
+    release: releaseNotesService.read()
   });
 };
 

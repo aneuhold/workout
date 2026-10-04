@@ -110,7 +110,6 @@
 
       // static mode — active mesocycle with dropdown showing Deload / End
       const { mesocycle } = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-        title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: DateService.addDays(new Date(), -21),

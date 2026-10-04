@@ -34,7 +34,7 @@ export const PERF_TEST_CONSTANTS = {
   rawResultsDir: resolve(PERF_TEMP_DIR, 'results/raw'),
 
   /**
-   * Playwright `storageState` file written by `playwrightGlobalSetup` after
+   * Playwright `storageState` file written by `perfPlaywrightSetup` after
    * authenticating the perf user. Each spec opens its context with this
    * state so the page boots already logged in (no per-test auth round-trip).
    */

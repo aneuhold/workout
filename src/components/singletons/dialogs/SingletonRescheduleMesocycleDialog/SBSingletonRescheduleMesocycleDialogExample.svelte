@@ -15,7 +15,6 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import { getLocalTimeZone } from '@internationalized/date';
   import Button from '$ui/Button/Button.svelte';
-  import SingletonRescheduleMesocycleDialog from './SingletonRescheduleMesocycleDialog.svelte';
   import { rescheduleMesocycleDialog } from './SingletonRescheduleMesocycleDialog.svelte';
 
   let {
@@ -61,4 +60,3 @@
     Open Dialog ({storyModeLabels[storyMode]})
   </Button>
 </div>
-<SingletonRescheduleMesocycleDialog />

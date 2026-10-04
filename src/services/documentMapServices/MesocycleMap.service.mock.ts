@@ -83,7 +83,7 @@ class MesocycleMapServiceMock {
     config: MockGenerateFullMesocycleConfig
   ): MockGeneratedMesocycleData {
     const mesoDoc = this.addMesocycle({
-      title: config.title,
+      title: config.title ?? 'Bulking 1',
       cycleType: config.cycleType ?? CycleType.MuscleGain,
       plannedMicrocycleCount: config.microcycleCount ?? 4,
       plannedMicrocycleLengthInDays: config.microcycleLengthInDays ?? 7,

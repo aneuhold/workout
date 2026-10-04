@@ -126,7 +126,6 @@
       }
 
       const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
-        title: 'Hypertrophy Block',
         cycleType: CycleType.MuscleGain,
         microcycleCount: 3,
         sessionsPerMicrocycle: 3,
