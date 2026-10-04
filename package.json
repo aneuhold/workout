@@ -30,7 +30,7 @@
     "sub:eslint-config": "local-npm subscribe @aneuhold/eslint-config",
     "unsub:core-ts-api-lib": "local-npm unsubscribe @aneuhold/core-ts-api-lib",
     "unsub:eslint-config": "local-npm unsubscribe @aneuhold/eslint-config",
-    "generate:assets": "tsx scripts/commands/generate-icons/generate-icons.ts && tsx scripts/commands/renderFeatureGraphic/index.ts && vitest run -c testUtils/configs/vitest.screenshots.config.ts"
+    "generate:assets": "tsx scripts/commands/generate-icons/generate-icons.ts && vitest run -c testUtils/configs/vitest.screenshots.config.ts"
   },
   "packageManager": "pnpm@12.2.1",
   "type": "module",

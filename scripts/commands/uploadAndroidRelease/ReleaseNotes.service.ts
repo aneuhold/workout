@@ -1,5 +1,5 @@
 import gitService from '../../services/Git.service';
-import type { ReleaseDescription } from './types';
+import type { PlayReleaseRequest } from './types';
 
 /**
  * Derives what a release calls itself from the commit that triggered it.
@@ -11,15 +11,16 @@ import type { ReleaseDescription } from './types';
 class ReleaseNotesService {
   /** Play rejects a release name longer than this. */
   readonly #maxNameLength = 50;
+  readonly #notesLanguage = 'en-US';
 
   /**
    * Returns the first line of the triggering commit message as both the release
-   * name and its notes, with the name truncated to what Play accepts.
+   * name and its `en-US` notes, with the name truncated to what Play accepts.
    *
    * CI passes the message through `RELEASE_COMMIT_MESSAGE`; a local run falls
    * back to the subject of the checked-out commit.
    */
-  read(): ReleaseDescription {
+  read(): PlayReleaseRequest['release'] {
     const message = process.env.RELEASE_COMMIT_MESSAGE ?? gitService.currentCommitSubject();
     const notes = message.split('\n')[0].trim();
     if (!notes) {
@@ -28,7 +29,10 @@ class ReleaseNotesService {
       );
     }
 
-    return { name: notes.slice(0, this.#maxNameLength), notes };
+    return {
+      name: notes.slice(0, this.#maxNameLength),
+      releaseNotes: [{ language: this.#notesLanguage, text: notes }]
+    };
   }
 }
 

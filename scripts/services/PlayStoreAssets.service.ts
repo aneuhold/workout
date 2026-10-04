@@ -1,13 +1,11 @@
-import { chromium } from '@playwright/test';
 import { mkdirSync, unlinkSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { pathToFileURL } from 'url';
+import { dirname, join } from 'path';
 import { PROJECT_ROOT } from '../constants/projectRoot';
 import scriptCLIService from './ScriptCLI.service';
 
 /**
- * Writes the Play Store listing images: the feature graphic rendered from its
- * HTML template, and the phone screenshots captured from Storybook stories.
+ * Writes the Play Store listing images captured from Storybook stories: the
+ * feature graphic and the phone screenshots.
  *
  * Every output is a 24-bit PNG with no alpha channel, which Google's
  * [asset specs](https://support.google.com/googleplay/android-developer/answer/9866151)
@@ -16,46 +14,23 @@ import scriptCLIService from './ScriptCLI.service';
 class PlayStoreAssetsService {
   readonly #outputDir = join(PROJECT_ROOT, 'android/play-store-assets');
   readonly #screenshotDir = join(this.#outputDir, 'screenshots');
-  readonly #featureGraphicHtmlPath = join(
-    PROJECT_ROOT,
-    'scripts/commands/renderFeatureGraphic/feature-graphic.html'
-  );
+  /** Capture name of the feature graphic story, which isn't a screenshot. */
+  readonly #featureGraphicName = 'feature-graphic';
 
   /**
-   * Renders `feature-graphic.html` to a 1024×500 PNG.
-   */
-  async renderFeatureGraphic(): Promise<void> {
-    mkdirSync(this.#outputDir, { recursive: true });
-    const outputPath = join(this.#outputDir, 'feature-graphic-1024x500.png');
-    const rgbaPath = outputPath.replace(/\.png$/, '.rgba.png');
-    const browser = await chromium.launch();
-    try {
-      const context = await browser.newContext({
-        viewport: { width: 1024, height: 500 },
-        deviceScaleFactor: 1
-      });
-      const page = await context.newPage();
-      await page.goto(pathToFileURL(this.#featureGraphicHtmlPath).href, {
-        waitUntil: 'networkidle'
-      });
-      await page.evaluate(() => document.fonts.ready);
-      await page.screenshot({ path: rgbaPath, type: 'png' });
-    } finally {
-      await browser.close();
-    }
-    this.#flattenToOpaquePng(rgbaPath, outputPath);
-  }
-
-  /**
-   * Writes a captured screenshot into the Play Store screenshots folder as
-   * `<name>.png` without an alpha channel.
+   * Writes a story capture without an alpha channel. The feature graphic goes
+   * to `feature-graphic-1024x500.png`, and every other capture to the
+   * screenshots folder as `<name>.png`.
    *
    * @param png - The RGBA PNG capture.
-   * @param name - File name for the output, without the extension.
+   * @param name - The capture's name, from its story's export name in kebab case.
    */
-  writeScreenshot(png: Buffer, name: string): void {
-    mkdirSync(this.#screenshotDir, { recursive: true });
-    const outputPath = join(this.#screenshotDir, `${name}.png`);
+  writeAsset(png: Buffer, name: string): void {
+    const outputPath =
+      name === this.#featureGraphicName
+        ? join(this.#outputDir, 'feature-graphic-1024x500.png')
+        : join(this.#screenshotDir, `${name}.png`);
+    mkdirSync(dirname(outputPath), { recursive: true });
     const rgbaPath = outputPath.replace(/\.png$/, '.rgba.png');
     writeFileSync(rgbaPath, png);
     this.#flattenToOpaquePng(rgbaPath, outputPath);
