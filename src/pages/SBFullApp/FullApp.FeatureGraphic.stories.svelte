@@ -13,7 +13,7 @@
    * `playstore-asset`, as the Play Store feature graphic.
    */
   const { Story } = defineMeta({
-    title: 'Full App/Feature Graphic',
+    title: 'Full App/Store Assets/Feature Graphic',
     component: SBPlayStoreFeatureGraphic,
     tags: ['playstore-asset', '!autodocs'],
     parameters: { layout: 'fullscreen', ...viewportConfig.parameters },
