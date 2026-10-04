@@ -11,22 +11,22 @@ import type { PlayReleaseRequest } from './types';
 class PlayReleaseService {
   /**
    * Opens an edit, uploads the bundle, assigns the version code it reports to
-   * the target track, and commits. Nothing reaches the track until the commit,
+   * each target track, and commits. Nothing reaches any track until the commit,
    * so a failure part way through leaves the app as it was.
    *
    * Credentials come from Application Default Credentials, which CI and a
    * developer machine each supply their own way.
    *
-   * @param request - The bundle, the track, and how the release identifies itself.
+   * @param request - The bundle, the tracks, and how the release identifies itself.
    * @param request.packageName - Play package name to publish under.
    * @param request.bundlePath - Absolute path of the AAB to upload.
-   * @param request.track - Track the release is assigned to.
+   * @param request.tracks - Tracks the release is assigned to.
    * @param request.description - Release name and notes.
    */
   async publish({
     packageName,
     bundlePath,
-    track,
+    tracks,
     description
   }: PlayReleaseRequest): Promise<void> {
     const client = androidpublisher({
@@ -49,25 +49,27 @@ class PlayReleaseService {
     const versionCode = this.#requireVersionCode(bundle.versionCode, bundlePath);
     console.log(`Uploaded ${bundlePath} as versionCode ${versionCode}.`);
 
-    await client.edits.tracks.update({
-      packageName,
-      editId,
-      track,
-      requestBody: {
-        releases: [
-          {
-            versionCodes: [String(versionCode)],
-            // Fully rolled out to the track as soon as the edit commits.
-            // `draft` uploads without rolling out, and `inProgress` / `halted`
-            // are staged rollouts that also need a `userFraction`.
-            status: 'completed',
-            name: description.name,
-            releaseNotes: [{ language: 'en-US', text: description.notes }]
-          }
-        ]
-      }
-    });
-    console.log(`Assigned versionCode ${versionCode} to the ${track} track.`);
+    for (const track of tracks) {
+      await client.edits.tracks.update({
+        packageName,
+        editId,
+        track,
+        requestBody: {
+          releases: [
+            {
+              versionCodes: [String(versionCode)],
+              // Fully rolled out to the track as soon as the edit commits.
+              // `draft` uploads without rolling out, and `inProgress` / `halted`
+              // are staged rollouts that also need a `userFraction`.
+              status: 'completed',
+              name: description.name,
+              releaseNotes: [{ language: 'en-US', text: description.notes }]
+            }
+          ]
+        }
+      });
+      console.log(`Assigned versionCode ${versionCode} to the ${track} track.`);
+    }
 
     await client.edits.commit({ packageName, editId });
     console.log(`Committed edit ${editId}.`);

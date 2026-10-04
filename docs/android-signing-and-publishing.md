@@ -38,7 +38,7 @@ Play App Signing enrolls automatically at the first AAB upload, which is what ma
 
 ## 🚀 Publishing
 
-`pnpm bump`, then merge to `main`. CI builds the signed AAB and uploads it to the track set in `scripts/commands/uploadAndroidRelease/index.ts`. A merge that doesn't change the version deploys the web build only.
+`pnpm bump`, then merge to `main`. CI builds the signed AAB and uploads it to the tracks set in `scripts/commands/uploadAndroidRelease/index.ts`. A merge that doesn't change the version deploys the web build only.
 
 ### Publishing locally
 

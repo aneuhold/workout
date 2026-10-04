@@ -1,10 +1,10 @@
 /**
- * Everything needed to put one bundle on one track.
+ * Everything needed to put one bundle on one or more tracks.
  */
 export type PlayReleaseRequest = {
   packageName: string;
   bundlePath: string;
-  track: PlayTrack;
+  tracks: PlayTrack[];
   description: ReleaseDescription;
 };
 
