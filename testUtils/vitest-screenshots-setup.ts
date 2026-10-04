@@ -8,8 +8,12 @@ declare module 'vitest/browser' {
   }
 }
 
-// Runs after each story's play function, so the capture shows its final state
+// Runs after each story's play function, so the capture shows its final state. A failed
+// story is skipped so it can't overwrite the committed screenshot with the wrong screen.
 afterEach(async ({ task }) => {
+  if (task.result?.state === 'fail') {
+    return;
+  }
   await document.fonts.ready;
   await animationsSettled();
   // Test names are story export names, such as `ActiveSession`

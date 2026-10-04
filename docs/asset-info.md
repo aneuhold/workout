@@ -8,12 +8,14 @@ All brand SVGs live in [`docs/officialAssets/`](officialAssets/).
 
 ## Generated
 
+Requires `rsvg-convert` (librsvg) and `magick` (ImageMagick) on the `PATH`, e.g. `brew install librsvg imagemagick`.
+
 `pnpm generate:assets` regenerates everything in three steps:
 
 1. [`scripts/commands/generate-icons/generate-icons.ts`](../scripts/commands/generate-icons/generate-icons.ts) renders the icons, splash, and Play 512 icon.
 2. [`scripts/commands/renderFeatureGraphic/index.ts`](../scripts/commands/renderFeatureGraphic/index.ts) renders the 1024×500 feature graphic from [`feature-graphic.html`](../scripts/commands/renderFeatureGraphic/feature-graphic.html).
 3. `vitest run -c testUtils/configs/vitest.screenshots.config.ts` ([config](../testUtils/configs/vitest.screenshots.config.ts)) runs every story tagged `playstore-screenshot` as a Vitest browser test through `@storybook/addon-vitest`, and saves a 1080×1920 capture of each after its `play` function finishes.
-   - Screenshot stories live in [`src/pages/SBFullApp/FullApp.Screenshots.stories.svelte`](../src/pages/SBFullApp/FullApp.Screenshots.stories.svelte) (`Full App/Screenshots` in Storybook), which tags them all `playstore-screenshot`. To add one, add a `<Story>` there with a `scenario`, and optionally a `route` to open or a `play` function for interactions. The PNG is named after the story's export name in kebab case, such as `active-session.png`..
+   - Screenshot stories live in [`src/pages/SBFullApp/FullApp.Screenshots.stories.svelte`](../src/pages/SBFullApp/FullApp.Screenshots.stories.svelte) (`Full App/Screenshots` in Storybook), which tags them all `playstore-screenshot`. To add one, add a `<Story>` there with a `scenario`, and optionally a `route` to open or a `play` function for interactions. The PNG is named after the story's export name in kebab case, such as `active-session.png`.
    - All outputs are 24-bit PNGs with no alpha channel, per Google's [asset specs](https://support.google.com/googleplay/android-developer/answer/9866151).
 
 | Folder                                   | Contents                                                           |

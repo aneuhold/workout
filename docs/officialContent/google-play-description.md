@@ -59,7 +59,7 @@ If you're ready to stop showing up to the gym hoping for progress and start trai
 Download MesoPro today and start your first mesocycle. Your next personal best is closer than you think.
 ```
 
-(2,718 characters)
+(2,856 characters)
 
 ---
 

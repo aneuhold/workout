@@ -2,15 +2,15 @@
 
 Goal: get **MesoPro** (`com.tonyneuhold.mesopro`, `targetSdk 36`) live on the Google Play Store. `package.json` `version`, `build.gradle` `versionName`, and `versionCode` are written by `pnpm bump` and by nothing else.
 
-The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done — both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. The upload keystore is wired into Gradle, a signed release AAB has been built, and the Play Console compliance forms (App content) are filled out. What's left is the public-web pages, store listing assets, the main store listing copy, and the testing → production rollout.
+The Android shell, plugins, icons, and splash are all wired up. The Play Console account exists, the app has been created in Play Console, and Android Developer Verification (ADI) is done: both the pre-bound debug key and the upload key (`~/.android/keystores/mesopro-upload.jks`) are verified for `com.tonyneuhold.mesopro`. The upload keystore is wired into Gradle, a signed release AAB has been built, and the Play Console compliance forms (App content) are filled out. What's left is the public-web pages, store listing assets, the main store listing copy, and the testing → production rollout.
 
-> Capacitor's [official Play deployment page](https://capacitorjs.com/docs/android/deploying-to-google-play) is a thin pointer — it states that Capacitor apps are normal native Android apps and defers to Google's [launch checklist](https://developer.android.com/distribute/best-practices/launch/launch-checklist). There's no Capacitor-managed signing, bundling, or Play upload flow; everything below uses standard Gradle + Play Console.
+> Capacitor's [official Play deployment page](https://capacitorjs.com/docs/android/deploying-to-google-play) is a thin pointer. It states that Capacitor apps are normal native Android apps and defers to Google's [launch checklist](https://developer.android.com/distribute/best-practices/launch/launch-checklist). There's no Capacitor-managed signing, bundling, or Play upload flow; everything below uses standard Gradle + Play Console.
 
 > **Personal-account caveat:** Google requires new personal developer accounts to run a **closed test with at least 12 opt-in testers for 14+ continuous days** before they can request production access. Plan the calendar around this. ([Closed testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465))
 
 ---
 
-## Step 1 — Pages that need to exist on the public web
+## Step 1: Pages that need to exist on the public web
 
 Hosting will be a SvelteKit route outside the base layout (handled separately). This step just enumerates the pages the Play submission depends on.
 
@@ -24,7 +24,7 @@ Verify each URL loads over HTTPS in incognito before pasting into the Play listi
 
 ---
 
-## Step 2 — Prepare store-listing assets
+## Step 2: Prepare store-listing assets
 
 Required image assets ([Play asset specs](https://support.google.com/googleplay/android-developer/answer/9866151)). Note: [`@capacitor/assets`](https://capacitorjs.com/docs/guides/splash-screens-and-icons) (already used via `android/capacitor-assets/`) only generates **in-app** launcher icons + splash screens from the source SVG. The 512×512 Play icon and 1024×500 feature graphic are Play-only deliverables and have to be composed separately.
 
@@ -40,7 +40,7 @@ All generated assets are done. `pnpm generate:assets` regenerates them into `and
 
 ---
 
-## Step 3 — Fill out the main store listing
+## Step 3: Fill out the main store listing
 
 In Play Console under **Main store listing** ([guide](https://support.google.com/googleplay/android-developer/answer/9859152)):
 
@@ -53,40 +53,40 @@ In Play Console under **Main store listing** ([guide](https://support.google.com
 7. Contact details: support email (use `agneuhold@gmail.com` or a dedicated alias), website URL (Step 1 marketing page if you built one).
 8. Privacy Policy URL (Step 1).
 
-Then under **Store settings** — country availability (start with worldwide or US-only; easy to expand), pricing (Free).
+Then under **Store settings**: country availability (start with worldwide or US-only; easy to expand), pricing (Free).
 
 ---
 
-## Step 4 — Internal testing track (immediate)
+## Step 4: Internal testing track (immediate)
 
 Internal test = up to 100 testers, **no review delay**, builds usually live in minutes. ([Internal testing](https://support.google.com/googleplay/android-developer/answer/9303479))
 
 1. Play Console → **Testing → Internal testing → Create new release**.
 2. Upload the signed release AAB (`android/app/build/outputs/bundle/release/app-release.aab`). Confirm Play App Signing enrollment on first upload.
-3. Write release notes (≤500 chars per locale) — for v1 something like "Initial release."
+3. Write release notes (≤500 chars per locale). For v1, something like "Initial release."
 4. Add yourself + a couple trusted email addresses to the testers list.
 5. Roll out → copy the opt-in link → install on a real device → run the golden path: sign in, create mesocycle, log a session, kill app, reopen, verify state survived.
 
 ---
 
-## Step 5 — Closed testing track (calendar gate for personal accounts)
+## Step 5: Closed testing track (calendar gate for personal accounts)
 
 Required before production for new personal accounts: **≥12 testers, opted in for ≥14 continuous days**. ([Requirement details](https://support.google.com/googleplay/android-developer/answer/14151465))
 
-1. Recruit ≥12 testers (friends, gym contacts) — they need Google accounts and must accept the opt-in.
+1. Recruit ≥12 testers (friends, gym contacts). They need Google accounts and must accept the opt-in.
 2. Play Console → **Testing → Closed testing → Create track**. Upload same or newer AAB.
 3. Add the 12+ accounts to the tester list. Distribute the opt-in URL.
 4. Track opt-ins via Play Console; chase anyone who hasn't joined within a few days.
 5. Keep the test running uninterrupted for 14+ days. Push at least one patch release during this window (`pnpm bump`, then merge) to prove the update flow works.
-6. Collect feedback — bug reports go via the closed-test feedback URL, crash reports via Play Console + Sentry.
+6. Collect feedback. Bug reports go via the closed-test feedback URL, crash reports via Play Console + Sentry.
 
 ---
 
-## Step 6 — Production release
+## Step 6: Production release
 
 Once Step 5's clock has elapsed and Play Console shows the **"Apply for production access"** button as available:
 
-1. Apply for production access. Google reviews — usually a few days.
+1. Apply for production access. Google reviews it, usually in a few days.
 2. Once approved: **Production → Create new release**, promoting the build CI already uploaded to the testing track.
 3. Release notes for v1.0.
 4. Choose a **staged rollout** (start at 20%, expand once Sentry shows no spike in crash-free-sessions).
@@ -106,7 +106,7 @@ Before each upload:
 
 ## Post-launch follow-ups
 
-These are not gates on shipping v1 — flagged here so they don't get lost.
+These are not gates on shipping v1. They're flagged here so they don't get lost.
 
 1. **CI for releases.** Handled: `main-branch.yml` bundles and uploads on any merge that bumps the version. See [`android-signing-and-publishing.md`](./android-signing-and-publishing.md).
 2. **Marketing landing page.** Optional for v1; nice to have for the listing's Website field and as a target for the Play Store badge after launch.

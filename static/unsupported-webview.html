@@ -4,7 +4,8 @@
   the app when the device's Android System WebView is older than
   `android.minWebViewVersion`, or when the app's main page fails to load.
   It loads outside the Tailwind build on very old WebViews, so it uses plain CSS
-  with literal colors that match the splash screen and `--color-primary`.
+  with literal colors that match the status bar (`StatusBar.backgroundColor` in
+  `capacitor.config.ts`) and `--color-primary`.
 -->
 <html lang="en">
   <head>
