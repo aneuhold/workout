@@ -1,5 +1,8 @@
+import { Capacitor } from '@capacitor/core';
+import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
+
 /**
- * Checks whether a newer version of the app has been deployed and exposes the
+ * Checks whether a newer version of the app is available and exposes the
  * result via `updateAvailable` for the update notification dialog to react to.
  */
 class UpdateCheckService {
@@ -15,28 +18,55 @@ class UpdateCheckService {
   }
 
   /**
-   * Fetches the deployed version and sets `updateAvailable` to `true` if it
-   * differs from the current build. Skips in dev (placeholder not yet
-   * replaced). Errors are swallowed silently.
+   * Sets `updateAvailable` to `true` if a newer version is available. Skips in
+   * dev (placeholder not yet replaced). Errors are swallowed silently.
    */
   async checkForUpdate(): Promise<void> {
     if (UpdateCheckService.#currentVersion.includes('DEV.VERSION')) return;
 
     try {
-      const response = await fetch(UpdateCheckService.#versionUrl, { cache: 'no-store' });
-      const data: unknown = await response.json();
-      if (
-        typeof data === 'object' &&
-        data !== null &&
-        'appVersion' in data &&
-        typeof data.appVersion === 'string' &&
-        data.appVersion !== UpdateCheckService.#currentVersion
-      ) {
-        this.#updateAvailable = true;
-      }
+      this.#updateAvailable = Capacitor.isNativePlatform()
+        ? await this.#isStoreUpdateAvailable()
+        : await this.#isDeployedVersionNewer();
     } catch {
-      // Network errors are swallowed; the check will retry next time.
+      // Network and Play Store errors are swallowed; the check will retry next time.
     }
+  }
+
+  /**
+   * Sends the user to the newer version: the app store listing on native, or
+   * a page reload on web.
+   */
+  async applyUpdate(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      await AppUpdate.openAppStore();
+    } else {
+      window.location.reload();
+    }
+  }
+
+  /**
+   * Asks the app store whether it can serve this user a newer version. Builds
+   * not installed from Google Play report no update.
+   */
+  async #isStoreUpdateAvailable(): Promise<boolean> {
+    const { updateAvailability } = await AppUpdate.getAppUpdateInfo();
+    return updateAvailability === AppUpdateAvailability.UPDATE_AVAILABLE;
+  }
+
+  /**
+   * Fetches the deployed web version and compares it to the current build.
+   */
+  async #isDeployedVersionNewer(): Promise<boolean> {
+    const response = await fetch(UpdateCheckService.#versionUrl, { cache: 'no-store' });
+    const data: unknown = await response.json();
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'appVersion' in data &&
+      typeof data.appVersion === 'string' &&
+      data.appVersion !== UpdateCheckService.#currentVersion
+    );
   }
 }
 

@@ -157,6 +157,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.3
         version: 8.0.3(@capacitor/core@8.5.0)
+      '@capawesome/capacitor-app-update':
+        specifier: ^8.0.5
+        version: 8.0.5(@capacitor/core@8.5.0)
       '@capgo/capacitor-social-login':
         specifier: ^8.3.40
         version: 8.3.40(@capacitor/core@8.5.0)
@@ -671,6 +674,11 @@ packages:
 
   '@capacitor/status-bar@8.0.3':
     resolution: {integrity: sha512-csSpfNeN49Hx9JaQBSJEIiEbOLtXg3kcc2IpScq2fu5L520h3AWEvsxoH8Srk1jxfRKepaJ4S4sqSC3foI4AgA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-app-update@8.0.5':
+    resolution: {integrity: sha512-MyK6Iq5dCiQx7VJE//I00o6RN11tkgl8pMXEq/0xYwzDsGsEZfS7VNDp/WLrLY8h7F/ShQrpHBOwVT1nD7byvQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -9823,6 +9831,10 @@ snapshots:
       '@capacitor/core': 8.5.0
 
   '@capacitor/status-bar@8.0.3(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
+
+  '@capawesome/capacitor-app-update@8.0.5(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
 

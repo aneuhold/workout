@@ -1,9 +1,9 @@
 <!--
   @component
 
-  Singleton dialog that appears when a newer version of the app is deployed.
+  Singleton dialog that appears when a newer version of the app is available.
   On web, prompts the user to reload. On Android, prompts them to update from
-  the Play Store. Reacts to `updateAvailable` from `UpdateCheckService`.
+  the Play Store once Play can serve the update. Reacts to `updateAvailable` from `UpdateCheckService`.
   Import `updateNotificationDialog` and call `.open()` to trigger imperatively.
 -->
 <script lang="ts" module>
@@ -34,14 +34,6 @@
       open = true;
     }
   });
-
-  function handleAction() {
-    if (isNative) {
-      window.open('https://play.google.com/store/apps/details?id=com.tonyneuhold.mesopro');
-    } else {
-      window.location.reload();
-    }
-  }
 </script>
 
 <AlertDialog bind:open>
@@ -57,7 +49,7 @@
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
-      <AlertDialogAction onclick={handleAction}>
+      <AlertDialogAction onclick={() => void updateCheckService.applyUpdate()}>
         {isNative ? 'Update' : 'Reload'}
       </AlertDialogAction>
     </AlertDialogFooter>
