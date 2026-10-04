@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  Shown by Capacitor (`server.errorPath` in `capacitor.config.ts`) in place of
+  the app when the device's Android System WebView is older than
+  `android.minWebViewVersion`, or when the app's main page fails to load.
+  It loads outside the Tailwind build on very old WebViews, so it uses plain CSS
+  with literal colors that match the splash screen and `--color-primary`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MesoPro</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 24px;
+        box-sizing: border-box;
+        background: #18181b;
+        color: #fafafa;
+        font-family: sans-serif;
+        text-align: center;
+      }
+      img {
+        width: 160px;
+        margin-bottom: 24px;
+      }
+      a {
+        margin-top: 24px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        background: #009869;
+        color: #fafafa;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="logo-dark.svg" alt="MesoPro" />
+    <p>
+      MesoPro couldn't start on this device. Updating Android System WebView usually fixes this.
+    </p>
+    <a href="market://details?id=com.google.android.webview">Update Android System WebView</a>
+  </body>
+</html>

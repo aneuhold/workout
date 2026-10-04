@@ -1,9 +1,18 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import browserSupportService from './scripts/services/BrowserSupport.service';
 
 const config: CapacitorConfig = {
   appId: 'com.tonyneuhold.mesopro',
   appName: 'MesoPro',
   webDir: 'build',
+  android: {
+    // Older WebViews are shown `server.errorPath` instead of the app.
+    minWebViewVersion: Number(browserSupportService.supportedBrowsers.chrome)
+  },
+  server: {
+    // Relative to `webDir`. Also shown when the app's main page fails to load.
+    errorPath: 'unsupported-webview.html'
+  },
   plugins: {
     SplashScreen: {
       launchAutoHide: false
