@@ -95,8 +95,11 @@ class WorkoutAPIQueueService {
   }
 
   /**
-   * Loads the persisted queue from {@link LocalData}, ahead of anything
-   * already queued. Does not start sending: the next queued request or
+   * Loads the writes in the persisted queue from {@link LocalData}, ahead of
+   * anything already queued. For now, a `get` on a stored item is ignored and
+   * an item with nothing else is dropped, since every app start already gets
+   * all data. Stored gets can be merged into the pending get later if that
+   * changes. Does not start sending: the next queued request or
    * {@link skipWaitsAndProcessRequestsNow} does. Call once at app boot, after
    * `LocalData.init()`.
    */
@@ -104,7 +107,8 @@ class WorkoutAPIQueueService {
     const generation = this.#generation;
     const stored = await LocalData.getApiRequestQueue();
     if (generation !== this.#generation) return;
-    this.#writes = [...stored, ...this.#writes];
+    const storedWrites = stored.flatMap((item) => this.#getWrites(item) ?? []);
+    this.#writes = [...storedWrites, ...this.#writes];
     void this.#persistQueue();
   }
 
@@ -383,15 +387,29 @@ class WorkoutAPIQueueService {
    * @param options The request to split
    */
   #queueWritesAndMergeGet(options: ProjectWorkoutPrimaryEndpointOptions): boolean {
-    const { get, ...writes } = options;
+    const { get } = options;
     if (get) {
       this.#pendingGet = { ...this.#pendingGet, ...get };
     }
-    if (writes.insert || writes.update || writes.delete) {
+    const writes = this.#getWrites(options);
+    if (writes) {
       this.#writes.push(writes);
       return true;
     }
     return false;
+  }
+
+  /**
+   * Returns a copy of a request without its `get`, or `undefined` when it has
+   * no insert, update, or delete.
+   *
+   * @param options The request to take the writes from
+   */
+  #getWrites(
+    options: ProjectWorkoutPrimaryEndpointOptions
+  ): ProjectWorkoutPrimaryEndpointOptions | undefined {
+    const { get: _get, ...writes } = options;
+    return writes.insert || writes.update || writes.delete ? writes : undefined;
   }
 
   /**
