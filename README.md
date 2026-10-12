@@ -1,5 +1,7 @@
 # 🏋️‍♀️ MesoPro 🏋️‍♀️
 
+[![Play Store listing](https://img.shields.io/badge/Play%20Store-Listing-414141?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.tonyneuhold.mesopro) [![Stripe](https://img.shields.io/badge/Stripe-Dashboard-635BFF?logo=stripe&logoColor=white)](https://dashboard.stripe.com/acct_1UPoTbE7XKYRsnG3/dashboard) [![RevenueCat](https://img.shields.io/badge/RevenueCat-Dashboard-F2545B?logo=revenuecat&logoColor=white)](https://app.revenuecat.com/projects/bb068855/overview)
+
 A workout tracking app.
 
 ## Architecture
@@ -15,6 +17,10 @@ Logging is done via Sentry. Configuration is setup in `hooks.client.ts` primaril
 ### Auth
 
 Sign-in with Google is configured via the [backend project and the OAuth configuration here in Google Cloud](https://console.cloud.google.com/auth/overview?project=backend-463900).
+
+### Payments
+
+Payment info is [described here](docs/payments-info.md).
 
 ## Development
 
