@@ -34,7 +34,7 @@ type WorkoutAPIGetOutputHandler = (
  */
 class WorkoutAPIQueueService {
   static readonly #log = LoggingService.createLogger('WorkoutAPIQueue.service.ts');
-  static readonly #maxServerErrorAttempts = 5;
+  static readonly #maxServerErrorAttempts = 10;
   static readonly #baseRetryDelayMs = 1000;
   static readonly #maxRetryDelayMs = 60_000;
 
@@ -197,7 +197,12 @@ class WorkoutAPIQueueService {
         if (generation !== this.#generation) return false;
 
         if (!response) {
-          apiActivityService.setOffline();
+          // A timeout or a failed fetch while the device reports online
+          if (navigator.onLine) {
+            apiActivityService.setPending();
+          } else {
+            apiActivityService.setOffline();
+          }
           this.#scheduleRetry();
           return false;
         }
@@ -221,16 +226,10 @@ class WorkoutAPIQueueService {
           apiActivityService.setPending();
           return false;
         }
-        if (
-          errorCode === APIErrorCode.InternalError ||
-          errorCode === APIErrorCode.InvalidAPIResponseShape
-        ) {
-          this.#serverErrorAttempts++;
-          if (this.#serverErrorAttempts < WorkoutAPIQueueService.#maxServerErrorAttempts) {
-            apiActivityService.setPending();
-            this.#scheduleRetry();
-            return false;
-          }
+        if (this.#shouldRetry(response)) {
+          apiActivityService.setPending();
+          this.#scheduleRetry();
+          return false;
         }
         this.#removeFailedRequest(write, get, errors);
       }
@@ -275,6 +274,39 @@ class WorkoutAPIQueueService {
   }
 
   /**
+   * Whether a failed request should be retried. A temporary outage is retried
+   * without a limit, and any other server error up to
+   * {@link WorkoutAPIQueueService.#maxServerErrorAttempts} attempts.
+   *
+   * @param response The failed response
+   */
+  #shouldRetry(response: APIResponse<ProjectWorkoutPrimaryOutput>): boolean {
+    const { statusCode, errorCode } = response;
+    // Temporary conditions that clear on their own, retried without a limit
+    const transientStatusCodes: ReadonlySet<number> = new Set([
+      // Request Timeout: the server closed a slow connection, not a bad request
+      408,
+      // Too Many Requests: rate limiting lifts once requests slow down
+      429,
+      // Bad Gateway: the load balancer couldn't reach an instance, such as mid-deploy
+      502,
+      // Service Unavailable: no instance can take the request yet, such as during a cold start or deploy
+      503,
+      // Gateway Timeout: the instance didn't answer the load balancer in time
+      504
+    ]);
+    if (transientStatusCodes.has(statusCode)) return true;
+    if (
+      errorCode !== APIErrorCode.InternalError &&
+      errorCode !== APIErrorCode.InvalidAPIResponseShape
+    ) {
+      return false;
+    }
+    this.#serverErrorAttempts++;
+    return this.#serverErrorAttempts < WorkoutAPIQueueService.#maxServerErrorAttempts;
+  }
+
+  /**
    * Applies a get's output, unless a write was queued while the get was
    * outstanding. In that case the snapshot may not include the write, so it
    * is discarded and the get stays pending to run again after the write.
@@ -288,7 +320,12 @@ class WorkoutAPIQueueService {
   ): void {
     if (this.#writes.length > 0) return;
     if (this.#onGetOutput) {
-      this.#onGetOutput(output, { get });
+      try {
+        this.#onGetOutput(output, { get });
+      } catch (error) {
+        WorkoutAPIQueueService.#log.error('Failed to apply get output', error);
+        this.#removedFailedRequest = true;
+      }
     } else {
       WorkoutAPIQueueService.#log.error(
         'No get output handler is set, so the output was not applied.'
@@ -319,6 +356,7 @@ class WorkoutAPIQueueService {
     } else {
       this.#removePendingGet(get);
     }
+    this.#retryAttempt = 0;
     this.#serverErrorAttempts = 0;
     this.#removedFailedRequest = true;
     apiActivityService.setError();
@@ -401,6 +439,9 @@ class WorkoutAPIQueueService {
     }, delay);
   }
 
+  /**
+   * Cancels the scheduled retry, if there is one.
+   */
   #clearRetryTimer(): void {
     if (this.#retryTimer !== null) {
       clearTimeout(this.#retryTimer);

@@ -72,7 +72,7 @@ describe('Unit Tests', () => {
 
     describe('skipWaitsAndProcessRequestsNow', () => {
       describe('when the request is rejected', () => {
-        it('is Offline and sends the item on the next attempt', async () => {
+        it('is Pending and sends the item on the next attempt', async () => {
           const first = createDeleteSetRequest();
           const second = createDeleteSetRequest();
           apiBackend.queueWorkoutApiResponses(
@@ -84,7 +84,7 @@ describe('Unit Tests', () => {
           workoutAPIQueueService.enqueueRequest(second);
           await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();
 
-          expect(apiActivityService.state).toBe(ApiActivityState.Offline);
+          expect(apiActivityService.state).toBe(ApiActivityState.Pending);
 
           await vi.advanceTimersByTimeAsync(1000);
           await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();
@@ -177,10 +177,10 @@ describe('Unit Tests', () => {
       });
 
       describe('when the server errors', () => {
-        it('is Pending, retries up to 5 attempts, then removes the item', async () => {
+        it('is Pending, retries up to 10 attempts, then removes the item', async () => {
           const failing = createDeleteSetRequest();
           const next = createDeleteSetRequest();
-          const serverErrors = Array.from({ length: 5 }, () =>
+          const serverErrors = Array.from({ length: 10 }, () =>
             MockAPIBackend.createWorkoutApiFailureResponse(APIErrorCode.InternalError, 500)
           );
           apiBackend.queueWorkoutApiResponses(...serverErrors);
@@ -190,16 +190,36 @@ describe('Unit Tests', () => {
           await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();
           expect(apiActivityService.state).toBe(ApiActivityState.Pending);
 
-          for (let attempt = 2; attempt <= 5; attempt++) {
+          for (let attempt = 2; attempt <= 10; attempt++) {
             await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();
           }
 
           expect(apiBackend.sentWorkoutApiRequests).toEqual([
-            ...Array.from({ length: 5 }, () => failing),
+            ...Array.from({ length: 10 }, () => failing),
             next
           ]);
           expect(consoleErrorSpy).toHaveBeenCalledOnce();
           expect(apiActivityService.state).toBe(ApiActivityState.Error);
+        });
+
+        it('retries a temporary outage without a limit', async () => {
+          const write = createDeleteSetRequest();
+          const outages = Array.from({ length: 20 }, () =>
+            MockAPIBackend.createWorkoutApiFailureResponse(
+              APIErrorCode.InvalidAPIResponseShape,
+              503
+            )
+          );
+          apiBackend.queueWorkoutApiResponses(...outages);
+
+          workoutAPIQueueService.enqueueRequest(write);
+          for (let attempt = 1; attempt <= 21; attempt++) {
+            await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();
+          }
+
+          expect(apiBackend.sentWorkoutApiRequests).toHaveLength(21);
+          expect(consoleErrorSpy).not.toHaveBeenCalled();
+          expect(apiActivityService.state).toBe(ApiActivityState.Success);
         });
 
         it('retries a response that failed to parse', async () => {
