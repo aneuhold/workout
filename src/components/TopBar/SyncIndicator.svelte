@@ -20,35 +20,51 @@
 
   let { timerHighlight = false }: { timerHighlight?: boolean } = $props();
 
+  /**
+   * `timerColor` replaces `color` while the timer highlight gives the top bar a
+   * primary background, where `text-primary` would not show.
+   */
   const stateDisplays: Record<
     ApiActivityState,
-    { label: string; icon: typeof IconCloud; class: string }
+    { label: string; icon: typeof IconCloud; color: string; timerColor: string; class?: string }
   > = {
-    [ApiActivityState.Idle]: { label: 'Sync idle', icon: IconCloud, class: '' },
+    [ApiActivityState.Idle]: {
+      label: 'Sync idle',
+      icon: IconCloud,
+      color: 'text-muted-foreground/40',
+      timerColor: 'text-primary-foreground/40'
+    },
     [ApiActivityState.Syncing]: {
       label: 'Syncing changes',
       icon: IconCloudUp,
-      class: 'text-primary animate-sync-pulse'
+      color: 'text-primary',
+      timerColor: 'text-primary-foreground',
+      class: 'animate-sync-pulse'
     },
     [ApiActivityState.Success]: {
       label: 'Changes saved',
       icon: IconCloudCheck,
-      class: 'text-primary animate-sync-success'
+      color: 'text-primary',
+      timerColor: 'text-primary-foreground',
+      class: 'animate-sync-success'
     },
     [ApiActivityState.Error]: {
       label: 'Sync error',
       icon: IconCloudExclamation,
-      class: 'text-destructive'
+      color: 'text-destructive',
+      timerColor: 'text-destructive'
     },
     [ApiActivityState.Offline]: {
       label: 'Offline, changes saved on this device',
       icon: IconCloudOff,
-      class: 'text-muted-foreground'
+      color: 'text-muted-foreground',
+      timerColor: 'text-primary-foreground/70'
     },
     [ApiActivityState.Pending]: {
       label: 'Changes waiting to sync',
       icon: IconCloudPause,
-      class: 'text-muted-foreground'
+      color: 'text-muted-foreground',
+      timerColor: 'text-primary-foreground/70'
     }
   };
 
@@ -60,10 +76,6 @@
   <display.icon
     size={18}
     stroke={1.5}
-    class={cn(
-      display.class,
-      state === ApiActivityState.Idle &&
-        (timerHighlight ? 'text-primary-foreground/40' : 'text-muted-foreground/40')
-    )}
+    class={cn(display.class, timerHighlight ? display.timerColor : display.color)}
   />
 </div>
