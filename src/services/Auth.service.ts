@@ -35,7 +35,7 @@ class AuthService {
       googleCredentialToken: idToken,
       project: ProjectName.Workout
     });
-    this.#applyLoginResult(response);
+    await this.#applyLoginResult(response);
     return response;
   }
 
@@ -59,7 +59,7 @@ class AuthService {
       password: userPassword,
       project: ProjectName.Workout
     });
-    this.#applyLoginResult(response);
+    await this.#applyLoginResult(response);
     return response;
   }
 
@@ -97,7 +97,7 @@ class AuthService {
    *
    * @param response - The response from `APIService.validateUser`.
    */
-  #applyLoginResult(response: APIResponse<AuthValidateUserOutput>): void {
+  async #applyLoginResult(response: APIResponse<AuthValidateUserOutput>): Promise<void> {
     if (response.success && response.data.userInfo) {
       const { user } = response.data.userInfo;
       const { accessToken, refreshTokenString } = response.data;
@@ -107,6 +107,13 @@ class AuthService {
       }
       if (refreshTokenString) {
         APIService.setRefreshTokenString(refreshTokenString);
+      }
+
+      // A different user must not inherit the previous user's queued changes
+      // or cached documents.
+      if (user._id !== userConfig.get().userId) {
+        WorkoutAPIService.reset();
+        await LocalData.clearWorkoutMaps();
       }
 
       userConfig.set({

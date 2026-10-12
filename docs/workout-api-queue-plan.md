@@ -24,24 +24,25 @@ Found since:
 
 ## Design
 
-A new exported class, `WorkoutAPIQueueService`, owns sending: the queue of writes, the pending get, persistence, retries, and handing get output back to its owner. `WorkoutAPIService` creates the instance and keeps its public methods (`queryApi`, `hydrate`, `setApiOutputHandlers`, `reset`, `getInitialData*`), so none of its callers change. It still decides what to fetch and when (`lastInitialDataFetchTime`, the update check) and applies get output to the output handlers.
+A new singleton service, `workoutAPIQueueService`, owns sending: the queue of writes, the pending get, persistence, retries, and handing get output back to its owner. `WorkoutAPIService` sets its get output handler and keeps its public methods (`queryApi`, `hydrate`, `setApiOutputHandlers`, `reset`, `getInitialData*`), so none of its callers change. It still decides what to fetch and when (`lastInitialDataFetchTime`, the update check) and applies get output to the output handlers.
 
 - **Writes queued, gets merged.** `queryApi(options)` puts `insert` / `update` / `delete` into the queue as one item (unchanged shape, no merging across items). `options.get` is merged into a single pending get instead of being queued. This covers both the full refresh and the `ctoGet` that document map services attach to writes, without changing how those services build requests.
 - **Peek, send, then remove.** An item stays at the head of the queue (and in storage) until its request succeeds or is classified as permanently failed.
 - **One loop at a time.** The loop flag is reset in `finally`, and the queue is checked again afterward so nothing queued at the last moment is missed.
-- **Outcome classification** for each write:
+- **Outcome classification** for each request, read straight from the `APIResponse` (`success` and `errorCode`):
 
   | Outcome | Action | Sync state |
   |---|---|---|
   | `success: true` | Remove the item, continue. | Syncing |
+  | `navigator.onLine` is `false` before sending | Send nothing and schedule no retry. The `online` listener resumes the queue. | Offline |
   | `fetch` rejected or timed out | Keep the item; retry with exponential backoff plus jitter, capped delay. | Offline |
-  | HTTP 5xx, or a response that failed to parse | Keep the item; same backoff, up to 5 attempts, then drop and log an error. | Pending, then Error on drop |
-  | HTTP 401 | Pause the queue and keep every item. The existing `onAuthExpired` handler logs the user out; login resumes the queue. | Pending |
-  | Any other 4xx | Drop the item, log an error (reaches Sentry), continue. | Error |
+  | `InternalError` or `InvalidAPIResponseShape` | Keep the item; same backoff, up to 5 attempts, then drop and log an error. | Pending, then Error on drop |
+  | `Unauthorized` or `InvalidRefreshToken` | Pause the queue and keep every item. The existing `onAuthExpired` handler logs the user out; login resumes the queue. | Pending |
+  | Any other `errorCode` | Drop the item, log an error (reaches Sentry), continue. | Error |
 
 - **Pending get runs last.** When the queue has no writes and a pending get exists, the loop sends it. If a write is queued while that get is outstanding, the result is discarded and the get stays pending, so it runs again after the write. A failed get stays pending and uses the same backoff.
 - **Output handling.** Only get responses go to the output handlers; write responses are ignored (no handler uses them today, since every `handleApiOutput` checks `input.get?.X?.all`). The handlers and `AbstractDocumentMapStoreService.handleApiOutput` stay as they are, with `input` being the get that was sent.
-- **Reset.** `WorkoutAPIService.reset()` calls `dispose()` on the current instance and creates a new one. A disposed instance cancels its backoff timer, and its loop exits after the outstanding `await` without applying anything or touching storage, so two loops never touch app state.
+- **Reset.** `WorkoutAPIService.reset()` calls the queue's `reset()`, which clears the queue, the counters, the backoff timer and `#loop`, increments `#generation`, and saves an empty queue. A loop that started under an earlier generation exits after its outstanding `await` without applying anything or touching storage, so two loops never touch app state.
 
 ## Steps
 
@@ -110,8 +111,8 @@ Files: `gcloud-backend/src/routes/project/workout/WorkoutCreation.service.ts`, `
 
 File: `src/util/LocalData/LocalData.ts`.
 
-- Remove `storedKeyNames.currentApiRequest`, `getCurrentApiRequest`, `setCurrentApiRequest`, and its entry in `#smallTierKeys`. The leftover stored value is small and is ignored.
-- `apiRequestQueue` and `get/setApiRequestQueue` keep their names. Items stored by the old code may contain a `get`; loading routes them through the same split as `queryApi`, so no migration is needed.
+- Remove `storedKeyNames.currentApiRequest`, `getCurrentApiRequest`, `setCurrentApiRequest`, and its entry in `#smallTierKeys`.
+- `apiRequestQueue` and `get/setApiRequestQueue` keep their names. The stored queue now holds writes only, so bump `STORAGE_PREFIX` in `src/util/LocalData/storagePrefix.ts` from `v5-` to `v6-`. `#cleanupOldVersions` removes the old `currentApiRequest` and any old queue items that carry a `get`.
 
 ### 5. Sync states
 
@@ -123,25 +124,25 @@ Files: `src/services/ApiActivityService/ApiActivity.service.svelte.ts`, `src/com
 
 ### 6. `WorkoutAPIQueueService`
 
-New file: `src/services/WorkoutAPIService/WorkoutAPIQueue.service.ts`, default export of the `WorkoutAPIQueueService` class (not a singleton, not static). It lives in the existing `WorkoutAPIService` folder, like `TimerService/` holds several related services. Being an instance means a reset is a new instance and each test starts from a fresh one.
+New file: `src/services/WorkoutAPIService/WorkoutAPIQueue.service.ts`, default export of the `workoutAPIQueueService` singleton instance. The output handler is set once with `setGetOutputHandler()`. It lives in the existing `WorkoutAPIService` folder, like `TimerService/` holds several related services.
 
 The constructor takes the callback that applies get output (`(output, input) => void`), so the class never imports the document map services and avoids the cycle noted in `apiResponseHandlingOrder.ts`. It calls `APIService.callWorkoutAPI`, `WebSocketService.getSocketId()`, `LocalData`, and `apiActivityService` directly, like the current code.
 
 Moved from `WorkoutAPIService`, then reworked per **Design**:
 
 - The in-memory queue and its serialized persistence (the existing `#persistChain` pattern, moved as is).
-- `#processApiRequests` becomes the public `processApiRequests()`, so triggers can start a retry immediately, cancelling any backoff wait.
+- `#processApiRequests` becomes the public `skipWaitsAndProcessRequestsNow()`, so triggers can start a retry immediately, cancelling any backoff wait.
 - `#callWorkoutAPI`.
 
-New: `enqueue(options)` (the writes/get split), `hydrate()` (loads the stored queue, then calls `processApiRequests()`, which fixes the never-sent queue at startup), `dispose()`, the pending get, classification, backoff timer, paused state, and the `apiActivityService` updates from the table.
+New: `enqueue(options)` (the writes/get split), `hydrate()` (loads the stored queue without sending it; the initial fetch that `loginState.init()` queues at boot sends it, which fixes the never-sent queue at startup), `reset()`, the pending get, classification, backoff timer, paused state, and the `apiActivityService` updates from the table.
 
 ### 7. `WorkoutAPIService`
 
 File: `src/services/WorkoutAPIService/WorkoutAPI.service.ts`.
 
-- Replace the queue fields, `#processApiRequests`, `#callWorkoutAPI`, both persist methods, and `#processingRequestQueue` with `static #queue = new WorkoutAPIQueueService(...)`, passing a callback that runs `#handleOutput` and the `PerfMark.HydrationNetworkComplete` mark.
-- `queryApi` calls `#queue.enqueue`, `hydrate` calls `#queue.hydrate`, and a new public `processApiRequests()` calls `#queue.processApiRequests()` for the triggers in step 9.
-- `reset()` clears its own fields, disposes `#queue`, and creates a new one.
+- Replace the queue fields, `#processApiRequests`, `#callWorkoutAPI`, both persist methods, and `#processingRequestQueue` with calls to `workoutAPIQueueService`. A static initialization block passes `setGetOutputHandler()` a callback that runs `#handleOutput` and the `PerfMark.HydrationNetworkComplete` mark.
+- `queryApi` calls `enqueue`, `hydrate` calls the queue's `hydrate`, and a new public `skipWaitsAndProcessRequestsNow()` calls the queue's `skipWaitsAndProcessRequestsNow()` for the triggers in step 9.
+- `reset()` clears its own fields and calls the queue's `reset()`.
 - `getInitialDataIfNeeded` drops the "queue must be empty" check, since the pending get already waits for writes.
 - `setApiOutputHandlers` and `#handleOutput` stay. No callers change.
 
@@ -156,25 +157,26 @@ Files: `src/stores/session/loginState.ts`, `src/services/Auth.service.ts`.
 
 File: `src/routes/+layout.svelte`.
 
-- Add an `online` listener next to the existing `visibilitychange` listener that calls `WorkoutAPIService.processApiRequests()`. Visibility already reaches the queue through `getInitialDataIfNeeded()`, login through `getInitialDataForLogin()`, each write through `queryApi`, and startup through `hydrate()`.
+- Add an `online` listener next to the existing `visibilitychange` listener that calls `WorkoutAPIService.skipWaitsAndProcessRequestsNow()`. Visibility already reaches the queue through `getInitialDataIfNeeded()`, login through `getInitialDataForLogin()`, each write through `queryApi`, and startup through the initial fetch in `loginState.init()`. `WorkoutAPIService.hydrate()` stays in the startup `Promise.all`.
 
 ### 10. Tests
 
-New file: `src/services/WorkoutAPIService/WorkoutAPIQueue.service.spec.ts`. Use the global `MockAPIBackend` from `vitest-setup.ts`, `vi.spyOn(APIService, 'callWorkoutAPI')` to script responses (resolve, reject, never resolve, `statusCode` values), Vitest fake timers for backoff, real `LocalData` (fake IndexedDB is already set up), and the real `apiActivityService`. Each test creates its own `WorkoutAPIQueueService` with a spy as the output callback. Add a small helper in the spec for scripting a sequence of responses.
+New file: `src/services/WorkoutAPIService/WorkoutAPIQueue.service.spec.ts`. Use the global `MockAPIBackend` from `vitest-setup.ts`, `vi.spyOn(APIService, 'callWorkoutAPI')` to script responses (resolve, reject, never resolve, `statusCode` values), Vitest fake timers for backoff, real `LocalData` (fake IndexedDB is already set up), and the real `apiActivityService`. Each test sets a spy as the get output handler, and `afterEach` awaits `reset()`. Add a small helper in the spec for scripting a sequence of responses.
 
 Cases:
 
 - Rejected request mid-queue: state is Offline, not Syncing; the item stays queued and is sent on the next attempt.
+- Device offline: state is Offline, nothing is sent and no retry is scheduled; the next `skipWaitsAndProcessRequestsNow()` while online sends the item. A pending retry that fires while offline stops.
 - Hung request: times out and is retried.
-- Backoff delay grows, is capped, and resets after a success; `processApiRequests()` skips the wait.
+- Backoff delay grows, is capped, and resets after a success; `skipWaitsAndProcessRequestsNow()` skips the wait.
 - 5xx: state is Pending; retried up to 5 attempts, then dropped, logged, and state is Error.
-- 401: queue pauses, state is Pending, no items dropped; resumes on the next `processApiRequests()` after login.
+- 401: queue pauses, state is Pending, no items dropped; resumes on the next `skipWaitsAndProcessRequestsNow()` after login.
 - Other 4xx: item dropped, state is Error, the rest of the queue continues.
 - Write queued while a get is outstanding: the snapshot is not applied, the get runs again, and the new document is still in the map.
 - Full refresh plus set mutation in the same session: the set map is not reduced to the echoed set (the old doc's Issue 1 test).
 - Several writes with `ctoGet`: one get is sent after the last write.
-- Stored queue at startup: sent without any user action, then the initial fetch runs.
-- `dispose()` while a request is outstanding: its result is ignored, nothing is persisted by it, and a new instance's loop runs normally.
+- Stored queue at startup: not sent by `hydrate()` alone, then sent ahead of the initial fetch.
+- `reset()` while a request is outstanding: its result is ignored, nothing is persisted by it, and the next loop runs normally.
 - Item queued just as the loop finishes: still processed.
 - After a failed send, a `hydrate()` from `LocalData` still has the item.
 

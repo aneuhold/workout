@@ -96,21 +96,16 @@ class WorkoutAPIQueueService {
 
   /**
    * Loads the persisted queue from {@link LocalData}, ahead of anything
-   * already queued, then starts sending. Call once at app boot, after
+   * already queued. Does not start sending: the next queued request or
+   * {@link skipWaitsAndProcessRequestsNow} does. Call once at app boot, after
    * `LocalData.init()`.
    */
   async hydrate(): Promise<void> {
     const generation = this.#generation;
     const stored = await LocalData.getApiRequestQueue();
     if (generation !== this.#generation) return;
-    const queuedBeforeHydrate = this.#writes;
-    this.#writes = [];
-    stored.forEach((options) => {
-      this.#queueWritesAndMergeGet(options);
-    });
-    this.#writes.push(...queuedBeforeHydrate);
+    this.#writes = [...stored, ...this.#writes];
     void this.#persistQueue();
-    void this.skipWaitsAndProcessRequestsNow();
   }
 
   /**
@@ -128,9 +123,8 @@ class WorkoutAPIQueueService {
   }
 
   /**
-   * Sends queued requests now, skipping any backoff wait. {@link enqueueRequest} and
-   * {@link hydrate} already call this, so outside callers only need it to
-   * retry early. Resolves when the loop stops, either because nothing is left to send or because it
+   * Sends queued requests now, skipping any backoff wait. {@link enqueueRequest}
+   * already calls this, so outside callers only need it to retry early. Resolves when the loop stops, either because nothing is left to send or because it
    * is waiting on a retry or a login.
    *
    * If the loop stopped because nothing was left, but work was queued between
@@ -171,8 +165,10 @@ class WorkoutAPIQueueService {
   }
 
   /**
-   * Sends requests until none are left, a retry is scheduled, the user has to
-   * log in, or the queue is reset. Resolves to `true` when it stopped
+   * Sends requests until none are left, a retry is scheduled, the device is
+   * offline, the user has to log in, or the queue is reset. While offline,
+   * nothing is sent or retried until the next
+   * {@link skipWaitsAndProcessRequestsNow}, such as on the `online` event. Resolves to `true` when it stopped
    * because nothing was left to send.
    */
   async #runLoop(): Promise<boolean> {
@@ -185,6 +181,10 @@ class WorkoutAPIQueueService {
         if (!write && !get) {
           if (sentRequest) this.#setActivityStateForEmptyQueue();
           return true;
+        }
+        if (!navigator.onLine) {
+          apiActivityService.setOffline();
+          return false;
         }
         if (!userConfig.get().accessToken) {
           apiActivityService.setPending();
