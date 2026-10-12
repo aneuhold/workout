@@ -72,15 +72,15 @@ The worktree already has an earlier version of this step: `statusCode` optional,
   | `Forbidden` | 403 | Any other refusal. |
   | `BadRequest` | 4xx | Any other client error. |
   | `InternalError` | 5xx | An unexpected server error. |
-  | `InvalidResponse` | any | Set by the client: the body was not a valid `APIResponse` (e.g. an error page from Cloud Run). |
+  | `InvalidAPIResponseShape` | any | Set by the client: the body was not a valid `APIResponse` (e.g. an error page from Cloud Run). |
 
 - No project-specific codes apply yet: workout and dashboard failures are all unexpected exceptions (`InternalError`). The `APIErrorCode` JSDoc says, in one sentence, that a project's own codes go in their own enum export (e.g. `WorkoutAPIErrorCode`) and that project's responses use `APIErrorCode | WorkoutAPIErrorCode`.
 - `#isAPIResponseShape` also requires `statusCode` to be a number, and `errorCode`, when present, to be a string. It does not check `errorCode` against the enum, so a code added by a newer backend still decodes.
-- `#decodeResponse` returns a valid body unchanged. When the body fails to parse or fails the shape check (for example a Cloud Run or load balancer error page that never reached the app), it builds the unsuccessful `APIResponse` with `statusCode: response.status` and `errorCode: APIErrorCode.InvalidResponse`. This is the only place the client reads the HTTP status.
+- `#decodeResponse` returns a valid body unchanged. When the body fails to parse or fails the shape check (for example a Cloud Run or load balancer error page that never reached the app), it builds the unsuccessful `APIResponse` with `statusCode: response.status` and `errorCode: APIErrorCode.InvalidAPIResponseShape`. This is the only place the client reads the HTTP status.
 - `#call` checks `statusCode === 401` on the decoded response for the refresh and `onAuthExpired` logic.
 - The `authLogout` short-circuit (no refresh token) returns `statusCode: 200`.
 - `#fetchAndDecode` aborts `fetch` after a timeout (an `AbortController` with a `setTimeout`, so fake timers drive it) so a hung request rejects. A failure to read the body also rejects. Transport failures stay as rejections; the app classifies a rejection as Offline.
-- Tests: a valid body keeps its `statusCode`; an unparseable 5xx body gets `statusCode` from the HTTP status; a body missing `statusCode` fails the shape check; an unparseable body gets `InvalidResponse`; an `errorCode` outside the enum still decodes; 401 handling still works; a request that never resolves rejects after the timeout. Update existing mocks to include `statusCode` in their bodies.
+- Tests: a valid body keeps its `statusCode`; an unparseable 5xx body gets `statusCode` from the HTTP status; a body missing `statusCode` fails the shape check; an unparseable body gets `InvalidAPIResponseShape`; an `errorCode` outside the enum still decodes; 401 handling still works; a request that never resolves rejects after the timeout. Update existing mocks to include `statusCode` in their bodies.
 - Follow `ts-libs/.claude/CLAUDE.md` (`pnpm check`, `pnpm test`, `pnpm lint` in the package). Wait ~6 seconds for the change to reach the workout app and the backend.
 - In the workout app, `src/services/MockEnvSetupService/MockAPIBackend.ts` and `src/components/Login/Login.stories.svelte` build `APIResponse` objects and need `statusCode` too, plus an `errorCode` on any failure they build.
 - With the stricter shape check, a client on this lib version treats a body without `statusCode` as a parse failure, so the backend from step 2 deploys before any client (the workout app or any other consumer of the lib) ships this version.
