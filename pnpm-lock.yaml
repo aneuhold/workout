@@ -181,6 +181,9 @@ importers:
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
+      '@revenuecat/purchases-capacitor':
+        specifier: ^13.7.0
+        version: 13.7.0(@capacitor/core@8.5.0)
       '@sentry/capacitor':
         specifier: 4.3.0
         version: 4.3.0(@capacitor/core@8.5.0)
@@ -1882,6 +1885,14 @@ packages:
 
   '@prettier/plugin-xml@2.2.0':
     resolution: {integrity: sha512-UWRmygBsyj4bVXvDiqSccwT1kmsorcwQwaIy30yVh8T+Gspx4OlC0shX1y+ZuwXZvgnafmpRYKks0bAu9urJew==}
+
+  '@revenuecat/purchases-capacitor@13.7.0':
+    resolution: {integrity: sha512-GFBgeHuieJUBUgaoQaFKR9Rx1iF86WxLxiKSn0ybl11lDgIjZNcsGYJ2F+56cn9XRLw+TDh6+0PX3DSa8Aaikw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@revenuecat/purchases-typescript-internal-esm@19.5.0':
+    resolution: {integrity: sha512-25QmDlnwmOBHNFP3VgGLkuUA9CpMwHVfGv74CUj7TeeSbzARaGzwoqMET8MYC3YgixuutvPneUj2VN5GBHenIg==}
 
   '@rolldown/binding-android-arm64@1.2.3':
     resolution: {integrity: sha512-zrJtHDcaZJ1Fp7xf4hNl+7seH9Cn/N5TwLYkhgXREtBwAd/jaqW3uqeHxpDugJLVICWg4eW44kOQEGJ1r6jCGw==}
@@ -10948,6 +10959,13 @@ snapshots:
     dependencies:
       '@xml-tools/parser': 1.0.11
       prettier: 3.9.6
+
+  '@revenuecat/purchases-capacitor@13.7.0(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
+      '@revenuecat/purchases-typescript-internal-esm': 19.5.0
+
+  '@revenuecat/purchases-typescript-internal-esm@19.5.0': {}
 
   '@rolldown/binding-android-arm64@1.2.3':
     optional: true

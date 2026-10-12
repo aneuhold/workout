@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/commands/dev-android.ts",
@@ -60,6 +60,7 @@
     "@internationalized/date": "^3.12.3",
     "@neoconfetti/svelte": "^2.2.2",
     "@playwright/test": "^1.62.1",
+    "@revenuecat/purchases-capacitor": "^13.7.0",
     "@sentry/capacitor": "4.3.0",
     "@sentry/sveltekit": "10.69.0",
     "@storybook/addon-docs": "^10.6.0",
