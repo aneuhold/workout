@@ -27,7 +27,6 @@ export default class LocalData {
     username: `${this.#PREFIX}username`,
     translations: `${this.#PREFIX}translations`,
     userConfig: `${this.#PREFIX}userConfig`,
-    currentApiRequest: `${this.#PREFIX}currentApiRequest`,
     apiRequestQueue: `${this.#PREFIX}apiRequestQueue`,
     // Workout document maps
     mesocycleMap: `${this.#PREFIX}mesocycleMap`,
@@ -49,8 +48,7 @@ export default class LocalData {
   static #smallTierKeys: ReadonlySet<string> = new Set([
     this.storedKeyNames.password,
     this.storedKeyNames.username,
-    this.storedKeyNames.userConfig,
-    this.storedKeyNames.currentApiRequest
+    this.storedKeyNames.userConfig
   ]);
 
   static #smallBackend: ILocalDataBackend = Capacitor.isNativePlatform()
@@ -114,20 +112,6 @@ export default class LocalData {
 
   static async setUserConfig(newSettings: UserConfig | null): Promise<void> {
     await this.#storeValue(this.storedKeyNames.userConfig, JSON.stringify(newSettings));
-  }
-
-  static async getCurrentApiRequest(): Promise<ProjectWorkoutPrimaryEndpointOptions | undefined> {
-    return (
-      (await this.#getStoredObject<ProjectWorkoutPrimaryEndpointOptions>(
-        this.storedKeyNames.currentApiRequest
-      )) ?? undefined
-    );
-  }
-
-  static async setCurrentApiRequest(
-    newApiRequest: ProjectWorkoutPrimaryEndpointOptions | undefined
-  ): Promise<void> {
-    await this.#storeValue(this.storedKeyNames.currentApiRequest, JSON.stringify(newApiRequest));
   }
 
   static async getApiRequestQueue(): Promise<ProjectWorkoutPrimaryEndpointOptions[]> {

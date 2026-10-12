@@ -110,8 +110,8 @@ importers:
   .:
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^3.0.47
-        version: 3.0.47
+        specifier: ^4.0.0
+        version: 4.0.0
       '@aneuhold/core-ts-db-lib':
         specifier: ^5.0.15
         version: 5.0.15
@@ -125,8 +125,8 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
       '@aneuhold/robot-instructions':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.4.1
+        version: 0.4.1
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -420,8 +420,8 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@3.0.47':
-    resolution: {integrity: sha512-pCmHuab0oWRe9tyJ5bSDtQutYQLgsGzC/GYdVVq5b/COdJcDRAy3axhkVGOZyyrkXOqsNaZ8Z1ogmA8DgkGT0w==}
+  '@aneuhold/core-ts-api-lib@4.0.0':
+    resolution: {integrity: sha512-lqOcbnMqjXud3D7Z7G8K3iqk5mIMExN+iX2sQhISxZ9hxBx2pTzh9ZLBtwVnBkMRHAwzgvdS/CWxL7xj1bHn/w==}
 
   '@aneuhold/core-ts-db-lib@5.0.15':
     resolution: {integrity: sha512-T0PEN9sWK2SfH2M8tcJSnPmO1fK7ER46nG2npTL98lxS9WaJ/4vdMB6zsUyynWg0BHXOG3CvSjYibsug1q4c1Q==}
@@ -439,8 +439,8 @@ packages:
     resolution: {integrity: sha512-1Q78sX7njP8drIGYMcnBZ9N+Be7RGpWcEwFa8ZbYD7dtJNTsP91Iam9hcMxMXJ7nrVol9x0v7Ix2LKQHh1rG7g==}
     hasBin: true
 
-  '@aneuhold/robot-instructions@0.4.0':
-    resolution: {integrity: sha512-Uc88AKardYw4bIHQY3ves+03w+VAEfO7rNG/PSrj9IGBfLT928yBL+unfxdNJ8OdTFVOABFZx8RY2srnAYg6cA==}
+  '@aneuhold/robot-instructions@0.4.1':
+    resolution: {integrity: sha512-qBVx6ukd04eSyyoVEEf3/Vhd28YZ2qX40I/ut4Dzb6uvhLiye21sLX5GaMFoc6JY6JAnB+AmBtFYRig0J1oXAg==}
 
   '@angular-devkit/architect@0.2100.3':
     resolution: {integrity: sha512-PcruWF0+IxXOTZd9MN/3y4A5aTfblALzT/+zWym26PtisaBgWQ3tRPQsf/CgT8EdmZl8eUOAWlNBSkbUj/S/lQ==}
@@ -9371,7 +9371,7 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@3.0.47':
+  '@aneuhold/core-ts-api-lib@4.0.0':
     dependencies:
       '@aneuhold/core-ts-db-lib': 5.0.15
       '@aneuhold/core-ts-lib': 2.4.10
@@ -9438,7 +9438,7 @@ snapshots:
       - supports-color
       - typanion
 
-  '@aneuhold/robot-instructions@0.4.0': {}
+  '@aneuhold/robot-instructions@0.4.1': {}
 
   '@angular-devkit/architect@0.2100.3':
     dependencies:

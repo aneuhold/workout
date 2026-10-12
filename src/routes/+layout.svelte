@@ -72,13 +72,19 @@
     appIsVisible.set(document.visibilityState === 'visible');
   };
 
+  const handleOnline = () => {
+    WorkoutAPIService.skipWaitsAndProcessRequestsNow();
+  };
+
   if (browser) {
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
   }
 
   onDestroy(() => {
     if (browser) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
     }
   });
 </script>

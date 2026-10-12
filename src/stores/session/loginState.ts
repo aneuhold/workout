@@ -47,7 +47,9 @@ function createLoginStateStore() {
   });
 
   APIService.setOnAuthExpired(() => {
-    userConfig.clear();
+    // Keeps the userId so a re-login can tell whether it is the same user, and
+    // keep their queued changes.
+    userConfig.update((config) => ({ ...config, accessToken: null, refreshTokenString: null }));
     sessionExpired.set(true);
     setLoginState(LoginState.LoggedOut);
   });
