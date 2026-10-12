@@ -2,7 +2,9 @@ export enum ApiActivityState {
   Idle = 'idle',
   Syncing = 'syncing',
   Success = 'success',
-  Error = 'error'
+  Error = 'error',
+  Offline = 'offline',
+  Pending = 'pending'
 }
 
 /**
@@ -36,6 +38,24 @@ class ApiActivityService {
     this.#timeout = setTimeout(() => {
       this.#state = ApiActivityState.Idle;
     }, 3000);
+  }
+
+  /**
+   * Holds until the next state change: the server can't be reached, so
+   * changes wait on this device.
+   */
+  setOffline() {
+    this.#clearTimeout();
+    this.#state = ApiActivityState.Offline;
+  }
+
+  /**
+   * Holds until the next state change: changes are waiting to be sent,
+   * such as during a retry or while logged out.
+   */
+  setPending() {
+    this.#clearTimeout();
+    this.#state = ApiActivityState.Pending;
   }
 
   setIdle() {

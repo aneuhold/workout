@@ -37,6 +37,12 @@
       case ApiActivityState.Error:
         apiActivityService.setError();
         break;
+      case ApiActivityState.Offline:
+        apiActivityService.setOffline();
+        break;
+      case ApiActivityState.Pending:
+        apiActivityService.setPending();
+        break;
       default:
         apiActivityService.setIdle();
     }

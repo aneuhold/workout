@@ -45,3 +45,9 @@
 
 <!-- Sync Error -->
 <Story name="Sync Error" args={{ syncState: ApiActivityState.Error }} />
+
+<!-- Sync Offline -->
+<Story name="Sync Offline" args={{ syncState: ApiActivityState.Offline }} />
+
+<!-- Sync Pending -->
+<Story name="Sync Pending" args={{ syncState: ApiActivityState.Pending }} />

@@ -2,10 +2,17 @@
   @component
 
   Small cloud icon that reflects the current API sync state (idle, syncing,
-  success, error) with subtle animations.
+  success, error, offline, pending) with subtle animations.
 -->
 <script lang="ts">
-  import { IconCloud, IconCloudCheck, IconCloudOff, IconCloudUp } from '@tabler/icons-svelte';
+  import {
+    IconCloud,
+    IconCloudCheck,
+    IconCloudExclamation,
+    IconCloudOff,
+    IconCloudPause,
+    IconCloudUp
+  } from '@tabler/icons-svelte';
   import apiActivityService, {
     ApiActivityState
   } from '$services/ApiActivityService/ApiActivity.service.svelte';
@@ -21,7 +28,11 @@
         ? 'Changes saved'
         : state === ApiActivityState.Error
           ? 'Sync error'
-          : 'Sync idle'
+          : state === ApiActivityState.Offline
+            ? 'Offline, changes saved on this device'
+            : state === ApiActivityState.Pending
+              ? 'Changes waiting to sync'
+              : 'Sync idle'
   );
 </script>
 
@@ -31,7 +42,11 @@
   {:else if state === ApiActivityState.Success}
     <IconCloudCheck size={18} stroke={1.5} class="text-primary animate-sync-success" />
   {:else if state === ApiActivityState.Error}
-    <IconCloudOff size={18} stroke={1.5} class="text-destructive" />
+    <IconCloudExclamation size={18} stroke={1.5} class="text-destructive" />
+  {:else if state === ApiActivityState.Offline}
+    <IconCloudOff size={18} stroke={1.5} class="text-muted-foreground" />
+  {:else if state === ApiActivityState.Pending}
+    <IconCloudPause size={18} stroke={1.5} class="text-muted-foreground" />
   {:else}
     <IconCloud
       size={18}
