@@ -140,10 +140,10 @@ Two changes:
 **New file: `src/services/UserConfigService/UserConfig.service.svelte.ts`.** It extends `AbstractDocumentMapStoreService` so it hydrates and handles API output with the document map services, and holds the config as `$state<WorkoutUserConfig | null>`.
 
 - **`get currentConfig()`:** the held config when its `userId` matches the signed-in user.
-- **`setConfig(config)`:** replaces the config and persists it to local data, without an API write.
+- **`setWithoutApiPersist(config)`** replaces the config, and **`updateWithoutApiPersist(updater)`** updates the signed-in user's loaded config. Both persist to local data without an API write.
 - A new `workoutUserConfig` key in `LocalData.storedKeyNames` with `getWorkoutUserConfig` / `setWorkoutUserConfig`. `LocalData.clearWorkoutDocuments()` clears it with the workout maps.
 - `handleApiOutput` sets the config when `output.userConfig` is present and `input.get.userConfig` is set.
-- **`get isSupporter()`:** true when the current user's config has a `supporterExpiresAt` in the future. This is the only gate the UI checks.
+- **`get entitlements()`:** returns `{ supporter: boolean }`, where `supporter` is true when the current user's config has a `supporterExpiresAt` in the future. Future entitlements are added as more keys. This is the only gate the UI checks.
 - Add it to `apiResponseHandlingOrder.ts`.
 - `WorkoutAPI.service.ts` `getInitialData()` adds `userConfig: true`.
 - **Demo mode and Storybook:** seed a config with a future `supporterExpiresAt` through the existing mock scenario setup, built with `WorkoutUserConfigSchema.parse`. Demo mode then shows analytics with no special case in the gate.
@@ -174,14 +174,14 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 - **`purchase()`:**
   - Looks up the `supporter_monthly` package in the current offering's `availablePackages` by identifier, then calls the platform SDK's purchase method.
   - The package identifier is a `static readonly` field, not the `offering.monthly` shortcut, so adding other tiers' packages does not change it.
-  - On success, it copies `customerInfo.entitlements.active.supporter.expirationDate` into the local config through `userConfigService.setConfig`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
+  - On success, it copies `customerInfo.entitlements.active.supporter.expirationDate` into the local config through `userConfigService.updateWithoutApiPersist`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
   - A user-cancelled purchase is a no-op, not an error.
 - **`getManagementUrl()`:** reads `CustomerInfo.managementURL` on demand, for the settings row.
 - **Wiring:** call `init` from the two places that establish a logged-in user: `Auth.service.ts` `#applyLoginResult` and `loginState.ts` `init()`.
 
 ### UI
 
-- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.isSupporter`.
+- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.entitlements.supporter`.
   - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, $3/month, and a Subscribe button calling `revenueCatService.purchase()` on both platforms.
   - The nav item stays visible.
 - **Settings:** add `src/pages/SettingsPage/SettingsPageSupporterRow.svelte`, placed before `SettingsPageDeleteAccountButton`. It shows the supporter status and, when `getManagementUrl()` returns a URL, a "Manage subscription" button. Users with an admin grant have no RevenueCat history, so the button does not appear for them.
@@ -189,7 +189,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 
 ### Tests and validation
 
-- `UserConfig.service` spec: `isSupporter` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
+- `UserConfig.service` spec: `entitlements.supporter` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
 - Run `pnpm lint --fix`, `pnpm check`, `pnpm test`.
 - With the release, update the Play Data safety form to declare purchase history (collected by RevenueCat).
 

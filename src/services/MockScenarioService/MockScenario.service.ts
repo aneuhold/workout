@@ -7,6 +7,7 @@ import sessionMapServiceMock from '$services/documentMapServices/SessionMap.serv
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import MockDataService from '$services/MockDataService/MockData.service';
 import { type MockBaseData } from '$services/MockDataService/types';
+import userConfigServiceMock from '$services/UserConfigService/UserConfig.service.mock';
 import { FullAppScenario } from './types';
 
 /**
@@ -23,6 +24,8 @@ export default class MockScenarioService {
    */
   static setupScenario(scenario: FullAppScenario): string | null {
     MockDataService.resetAll();
+    // Every scenario is a supporter, so supporter-only pages show their content
+    userConfigServiceMock.grantSupporter();
 
     if (scenario === FullAppScenario.CompletelyFresh) {
       // Brand-new user: no muscle groups, equipment, exercises, or mesocycles.

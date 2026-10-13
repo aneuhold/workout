@@ -15,6 +15,7 @@
   import authService from '$services/Auth.service';
   import googleAuthService from '$services/GoogleAuth.service';
   import updateCheckService from '$services/UpdateCheck.service.svelte';
+  import { currentUser } from '$stores/local/currentUser/currentUser';
   import { LoginState, loginState } from '$stores/session/loginState';
   import { sessionExpired } from '$stores/session/sessionExpired';
   import Button from '$ui/Button/Button.svelte';
@@ -27,7 +28,6 @@
   import Input from '$ui/Input/Input.svelte';
   import Label from '$ui/Label/Label.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
-  import LocalData from '$util/LocalData/LocalData';
   import navInfo from '$util/navInfo';
 
   let typedUserName = $state('');
@@ -36,7 +36,7 @@
   let invalidCredentials = $state(false);
   let formIsValid = $derived(typedUserName.trim().length > 0 && typedPassword.trim().length > 0);
 
-  onMount(async () => {
+  onMount(() => {
     // Google Sign-In only works when the page URL is the root route. If the user
     // logs out from a deeper page, redirect them to home before initializing.
     if (page.url.pathname !== navInfo.home.url) {
@@ -46,12 +46,7 @@
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
     void updateCheckService.checkForUpdate();
-    const [storedUsername, storedPassword] = await Promise.all([
-      LocalData.getUsername(),
-      LocalData.getPassword()
-    ]);
-    typedUserName = storedUsername;
-    typedPassword = storedPassword;
+    ({ username: typedUserName, password: typedPassword } = currentUser.get());
   });
 
   /**
