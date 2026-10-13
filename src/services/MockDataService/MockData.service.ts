@@ -7,6 +7,7 @@ import muscleGroupMapServiceMock from '$services/documentMapServices/MuscleGroup
 import sessionExerciseMapServiceMock from '$services/documentMapServices/SessionExerciseMap.service.mock';
 import sessionMapServiceMock from '$services/documentMapServices/SessionMap.service.mock';
 import setMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
+import userConfigServiceMock from '$services/UserConfigService/UserConfig.service.mock';
 import type { MockBaseData } from './types';
 
 /**
@@ -15,7 +16,7 @@ import type { MockBaseData } from './types';
  */
 export default class MockDataService {
   /**
-   * Resets all 9 document map service mocks to empty state.
+   * Resets all document map service mocks to empty state.
    */
   static resetAll(): void {
     muscleGroupMapServiceMock.reset();
@@ -27,6 +28,7 @@ export default class MockDataService {
     sessionMapServiceMock.reset();
     sessionExerciseMapServiceMock.reset();
     setMapServiceMock.reset();
+    userConfigServiceMock.reset();
   }
 
   /**

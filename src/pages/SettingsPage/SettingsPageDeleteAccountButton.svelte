@@ -10,7 +10,7 @@
   import { IconTrash } from '@tabler/icons-svelte';
   import authService from '$services/Auth.service';
   import LoggingService from '$services/LoggingService/Logging.service';
-  import { userConfig } from '$stores/local/userConfig/userConfig';
+  import { currentUser } from '$stores/local/currentUser/currentUser';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -29,7 +29,7 @@
   let processing = $state(false);
   let errorMessage = $state<string | null>(null);
   let typedUsername = $state('');
-  let confirmDisabled = $derived(processing || typedUsername !== $userConfig.username);
+  let confirmDisabled = $derived(processing || typedUsername !== $currentUser.username);
 
   function openDialog() {
     typedUsername = '';
@@ -82,7 +82,7 @@
           permanently as soon as you tap / click "Delete".
 
           <span class="flex flex-col items-center">
-            Type your username "{$userConfig.username}" to confirm:
+            Type your username "{$currentUser.username}" to confirm:
           </span>
           <Input
             type="text"

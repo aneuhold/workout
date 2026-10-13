@@ -5,7 +5,7 @@ Add a $3/month **MesoPro Supporter** tier, sold through Google Play Billing in t
 **Naming in code:**
 
 - The RevenueCat entitlement is `supporter`. "Entitlement" is the term RevenueCat and Google Play Billing both use for access granted by a purchase.
-- The stored field is `supporterEntitlementExpiresAt`.
+- The stored field is `supporterExpiresAt`.
 
 ## Overview
 
@@ -21,10 +21,10 @@ Dashboard admin panel ── POST admin (update config / sync) ─────�
                                                                                     v
                                               WorkoutUserConfigRepository.update
                                                                                     │
-App (both platforms) <── primary endpoint get.userConfigs ──────────────────────────┘
+App (both platforms) <── primary endpoint get.userConfig ───────────────────────────┘
 ```
 
-- **Source of truth:** a new `WorkoutUserConfig` document per user, modeled on `DashboardUserConfig`. Its `supporterEntitlementExpiresAt` field is the only thing the app checks.
+- **Source of truth:** a new `WorkoutUserConfig` document per user, modeled on `DashboardUserConfig`. Its `supporterExpiresAt` field is the only thing the app checks.
 - **Who writes it:**
   - The RevenueCat webhook writes RevenueCat's current expiry.
   - The dashboard admin panel can edit any `WorkoutUserConfig` field. For the entitlement, that means Grant (year 3000) or Clear (null), plus a Sync action that re-fetches from RevenueCat.
@@ -49,7 +49,7 @@ Follow `ts-libs/.claude/CLAUDE.md`. Do not bump versions. `pnpm watch` runs in t
 - **New document: `core-ts-db-lib/src/documents/workout/WorkoutUserConfig.ts`.** It mirrors `documents/dashboard/UserConfig.ts`:
   - `WorkoutUserConfig_docType = 'workoutUserConfig'` (matching the other workout docTypes);
   - `BaseDocumentWithTypeSchema` and `RequiredUserIdSchema` shapes;
-  - `supporterEntitlementExpiresAt: z.date().nullish()`, with a JSDoc saying it mirrors the RevenueCat `supporter` entitlement expiry and is written only by the webhook and admin actions.
+  - `supporterExpiresAt: z.date().nullish()`, with a JSDoc saying it mirrors the RevenueCat `supporter` entitlement expiry and is written only by the webhook and admin actions.
 
   Export it from the package's root `index.ts` with the other workout documents, with a spec alongside it.
 
@@ -61,16 +61,16 @@ Follow `ts-libs/.claude/CLAUDE.md`. Do not bump versions. `pnpm watch` runs in t
   - The validator rejects new documents, since configs are only created by the `UserRepository` listener and the migration.
   - Add a spec matching the other workout repository specs.
 - **Backfill:** add a `MigrationService` entry that inserts a default `WorkoutUserConfig` for every existing user with workout access, and run it once against the DB.
-- **`core-ts-api-lib/src/types/project/workout/ProjectWorkout.ts`:** add `userConfigs` alongside the other document types:
-  - in `get`, as `GetOptionsBase<WorkoutUserConfig>` (the frontend requests `{ all: true }` like every other map);
-  - in `insert`, `update` and `delete`, so it is a valid `WorkoutApiInsertKey` for the frontend's `DocumentMapStoreService`;
-  - in `ProjectWorkoutPrimaryOutput`, as `userConfigs?: WorkoutUserConfig[]`.
+- **`core-ts-api-lib/src/types/project/workout/ProjectWorkout.ts`:** add a singular `userConfig`, since each user has exactly one config:
+  - in `get`, as `userConfig?: boolean` (the requesting user's config);
+  - in `update`, as `userConfig?: WorkoutUserConfig`;
+  - in `ProjectWorkoutPrimaryOutput`, as `userConfig?: WorkoutUserConfig`.
 
-  The backend implements `get` and `update` only. Insert is rejected by the validator, and delete has no handler; user deletion removes the config through the repository listener.
+  There is no `insert` or `delete` option: configs are created by the `UserRepository` listener and the migration, and deleted with the user.
 
 - **`core-ts-api-lib/src/types/Admin.ts`:** add admin support for the entitlement. Export the new types from `browser.ts` next to the other admin types. No new endpoint or client method is needed, since everything goes through `APIService.callAdminAPI`.
   - **`AdminInput.update`:** add `workoutUserConfigs?: WorkoutUserConfig[]`, next to `users`. The admin can update any config field, the same way it already updates any `User` field.
-  - **`AdminInput.update`:** also add `syncSupporterEntitlementUserIds?: UUID[]`. Each listed user's config is updated from RevenueCat's current value instead of from a document the client sends.
+  - **`AdminInput.update`:** also add `sync?: { [userId: UUID]: { workoutUserConfig?: { entitlements?: { supporterExpiresAt?: boolean } } } }`. Each field set to `true` is updated from its external system's current value (RevenueCat for `supporterExpiresAt`) instead of from a document the client sends. New syncable fields are added as more keys in the same shape.
   - **`AdminOutputUserDetail`:** add `workoutUserConfig?: WorkoutUserConfig`.
 - **`be-ts-lib/src/services/ConfigService/ConfigDefinition.ts`:** add `revenueCatGCloudBackendWebhookAuthHeader: z.string()` and `revenueCatGCloudBackendSecretApiKey: z.string()` to `ConfigSchema`, each with a one-line JSDoc.
 - Run `pnpm check`, `pnpm test`, `pnpm lint` in ts-libs.
@@ -88,12 +88,12 @@ Run `pnpm sub` to subscribe to all four ts-libs packages from Step 1.
     - Skips IDs that are not UUIDs (RevenueCat anonymous IDs) or that have no `WorkoutUserConfig`.
     - Calls `syncSupporterEntitlement` for each remaining ID.
   - Type the webhook body and REST response as `unknown` and narrow them with a small Zod schema.
-- **Workout primary endpoint:** add `userConfigs` branches next to the existing per-type branches:
-  - `WorkoutRetrieval.service.ts` `handleGet`, scoped to the requesting user;
-  - `WorkoutUpdate.service.ts`, with `updateMany`. It first removes `supporterEntitlementExpiresAt` from each incoming config, which makes this the single place that keeps clients from writing the entitlement.
+- **Workout primary endpoint:** add `userConfig` branches next to the existing per-type branches:
+  - `WorkoutRetrieval.service.ts` `handleGet`, with `getForUser` for the requesting user;
+  - `WorkoutUpdate.service.ts`, with `update`. It first removes `entitlements` from the incoming config, which makes this the single place that keeps clients from writing the entitlement.
 - **Admin (`src/routes/admin/Admin.service.ts`):**
   - `#handleUpdate` also applies `update.workoutUserConfigs` through `WorkoutUserConfigRepository.update`, the same way it applies `update.users`.
-  - `#handleUpdate` also handles `update.syncSupporterEntitlementUserIds`, after the document updates. It calls `RevenueCatService.syncSupporterEntitlement` for each user ID. It overwrites the field with RevenueCat's value, null included. If the RevenueCat call fails, the field is left unchanged and the error is returned in `errors`.
+  - `#handleUpdate` also handles `update.sync`, after the document updates. It calls `RevenueCatService.syncSupporterEntitlement` for each user ID whose `workoutUserConfig.entitlements.supporterExpiresAt` is `true`. It overwrites the field with RevenueCat's value, null included. If the RevenueCat call fails, the field is left unchanged and the error is returned in `errors`.
   - `#getUserDetail` also loads `WorkoutUserConfigRepository.getRepo().getForUser(userId)` into `workoutUserConfig`, in parallel with the dashboard config.
   - `Admin.module.ts` imports `RevenueCatModule`.
 - **Tests:**
@@ -102,7 +102,7 @@ Run `pnpm sub` to subscribe to all four ts-libs packages from Step 1.
     - unknown and anonymous IDs are ignored;
     - both sides of a transfer are synced.
   - `Admin.service.spec.ts` checks that `update.workoutUserConfigs` writes the entitlement, that sync writes RevenueCat's value (with `fetch` stubbed), and that `userDetail` includes `workoutUserConfig`.
-  - `WorkoutUpdate.service.spec.ts`: a client `update.userConfigs` that sets `supporterEntitlementExpiresAt` leaves the stored value unchanged.
+  - `WorkoutUpdate.service.spec.ts`: a client `update.userConfig` that sets `supporterExpiresAt` leaves the stored value unchanged.
   - `test/App.e2e.spec.ts`: add a case that the webhook returns 401 for a missing or wrong Authorization header.
 - Run `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm build`.
 - After deploying, use **Send test event** on the RevenueCat `gcloud-backend` webhook and confirm it returns 200.
@@ -113,7 +113,7 @@ Run `pnpm sub:core-ts-api-lib` and `pnpm sub:core-ts-db-lib` for the Step 1 chan
 
 Two changes:
 
-- The server-side `WorkoutUserConfig` is handled by a normal document map service, the same way as every other workout document.
+- The server-side `WorkoutUserConfig` is held by a single-document service, since each user has exactly one.
 - The existing local `userConfig` store, which holds auth info rather than a config, becomes `currentUser`. It also absorbs the `password` store and the flat `username` key, so all local login state lives in one place.
 
 ### `currentUser` store (rename of `userConfig`)
@@ -133,22 +133,20 @@ Two changes:
 
   `currentUserId` becomes `derived(currentUser, (u) => u.userId)`, and its 6 page and dialog consumers are untouched.
 
-- **Existing installs: one-time key migration.** `Auth.service.ts` `#applyLoginResult` resets the API queue and clears the cached workout maps when the signed-in user's ID differs from the stored one. A plain key rename would leave the stored ID anonymous, so the forced re-sign-in would discard unsynced changes.
-  - To avoid that, `currentUser.hydrate()` checks for a missing `currentUser` key. If the old `v5-userConfig`, `v5-username` and `v5-password` values exist, it builds the `CurrentUser` from them, writes it, and deletes the old keys.
-  - This also means existing installs stay signed in.
-  - Remove the migration once the release that carries it has been out long enough. Track it with a TODO naming the version.
+- **Existing installs:** `STORAGE_PREFIX` in `src/util/LocalData/storagePrefix.ts` moves from `v5-` to `v6-`, with no key migration. `LocalData.init()` deletes the `v5-` entries, so existing installs start signed out with an empty cache and refetch everything after signing in. Changes that had not synced before the update are lost.
 
-### `UserConfigMap.service.svelte.ts` (new)
+### `UserConfig.service.svelte.ts` (new)
 
-**New file: `src/services/documentMapServices/UserConfigMap.service.svelte.ts`,** following `EquipmentTypeMap.service.svelte.ts`.
+**New file: `src/services/UserConfigService/UserConfig.service.svelte.ts`.** It extends `AbstractDocumentMapStoreService` so it hydrates and handles API output with the document map services, and holds the config as `$state<WorkoutUserConfig | null>`.
 
-- `workoutApiInsertKey: 'userConfigs'`.
-- A new `userConfigMap` key in `LocalData.storedKeyNames`, cleared by `LocalData.clearWorkoutMaps()` with the other maps.
-- `handleApiOutput` sets the map when `output.userConfigs` is present and `input.get.userConfigs.all` is set.
-- **`get isSupporter()`:** true when the current user's config has a `supporterEntitlementExpiresAt` in the future. This is the only gate the UI checks.
+- **`get currentConfig()`:** the held config when its `userId` matches the signed-in user.
+- **`setConfig(config)`:** replaces the config and persists it to local data, without an API write.
+- A new `workoutUserConfig` key in `LocalData.storedKeyNames` with `getWorkoutUserConfig` / `setWorkoutUserConfig`. `LocalData.clearWorkoutDocuments()` clears it with the workout maps.
+- `handleApiOutput` sets the config when `output.userConfig` is present and `input.get.userConfig` is set.
+- **`get isSupporter()`:** true when the current user's config has a `supporterExpiresAt` in the future. This is the only gate the UI checks.
 - Add it to `apiResponseHandlingOrder.ts`.
-- `WorkoutAPI.service.ts` `getInitialData()` adds `userConfigs: { all: true }`.
-- **Demo mode and Storybook:** seed a config with a future `supporterEntitlementExpiresAt` through the existing mock scenario setup, built with `WorkoutUserConfigSchema.parse`. Demo mode then shows analytics with no special case in the gate.
+- `WorkoutAPI.service.ts` `getInitialData()` adds `userConfig: true`.
+- **Demo mode and Storybook:** seed a config with a future `supporterExpiresAt` through the existing mock scenario setup, built with `WorkoutUserConfigSchema.parse`. Demo mode then shows analytics with no special case in the gate.
 
 ## Step 4: workout app, purchase flow and paywall
 
@@ -163,7 +161,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 
 ### RevenueCat service
 
-**New file: `src/services/RevenueCat.service.ts`.** It holds no reactive state, so it is `.service.ts` rather than `.service.svelte.ts`. It follows the other native-plugin wrappers: an idempotent `init()`, a `Capacitor.isNativePlatform()` branch and a default-exported singleton. It only wraps the SDKs; the gate lives in `UserConfigMap.service`.
+**New file: `src/services/RevenueCat.service.ts`.** It holds no reactive state, so it is `.service.ts` rather than `.service.svelte.ts`. It follows the other native-plugin wrappers: an idempotent `init()`, a `Capacitor.isNativePlatform()` branch and a default-exported singleton. It only wraps the SDKs; the gate lives in `UserConfig.service`.
 
 - **`init(userId)`:** skipped in demo mode.
   - On native, calls `Purchases.configure({ apiKey, appUserID })` from `@revenuecat/purchases-capacitor`.
@@ -176,14 +174,14 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 - **`purchase()`:**
   - Looks up the `supporter_monthly` package in the current offering's `availablePackages` by identifier, then calls the platform SDK's purchase method.
   - The package identifier is a `static readonly` field, not the `offering.monthly` shortcut, so adding other tiers' packages does not change it.
-  - On success, it copies `customerInfo.entitlements.active.supporter.expirationDate` into the local config through `userConfigMapService.setMap`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
+  - On success, it copies `customerInfo.entitlements.active.supporter.expirationDate` into the local config through `userConfigService.setConfig`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
   - A user-cancelled purchase is a no-op, not an error.
 - **`getManagementUrl()`:** reads `CustomerInfo.managementURL` on demand, for the settings row.
 - **Wiring:** call `init` from the two places that establish a logged-in user: `Auth.service.ts` `#applyLoginResult` and `loginState.ts` `init()`.
 
 ### UI
 
-- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigMapService.isSupporter`.
+- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.isSupporter`.
   - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, $3/month, and a Subscribe button calling `revenueCatService.purchase()` on both platforms.
   - The nav item stays visible.
 - **Settings:** add `src/pages/SettingsPage/SettingsPageSupporterRow.svelte`, placed before `SettingsPageDeleteAccountButton`. It shows the supporter status and, when `getManagementUrl()` returns a URL, a "Manage subscription" button. Users with an admin grant have no RevenueCat history, so the button does not appear for them.
@@ -191,17 +189,17 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 
 ### Tests and validation
 
-- `UserConfigMap.service` spec: `isSupporter` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
+- `UserConfig.service` spec: `isSupporter` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
 - Run `pnpm lint --fix`, `pnpm check`, `pnpm test`.
 - With the release, update the Play Data safety form to declare purchase history (collected by RevenueCat).
 
 ## Step 5: dashboard admin panel
 
 - **Precondition (done separately, outside this plan):** the dashboard is already on the latest `@aneuhold` packages with their breaking changes adopted. Do not start this step until that is merged into `dashboard-wt-SetupRevenueCat`. This step then runs `pnpm sub:core-ts-api-lib` and `pnpm sub:core-ts-db-lib` for the Step 1 changes.
-- **`src/components/Admin/AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It shows `supporterEntitlementExpiresAt`, displayed as "Not a supporter" when null.
+- **`src/components/Admin/AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It shows `supporterExpiresAt`, displayed as "Not a supporter" when null.
 - **`src/components/Admin/AdminUserDetail.svelte`:** add a supporter entitlement row with three SMUI buttons, matching the existing Save and Delete buttons. Each refreshes from the returned `userDetail` and shows `snackbar.success` / `snackbar.error`, the same as `saveUser`.
-  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `supporterEntitlementExpiresAt` set to `3000-01-01` or null, through `AdminAPIService.query({ update: { workoutUserConfigs: [config] }, get: { userDetail: userId } })`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
-  - **Sync from RevenueCat** sends `{ update: { syncSupporterEntitlementUserIds: [userId] }, get: { userDetail: userId } }`. It replaces the date with whatever RevenueCat returns (a date or none).
+  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `supporterExpiresAt` set to `3000-01-01` or null, through `AdminAPIService.query({ update: { workoutUserConfigs: [config] }, get: { userDetail: userId } })`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
+  - **Sync from RevenueCat** sends `{ update: { sync: { [userId]: { workoutUserConfig: { entitlements: { supporterExpiresAt: true } } } } }, get: { userDetail: userId } }`. It replaces the date with whatever RevenueCat returns (a date or none).
   - Further config fields can get edit controls here later through the same `update.workoutUserConfigs` path.
 - **Mocks and stories:**
   - `AdminAPI.service.mock.ts` `createUserDetail` adds a `workoutUserConfig` built with `WorkoutUserConfigSchema.parse`.
@@ -213,7 +211,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 With a license tester and Stripe test mode, check that:
 
 - a purchase on either platform unlocks immediately;
-- the webhook writes `supporterEntitlementExpiresAt`;
+- the webhook writes `supporterExpiresAt`;
 - the other platform unlocks after its next initial data fetch;
 - the admin panel's Grant unlocks with no purchase, Clear locks again, and Sync restores RevenueCat's value;
 - cancelling keeps access until expiry;

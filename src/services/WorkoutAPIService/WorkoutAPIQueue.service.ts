@@ -8,7 +8,7 @@ import {
 import apiActivityService from '$services/ApiActivityService/ApiActivity.service.svelte';
 import LoggingService from '$services/LoggingService/Logging.service';
 import WebSocketService from '$services/WebSocket.service';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import LocalData from '$util/LocalData/LocalData';
 
 /**
@@ -190,7 +190,7 @@ class WorkoutAPIQueueService {
           apiActivityService.setOffline();
           return false;
         }
-        if (!userConfig.get().accessToken) {
+        if (!currentUser.get().accessToken) {
           apiActivityService.setPending();
           return false;
         }

@@ -5,7 +5,7 @@ import type {
 import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
 import LoggingService from '$services/LoggingService/Logging.service';
 import updateCheckService from '$services/UpdateCheck.service.svelte';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import { PerfMark } from '$util/perfMarks';
 import workoutAPIQueueService from './WorkoutAPIQueue.service';
 
@@ -86,7 +86,7 @@ export default class WorkoutAPIService {
    * ago or it hasn't been fetched yet.
    */
   static getInitialDataIfNeeded(): void {
-    if (!userConfig.get().accessToken) return;
+    if (!currentUser.get().accessToken) return;
 
     if (!this.lastInitialDataFetchTime) {
       this.getInitialData();
@@ -131,7 +131,8 @@ export default class WorkoutAPIService {
         exerciseCTOs: { all: true },
         muscleGroups: { all: true },
         equipmentTypes: { all: true },
-        muscleGroupVolumeCTOs: { all: true }
+        muscleGroupVolumeCTOs: { all: true },
+        userConfig: true
       }
     });
   }

@@ -47,26 +47,26 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-  participant App as RevenueCatService + UserConfigMapService
+  participant App as RevenueCatService + UserConfigService
   participant RC as RevenueCat
   participant BE as gcloud-backend
   participant DB as WorkoutUserConfig (MongoDB)
 
   RC-->>App: CustomerInfo from the purchase call
-  App->>App: setMap with supporter expirationDate (local only, unlocks immediately)
+  App->>App: setConfig with supporter expirationDate (local only, unlocks immediately)
 
   RC->>BE: POST project/workout/revenueCat/webhook
   Note over BE: RevenueCatWebhookGuard checks the Authorization header
   BE->>BE: RevenueCatService.handleWebhookEvent collects user IDs
   BE->>RC: GET /v2/projects/{projectId}/customers/{userId}/active_entitlements
   RC-->>BE: supporter expires_at (or absent)
-  BE->>DB: WorkoutUserConfigRepository.update(supporterEntitlementExpiresAt)
+  BE->>DB: WorkoutUserConfigRepository.update(supporterExpiresAt)
   BE-->>RC: 200
 
-  App->>BE: POST project/workout (get.userConfigs)
+  App->>BE: POST project/workout (get.userConfig)
   BE->>DB: WorkoutRetrieval.service reads the user's config
-  BE-->>App: userConfigs
-  App->>App: UserConfigMapService.handleApiOutput, isSupporter gates the analytics page
+  BE-->>App: userConfig
+  App->>App: UserConfigService.handleApiOutput, isSupporter gates the analytics page
 ```
 
 The dashboard admin panel's Sync action reuses `RevenueCatService.syncSupporterEntitlement`, the same fetch and write as the webhook.
