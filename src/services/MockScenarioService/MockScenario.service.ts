@@ -1,4 +1,4 @@
-import { CycleType } from '@aneuhold/core-ts-db-lib';
+import { CycleType, WorkoutEntitlement } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import type { UUID } from 'crypto';
 import type { MockGeneratedMesocycleData } from '$services/documentMapServices/MesocycleMap.service.mock';
@@ -25,7 +25,7 @@ export default class MockScenarioService {
   static setupScenario(scenario: FullAppScenario): string | null {
     MockDataService.resetAll();
     // Every scenario is a supporter, so supporter-only pages show their content
-    userConfigServiceMock.grantSupporter();
+    userConfigServiceMock.grantEntitlement(WorkoutEntitlement.Supporter);
 
     if (scenario === FullAppScenario.CompletelyFresh) {
       // Brand-new user: no muscle groups, equipment, exercises, or mesocycles.

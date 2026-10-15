@@ -1,3 +1,4 @@
+import { WorkoutEntitlement } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { beforeEach, describe, expect, it } from 'vitest';
 import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
@@ -11,27 +12,33 @@ describe('Unit Tests', () => {
 
   describe('entitlements', () => {
     it('has supporter true when the entitlement expires in the future', () => {
-      userConfigServiceMock.setSupporterExpiresAt(DateService.addDays(new Date(), 1));
+      userConfigServiceMock.setEntitlementExpiresAt(
+        WorkoutEntitlement.Supporter,
+        DateService.addDays(new Date(), 1)
+      );
 
-      expect(userConfigService.entitlements.supporter).toBe(true);
+      expect(userConfigService.entitlements[WorkoutEntitlement.Supporter]).toBe(true);
     });
 
     it('has supporter false when the entitlement has expired', () => {
-      userConfigServiceMock.setSupporterExpiresAt(DateService.addDays(new Date(), -1));
+      userConfigServiceMock.setEntitlementExpiresAt(
+        WorkoutEntitlement.Supporter,
+        DateService.addDays(new Date(), -1)
+      );
 
-      expect(userConfigService.entitlements.supporter).toBe(false);
+      expect(userConfigService.entitlements[WorkoutEntitlement.Supporter]).toBe(false);
     });
 
     it('has supporter false when the entitlement expiry is null', () => {
-      userConfigServiceMock.setSupporterExpiresAt(null);
+      userConfigServiceMock.setEntitlementExpiresAt(WorkoutEntitlement.Supporter, null);
 
-      expect(userConfigService.entitlements.supporter).toBe(false);
+      expect(userConfigService.entitlements[WorkoutEntitlement.Supporter]).toBe(false);
     });
 
     it('has supporter false when the current user has no config', () => {
       userConfigService.setWithoutApiPersist(null);
 
-      expect(userConfigService.entitlements.supporter).toBe(false);
+      expect(userConfigService.entitlements[WorkoutEntitlement.Supporter]).toBe(false);
     });
   });
 });

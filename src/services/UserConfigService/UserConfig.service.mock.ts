@@ -1,4 +1,4 @@
-import { WorkoutUserConfigSchema } from '@aneuhold/core-ts-db-lib';
+import { type WorkoutEntitlement, WorkoutUserConfigSchema } from '@aneuhold/core-ts-db-lib';
 import MockUsers from '$util/MockUsers';
 import userConfigService from './UserConfig.service.svelte';
 
@@ -14,26 +14,27 @@ class UserConfigServiceMock {
   }
 
   /**
-   * Sets when the current user's supporter entitlement expires.
+   * Sets when one of the current user's entitlements expires.
    *
-   * @param supporterExpiresAt The expiry, or null for a user who is
-   *   not a supporter
+   * @param entitlement The entitlement to set
+   * @param expiresAt The expiry, or null for a user who does not hold it
    */
-  setSupporterExpiresAt(supporterExpiresAt: Date | null): void {
+  setEntitlementExpiresAt(entitlement: WorkoutEntitlement, expiresAt: Date | null): void {
     userConfigService.updateWithoutApiPersist((config) => ({
       ...config,
-      entitlements: { ...config.entitlements, supporterExpiresAt }
+      entitlements: { ...config.entitlements, [entitlement]: { expiresAt } }
     }));
   }
 
   /**
-   * Gives the current user a supporter entitlement that expires a year from
-   * now.
+   * Gives the current user an entitlement that expires a year from now.
+   *
+   * @param entitlement The entitlement to grant
    */
-  grantSupporter(): void {
+  grantEntitlement(entitlement: WorkoutEntitlement): void {
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-    this.setSupporterExpiresAt(expiresAt);
+    this.setEntitlementExpiresAt(entitlement, expiresAt);
   }
 }
 

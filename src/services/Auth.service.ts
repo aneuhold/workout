@@ -9,8 +9,7 @@ import demoModeService from '$services/DemoMode.service.svelte';
 import googleAuthService from '$services/GoogleAuth.service';
 import LoggingService from '$services/LoggingService/Logging.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
-import { password } from '$stores/local/password';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import { LoginState, loginState } from '$stores/session/loginState';
 import LocalData from '$util/LocalData/LocalData';
 
@@ -40,9 +39,9 @@ class AuthService {
   }
 
   /**
-   * Validates a username/password pair and applies the result. Persists the
-   * username to local storage and writes the password to its store so
-   * subsequent app launches can prefill the form.
+   * Validates a username/password pair and applies the result. Stores the
+   * username and password on the current user so subsequent app launches can
+   * prefill the form.
    *
    * @param userName - The username to log in as.
    * @param userPassword - The password to validate.
@@ -51,8 +50,7 @@ class AuthService {
     userName: string,
     userPassword: string
   ): Promise<APIResponse<AuthValidateUserOutput>> {
-    void LocalData.setUsername(userName);
-    password.set(userPassword);
+    currentUser.update((user) => ({ ...user, username: userName, password: userPassword }));
     loginState.set(LoginState.ProcessingCredentials);
     const response = await APIService.validateUser({
       userName,
@@ -111,17 +109,18 @@ class AuthService {
 
       // A different user must not inherit the previous user's queued changes
       // or cached documents.
-      if (user._id !== userConfig.get().userId) {
+      if (user._id !== currentUser.get().userId) {
         WorkoutAPIService.reset();
-        await LocalData.clearWorkoutMaps();
+        await LocalData.clearWorkoutDocuments();
       }
 
-      userConfig.set({
+      currentUser.update((storedUser) => ({
+        ...storedUser,
         userId: user._id,
         username: user.userName,
         accessToken: accessToken ?? null,
         refreshTokenString: refreshTokenString ?? null
-      });
+      }));
       WorkoutAPIService.getInitialDataForLogin();
       loginState.set(LoginState.LoggedIn);
     } else if (!response.success) {
@@ -143,9 +142,9 @@ class AuthService {
       demoModeService.exit();
       return;
     }
-    userConfig.clear();
+    currentUser.clear();
     WorkoutAPIService.reset();
-    await LocalData.clearWorkoutMaps();
+    await LocalData.clearWorkoutDocuments();
     loginState.set(LoginState.LoggedOut);
     await googleAuthService.logout();
   }

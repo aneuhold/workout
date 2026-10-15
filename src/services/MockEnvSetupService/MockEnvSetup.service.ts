@@ -6,12 +6,13 @@ import exerciseMapService from '$services/documentMapServices/ExerciseMap.servic
 import MockDataService from '$services/MockDataService/MockData.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
+import purchaseService from '$services/PurchaseService/Purchase.service';
 import WebSocketService from '$services/WebSocket.service';
 import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import WorkoutHydrationService from '$services/WorkoutHydration.service';
-import { userConfig } from '$stores/local/userConfig/userConfig';
-import userConfigMock from '$stores/local/userConfig/userConfig.mock';
+import { currentUser } from '$stores/local/currentUser/currentUser';
+import currentUserMock from '$stores/local/currentUser/currentUser.mock';
 import MockUsers from '$util/MockUsers';
 import MockAPIBackend from './MockAPIBackend';
 
@@ -25,7 +26,7 @@ class MockEnvSetupService {
 
   /**
    * Registers the API output handlers, installs the network-free API and
-   * WebSocket, then resets the mock document maps and user config.
+   * WebSocket, then resets the mock document maps and current user.
    *
    * @param useRealBackend Leaves the API and WebSocket on their real backends
    *   instead of installing the network-free ones
@@ -36,7 +37,7 @@ class MockEnvSetupService {
       this.#installMockBackends();
     }
     MockDataService.resetAll();
-    userConfigMock.reset();
+    currentUserMock.reset();
   }
 
   /**
@@ -45,7 +46,7 @@ class MockEnvSetupService {
    */
   async resumeDemo(): Promise<void> {
     this.#installMockBackends();
-    await Promise.all([userConfig.hydrate(), WorkoutHydrationService.hydrateDocumentMaps()]);
+    await Promise.all([currentUser.hydrate(), WorkoutHydrationService.hydrateDocumentMaps()]);
     this.#rebuildExerciseCTOs();
   }
 
@@ -60,9 +61,10 @@ class MockEnvSetupService {
     this.#rebuildExerciseCTOs();
     // The scenario adds its documents without persisting them
     WorkoutHydrationService.persistDocumentMaps();
-    userConfig.set({
+    currentUser.set({
       userId: MockUsers.currentUserCto._id,
       username: 'Demo User',
+      password: '',
       accessToken: 'demo-mode-token',
       refreshTokenString: null
     });
@@ -82,12 +84,14 @@ class MockEnvSetupService {
   }
 
   /**
-   * Routes the API and WebSocket away from the network. Resets stay out of
-   * this method, because a reset erases what `LocalData` has stored.
+   * Routes the API, WebSocket, and purchases away from the network. Resets
+   * stay out of this method, because a reset erases what `LocalData` has
+   * stored.
    */
   #installMockBackends(): void {
     APIService.setBackend(this.#apiBackend);
     WebSocketService.disable();
+    purchaseService.disable();
   }
 }
 

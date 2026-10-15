@@ -7,7 +7,7 @@ How a MesoPro Supporter purchase moves from the paywall to the unlocked analytic
 ```mermaid
 sequenceDiagram
   actor User
-  participant App as AnalyticsPagePaywall + RevenueCatService
+  participant App as AnalyticsPagePaywall + PurchaseService
   participant SDK as @revenuecat/purchases-capacitor
   participant Play as Google Play
   participant RC as RevenueCat
@@ -28,7 +28,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   actor User
-  participant App as AnalyticsPagePaywall + RevenueCatService
+  participant App as AnalyticsPagePaywall + PurchaseService
   participant SDK as @revenuecat/purchases-js
   participant RC as RevenueCat Web Billing
   participant Stripe
@@ -47,7 +47,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-  participant App as RevenueCatService + UserConfigService
+  participant App as PurchaseService + UserConfigService
   participant RC as RevenueCat
   participant BE as gcloud-backend
   participant DB as WorkoutUserConfig (MongoDB)
@@ -60,13 +60,13 @@ sequenceDiagram
   BE->>BE: RevenueCatService.handleWebhookEvent collects user IDs
   BE->>RC: GET /v2/projects/{projectId}/customers/{userId}/active_entitlements
   RC-->>BE: supporter expires_at (or absent)
-  BE->>DB: WorkoutUserConfigRepository.update(supporterExpiresAt)
+  BE->>DB: WorkoutUserConfigRepository.update(entitlements.supporter.expiresAt)
   BE-->>RC: 200
 
   App->>BE: POST project/workout (get.userConfig)
   BE->>DB: WorkoutRetrieval.service reads the user's config
   BE-->>App: userConfig
-  App->>App: UserConfigService.handleApiOutput, entitlements.supporter gates the analytics page
+  App->>App: UserConfigService.handleApiOutput, entitlements[Supporter] gates the analytics page
 ```
 
-The dashboard admin panel's Sync action reuses `RevenueCatService.syncSupporterEntitlement`, the same fetch and write as the webhook.
+The dashboard admin panel's Sync action reuses `RevenueCatService.syncEntitlements`, the same fetch and write as the webhook.

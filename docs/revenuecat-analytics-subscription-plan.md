@@ -5,7 +5,7 @@ Add a $3/month **MesoPro Supporter** tier, sold through Google Play Billing in t
 **Naming in code:**
 
 - The RevenueCat entitlement is `supporter`. "Entitlement" is the term RevenueCat and Google Play Billing both use for access granted by a purchase.
-- The stored field is `supporterExpiresAt`.
+- Entitlements are stored keyed by the `WorkoutEntitlement` enum, so the supporter expiry is `entitlements.supporter.expiresAt`.
 
 ## Overview
 
@@ -24,7 +24,7 @@ Dashboard admin panel ── POST admin (update config / sync) ─────�
 App (both platforms) <── primary endpoint get.userConfig ───────────────────────────┘
 ```
 
-- **Source of truth:** a new `WorkoutUserConfig` document per user, modeled on `DashboardUserConfig`. Its `supporterExpiresAt` field is the only thing the app checks.
+- **Source of truth:** a new `WorkoutUserConfig` document per user, modeled on `DashboardUserConfig`. Its `entitlements[WorkoutEntitlement.Supporter].expiresAt` is the only thing the app checks.
 - **Who writes it:**
   - The RevenueCat webhook writes RevenueCat's current expiry.
   - The dashboard admin panel can edit any `WorkoutUserConfig` field. For the entitlement, that means Grant (year 3000) or Clear (null), plus a Sync action that re-fetches from RevenueCat.
@@ -49,7 +49,12 @@ Follow `ts-libs/.claude/CLAUDE.md`. Do not bump versions. `pnpm watch` runs in t
 - **New document: `core-ts-db-lib/src/documents/workout/WorkoutUserConfig.ts`.** It mirrors `documents/dashboard/UserConfig.ts`:
   - `WorkoutUserConfig_docType = 'workoutUserConfig'` (matching the other workout docTypes);
   - `BaseDocumentWithTypeSchema` and `RequiredUserIdSchema` shapes;
-  - `supporterExpiresAt: z.date().nullish()`, with a JSDoc saying it mirrors the RevenueCat `supporter` entitlement expiry and is written only by the webhook and admin actions.
+  - a `WorkoutEntitlement` string enum in the same file (like `CycleType` in `WorkoutMesocycle.ts`), starting with `Supporter = 'supporter'`;
+  - `entitlements: z.partialRecord(z.enum(WorkoutEntitlement), z.object({ expiresAt: z.date().nullish() })).default({})`, so a new enum value is a valid key with no schema change. The expiries are written only by the webhook and admin actions.
+- **New constant: `core-ts-db-lib/src/constants/workoutEntitlementDefinitions.ts`,** next to `googleClientId.ts`. `workoutEntitlementDefinitions` is a `Record<WorkoutEntitlement, { revenueCat: { entitlementId, entitlementLookupKey, packageId } }>`, each field documented with a link to the RevenueCat docs. It is the one place that maps an entitlement to the provider's identifiers:
+  - `entitlementId` is RevenueCat's generated ID (`entl...`), which the v2 REST API returns as `entitlement_id`;
+  - `entitlementLookupKey` is the identifier chosen in the dashboard (`supporter`), which the client SDKs key `customerInfo.entitlements.active` by;
+  - `packageId` is the package in the current offering that grants it (`supporter_monthly`).
 
   Export it from the package's root `index.ts` with the other workout documents, with a spec alongside it.
 
@@ -70,7 +75,7 @@ Follow `ts-libs/.claude/CLAUDE.md`. Do not bump versions. `pnpm watch` runs in t
 
 - **`core-ts-api-lib/src/types/Admin.ts`:** add admin support for the entitlement. Export the new types from `browser.ts` next to the other admin types. No new endpoint or client method is needed, since everything goes through `APIService.callAdminAPI`.
   - **`AdminInput.update`:** add `workoutUserConfigs?: WorkoutUserConfig[]`, next to `users`. The admin can update any config field, the same way it already updates any `User` field.
-  - **`AdminInput.update`:** also add `sync?: { [userId: UUID]: { workoutUserConfig?: { entitlements?: { supporterExpiresAt?: boolean } } } }`. Each field set to `true` is updated from its external system's current value (RevenueCat for `supporterExpiresAt`) instead of from a document the client sends. New syncable fields are added as more keys in the same shape.
+  - **`AdminInput.update`:** also add `sync?: { [userId: UUID]: { workoutUserConfig?: { entitlements?: Partial<Record<WorkoutEntitlement, boolean>> } } }`. Each entitlement set to `true` is updated from the purchase provider's current value instead of from a document the client sends. New syncable fields are added as more keys in the same shape.
   - **`AdminOutputUserDetail`:** add `workoutUserConfig?: WorkoutUserConfig`.
 - **`be-ts-lib/src/services/ConfigService/ConfigDefinition.ts`:** add `revenueCatGCloudBackendWebhookAuthHeader: z.string()` and `revenueCatGCloudBackendSecretApiKey: z.string()` to `ConfigSchema`, each with a one-line JSDoc.
 - Run `pnpm check`, `pnpm test`, `pnpm lint` in ts-libs.
@@ -82,18 +87,18 @@ Run `pnpm sub` to subscribe to all four ts-libs packages from Step 1.
 - **New guard: `src/common/guards/RevenueCatWebhook.guard.ts`.** A `CanActivate` modeled on `SuperAdmin.guard.ts` that compares the `Authorization` header to `ConfigService.config.revenueCatGCloudBackendWebhookAuthHeader` with `crypto.timingSafeEqual`. A separate guard is needed because the global `AuthGuard` only accepts Bearer JWTs.
 - **New module: `src/routes/project/workout/revenueCat/`** with `RevenueCat.controller.ts`, `RevenueCat.module.ts` and `RevenueCat.service.ts`, registered in `src/routes/App.module.ts`. The module exports `RevenueCatService` so `AdminModule` can import it.
   - **Controller:** `POST project/workout/revenueCat/webhook`, placed under the workout project because the RevenueCat project and the `WorkoutUserConfig` it writes are both MesoPro-specific. Another app's RevenueCat project would get its own webhook under its own project path. It is decorated with `@Public()` and `@UseGuards(RevenueCatWebhookGuard)`. It returns 200 once the event is handled, including for unknown users, so RevenueCat does not retry. It returns a non-200 only for transient failures (REST API or DB unavailable) so RevenueCat's retries cover them.
-  - **Service, `syncSupporterEntitlement(userId)`:** calls `GET https://api.revenuecat.com/v2/projects/{projectId}/customers/{userId}/active_entitlements` ([API v2 customer docs](https://www.revenuecat.com/docs/api-v2/customer)) with `revenueCatGCloudBackendSecretApiKey`, and finds the item whose `entitlement_id` is the `supporter` entitlement's ID. The project ID (`projbb068855`) and the `supporter` entitlement ID are not secret, so they are `static readonly` fields on the service. The entitlement ID is RevenueCat's generated ID from the entitlement's page (the [v2 entitlement object](https://www.revenuecat.com/docs/api-v2/entitlement) shows the format `entla1b2c3d4e5`), not the `supporter` lookup key. `expires_at` is in ms since epoch. It writes that date (or null if the entitlement is not active) onto the user's config with `WorkoutUserConfigRepository.update`, and returns the updated config. This is the one place that talks to RevenueCat, and both the webhook and the admin sync use it.
+  - **Service, `syncEntitlements(userId, entitlements = all)`:** calls `GET https://api.revenuecat.com/v2/projects/{projectId}/customers/{userId}/active_entitlements` ([API v2 customer docs](https://www.revenuecat.com/docs/api-v2/customer)) with `revenueCatGCloudBackendSecretApiKey`. For each requested entitlement, it finds the item whose `entitlement_id` matches `workoutEntitlementDefinitions[entitlement].revenueCat.entitlementId`. The project ID (`projbb068855`) is not secret, so it is a field on the service. `expires_at` is in ms since epoch, and an active entitlement without one is stored as `3000-01-01`. It writes each expiry (or null if the entitlement is not active) onto the user's config with `WorkoutUserConfigRepository.update`, and returns the updated config. This is the one place that talks to RevenueCat, and both the webhook and the admin sync use it.
   - **Service, `handleWebhookEvent(event)`:**
     - Collects the user IDs from the event: `app_user_id`, plus `transferred_from` / `transferred_to` for `TRANSFER` events.
     - Skips IDs that are not UUIDs (RevenueCat anonymous IDs) or that have no `WorkoutUserConfig`.
-    - Calls `syncSupporterEntitlement` for each remaining ID.
+    - Calls `syncEntitlements` for each remaining ID, syncing every entitlement.
   - Type the webhook body and REST response as `unknown` and narrow them with a small Zod schema.
 - **Workout primary endpoint:** add `userConfig` branches next to the existing per-type branches:
   - `WorkoutRetrieval.service.ts` `handleGet`, with `getForUser` for the requesting user;
   - `WorkoutUpdate.service.ts`, with `update`. It first removes `entitlements` from the incoming config, which makes this the single place that keeps clients from writing the entitlement.
 - **Admin (`src/routes/admin/Admin.service.ts`):**
   - `#handleUpdate` also applies `update.workoutUserConfigs` through `WorkoutUserConfigRepository.update`, the same way it applies `update.users`.
-  - `#handleUpdate` also handles `update.sync`, after the document updates. It calls `RevenueCatService.syncSupporterEntitlement` for each user ID whose `workoutUserConfig.entitlements.supporterExpiresAt` is `true`. It overwrites the field with RevenueCat's value, null included. If the RevenueCat call fails, the field is left unchanged and the error is returned in `errors`.
+  - `#handleUpdate` also handles `update.sync`, after the document updates. It calls `RevenueCatService.syncEntitlements` for each user ID with the entitlements set to `true` in `workoutUserConfig.entitlements`. It overwrites each with RevenueCat's value, null included. If the RevenueCat call fails, the field is left unchanged and the error is returned in `errors`.
   - `#getUserDetail` also loads `WorkoutUserConfigRepository.getRepo().getForUser(userId)` into `workoutUserConfig`, in parallel with the dashboard config.
   - `Admin.module.ts` imports `RevenueCatModule`.
 - **Tests:**
@@ -102,7 +107,7 @@ Run `pnpm sub` to subscribe to all four ts-libs packages from Step 1.
     - unknown and anonymous IDs are ignored;
     - both sides of a transfer are synced.
   - `Admin.service.spec.ts` checks that `update.workoutUserConfigs` writes the entitlement, that sync writes RevenueCat's value (with `fetch` stubbed), and that `userDetail` includes `workoutUserConfig`.
-  - `WorkoutUpdate.service.spec.ts`: a client `update.userConfig` that sets `supporterExpiresAt` leaves the stored value unchanged.
+  - `WorkoutUpdate.service.spec.ts`: a client `update.userConfig` that sets an entitlement leaves the stored entitlements unchanged.
   - `test/App.e2e.spec.ts`: add a case that the webhook returns 401 for a missing or wrong Authorization header.
 - Run `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm build`.
 - After deploying, use **Send test event** on the RevenueCat `gcloud-backend` webhook and confirm it returns 200.
@@ -143,10 +148,10 @@ Two changes:
 - **`setWithoutApiPersist(config)`** replaces the config, and **`updateWithoutApiPersist(updater)`** updates the signed-in user's loaded config. Both persist to local data without an API write.
 - A new `workoutUserConfig` key in `LocalData.storedKeyNames` with `getWorkoutUserConfig` / `setWorkoutUserConfig`. `LocalData.clearWorkoutDocuments()` clears it with the workout maps.
 - `handleApiOutput` sets the config when `output.userConfig` is present and `input.get.userConfig` is set.
-- **`get entitlements()`:** returns `{ supporter: boolean }`, where `supporter` is true when the current user's config has a `supporterExpiresAt` in the future. Future entitlements are added as more keys. This is the only gate the UI checks.
+- **`get entitlements()`:** returns `Record<WorkoutEntitlement, boolean>`, each true when the current user's config has that entitlement's `expiresAt` in the future. A new enum value fails `pnpm check` until it is added here. This is the only gate the UI checks.
 - Add it to `apiResponseHandlingOrder.ts`.
 - `WorkoutAPI.service.ts` `getInitialData()` adds `userConfig: true`.
-- **Demo mode and Storybook:** seed a config with a future `supporterExpiresAt` through the existing mock scenario setup, built with `WorkoutUserConfigSchema.parse`. Demo mode then shows analytics with no special case in the gate.
+- **Demo mode and Storybook:** seed a config with a future supporter `expiresAt` through the existing mock scenario setup (`userConfigServiceMock.grantEntitlement`), built with `WorkoutUserConfigSchema.parse`. Demo mode then shows analytics with no special case in the gate.
 
 ## Step 4: workout app, purchase flow and paywall
 
@@ -159,47 +164,56 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
   - Google sign-in goes through Credential Manager.
   - No `appUrlOpen` listener exists.
 
-### RevenueCat service
+### Purchase service
 
-**New file: `src/services/RevenueCat.service.ts`.** It holds no reactive state, so it is `.service.ts` rather than `.service.svelte.ts`. It follows the other native-plugin wrappers: an idempotent `init()`, a `Capacitor.isNativePlatform()` branch and a default-exported singleton. It only wraps the SDKs; the gate lives in `UserConfig.service`.
+**New folder: `src/services/PurchaseService/`.** None of it holds reactive state, so the services are `.service.ts` rather than `.service.svelte.ts`. Callers use only `PurchaseService`, so the provider can be swapped without touching them. The gate lives in `UserConfig.service`.
 
-- **`init(userId)`:** skipped in demo mode.
+- **`IPurchaseBackend.ts`:** the contract a purchase provider implements, following `ILocalDataBackend`: `identify(userId)`, `purchaseEntitlement(entitlement: WorkoutEntitlement)` (resolves to `{ expiresAt }`, or `null` when the user cancels) and `getManagementUrl()`.
+- **`Purchase.service.ts`:** the default-exported `purchaseService` singleton that callers use. It holds the backend (`RevenueCat.service.ts`).
+  - `init(userId)` stores the user and identifies them with the backend, logging errors. `purchaseEntitlement()` and `getManagementUrl()` identify first, which reuses a successful identify and retries a failed one. Calling either before `init` throws.
+  - `purchaseEntitlement(entitlement)` writes the returned expiry to `entitlements[entitlement]` in the local config through `userConfigService.updateWithoutApiPersist`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
+  - `disable()` makes every method a no-op for demo mode, tests and Storybook.
+- **`RevenueCat.service.ts`:** `RevenueCatService implements IPurchaseBackend`, wrapping the two RevenueCat SDKs behind a `Capacitor.isNativePlatform()` branch.
+
+`RevenueCatService` methods:
+
+- **`identify(userId)`:**
   - On native, calls `Purchases.configure({ apiKey, appUserID })` from `@revenuecat/purchases-capacitor`.
   - On web, calls `Purchases.configure({ apiKey, appUserId })` from `@revenuecat/purchases-js`.
-  - If already configured for another user, it calls `logIn(userId)` instead. It never calls `logOut()`, since that creates anonymous IDs ([identifying customers](https://www.revenuecat.com/docs/customers/identifying-customers)).
+  - If the SDK is already configured, it calls `logIn(userId)` (native) or `changeUser(userId)` (web) instead. It never calls `logOut()`, since that creates anonymous IDs ([identifying customers](https://www.revenuecat.com/docs/customers/identifying-customers)).
   - The public API keys are `static readonly` fields, matching how `UpdateCheck.service.svelte.ts` holds its URL. Web uses the sandbox key in dev builds and the production key otherwise.
     - MesoPro (Play Store): `goog_MBlwtwazXAphuqLnFTuPhquiPpB`
     - MesoPro (Web): `rcb_eBhpqqdAPcFtQyMGxlpcsSjbBiZk`
     - MesoPro (Web) sandbox: `rcb_sb_jUpWrhhvYOdUjRIUyTwqmJSyb`
-- **`purchase()`:**
-  - Looks up the `supporter_monthly` package in the current offering's `availablePackages` by identifier, then calls the platform SDK's purchase method.
-  - The package identifier is a `static readonly` field, not the `offering.monthly` shortcut, so adding other tiers' packages does not change it.
-  - On success, it copies `customerInfo.entitlements.active.supporter.expirationDate` into the local config through `userConfigService.updateWithoutApiPersist`, without an API write. This unlocks the app immediately, and the next initial data fetch replaces it with the webhook-written value.
-  - A user-cancelled purchase is a no-op, not an error.
+- **`purchaseEntitlement(entitlement)`:**
+  - Reads the entitlement's `packageId` and `entitlementLookupKey` from `workoutEntitlementDefinitions`.
+  - Looks up the package in the current offering's `availablePackages` by identifier, not the `offering.monthly` shortcut, so adding other tiers' packages does not change it. Then it calls the platform SDK's purchase method.
+  - On success, it returns `customerInfo.entitlements.active[entitlementLookupKey].expirationDate` as `expiresAt`.
+  - A user-cancelled purchase returns `null`, not an error.
 - **`getManagementUrl()`:** reads `CustomerInfo.managementURL` on demand, for the settings row.
-- **Wiring:** call `init` from the two places that establish a logged-in user: `Auth.service.ts` `#applyLoginResult` and `loginState.ts` `init()`.
+- **Wiring:** `loginState.ts` `setLoginState` calls `purchaseService.init` with the `currentUser` ID whenever the state becomes `LoggedIn`, alongside the Sentry user. This covers both a restored session at startup and a fresh sign-in.
 
 ### UI
 
-- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.entitlements.supporter`.
-  - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, $3/month, and a Subscribe button calling `revenueCatService.purchase()` on both platforms.
+- **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.entitlements[WorkoutEntitlement.Supporter]`.
+  - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, $3/month, and a Subscribe button calling `purchaseService.purchaseEntitlement(WorkoutEntitlement.Supporter)` on both platforms.
   - The nav item stays visible.
 - **Settings:** add `src/pages/SettingsPage/SettingsPageSupporterRow.svelte`, placed before `SettingsPageDeleteAccountButton`. It shows the supporter status and, when `getManagementUrl()` returns a URL, a "Manage subscription" button. Users with an admin grant have no RevenueCat history, so the button does not appear for them.
 - **Storybook:** add stories for `AnalyticsPagePaywall` and the settings row (inactive, active), following the `SettingsPage/SB/` layout. `SBFullAppRouter.svelte` already routes `/analytics`.
 
 ### Tests and validation
 
-- `UserConfig.service` spec: `entitlements.supporter` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
+- `UserConfig.service` spec: `entitlements[WorkoutEntitlement.Supporter]` for an expired date, a future date, a null date and a missing config. Use the existing mock utilities in `src/services`.
 - Run `pnpm lint --fix`, `pnpm check`, `pnpm test`.
 - With the release, update the Play Data safety form to declare purchase history (collected by RevenueCat).
 
 ## Step 5: dashboard admin panel
 
 - **Precondition (done separately, outside this plan):** the dashboard is already on the latest `@aneuhold` packages with their breaking changes adopted. Do not start this step until that is merged into `dashboard-wt-SetupRevenueCat`. This step then runs `pnpm sub:core-ts-api-lib` and `pnpm sub:core-ts-db-lib` for the Step 1 changes.
-- **`src/components/Admin/AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It shows `supporterExpiresAt`, displayed as "Not a supporter" when null.
+- **`src/components/Admin/AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It shows the supporter `expiresAt`, displayed as "Not a supporter" when null.
 - **`src/components/Admin/AdminUserDetail.svelte`:** add a supporter entitlement row with three SMUI buttons, matching the existing Save and Delete buttons. Each refreshes from the returned `userDetail` and shows `snackbar.success` / `snackbar.error`, the same as `saveUser`.
-  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `supporterExpiresAt` set to `3000-01-01` or null, through `AdminAPIService.query({ update: { workoutUserConfigs: [config] }, get: { userDetail: userId } })`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
-  - **Sync from RevenueCat** sends `{ update: { sync: { [userId]: { workoutUserConfig: { entitlements: { supporterExpiresAt: true } } } } }, get: { userDetail: userId } }`. It replaces the date with whatever RevenueCat returns (a date or none).
+  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `entitlements[WorkoutEntitlement.Supporter]` set to `{ expiresAt }` of `3000-01-01` or null, through `AdminAPIService.query({ update: { workoutUserConfigs: [config] }, get: { userDetail: userId } })`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
+  - **Sync from RevenueCat** sends `{ update: { sync: { [userId]: { workoutUserConfig: { entitlements: { [WorkoutEntitlement.Supporter]: true } } } } }, get: { userDetail: userId } }`. It replaces the date with whatever RevenueCat returns (a date or none).
   - Further config fields can get edit controls here later through the same `update.workoutUserConfigs` path.
 - **Mocks and stories:**
   - `AdminAPI.service.mock.ts` `createUserDetail` adds a `workoutUserConfig` built with `WorkoutUserConfigSchema.parse`.
@@ -211,7 +225,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 With a license tester and Stripe test mode, check that:
 
 - a purchase on either platform unlocks immediately;
-- the webhook writes `supporterExpiresAt`;
+- the webhook writes the supporter `expiresAt`;
 - the other platform unlocks after its next initial data fetch;
 - the admin panel's Grant unlocks with no purchase, Clear locks again, and Sync restores RevenueCat's value;
 - cancelling keeps access until expiry;

@@ -2,7 +2,7 @@ import type {
   ProjectWorkoutPrimaryEndpointOptions,
   ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import type { WorkoutUserConfig } from '@aneuhold/core-ts-db-lib';
+import { WorkoutEntitlement, type WorkoutUserConfig } from '@aneuhold/core-ts-db-lib';
 import type { Updater } from 'svelte/store';
 import AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
 import { currentUser } from '$stores/local/currentUser/currentUser';
@@ -26,9 +26,8 @@ class UserConfigService extends AbstractDocumentMapStoreService {
   /**
    * The signed-in user's entitlements, each true while it is unexpired.
    */
-  get entitlements(): { supporter: boolean } {
-    const supporterExpiresAt = this.currentConfig?.entitlements.supporterExpiresAt;
-    return { supporter: !!supporterExpiresAt && supporterExpiresAt.getTime() > Date.now() };
+  get entitlements(): Record<WorkoutEntitlement, boolean> {
+    return { [WorkoutEntitlement.Supporter]: this.#holds(WorkoutEntitlement.Supporter) };
   }
 
   /**
@@ -73,6 +72,16 @@ class UserConfigService extends AbstractDocumentMapStoreService {
     if (cached) {
       this.#config = cached;
     }
+  }
+
+  /**
+   * Whether the signed-in user's config has the entitlement unexpired.
+   *
+   * @param entitlement The entitlement to check.
+   */
+  #holds(entitlement: WorkoutEntitlement): boolean {
+    const expiresAt = this.currentConfig?.entitlements[entitlement]?.expiresAt;
+    return !!expiresAt && expiresAt.getTime() > Date.now();
   }
 }
 

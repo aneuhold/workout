@@ -46,6 +46,8 @@
     // for some reason and doesn't return the user to the app after completion.
     void googleAuthService.init();
     void updateCheckService.checkForUpdate();
+    // This works without awaiting because Login doesn't mount until currentUser is already
+    // hydrated.
     ({ username: typedUserName, password: typedPassword } = currentUser.get());
   });
 
