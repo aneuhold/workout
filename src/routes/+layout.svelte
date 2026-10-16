@@ -17,7 +17,7 @@
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
   import { page } from '$app/state';
-  import demoModeService from '$services/DemoMode.service.svelte';
+  import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
   import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';

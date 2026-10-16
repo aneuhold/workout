@@ -5,7 +5,7 @@ import {
   type AuthValidateUserOutput
 } from '@aneuhold/core-ts-api-lib';
 import { ProjectName } from '@aneuhold/core-ts-db-lib';
-import demoModeService from '$services/DemoMode.service.svelte';
+import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
 import googleAuthService from '$services/GoogleAuth.service';
 import LoggingService from '$services/LoggingService/Logging.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';

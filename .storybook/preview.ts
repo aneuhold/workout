@@ -1,18 +1,18 @@
 import '../src/globalStyles/global.css';
 import { withThemeByClassName } from '@storybook/addon-themes';
 import type { Preview, SvelteRenderer } from '@storybook/sveltekit';
-import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
+import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import { allSingletonsDecoratorFunction } from './decorators';
 
 // This is called at the top level to ensure that global mocks are set up
 // before any other modules are loaded. This is important because some
 // modules have side effects that call the API when they are imported.
-mockEnvSetupService.setupGlobalMocks();
+mockBackendService.setupGlobalMocks();
 
 const preview: Preview = {
   tags: ['autodocs'],
   beforeEach: () => {
-    mockEnvSetupService.setupGlobalMocks();
+    mockBackendService.setupGlobalMocks();
   },
   parameters: {
     controls: {

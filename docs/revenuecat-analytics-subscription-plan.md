@@ -133,7 +133,7 @@ Two changes:
   - Update `LocalData.spec.ts` and `SessionStorageBackend.spec.ts` to match.
 - **Consumers:** all current `userConfig` consumers rename to `currentUser`:
   - `currentUserId.ts`, `enabledPages.ts`, `loginState.ts`, `Auth.service.ts`, `WebSocket.service.ts`, `WorkoutAPI.service.ts`, `SessionMap.service.svelte.ts`;
-  - `MockEnvSetup.service.ts`, `DemoMode.service.spec.ts`;
+  - `MockBackend.service.ts`, `DemoMode.service.spec.ts`;
   - both `+layout.svelte` files and `SettingsPageDeleteAccountButton.svelte`.
 
   `currentUserId` becomes `derived(currentUser, (u) => u.userId)`, and its 6 page and dialog consumers are untouched.
@@ -181,7 +181,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
   - On native, calls `Purchases.configure({ apiKey, appUserID })` from `@revenuecat/purchases-capacitor`.
   - On web, calls `Purchases.configure({ apiKey, appUserId })` from `@revenuecat/purchases-js`.
   - If the SDK is already configured, it calls `logIn(userId)` (native) or `changeUser(userId)` (web) instead. It never calls `logOut()`, since that creates anonymous IDs ([identifying customers](https://www.revenuecat.com/docs/customers/identifying-customers)).
-  - The public API keys are `static readonly` fields, matching how `UpdateCheck.service.svelte.ts` holds its URL. Web uses the sandbox key in dev builds and the production key otherwise.
+  - The public API keys are `static readonly` fields, matching how `UpdateCheck.service.svelte.ts` holds its URL. Web uses the production key only when `envVarService.isProduction` (`src/services/EnvVarService/EnvVar.service.ts`) is true, so local dev and Netlify previews use the sandbox key. Sandbox purchases run through Stripe test mode and accept Stripe test cards ([RevenueCat docs](https://www.revenuecat.com/docs/web/connect-stripe-account#stripe-test-mode-in-revenuecat)).
     - MesoPro (Play Store): `goog_MBlwtwazXAphuqLnFTuPhquiPpB`
     - MesoPro (Web): `rcb_eBhpqqdAPcFtQyMGxlpcsSjbBiZk`
     - MesoPro (Web) sandbox: `rcb_sb_jUpWrhhvYOdUjRIUyTwqmJSyb`

@@ -6,7 +6,7 @@
   Fixed to the bottom left, raised above the NavBar on mobile.
 -->
 <script lang="ts">
-  import demoModeService from '$services/DemoMode.service.svelte';
+  import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import Button from '$ui/Button/Button.svelte';
 </script>
 

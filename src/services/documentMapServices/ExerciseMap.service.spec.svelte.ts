@@ -11,8 +11,8 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap } from 'svelte/reactivity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import MockDataService from '$services/MockDataService/MockData.service';
-import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 import MockUsers from '$util/MockUsers';
 import exerciseCalibrationMapServiceMock from './ExerciseCalibrationMap.service.mock';
@@ -22,7 +22,7 @@ import mesocycleMapServiceMock from './MesocycleMap.service.mock';
 
 describe('exerciseMapService CTO update methods', () => {
   beforeEach(() => {
-    mockEnvSetupService.setupGlobalMocks();
+    mockBackendService.setupGlobalMocks();
   });
 
   afterEach(() => {

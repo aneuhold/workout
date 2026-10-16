@@ -29,14 +29,14 @@ class DemoModeService {
    * fresh demo if there isn't one.
    */
   async enter(): Promise<void> {
-    // Imported on demand to keep the mock environment code out of the bundle
-    // every visitor downloads at startup
-    const { default: mockEnvSetupService } =
-      await import('$services/MockEnvSetupService/MockEnvSetup.service');
+    // Imported on demand to keep the demo setup code out of the bundle every
+    // visitor downloads at startup
+    const { default: demoSetupService } =
+      await import('$services/DemoModeService/DemoSetup.service');
     if (this.isEnabled) {
-      await mockEnvSetupService.resumeDemo();
+      await demoSetupService.resume();
     } else {
-      mockEnvSetupService.seedDemo();
+      demoSetupService.seed();
       window.sessionStorage.setItem(this.#flagKey, 'true');
       this.#enabled = true;
     }

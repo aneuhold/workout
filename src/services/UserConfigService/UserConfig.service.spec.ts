@@ -1,13 +1,13 @@
 import { WorkoutEntitlement } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { beforeEach, describe, expect, it } from 'vitest';
-import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
+import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import userConfigServiceMock from './UserConfig.service.mock';
 import userConfigService from './UserConfig.service.svelte';
 
 describe('Unit Tests', () => {
   beforeEach(() => {
-    mockEnvSetupService.setupGlobalMocks();
+    mockBackendService.setupGlobalMocks();
   });
 
   describe('entitlements', () => {

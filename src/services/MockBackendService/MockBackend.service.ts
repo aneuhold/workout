@@ -17,11 +17,11 @@ import MockUsers from '$util/MockUsers';
 import MockAPIBackend from './MockAPIBackend';
 
 /**
- * Stands up the mock environment: the network-free API and WebSocket that
- * Vitest and Storybook install, and the demo's mock data, either seeded fresh
- * or loaded from what `LocalData` already holds.
+ * Stands up the mock backends: the network-free API, WebSocket and purchases
+ * that Vitest, Storybook and demo mode install, and the mock data they serve,
+ * either seeded fresh or loaded from what `LocalData` already holds.
  */
-class MockEnvSetupService {
+class MockBackendService {
   readonly #apiBackend = new MockAPIBackend();
 
   /**
@@ -95,5 +95,5 @@ class MockEnvSetupService {
   }
 }
 
-const mockEnvSetupService = new MockEnvSetupService();
-export default mockEnvSetupService;
+const mockBackendService = new MockBackendService();
+export default mockBackendService;
