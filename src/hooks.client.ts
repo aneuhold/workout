@@ -9,6 +9,7 @@ import {
   logger,
   withScope
 } from '@sentry/sveltekit';
+import appConfigService from '$services/AppConfigService/AppConfig.service';
 import LoggingService from '$services/LoggingService/Logging.service';
 import { LogLevel } from '$services/LoggingService/types';
 import localOverride from '$util/localOverride';
@@ -17,13 +18,8 @@ import localOverride from '$util/localOverride';
 localOverride();
 
 const debugSentry = false;
-// This has the issue where it will always log to Sentry when testing mobile, but just didn't
-// have the motivation at the time to figure out the ENV variable situation. This should be fixed
-// though.
-const initializeSentry =
-  Capacitor.isNativePlatform() ||
-  (window.location.hostname !== 'localhost' && !window.location.hostname.includes('netlify.app')) ||
-  debugSentry;
+// Native counts as production, so local Android dev builds also log to Sentry.
+const initializeSentry = appConfigService.isProduction || debugSentry;
 
 /**
  * Username is set in the `loginState` store. That seemed like the best source

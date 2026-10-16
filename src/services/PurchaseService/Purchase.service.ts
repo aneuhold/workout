@@ -71,8 +71,8 @@ class PurchaseService {
   }
 
   /**
-   * Identifies the current user with the purchase provider once. A failed
-   * attempt is cleared, so the next call retries it.
+   * Lets purchases recover from a failed identify instead of failing until
+   * the next login.
    */
   async #ensureIdentified(): Promise<void> {
     const userId = this.#userId;

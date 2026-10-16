@@ -1,3 +1,4 @@
+import appConfigService from '$services/AppConfigService/AppConfig.service';
 import ConsoleLoggingService from '$services/LoggingService/ConsoleLogging.service';
 import {
   type LogAttributes,
@@ -80,16 +81,7 @@ class LoggingService {
   }
 
   get #minLevel(): LogLevel {
-    // Requirement: only pay attention to the CI flag Vitest uses for now.
-    // In Vitest, `process.env.VITEST` is set.
-    const isVitest =
-      Boolean(this.#getEnvVar('VITEST')) || Boolean(this.#getEnvVar('STORYBOOK_VITEST'));
-    return isVitest ? LogLevel.Warn : LogLevel.Debug;
-  }
-
-  #getEnvVar(name: string): string | undefined {
-    if (typeof process === 'undefined') return undefined;
-    return process.env[name];
+    return appConfigService.isVitest ? LogLevel.Warn : LogLevel.Debug;
   }
 
   #levelToNumber(level: LogLevel): number {

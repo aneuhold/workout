@@ -1,6 +1,7 @@
 import { APIService } from '@aneuhold/core-ts-api-lib';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import appConfigService from '$services/AppConfigService/AppConfig.service';
 import LoggingService from '$services/LoggingService/Logging.service';
 import purchaseService from '$services/PurchaseService/Purchase.service';
 import WebSocketService from '$services/WebSocket.service';
@@ -21,7 +22,7 @@ export enum LoginState {
 // Sentry dynamic import to avoid loading it during tests. This also avoids top-level await
 // which is broken in Safari as of 11/2025.
 const getSentry = createLazyModuleGetter(
-  import.meta.env.MODE !== 'test' ? import('@sentry/sveltekit') : undefined
+  appConfigService.isVitest ? undefined : import('@sentry/sveltekit')
 );
 
 function createLoginStateStore() {

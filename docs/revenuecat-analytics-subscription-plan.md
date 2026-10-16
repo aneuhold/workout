@@ -181,7 +181,7 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
   - On native, calls `Purchases.configure({ apiKey, appUserID })` from `@revenuecat/purchases-capacitor`.
   - On web, calls `Purchases.configure({ apiKey, appUserId })` from `@revenuecat/purchases-js`.
   - If the SDK is already configured, it calls `logIn(userId)` (native) or `changeUser(userId)` (web) instead. It never calls `logOut()`, since that creates anonymous IDs ([identifying customers](https://www.revenuecat.com/docs/customers/identifying-customers)).
-  - The public API keys are `static readonly` fields, matching how `UpdateCheck.service.svelte.ts` holds its URL. Web uses the production key only when `envVarService.isProduction` (`src/services/EnvVarService/EnvVar.service.ts`) is true, so local dev and Netlify previews use the sandbox key. Sandbox purchases run through Stripe test mode and accept Stripe test cards ([RevenueCat docs](https://www.revenuecat.com/docs/web/connect-stripe-account#stripe-test-mode-in-revenuecat)).
+  - The public API keys are `static readonly` fields on `RevenueCatService`. Web uses the production key only when `appConfigService.isProduction` (`src/services/AppConfigService/AppConfig.service.ts`) is true, so local dev and Netlify previews use the sandbox key. Sandbox purchases run through Stripe test mode and accept Stripe test cards ([RevenueCat docs](https://www.revenuecat.com/docs/web/connect-stripe-account#stripe-test-mode-in-revenuecat)).
     - MesoPro (Play Store): `goog_MBlwtwazXAphuqLnFTuPhquiPpB`
     - MesoPro (Web): `rcb_eBhpqqdAPcFtQyMGxlpcsSjbBiZk`
     - MesoPro (Web) sandbox: `rcb_sb_jUpWrhhvYOdUjRIUyTwqmJSyb`
