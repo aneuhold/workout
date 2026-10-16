@@ -3,8 +3,8 @@
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { spyOn, userEvent, within } from 'storybook/test';
   import googleAuthService from '$services/GoogleAuth.service';
+  import { type CurrentUser, currentUser } from '$stores/local/currentUser/currentUser';
   import { LoginState, loginState } from '$stores/session/loginState';
-  import LocalData from '$util/LocalData/LocalData';
   import Login from './Login.svelte';
 
   const { Story } = defineMeta({
@@ -28,14 +28,22 @@
       };
     }
   });
+
+  /**
+   * Sets the stored credentials that the login form prefills from.
+   *
+   * @param credentials The username and password to store.
+   */
+  const setStoredCredentials = (credentials: Pick<CurrentUser, 'username' | 'password'>) => {
+    currentUser.setWithoutPropagation({ ...currentUser.get(), ...credentials });
+  };
 </script>
 
 <!-- Empty State Story -->
 <Story
   name="Empty State"
   beforeEach={() => {
-    spyOn(LocalData, 'getUsername').mockResolvedValue('');
-    spyOn(LocalData, 'getPassword').mockResolvedValue('');
+    setStoredCredentials({ username: '', password: '' });
   }}
 />
 
@@ -43,8 +51,7 @@
 <Story
   name="Filled In"
   beforeEach={() => {
-    spyOn(LocalData, 'getUsername').mockResolvedValue('test');
-    spyOn(LocalData, 'getPassword').mockResolvedValue('test');
+    setStoredCredentials({ username: 'test', password: 'test' });
   }}
 />
 
@@ -67,8 +74,7 @@
       statusCode: 403,
       errorCode: APIErrorCode.NoProjectAccess
     });
-    spyOn(LocalData, 'getUsername').mockResolvedValue('test');
-    spyOn(LocalData, 'getPassword').mockResolvedValue('test');
+    setStoredCredentials({ username: 'test', password: 'test' });
   }}
   play={async ({ canvasElement }) => {
     const canvas = within(canvasElement);

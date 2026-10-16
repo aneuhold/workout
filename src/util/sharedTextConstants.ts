@@ -46,7 +46,8 @@ const sharedTextConstants = {
     'You got stiff for a few hours after training and had mild soreness in the target muscle group that resolved by next session targeting the same muscle group',
     'You got DOMS in the target muscle group that resolved just in time for the next session targeting the same muscle group',
     'You got DOMS in the target muscle group that remained for the next session targeting the same muscle group'
-  ]
+  ],
+  supporterPrice: '$3/month'
 } as const;
 
 export default sharedTextConstants;

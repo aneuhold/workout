@@ -196,10 +196,11 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 ### UI
 
 - **Analytics page gate:** at the top of the analytics page component (`src/pages/AnalyticsPage/AnalyticsPage.svelte`, created by the analytics page work on this branch), render `AnalyticsPagePaywall.svelte` when `!userConfigService.entitlements[WorkoutEntitlement.Supporter]`.
-  - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, $3/month, and a Subscribe button calling `purchaseService.purchaseEntitlement(WorkoutEntitlement.Supporter)` on both platforms.
+  - The paywall is a `Card` like `DemoModeCard.svelte`: "MesoPro Supporter", what it includes, the price (`sharedTextConstants.supporterPrice`), and `SupporterSubscribeButton`.
   - The nav item stays visible.
-- **Settings:** add `src/pages/SettingsPage/SettingsPageSupporterRow.svelte`, placed before `SettingsPageDeleteAccountButton`. It shows the supporter status and, when `getManagementUrl()` returns a URL, a "Manage subscription" button. Users with an admin grant have no RevenueCat history, so the button does not appear for them.
-- **Storybook:** add stories for `AnalyticsPagePaywall` and the settings row (inactive, active), following the `SettingsPage/SB/` layout. `SBFullAppRouter.svelte` already routes `/analytics`.
+- **`src/components/SupporterSubscribeButton/SupporterSubscribeButton.svelte`:** the Subscribe button both places use. It calls `purchaseService.purchaseEntitlement(WorkoutEntitlement.Supporter)` on both platforms, shows progress while the purchase runs, and shows an error message when it fails.
+- **Settings:** add `src/pages/SettingsPage/SettingsPageSupporterCard.svelte` at the top of the page, highlighted with a primary ring. Non-supporters get `SupporterSubscribeButton`. Supporters get an "Active" badge, the expiry date and, when `getManagementUrl()` returns a URL, a "Manage subscription" button. Users with an admin grant have no RevenueCat history, so that button does not appear for them.
+- **Storybook:** `Pages/AnalyticsPage` has Default (supporter), Paywall, Paywall - Processing and Paywall - Failed. `Pages/SettingsPage` has Default and Supporter. Both use an `isSupporter` arg on their `SB<Page>Example`. `SBFullAppRouter.svelte` already routes `/analytics`.
 
 ### Tests and validation
 
