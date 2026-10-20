@@ -93,6 +93,12 @@ export const viteConfig: UserConfig = {
   build: {
     target: browserSupportService.buildTarget
   },
+  ssr: {
+    // `@revenuecat/purchases-typescript-internal-esm` publishes ESM with
+    // extensionless relative imports, which Node cannot resolve during
+    // prerendering. Bundling the RevenueCat packages lets Vite resolve them.
+    noExternal: [/^@revenuecat\//]
+  },
   resolve: {
     dedupe: ['svelte'],
     // This is needed to make sure that Svelte uses the browser build when running tests with Vitest
