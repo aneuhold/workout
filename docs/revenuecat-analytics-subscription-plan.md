@@ -216,14 +216,19 @@ Install `@revenuecat/purchases-js` ([Web SDK docs](https://www.revenuecat.com/do
 ## Step 5: dashboard admin panel
 
 - **Precondition (done separately, outside this plan):** the dashboard is already on the latest `@aneuhold` packages with their breaking changes adopted. Do not start this step until that is merged into `dashboard-wt-SetupRevenueCat`. This step then runs `pnpm sub:core-ts-api-lib` and `pnpm sub:core-ts-db-lib` for the Step 1 changes.
-- **`src/components/Admin/AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It shows the supporter `expiresAt`, displayed as "Not a supporter" when null.
-- **`src/components/Admin/AdminUserDetail.svelte`:** add a supporter entitlement row with three SMUI buttons, matching the existing Save and Delete buttons. Each refreshes from the returned `userDetail` and shows `snackbar.success` / `snackbar.error`, the same as `saveUser`.
-  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `entitlements[WorkoutEntitlement.Supporter]` set to `{ expiresAt }` of `3000-01-01` or null, through `AdminAPIService.query({ update: { workoutUserConfigs: [config] }, get: { userDetail: userId } })`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
-  - **Sync from RevenueCat** sends `{ update: { sync: { [userId]: { workoutUserConfig: { entitlements: { [WorkoutEntitlement.Supporter]: true } } } } }, get: { userDetail: userId } }`. It replaces the date with whatever RevenueCat returns (a date or none).
-  - Further config fields can get edit controls here later through the same `update.workoutUserConfigs` path.
+
+The admin panel follows the workout app's approach: nothing in it names a single entitlement. Each control and display loops over `Object.values(WorkoutEntitlement)` and takes the entitlement as a parameter, so a new enum value shows up in the panel with no dashboard change.
+
+- **New folder: `src/components/Admin/AdminUserDetail/`.** `AdminUserDetail.svelte`, `AdminUserConfigInfo.svelte` (only rendered by `AdminUserDetail`), their stories and the `SB/` example move into it. `src/routes/admin/users/+page.svelte` imports the new path.
+- **`AdminUserDetail.svelte`:** loads the user detail and renders the sections below. It owns `userDetail` and passes each edit form an `onUpdate` callback (`AdminUserDetailUpdater` in the folder's `types.ts`) that runs `AdminAPIService.query({ update, get: { userDetail: userId } })`, refreshes `userDetail` from the response and shows `snackbar.success` / `snackbar.error`.
+- **New `AdminUserEditForm.svelte`:** the existing "Edit User" section, with its Save and Delete buttons, moved out of `AdminUserDetail` unchanged in behavior. The edit fields are writable `$derived` values of the `user` prop, so they reset when a save returns the updated user.
+- **New `AdminWorkoutUserConfigEditForm.svelte`:** an "Edit Workout User Config" `Paper`, rendered when `workoutUserConfig` is loaded. Entitlements are one portion of it, under an "Entitlements" heading, so further config fields can get edit controls here later through the same `update.workoutUserConfigs` path. Each `WorkoutEntitlement` has a row with its current `expiresAt` (or "Not held") and three SMUI buttons, and the handlers (`grantEntitlement`, `clearEntitlement`, `syncEntitlement`) take the entitlement as their parameter.
+  - **Grant** and **Clear** send the loaded `workoutUserConfig` with `entitlements[entitlement]` set to `{ expiresAt }` of `3000-01-01` or null, through `update.workoutUserConfigs`. Clear asks for confirmation through `confirmationDialog.open`, like Delete.
+  - **Sync from RevenueCat** sends `update.sync` as `{ [userId]: { workoutUserConfig: { entitlements: { [entitlement]: true } } } }`. It replaces the date with whatever RevenueCat returns (a date or none).
+- **`AdminUserConfigInfo.svelte`:** add a "Workout User Config" `Paper` section next to "Dashboard User Config". It lists every `WorkoutEntitlement` with its `expiresAt`, shown as "Not held" when null or missing, the same way the dashboard config lists its features.
 - **Mocks and stories:**
-  - `AdminAPI.service.mock.ts` `createUserDetail` adds a `workoutUserConfig` built with `WorkoutUserConfigSchema.parse`.
-  - Add story variants for a supporter and a non-supporter to `AdminUserConfigInfo.stories.svelte` and `AdminUserDetail.stories.svelte`.
+  - `AdminAPI.service.mock.ts` `createUserDetail` adds a `workoutUserConfig` built with `WorkoutUserConfigSchema.parse` that holds every entitlement until `3000-01-01`, so the default stories show the new sections populated.
+  - The stories stay focused on the components rather than on one entitlement. `AdminUserConfigInfo.stories.svelte` and `AdminUserDetail.stories.svelte` each have "Without Dashboard Config" (renamed from "Without User Config" / "Without Config") and a new "Without Workout Config" variant, which cover the sections' conditional rendering. In `AdminUserConfigInfo` stories, other entitlement states are set by editing the `userDetail` arg in the Storybook controls.
 - Run the dashboard's lint, check and test scripts.
 
 ## End-to-end validation
