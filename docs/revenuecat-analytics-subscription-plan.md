@@ -77,38 +77,43 @@ Follow `ts-libs/.claude/CLAUDE.md`. Do not bump versions. `pnpm watch` runs in t
   - **`AdminInput.update`:** add `workoutUserConfigs?: WorkoutUserConfig[]`, next to `users`. The admin can update any config field, the same way it already updates any `User` field.
   - **`AdminInput.update`:** also add `sync?: { [userId: UUID]: { workoutUserConfig?: { entitlements?: Partial<Record<WorkoutEntitlement, boolean>> } } }`. Each entitlement set to `true` is updated from the purchase provider's current value instead of from a document the client sends. New syncable fields are added as more keys in the same shape.
   - **`AdminOutputUserDetail`:** add `workoutUserConfig?: WorkoutUserConfig`.
-- **`be-ts-lib/src/services/ConfigService/ConfigDefinition.ts`:** add `revenueCatGCloudBackendWebhookAuthHeader: z.string()` and `revenueCatGCloudBackendSecretApiKey: z.string()` to `ConfigSchema`, each with a one-line JSDoc.
+- **`be-ts-lib/src/services/ConfigService/ConfigDefinition.ts`:** add `revenueCatWorkoutWebhookAuthHeader: z.string()` and `revenueCatWorkoutSecretApiKey: z.string()` to `ConfigSchema`, each with a one-line JSDoc. The values go in the `config` repo's environment files.
 - Run `pnpm check`, `pnpm test`, `pnpm lint` in ts-libs.
 
 ## Step 2: gcloud-backend
 
 Run `pnpm sub` to subscribe to all four ts-libs packages from Step 1.
 
-- **New guard: `src/common/guards/RevenueCatWebhook.guard.ts`.** A `CanActivate` modeled on `SuperAdmin.guard.ts` that compares the `Authorization` header to `ConfigService.config.revenueCatGCloudBackendWebhookAuthHeader` with `crypto.timingSafeEqual`. A separate guard is needed because the global `AuthGuard` only accepts Bearer JWTs.
-- **New module: `src/routes/project/workout/revenueCat/`** with `RevenueCat.controller.ts`, `RevenueCat.module.ts` and `RevenueCat.service.ts`, registered in `src/routes/App.module.ts`. The module exports `RevenueCatService` so `AdminModule` can import it.
-  - **Controller:** `POST project/workout/revenueCat/webhook`, placed under the workout project because the RevenueCat project and the `WorkoutUserConfig` it writes are both MesoPro-specific. Another app's RevenueCat project would get its own webhook under its own project path. It is decorated with `@Public()` and `@UseGuards(RevenueCatWebhookGuard)`. It returns 200 once the event is handled, including for unknown users, so RevenueCat does not retry. It returns a non-200 only for transient failures (REST API or DB unavailable) so RevenueCat's retries cover them.
-  - **Service, `syncEntitlements(userId, entitlements = all)`:** calls `GET https://api.revenuecat.com/v2/projects/{projectId}/customers/{userId}/active_entitlements` ([API v2 customer docs](https://www.revenuecat.com/docs/api-v2/customer)) with `revenueCatGCloudBackendSecretApiKey`. For each requested entitlement, it finds the item whose `entitlement_id` matches `workoutEntitlementDefinitions[entitlement].revenueCat.entitlementId`. The project ID (`projbb068855`) is not secret, so it is a field on the service. `expires_at` is in ms since epoch, and an active entitlement without one is stored as `3000-01-01`. It writes each expiry (or null if the entitlement is not active) onto the user's config with `WorkoutUserConfigRepository.update`, and returns the updated config. This is the one place that talks to RevenueCat, and both the webhook and the admin sync use it.
-  - **Service, `handleWebhookEvent(event)`:**
-    - Collects the user IDs from the event: `app_user_id`, plus `transferred_from` / `transferred_to` for `TRANSFER` events.
-    - Skips IDs that are not UUIDs (RevenueCat anonymous IDs) or that have no `WorkoutUserConfig`.
-    - Calls `syncEntitlements` for each remaining ID, syncing every entitlement.
-  - Type the webhook body and REST response as `unknown` and narrow them with a small Zod schema.
+The backend mirrors the workout app's `PurchaseService` split: an app-agnostic `RevenueCatService` in `src/common/` talks to RevenueCat, and a workout service owns the entitlements and the `WorkoutUserConfig` writes. Callers (the admin panel and the webhook controller) use only the workout service.
+
+- **New guard: `src/common/guards/RevenueCatWebhook.guard.ts`.** A `CanActivate` modeled on `SuperAdmin.guard.ts` that compares the `Authorization` header to `ConfigService.config.revenueCatWorkoutWebhookAuthHeader` with `crypto.timingSafeEqual`. A separate guard is needed because the global `AuthGuard` only accepts Bearer JWTs. Secret API keys and webhooks are per RevenueCat project ([authentication docs](https://www.revenuecat.com/docs/projects/authentication)), so another app's project would pass its own expected header to the guard.
+- **New service: `src/common/services/RevenueCat.service.ts`.** `RevenueCatService` works for any RevenueCat project and knows nothing about workout. It types the webhook body and REST response as `unknown` and narrows them with small Zod schemas.
+  - **`getWebhookUserIds(body)`:** collects `app_user_id`, plus `transferred_from` / `transferred_to` for `TRANSFER` events, and leaves out IDs that are not UUIDs (RevenueCat anonymous IDs). A body that does not match is reported to Sentry and yields no IDs.
+  - **`getActiveEntitlementExpiries({ projectId, secretApiKey }, userId)`:** calls `GET https://api.revenuecat.com/v2/projects/{projectId}/customers/{userId}/active_entitlements` ([API v2 customer docs](https://www.revenuecat.com/docs/api-v2/customer)) and returns the expiries keyed by `entitlement_id`. `expires_at` is in ms since epoch, and an active entitlement without one is returned as `3000-01-01`. A 404 (no customer) returns an empty map, and any other failure throws.
+- **New module: `src/routes/project/workout/purchase/`** with `WorkoutPurchase.controller.ts`, `WorkoutPurchase.module.ts` and `WorkoutPurchase.service.ts`. `WorkoutModule` imports `WorkoutPurchaseModule`, which registers the controller, so `App.module.ts` is unchanged. The module provides `RevenueCatService` and exports `WorkoutPurchaseService` so `AdminModule` can import it.
+  - **Controller:** `POST project/workout/revenueCat/webhook`. RevenueCat configures the webhook URL per project, so the URL identifies the app, and another app's RevenueCat project would get its own webhook under its own project path. It is decorated with `@Public()` and `@UseGuards(RevenueCatWebhookGuard)`. It returns 200 once the event is handled, including for unknown users, so RevenueCat does not retry. It returns a non-200 only for transient failures (REST API or DB unavailable) so RevenueCat's retries cover them.
+  - **Service, `syncEntitlements(userId, entitlements = all)`:** calls `RevenueCatService.getActiveEntitlementExpiries` with the workout project ID (`projbb068855`, not secret, so a field on the service) and `revenueCatWorkoutSecretApiKey`. For each requested entitlement, it reads the expiry for `workoutEntitlementDefinitions[entitlement].revenueCat.entitlementId`. It writes each expiry (or null if the entitlement is not active) onto the user's config with `WorkoutUserConfigRepository.update`, and returns the updated config, or null when the user has no config. Both the webhook and the admin sync use it.
+  - **Service, `handleRevenueCatWebhookEvent(body)`:** calls `syncEntitlements` for each ID from `RevenueCatService.getWebhookUserIds`, syncing every entitlement. Users without a `WorkoutUserConfig` are skipped.
 - **Workout primary endpoint:** add `userConfig` branches next to the existing per-type branches:
   - `WorkoutRetrieval.service.ts` `handleGet`, with `getForUser` for the requesting user;
   - `WorkoutUpdate.service.ts`, with `update`. It first removes `entitlements` from the incoming config, which makes this the single place that keeps clients from writing the entitlement.
 - **Admin (`src/routes/admin/Admin.service.ts`):**
   - `#handleUpdate` also applies `update.workoutUserConfigs` through `WorkoutUserConfigRepository.update`, the same way it applies `update.users`.
-  - `#handleUpdate` also handles `update.sync`, after the document updates. It calls `RevenueCatService.syncEntitlements` for each user ID with the entitlements set to `true` in `workoutUserConfig.entitlements`. It overwrites each with RevenueCat's value, null included. If the RevenueCat call fails, the field is left unchanged and the error is returned in `errors`.
+  - `#handleUpdate` also handles `update.sync`, after the document updates. It calls `WorkoutPurchaseService.syncEntitlements` for each user ID with the entitlements set to `true` in `workoutUserConfig.entitlements`. It overwrites each with RevenueCat's value, null included. Failures throw like the other admin operations: a failed RevenueCat call leaves the field unchanged, and a user without a config is a 404.
   - `#getUserDetail` also loads `WorkoutUserConfigRepository.getRepo().getForUser(userId)` into `workoutUserConfig`, in parallel with the dashboard config.
-  - `Admin.module.ts` imports `RevenueCatModule`.
+  - `Admin.module.ts` imports `WorkoutPurchaseModule`.
 - **Tests:**
-  - `RevenueCat.service.spec.ts` uses `TestUtil.insertTestUser` and a stubbed `fetch` for the REST response. It checks that:
-    - the expiry is written, and null is written when the entitlement is absent;
-    - unknown and anonymous IDs are ignored;
+  - `RevenueCat.service.spec.ts` is the only spec that stubs `fetch`, since it tests the HTTP call. It checks that:
+    - `getWebhookUserIds` returns the app user ID and both sides of a transfer, and leaves out anonymous IDs and malformed bodies;
+    - `getActiveEntitlementExpiries` returns the expiries (with `3000-01-01` for none), an empty map on 404, and throws on other failures.
+  - `WorkoutPurchase.service.spec.ts` runs without the database: it spies on `WorkoutUserConfigRepository.getRepo()`'s `getForUser` and `update` over an in-memory map of configs, and spies on `RevenueCatService.getActiveEntitlementExpiries` for RevenueCat's response. It checks that:
+    - the expiry is written, null is written when the entitlement is absent, and a failed request leaves it unchanged;
+    - users without a config are skipped;
     - both sides of a transfer are synced.
-  - `Admin.service.spec.ts` checks that `update.workoutUserConfigs` writes the entitlement, that sync writes RevenueCat's value (with `fetch` stubbed), and that `userDetail` includes `workoutUserConfig`.
+  - `Admin.service.spec.ts` checks that `update.workoutUserConfigs` writes the entitlement, that sync writes RevenueCat's value (with `RevenueCatService.getActiveEntitlementExpiries` spied on), and that `userDetail` includes `workoutUserConfig`. The `update` tests share one temp user. Sync failures are covered by `WorkoutPurchase.service.spec.ts`.
   - `WorkoutUpdate.service.spec.ts`: a client `update.userConfig` that sets an entitlement leaves the stored entitlements unchanged.
-  - `test/App.e2e.spec.ts`: add a case that the webhook returns 401 for a missing or wrong Authorization header.
+  - `RevenueCatWebhook.guard.spec.ts` runs the guard on a minimal test controller and checks that a missing or wrong `Authorization` header gets a 401.
+  - `test/App.e2e.spec.ts`: one `/project/workout/revenueCat/webhook (POST)` case that the configured header gets a 200, which covers `@Public()` and the guard together on the real route.
 - Run `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm build`.
 - After deploying, use **Send test event** on the RevenueCat `gcloud-backend` webhook and confirm it returns 200.
 
