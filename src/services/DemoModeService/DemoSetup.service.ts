@@ -28,10 +28,8 @@ class DemoSetupService {
    */
   seed(): void {
     mockBackendService.install();
-    MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
-    this.#rebuildExerciseCTOs();
-    // The scenario adds its documents without persisting them
-    WorkoutHydrationService.persistDocumentMaps();
+    // Setup the demo user first so they are considered logged in before
+    // the scenario is setup.
     currentUser.set({
       userId: MockUsers.currentUserCto._id,
       username: 'Demo User',
@@ -39,6 +37,10 @@ class DemoSetupService {
       accessToken: 'demo-mode-token',
       refreshTokenString: null
     });
+    MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
+    this.#rebuildExerciseCTOs();
+    // The scenario adds its documents without persisting them
+    WorkoutHydrationService.persistDocumentMaps();
   }
 
   /**
