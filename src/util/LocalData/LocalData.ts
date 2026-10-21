@@ -2,7 +2,7 @@ import type { ProjectWorkoutPrimaryEndpointOptions, Translations } from '@aneuho
 import type { BaseDocument, DocumentMap, WorkoutUserConfig } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { Capacitor } from '@capacitor/core';
-import type { CurrentUser } from '$stores/local/currentUser/currentUser';
+import type { CurrentUser } from '$stores/local/currentUser/types';
 import type { ILocalDataBackend } from './ILocalDataBackend';
 import IndexedDbBackend from './IndexedDbBackend';
 import LocalStorageBackend from './LocalStorageBackend';

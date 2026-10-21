@@ -1,5 +1,6 @@
 import MockUsers from '$util/MockUsers';
-import { type CurrentUser, currentUser } from './currentUser';
+import { currentUser } from './currentUser';
+import type { CurrentUser } from './types';
 
 /**
  * A mock provider for the CurrentUser store. This depends on the backend API

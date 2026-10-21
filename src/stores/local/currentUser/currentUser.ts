@@ -1,19 +1,12 @@
 import type { UUID } from 'crypto';
 import { type Updater, writable } from 'svelte/store';
 import LocalData from '$util/LocalData/LocalData';
+import type { CurrentUser } from './types';
 
-export type CurrentUser = {
-  userId: UUID;
-  username: string;
-  /** Password from the last password login, used to prefill the login form. */
-  password: string;
-  /** JWT access token for authenticating API requests. */
-  accessToken: string | null;
-  /** Raw refresh token string for automatic token refresh. */
-  refreshTokenString: string | null;
-};
-
-function createCurrentUserStore() {
+/**
+ * Creates the store for the signed-in user, persisted to local data.
+ */
+const createCurrentUserStore = () => {
   const ANONYMOUS_USER_ID: UUID = '00000000-0000-0000-0000-000000000000';
   let currentUser: CurrentUser = {
     userId: ANONYMOUS_USER_ID,
@@ -75,6 +68,6 @@ function createCurrentUserStore() {
       }
     }
   };
-}
+};
 
 export const currentUser = createCurrentUserStore();

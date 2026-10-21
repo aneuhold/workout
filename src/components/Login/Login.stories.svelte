@@ -3,7 +3,8 @@
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { spyOn, userEvent, within } from 'storybook/test';
   import googleAuthService from '$services/GoogleAuth.service';
-  import { type CurrentUser, currentUser } from '$stores/local/currentUser/currentUser';
+  import { currentUser } from '$stores/local/currentUser/currentUser';
+  import type { CurrentUser } from '$stores/local/currentUser/types';
   import { LoginState, loginState } from '$stores/session/loginState';
   import Login from './Login.svelte';
 

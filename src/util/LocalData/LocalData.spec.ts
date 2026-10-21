@@ -4,7 +4,7 @@ import {
   WorkoutUserConfigSchema
 } from '@aneuhold/core-ts-db-lib';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { CurrentUser } from '$stores/local/currentUser/currentUser';
+import type { CurrentUser } from '$stores/local/currentUser/types';
 import MockUsers from '$util/MockUsers';
 import LocalData from './LocalData';
 

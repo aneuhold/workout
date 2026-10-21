@@ -3,16 +3,18 @@ import type { UUID } from 'crypto';
 import LoggingService from '$services/LoggingService/Logging.service';
 import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import type { IPurchaseBackend } from './IPurchaseBackend';
-import revenueCatService from './RevenueCat.service';
 
 /**
  * Handles in-app purchases through a swappable {@link IPurchaseBackend}.
  * Purchased entitlements are written to the local config right away, until
  * the next initial data fetch replaces them with the server's values.
+ *
+ * The backend is loaded with a dynamic `import()` on first use, so the
+ * provider's SDKs stay out of the app's startup bundle (see "Selective
+ * loading" in the [SvelteKit performance docs](https://svelte.dev/docs/kit/performance)).
  */
 class PurchaseService {
   readonly #log = LoggingService.createLogger('PurchaseService');
-  readonly #backend: IPurchaseBackend = revenueCatService;
   #disabled = false;
   #userId: UUID | null = null;
   #identifyPromise: Promise<void> | null = null;
@@ -50,7 +52,8 @@ class PurchaseService {
   async purchaseEntitlement(entitlement: WorkoutEntitlement): Promise<void> {
     if (this.#disabled) return;
     await this.#ensureIdentified();
-    const result = await this.#backend.purchaseEntitlement(entitlement);
+    const backend = await this.#loadBackend();
+    const result = await backend.purchaseEntitlement(entitlement);
     if (!result) return;
 
     // Without persist because it will come back on the next API call that is fresh.
@@ -67,7 +70,8 @@ class PurchaseService {
   async getManagementUrl(): Promise<string | null> {
     if (this.#disabled) return null;
     await this.#ensureIdentified();
-    return this.#backend.getManagementUrl();
+    const backend = await this.#loadBackend();
+    return backend.getManagementUrl();
   }
 
   /**
@@ -78,7 +82,7 @@ class PurchaseService {
     const userId = this.#userId;
     if (!userId) throw new Error('No signed-in user to identify with the purchase provider');
     if (!this.#identifyPromise) {
-      const attempt = this.#backend.identify(userId);
+      const attempt = this.#identify(userId);
       this.#identifyPromise = attempt;
 
       // Make sure to clear the attempt if it fails. It checks to see if it is the same in case
@@ -91,6 +95,25 @@ class PurchaseService {
 
     // Return the promise to be awaited.
     return this.#identifyPromise;
+  }
+
+  /**
+   * Identifies the user with the backend.
+   *
+   * @param userId The signed-in user's ID.
+   */
+  async #identify(userId: UUID): Promise<void> {
+    const backend = await this.#loadBackend();
+    await backend.identify(userId);
+  }
+
+  /**
+   * Loads the purchase backend. The module system caches the import, so only
+   * the first call downloads it.
+   */
+  async #loadBackend(): Promise<IPurchaseBackend> {
+    const { default: revenueCatService } = await import('./RevenueCat.service');
+    return revenueCatService;
   }
 }
 
