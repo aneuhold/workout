@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
+import appConfigService from '$services/AppConfigService/AppConfig.service';
 
 /**
  * Checks whether a newer version of the app is available and exposes the
@@ -8,7 +9,6 @@ import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-upda
 class UpdateCheckService {
   /** Replaced with the deployed version at build time (see `replaceDevVersion.ts`). */
   static readonly #currentVersion: string = '#DEV.VERSION#';
-  static readonly #versionUrl = 'https://mesopro.tonyneuhold.com/version.json';
 
   #updateAvailable: boolean = $state(false);
 
@@ -58,7 +58,9 @@ class UpdateCheckService {
    * Fetches the deployed web version and compares it to the current build.
    */
   async #isDeployedVersionNewer(): Promise<boolean> {
-    const response = await fetch(UpdateCheckService.#versionUrl, { cache: 'no-store' });
+    const response = await fetch(`https://${appConfigService.productionHostname}/version.json`, {
+      cache: 'no-store'
+    });
     const data: unknown = await response.json();
     return (
       typeof data === 'object' &&

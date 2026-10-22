@@ -8,7 +8,7 @@ import perfTestUtils, { PERF_TEST_CONSTANTS } from './perfTestUtils';
 
 /**
  * Authenticates the perf test user and saves a Playwright storageState file
- * containing the userConfig entry so each spec boots already logged in.
+ * containing the currentUser entry so each spec boots already logged in.
  *
  * @param config Playwright config injected by the test runner; only used for
  *   the project's baseURL.
@@ -32,9 +32,10 @@ const perfPlaywrightSetup = async (config: FullConfig): Promise<void> => {
     throw new Error(`Auth failed in perfPlaywrightSetup: ${JSON.stringify(auth.errors)}`);
   }
   const { user } = auth.data.userInfo;
-  const userConfigValue = JSON.stringify({
+  const currentUserValue = JSON.stringify({
     userId: user._id,
     username: user.userName,
+    password,
     accessToken: auth.data.accessToken,
     refreshTokenString: auth.data.refreshTokenString ?? null
   });
@@ -43,7 +44,7 @@ const perfPlaywrightSetup = async (config: FullConfig): Promise<void> => {
   // run app actually reads. The CI workflow swaps main and PR builds in and
   // out of `./build/` between perf measurements, so source-derived prefixes
   // would mismatch whichever side isn't on the current branch.
-  const userConfigKey = `${perfTestUtils.detectStoragePrefix()}userConfig`;
+  const currentUserKey = `${perfTestUtils.detectStoragePrefix()}currentUser`;
   const baseURL = config.projects[0].use.baseURL ?? 'http://localhost:5173';
   const browser = await chromium.launch();
   try {
@@ -54,7 +55,7 @@ const perfPlaywrightSetup = async (config: FullConfig): Promise<void> => {
       ({ key, value }) => {
         window.localStorage.setItem(key, value);
       },
-      { key: userConfigKey, value: userConfigValue }
+      { key: currentUserKey, value: currentUserValue }
     );
     mkdirSync(dirname(PERF_TEST_CONSTANTS.storageStatePath), { recursive: true });
     await context.storageState({ path: PERF_TEST_CONSTANTS.storageStatePath });

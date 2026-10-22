@@ -23,23 +23,23 @@ describe('SessionStorageBackend', () => {
   });
 
   it('keeps values out of localStorage', async () => {
-    await backend.set('v5-userConfig', 'demo');
+    await backend.set('v5-currentUser', 'demo');
 
-    expect(window.sessionStorage.getItem('v5-userConfig')).toBe('demo');
-    expect(window.localStorage.getItem('v5-userConfig')).toBeNull();
+    expect(window.sessionStorage.getItem('v5-currentUser')).toBe('demo');
+    expect(window.localStorage.getItem('v5-currentUser')).toBeNull();
   });
 
   describe('cleanupOldVersions', () => {
     it('deletes legacy v\\d+- keys that do not match the current prefix', async () => {
-      window.sessionStorage.setItem('v3-password', 'old');
+      window.sessionStorage.setItem('v3-currentUser', 'old');
       window.sessionStorage.setItem('v4-mesocycleMap', 'old');
-      window.sessionStorage.setItem('v5-password', 'current');
+      window.sessionStorage.setItem('v5-currentUser', 'current');
 
       await backend.cleanupOldVersions('v5-');
 
-      expect(window.sessionStorage.getItem('v3-password')).toBeNull();
+      expect(window.sessionStorage.getItem('v3-currentUser')).toBeNull();
       expect(window.sessionStorage.getItem('v4-mesocycleMap')).toBeNull();
-      expect(window.sessionStorage.getItem('v5-password')).toBe('current');
+      expect(window.sessionStorage.getItem('v5-currentUser')).toBe('current');
     });
 
     it('leaves keys outside the v\\d+- shape untouched', async () => {

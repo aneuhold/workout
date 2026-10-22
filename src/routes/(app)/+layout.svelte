@@ -21,9 +21,9 @@
   import SingletonRescheduleMesocycleDialog from '$components/singletons/dialogs/SingletonRescheduleMesocycleDialog/SingletonRescheduleMesocycleDialog.svelte';
   import SingletonUpdateNotification from '$components/singletons/dialogs/SingletonUpdateNotification/SingletonUpdateNotification.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
-  import demoModeService from '$services/DemoMode.service.svelte';
+  import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import timerService from '$services/TimerService';
-  import { userConfig } from '$stores/local/userConfig/userConfig';
+  import { currentUser } from '$stores/local/currentUser/currentUser';
   import { LoginState, loginState } from '$stores/session/loginState';
 
   let { children }: { children?: Snippet } = $props();
@@ -37,7 +37,7 @@
   {:else if $loginState === LoginState.ProcessingCredentials || $loginState === LoginState.LoggedOut}
     <Login />
   {:else}
-    <TopBar username={$userConfig.username} currentPath={page.url.pathname} />
+    <TopBar username={$currentUser.username} currentPath={page.url.pathname} />
     <NavBar currentPath={page.url.pathname} />
     <!-- Padding top is set to 12 for all devices only if the timer is active (because it becomes fixed).
      Otherwise, it is only fixed for desktop. -->

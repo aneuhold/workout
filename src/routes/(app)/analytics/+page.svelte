@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AnalyticsPage from '$pages/AnalyticsPage/AnalyticsPage.svelte';
   import { analyticsPageInfo } from './pageInfo';
 </script>
 
@@ -7,4 +8,4 @@
   <meta name="description" content={analyticsPageInfo.description} />
 </svelte:head>
 
-<h1>Analytics page coming soon...</h1>
+<AnalyticsPage />

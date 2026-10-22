@@ -211,7 +211,7 @@ class PerfTestUtils {
   }
 
   /**
-   * Clears every cached document and small-tier key except `userConfig`
+   * Clears every cached document and small-tier key except `currentUser`
    * before any page script runs, forcing a full network hydration on the
    * next navigation. Touches both localStorage (small tier) and the
    * IndexedDB workout database (large tier) so the document maps in the
@@ -223,7 +223,7 @@ class PerfTestUtils {
     const prefix = this.detectStoragePrefix();
     await page.addInitScript(
       ({ prefix: storagePrefix }) => {
-        const keep = `${storagePrefix}userConfig`;
+        const keep = `${storagePrefix}currentUser`;
         const toRemove: string[] = [];
         for (let i = 0; i < window.localStorage.length; i++) {
           const key = window.localStorage.key(i);

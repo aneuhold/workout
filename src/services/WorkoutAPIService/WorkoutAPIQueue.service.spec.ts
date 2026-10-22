@@ -21,8 +21,8 @@ import apiActivityService, {
 } from '$services/ApiActivityService/ApiActivity.service.svelte';
 import setMapServiceMock from '$services/documentMapServices/SetMap.service.mock';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
-import MockAPIBackend from '$services/MockEnvSetupService/MockAPIBackend';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import MockAPIBackend from '$services/MockBackendService/MockAPIBackend';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import { ctoGet } from '$util/ctoGet';
 import LocalData from '$util/LocalData/LocalData';
 import workoutAPIQueueService from './WorkoutAPIQueue.service';
@@ -58,7 +58,7 @@ describe('Unit Tests', () => {
       // Takes the full backoff delay, so delays are exact
       vi.spyOn(Math, 'random').mockReturnValue(1);
       consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      userConfig.setWithoutPropagation({ ...userConfig.get(), accessToken: 'access-token' });
+      currentUser.setWithoutPropagation({ ...currentUser.get(), accessToken: 'access-token' });
       onGetOutput = vi.fn();
       workoutAPIQueueService.setGetOutputHandler(onGetOutput);
     });
@@ -263,7 +263,7 @@ describe('Unit Tests', () => {
         });
 
         it('sends nothing while logged out', async () => {
-          userConfig.setWithoutPropagation({ ...userConfig.get(), accessToken: null });
+          currentUser.setWithoutPropagation({ ...currentUser.get(), accessToken: null });
 
           workoutAPIQueueService.enqueueRequest(createDeleteSetRequest());
           await workoutAPIQueueService.skipWaitsAndProcessRequestsNow();

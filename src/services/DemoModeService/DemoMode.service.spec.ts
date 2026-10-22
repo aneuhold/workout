@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import LocalData from '$util/LocalData/LocalData';
 import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 import demoModeService from './DemoMode.service.svelte';
@@ -33,12 +33,12 @@ describe('DemoModeService', () => {
       expect(exerciseMapService.exerciseCTOs.every((cto) => cto.bestSet !== null)).toBe(true);
       expect(window.localStorage).toHaveLength(0);
 
-      userConfig.update((config) => ({ ...config, username: 'Returning Visitor' }));
-      userConfig.setWithoutPropagation({ ...userConfig.get(), username: 'Not Stored' });
+      currentUser.update((user) => ({ ...user, username: 'Returning Visitor' }));
+      currentUser.setWithoutPropagation({ ...currentUser.get(), username: 'Not Stored' });
 
       await demoModeService.enter();
 
-      expect(userConfig.get().username).toBe('Returning Visitor');
+      expect(currentUser.get().username).toBe('Returning Visitor');
     });
   });
 });

@@ -11,7 +11,7 @@ import sessionExerciseMapService from '$services/documentMapServices/SessionExer
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
 import type { WorkoutApiInsertKey } from '$services/DocumentMapStoreService/types';
-import mockEnvSetupService from '$services/MockEnvSetupService/MockEnvSetup.service';
+import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
 import perfTestUtils from '$testUtils/perfTestUtils';
@@ -23,7 +23,7 @@ import MockUsers from '$util/MockUsers';
  * wiped and reseeded when its document counts differ from the scenario's.
  */
 test('seed perf user', async () => {
-  mockEnvSetupService.setupGlobalMocks(true);
+  mockBackendService.setupGlobalMocks(true);
 
   const { username, password } = perfTestUtils.getPerfCreds();
   const auth = await APIService.validateUser({

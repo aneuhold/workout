@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import { spyOn } from 'storybook/test';
-  import demoModeService from '$services/DemoMode.service.svelte';
+  import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import DemoModeButton from './DemoModeButton.svelte';
 
   const { Story } = defineMeta({

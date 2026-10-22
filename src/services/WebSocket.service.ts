@@ -2,7 +2,7 @@ import { APIService, type WorkoutWebSocketServerToClientEvents } from '@aneuhold
 import { DateService } from '@aneuhold/core-ts-lib';
 import { io, Socket } from 'socket.io-client';
 import LoggingService from '$services/LoggingService/Logging.service';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 
 /**
  * A service for handling WebSocket connections used in the application.
@@ -18,10 +18,10 @@ export default class WebSocketService {
       return;
     } else {
       // Use the namespace `/workout` to ensure that we only connect to the workout parts
-      const config = userConfig.get();
+      const user = currentUser.get();
       this.#socket = io(`${APIService.getCurrentAPIUrl()}workout`, {
         auth: {
-          accessToken: config.accessToken ?? undefined
+          accessToken: user.accessToken ?? undefined
         }
       });
 

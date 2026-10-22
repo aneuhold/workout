@@ -8,6 +8,7 @@ import sessionExerciseMapService from '$services/documentMapServices/SessionExer
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
 import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 
 /**
  * The document map services that handle API output, in the order in which API
@@ -25,7 +26,8 @@ const apiResponseHandlingOrder: AbstractDocumentMapStoreService[] = [
   exerciseMapService,
   exerciseCalibrationMapService,
   muscleGroupMapService,
-  equipmentTypeMapService
+  equipmentTypeMapService,
+  userConfigService
 ];
 
 export default apiResponseHandlingOrder;

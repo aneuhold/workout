@@ -110,11 +110,11 @@ importers:
   .:
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^4.0.0
-        version: 4.0.0
+        specifier: ^4.0.1
+        version: 4.0.1
       '@aneuhold/core-ts-db-lib':
-        specifier: ^5.0.15
-        version: 5.0.15
+        specifier: ^5.0.16
+        version: 5.0.16
       '@aneuhold/core-ts-lib':
         specifier: ^2.4.10
         version: 2.4.10
@@ -184,6 +184,9 @@ importers:
       '@revenuecat/purchases-capacitor':
         specifier: ^13.7.0
         version: 13.7.0(@capacitor/core@8.5.0)
+      '@revenuecat/purchases-js':
+        specifier: ^1.68.0
+        version: 1.68.0
       '@sentry/capacitor':
         specifier: 4.3.0
         version: 4.3.0(@capacitor/core@8.5.0)
@@ -423,11 +426,11 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@4.0.0':
-    resolution: {integrity: sha512-lqOcbnMqjXud3D7Z7G8K3iqk5mIMExN+iX2sQhISxZ9hxBx2pTzh9ZLBtwVnBkMRHAwzgvdS/CWxL7xj1bHn/w==}
+  '@aneuhold/core-ts-api-lib@4.0.1':
+    resolution: {integrity: sha512-vlQc/ZloGheT0qPM23deLZGsoKbQQDAoNsg1BlS22NunzD+QBhDJuwiHkOW0Pzlyt+CjIltRyfRNlc9yYEfa2A==}
 
-  '@aneuhold/core-ts-db-lib@5.0.15':
-    resolution: {integrity: sha512-T0PEN9sWK2SfH2M8tcJSnPmO1fK7ER46nG2npTL98lxS9WaJ/4vdMB6zsUyynWg0BHXOG3CvSjYibsug1q4c1Q==}
+  '@aneuhold/core-ts-db-lib@5.0.16':
+    resolution: {integrity: sha512-OMCO9VKWwUNAF6hfmFov8LzApVipYEI3VD29ocxOAhMT1NwzmQoauN1zjhNXTa1RJBP0c2lidh/jv/53LTlxMw==}
 
   '@aneuhold/core-ts-lib@2.4.10':
     resolution: {integrity: sha512-An2DRCDvce3QbC08vm8GsCRUKnrh7klHWZQ8DzxEDQdWZJ614TidfEpK+en0kg0tgPirlKe2L+YJKBwPl6Xtkg==}
@@ -1890,6 +1893,9 @@ packages:
     resolution: {integrity: sha512-GFBgeHuieJUBUgaoQaFKR9Rx1iF86WxLxiKSn0ybl11lDgIjZNcsGYJ2F+56cn9XRLw+TDh6+0PX3DSa8Aaikw==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
+
+  '@revenuecat/purchases-js@1.68.0':
+    resolution: {integrity: sha512-1z8S2PWp2EJNljxZbrxY7hU+JrAgEl1kYKZ/xF82t6LVuLQFJrlTSihjC44Zp16i5A6LR4SB8FLANN2UIh9Fvg==}
 
   '@revenuecat/purchases-typescript-internal-esm@19.5.0':
     resolution: {integrity: sha512-25QmDlnwmOBHNFP3VgGLkuUA9CpMwHVfGv74CUj7TeeSbzARaGzwoqMET8MYC3YgixuutvPneUj2VN5GBHenIg==}
@@ -9382,13 +9388,13 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@4.0.0':
+  '@aneuhold/core-ts-api-lib@4.0.1':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 5.0.15
+      '@aneuhold/core-ts-db-lib': 5.0.16
       '@aneuhold/core-ts-lib': 2.4.10
       bson: 7.3.2
 
-  '@aneuhold/core-ts-db-lib@5.0.15':
+  '@aneuhold/core-ts-db-lib@5.0.16':
     dependencies:
       '@aneuhold/core-ts-lib': 2.4.10
       uuid: 14.0.2
@@ -10964,6 +10970,8 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.0
       '@revenuecat/purchases-typescript-internal-esm': 19.5.0
+
+  '@revenuecat/purchases-js@1.68.0': {}
 
   '@revenuecat/purchases-typescript-internal-esm@19.5.0': {}
 

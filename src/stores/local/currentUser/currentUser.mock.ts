@@ -1,25 +1,27 @@
 import MockUsers from '$util/MockUsers';
-import { type UserConfig, userConfig } from './userConfig';
+import { currentUser } from './currentUser';
+import type { CurrentUser } from './types';
 
 /**
- * A mock provider for the UserConfig store. This depends on the backend API
+ * A mock provider for the CurrentUser store. This depends on the backend API
  * being mocked already so it doesn't try to contact the server.
  */
-class UserConfigMock {
+class CurrentUserMock {
   /**
    * Sets the store to a mock user with the current test user's ID, without
    * persisting it.
    */
   reset(): void {
-    const mockConfig: UserConfig = {
+    const mockUser: CurrentUser = {
       userId: MockUsers.currentUserCto._id,
       username: 'Mock User',
+      password: '',
       accessToken: null,
       refreshTokenString: null
     };
-    userConfig.setWithoutPropagation(mockConfig);
+    currentUser.setWithoutPropagation(mockUser);
   }
 }
 
-const userConfigMock = new UserConfigMock();
-export default userConfigMock;
+const currentUserMock = new CurrentUserMock();
+export default currentUserMock;

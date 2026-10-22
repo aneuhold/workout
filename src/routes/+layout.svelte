@@ -17,15 +17,14 @@
   import { browser } from '$app/environment';
   import { onNavigate } from '$app/navigation';
   import { page } from '$app/state';
-  import demoModeService from '$services/DemoMode.service.svelte';
+  import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import nativePlatformService from '$services/NativePlatform.service.svelte';
   import timerService from '$services/TimerService';
   import apiResponseHandlingOrder from '$services/WorkoutAPIService/apiResponseHandlingOrder';
   import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
   import WorkoutHydrationService from '$services/WorkoutHydration.service';
-  import { password } from '$stores/local/password';
+  import { currentUser } from '$stores/local/currentUser/currentUser';
   import { translations } from '$stores/local/translations';
-  import { userConfig } from '$stores/local/userConfig/userConfig';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { loginState } from '$stores/session/loginState';
   import LocalData from '$util/LocalData/LocalData';
@@ -53,9 +52,8 @@
     if (!isDemoMode) {
       await LocalData.init();
       await Promise.all([
-        password.hydrate(),
         translations.hydrate(),
-        userConfig.hydrate(),
+        currentUser.hydrate(),
         WorkoutAPIService.hydrate(),
         WorkoutHydrationService.hydrateDocumentMaps()
       ]);

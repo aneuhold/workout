@@ -1,8 +1,8 @@
 import type { ProjectWorkoutPrimaryEndpointOptions, Translations } from '@aneuhold/core-ts-api-lib';
-import type { BaseDocument, DocumentMap } from '@aneuhold/core-ts-db-lib';
+import type { BaseDocument, DocumentMap, WorkoutUserConfig } from '@aneuhold/core-ts-db-lib';
 import { DateService } from '@aneuhold/core-ts-lib';
 import { Capacitor } from '@capacitor/core';
-import type { UserConfig } from '$stores/local/userConfig/userConfig';
+import type { CurrentUser } from '$stores/local/currentUser/types';
 import type { ILocalDataBackend } from './ILocalDataBackend';
 import IndexedDbBackend from './IndexedDbBackend';
 import LocalStorageBackend from './LocalStorageBackend';
@@ -23,11 +23,10 @@ export default class LocalData {
   static #PREFIX = STORAGE_PREFIX;
 
   static storedKeyNames = {
-    password: `${this.#PREFIX}password`,
-    username: `${this.#PREFIX}username`,
+    currentUser: `${this.#PREFIX}currentUser`,
     translations: `${this.#PREFIX}translations`,
-    userConfig: `${this.#PREFIX}userConfig`,
     apiRequestQueue: `${this.#PREFIX}apiRequestQueue`,
+    workoutUserConfig: `${this.#PREFIX}workoutUserConfig`,
     // Workout document maps
     mesocycleMap: `${this.#PREFIX}mesocycleMap`,
     microcycleMap: `${this.#PREFIX}microcycleMap`,
@@ -45,11 +44,7 @@ export default class LocalData {
    * `localStorage` on web and `UserDefaults`/`SharedPreferences` on native.
    * Everything else routes to the large-tier backend.
    */
-  static #smallTierKeys: ReadonlySet<string> = new Set([
-    this.storedKeyNames.password,
-    this.storedKeyNames.username,
-    this.storedKeyNames.userConfig
-  ]);
+  static #smallTierKeys: ReadonlySet<string> = new Set([this.storedKeyNames.currentUser]);
 
   static #smallBackend: ILocalDataBackend = Capacitor.isNativePlatform()
     ? new PreferencesBackend()
@@ -82,22 +77,6 @@ export default class LocalData {
     void this.#cleanupOldVersions();
   }
 
-  static async getPassword(): Promise<string> {
-    return (await this.#getValue(this.storedKeyNames.password)) ?? '';
-  }
-
-  static async setPassword(newPassword: string): Promise<void> {
-    await this.#storeValue(this.storedKeyNames.password, newPassword);
-  }
-
-  static async getUsername(): Promise<string> {
-    return (await this.#getValue(this.storedKeyNames.username)) ?? '';
-  }
-
-  static async setUsername(newUsername: string): Promise<void> {
-    await this.#storeValue(this.storedKeyNames.username, newUsername);
-  }
-
   static async getTranslations(): Promise<Translations | null> {
     return this.#getStoredObject<Translations>(this.storedKeyNames.translations);
   }
@@ -106,12 +85,12 @@ export default class LocalData {
     await this.#storeValue(this.storedKeyNames.translations, JSON.stringify(newTranslations));
   }
 
-  static async getUserConfig(): Promise<UserConfig | null> {
-    return this.#getStoredObject<UserConfig>(this.storedKeyNames.userConfig);
+  static async getCurrentUser(): Promise<CurrentUser | null> {
+    return this.#getStoredObject<CurrentUser>(this.storedKeyNames.currentUser);
   }
 
-  static async setUserConfig(newSettings: UserConfig | null): Promise<void> {
-    await this.#storeValue(this.storedKeyNames.userConfig, JSON.stringify(newSettings));
+  static async setCurrentUser(newUser: CurrentUser | null): Promise<void> {
+    await this.#storeValue(this.storedKeyNames.currentUser, JSON.stringify(newUser));
   }
 
   static async getApiRequestQueue(): Promise<ProjectWorkoutPrimaryEndpointOptions[]> {
@@ -126,6 +105,14 @@ export default class LocalData {
     newRequestQueue: ProjectWorkoutPrimaryEndpointOptions[]
   ): Promise<void> {
     await this.#storeValue(this.storedKeyNames.apiRequestQueue, JSON.stringify(newRequestQueue));
+  }
+
+  static async getWorkoutUserConfig(): Promise<WorkoutUserConfig | null> {
+    return this.#getStoredObject<WorkoutUserConfig>(this.storedKeyNames.workoutUserConfig);
+  }
+
+  static async setWorkoutUserConfig(newConfig: WorkoutUserConfig | null): Promise<void> {
+    await this.#storeValue(this.storedKeyNames.workoutUserConfig, JSON.stringify(newConfig));
   }
 
   /**
@@ -152,16 +139,16 @@ export default class LocalData {
   }
 
   /**
-   * Wipes every cached workout document map. Intended for logout so a
-   * different user signing in on the same browser doesn't see (or hydrate)
-   * the previous session's data. Targets every key whose stored name ends
-   * in `Map` — the naming convention shared by all workout-map entries in
-   * {@link storedKeyNames}.
+   * Wipes every cached workout document map and the workout user config.
+   * Intended for logout so a different user signing in on the same browser
+   * doesn't see (or hydrate) the previous session's data. Targets every key
+   * whose stored name ends in `Map` (the naming convention shared by all
+   * workout-map entries in {@link storedKeyNames}), plus `workoutUserConfig`.
    */
-  static async clearWorkoutMaps(): Promise<void> {
+  static async clearWorkoutDocuments(): Promise<void> {
     const removals: Promise<void>[] = [];
     for (const key of Object.values(this.storedKeyNames)) {
-      if (key.endsWith('Map')) {
+      if (key.endsWith('Map') || key === this.storedKeyNames.workoutUserConfig) {
         removals.push(this.#getBackendFor(key).remove(key));
       }
     }

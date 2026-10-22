@@ -11,6 +11,7 @@
   added to copilot-instructions.md.
 -->
 <script lang="ts">
+  import AnalyticsPage from '$pages/AnalyticsPage/AnalyticsPage.svelte';
   import ExercisePage from '$pages/ExercisePage/ExercisePage.svelte';
   import HomePage from '$pages/HomePage/HomePage.svelte';
   import LibraryPage from '$pages/LibraryPage/LibraryPage.svelte';
@@ -57,7 +58,7 @@
 {:else if routeState.path === navInfo.timer.url}
   <TimerPage />
 {:else if routeState.path === navInfo.analytics.url}
-  <p class="p-8 text-muted-foreground">Analytics page coming soon.</p>
+  <AnalyticsPage />
 {:else if routeState.path === navInfo.privacy.url}
   <PrivacyPolicyPage />
 {:else}

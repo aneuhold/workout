@@ -18,7 +18,7 @@ import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
 import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
-import { userConfig } from '$stores/local/userConfig/userConfig';
+import { currentUser } from '$stores/local/currentUser/currentUser';
 import { ctoGet } from '$util/ctoGet';
 import LocalData from '$util/LocalData/LocalData';
 import exerciseCalibrationMapService from './ExerciseCalibrationMap.service.svelte';
@@ -150,7 +150,7 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   createFreeFormSession(): WorkoutSession {
     const now = new Date();
     const session = WorkoutSessionSchema.parse({
-      userId: userConfig.get().userId,
+      userId: currentUser.get().userId,
       workoutMicrocycleId: null,
       title: this.getFormattedSessionTitle(now),
       startTime: now,
