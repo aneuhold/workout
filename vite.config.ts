@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { loadEnv, type UserConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { defineConfig, mergeConfig } from 'vitest/config';
-import browserSupportService from './scripts/services/BrowserSupport.service';
+import browserSupportService from './scripts/services/BrowserSupport.service.js';
 
 // Setup the environment file if it exists. Update the list of prefixes as needed to be used either
 // in tests or in the Vite build. The prefixes need to be specified for it to pick up stuff.
@@ -92,12 +92,6 @@ export const viteConfig: UserConfig = {
   ],
   build: {
     target: browserSupportService.buildTarget
-  },
-  ssr: {
-    // `@revenuecat/purchases-typescript-internal-esm` publishes ESM with
-    // extensionless relative imports, which Node cannot resolve during
-    // prerendering. Bundling the RevenueCat packages lets Vite resolve them.
-    noExternal: [/^@revenuecat\//]
   },
   resolve: {
     dedupe: ['svelte'],
