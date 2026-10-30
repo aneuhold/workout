@@ -109,15 +109,12 @@
   const allMesocycles = $derived(disabled ? [] : mesocycleMapService.allDocs);
 
   /**
-   * Returns true if the given date falls within an existing mesocycle's date range,
-   * or if the date is before today. Used to disable overlapping dates in the Calendar.
+   * Returns true if the given date falls within an existing mesocycle's date range.
+   * Used to disable overlapping dates in the Calendar.
    *
    * @param date The calendar date to check for disabling.
    */
   function disabledDateMatcher(date: Date): boolean {
-    const todayStart = new Date(new Date().toDateString());
-    if (date.getTime() < todayStart.getTime()) return true;
-
     for (const m of allMesocycles) {
       if (m._id === editingMesocycleId) continue;
       if (m.completedDate != null) continue;

@@ -123,7 +123,8 @@ export function getRecentCompletedSessions(
  *
  * @param activeMesocycle The mesocycle to regenerate
  * @param options Optional state transitions to apply in the same batch
- * @param options.startMesocycle If true, sets `startDate` on the mesocycle
+ * @param options.startMesocycle If true, sets `startDate` on the mesocycle to
+ *   its scheduled start (the first microcycle's start), falling back to now
  * @param options.completedMicrocycleNumber 1-indexed microcycle to mark as
  *   completed via `completedDate`
  */
@@ -138,7 +139,11 @@ export function regenerateMesocycle(
 
   // Apply state transitions before regeneration so the core library sees them
   if (options?.startMesocycle) {
-    activeMesocycle.startDate = new Date();
+    const scheduledStart = mesocycleMapService.getMesocycleStartDate(
+      activeMesocycle,
+      docs.microcycles
+    );
+    activeMesocycle.startDate = scheduledStart ? new Date(scheduledStart) : new Date();
   }
 
   if (options?.completedMicrocycleNumber != null) {
