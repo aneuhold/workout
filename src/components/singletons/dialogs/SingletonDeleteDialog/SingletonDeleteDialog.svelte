@@ -26,7 +26,9 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -47,16 +49,40 @@
     }
   }
 
+  /**
+   * The exercise's calibrations, and how many sessions and mesocycles reference it.
+   * Null when the item isn't an exercise.
+   */
+  let exerciseUsage = $derived.by(() => {
+    if (currentItem?.type !== WorkoutDocumentType.Exercise) return null;
+    const exerciseId = currentItem.id;
+    const calibrationIds = exerciseCalibrationMapService.allDocs
+      .filter((c) => c.workoutExerciseId === exerciseId)
+      .map((c) => c._id);
+    const sessionCount = new Set(
+      sessionExerciseMapService.allDocs
+        .filter((se) => se.workoutExerciseId === exerciseId)
+        .map((se) => se.workoutSessionId)
+    ).size;
+    const mesocycleCount = mesocycleMapService.allDocs.filter((mesocycle) =>
+      mesocycle.calibratedExercises.some((id) => calibrationIds.includes(id))
+    ).length;
+    return { calibrationIds, sessionCount, mesocycleCount };
+  });
+
+  /**
+   * If the deletion is blocked.
+   */
+  let isBlocked = $derived(
+    exerciseUsage != null && (exerciseUsage.sessionCount > 0 || exerciseUsage.mesocycleCount > 0)
+  );
+
   function handleConfirm() {
-    if (!currentItem) return;
-    const itemId = currentItem.id;
+    if (!currentItem || isBlocked) return;
     switch (currentItem.type) {
       case WorkoutDocumentType.Exercise: {
-        const calibrationIds = exerciseCalibrationMapService.allDocs
-          .filter((c) => c.workoutExerciseId === itemId)
-          .map((c) => c._id);
-        if (calibrationIds.length > 0) {
-          exerciseCalibrationMapService.deleteManyDocs(calibrationIds);
+        if (exerciseUsage && exerciseUsage.calibrationIds.length > 0) {
+          exerciseCalibrationMapService.deleteManyDocs(exerciseUsage.calibrationIds);
         }
         exerciseMapService.deleteDoc(currentItem.id);
         break;
@@ -75,9 +101,25 @@
 <AlertDialog bind:open>
   <AlertDialogContent>
     <AlertDialogHeader>
-      <AlertDialogTitle>Delete {currentItem ? typeLabel(currentItem.type) : ''}?</AlertDialogTitle>
+      <AlertDialogTitle>
+        {isBlocked ? "Can't delete" : 'Delete'}
+        {currentItem ? typeLabel(currentItem.type) : ''}{isBlocked ? '' : '?'}
+      </AlertDialogTitle>
       <AlertDialogDescription>
-        {#if currentItem}
+        {#if currentItem && exerciseUsage && isBlocked}
+          "{currentItem.name}" is used in
+          {#if exerciseUsage.sessionCount > 0}
+            {exerciseUsage.sessionCount}
+            {exerciseUsage.sessionCount === 1 ? 'session' : 'sessions'}
+          {/if}
+          {#if exerciseUsage.sessionCount > 0 && exerciseUsage.mesocycleCount > 0}
+            and
+          {/if}
+          {#if exerciseUsage.mesocycleCount > 0}
+            {exerciseUsage.mesocycleCount}
+            {exerciseUsage.mesocycleCount === 1 ? 'mesocycle' : 'mesocycles'}
+          {/if}, so it can't be deleted.
+        {:else if currentItem}
           Are you sure you want to delete "{currentItem.name}"? This action cannot be undone.
           {#if currentItem.type === WorkoutDocumentType.Exercise}
             Associated calibration data will also be removed.
@@ -86,13 +128,15 @@
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction
-        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-        onclick={handleConfirm}
-      >
-        Delete
-      </AlertDialogAction>
+      <AlertDialogCancel>{isBlocked ? 'Close' : 'Cancel'}</AlertDialogCancel>
+      {#if !isBlocked}
+        <AlertDialogAction
+          class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          onclick={handleConfirm}
+        >
+          Delete
+        </AlertDialogAction>
+      {/if}
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>
