@@ -17,14 +17,14 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Result:** Microcycle 2 - Session 4, which had 2 of 5 sets logged, disappears. Week 2 now shows 3/3. Neither deload dialog mentions this, while End Mesocycle does warn about discarding incomplete sessions.
 - **Files:** `initiateEarlyDeload` treats every `!session.complete` session as discardable. Dialog: `SingletonDeloadDialog.svelte`.
 
-### 2. Cancelling the deload prompt after completing a session leaves you on the completed session
+### 2. ✅ Cancelling the deload prompt after completing a session leaves you on the completed session
 
 - **Repro (deload-trigger):** finish the session, then Complete Session. The "Deload Recommended" dialog opens. Make a selection and then Cancel, or Cancel directly.
 - **Result:** the dialog closes and you stay on the just-completed session, now in review mode. Completing a session without the prompt navigates away.
 - **Expected:** you end up on Home, same as a normal completion.
 - **Cause:** `handleCompleteSession` in `src/pages/SessionPage/SessionPage.service.svelte.ts` opens `deloadDialog` and returns without navigating. Only `onConfirm` navigates. See #3 for a shared fix. This overlaps with item 3 in [deload-dialog-enhancements.md](deload-dialog-enhancements.md), which proposes `/sessions` as the destination instead of Home.
 
-### 3. Completing a session briefly shows review mode before navigating
+### 3. ✅ Completing a session briefly shows review mode before navigating
 
 - **Repro (any scenario with an active session):** log all sets, fill the sliders, then Complete Session.
 - **Result:** for a moment the session page switches to the post-workout review mode before the navigation finishes.
