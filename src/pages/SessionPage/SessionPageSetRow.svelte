@@ -5,7 +5,7 @@
   Displays weight/reps/RIR inputs and an action column (Log button, Done badge, or planned targets).
 -->
 <script lang="ts">
-  import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
+  import { type WorkoutSet, WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
   import { IconMinus, IconPencil } from '@tabler/icons-svelte';
   import { editSetDialog } from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -62,7 +62,16 @@
 
   let dialogOpen = $state(false);
 
-  let canLog = $derived(weight != null && reps != null && (rir != null || set.plannedRir == null));
+  let repsValid = $derived(
+    (mode === SessionPageMode.Planning
+      ? WorkoutSetSchema.shape.plannedReps
+      : WorkoutSetSchema.shape.actualReps
+    ).safeParse(reps).success
+  );
+
+  let canLog = $derived(
+    weight != null && reps != null && repsValid && (rir != null || set.plannedRir == null)
+  );
 
   function handleLogClick() {
     if (!canLog) return;
@@ -70,7 +79,7 @@
   }
 
   function handleConfirm() {
-    if (weight != null && reps != null && (rir != null || set.plannedRir == null)) {
+    if (canLog && weight != null && reps != null) {
       onLog(weight, reps, rir ?? null);
     }
     dialogOpen = false;
@@ -180,8 +189,9 @@
           placeholder="reps"
           class="h-7 text-sm"
           min={0}
+          aria-invalid={!repsValid}
           onchange={() => {
-            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
+            if (mode === SessionPageMode.Planning && repsValid) onPlannedChange?.(weight, reps);
           }}
         />
       {/if}
