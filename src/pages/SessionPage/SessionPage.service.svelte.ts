@@ -372,7 +372,7 @@ class SessionPageService {
     const { session, isFreeForm, sessionExercises, mesocycle, microcycle } = this;
     if (!session) return;
 
-    await goto(isFreeForm ? '/' : '/sessions');
+    await goto('/');
 
     sessionMapService.updateDoc(session._id, (doc) => {
       doc.complete = true;
