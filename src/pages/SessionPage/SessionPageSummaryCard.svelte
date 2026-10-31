@@ -43,9 +43,9 @@
       <Button
         class="w-full"
         disabled={!canComplete}
-        onclick={(e: MouseEvent) => {
+        onclick={async (e: MouseEvent) => {
           triggerConfetti(e.clientX, e.clientY);
-          sessionPageService.handleCompleteSession();
+          await sessionPageService.handleCompleteSession();
         }}
       >
         Complete Session

@@ -363,10 +363,16 @@ class SessionPageService {
     this.#expandedMap[seId] = true;
   }
 
-  /** Completes the session, checks for early deload recommendation, and navigates away. */
-  handleCompleteSession(): void {
+  /**
+   * Navigates away from the session, then marks it complete and checks for an early deload
+   * recommendation. Navigating first keeps the page from re-rendering in review mode, and lets
+   * the deload dialog open on the destination page so dismissing it leaves the user there.
+   */
+  async handleCompleteSession(): Promise<void> {
     const { session, isFreeForm, sessionExercises, mesocycle, microcycle } = this;
     if (!session) return;
+
+    await goto(isFreeForm ? '/' : '/sessions');
 
     sessionMapService.updateDoc(session._id, (doc) => {
       doc.complete = true;
@@ -382,34 +388,28 @@ class SessionPageService {
         session.userId,
         sessionExercises
       );
-      void goto('/');
       return;
     }
 
-    if (mesocycle && microcycle) {
-      const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
-      const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
-        mesocycle,
-        docs.exerciseCTOs,
-        microcycle._id,
-        docs.microcycles,
-        docs.sessions,
-        docs.sessionExercises,
-        docs.sets
-      );
-      if (recommendation.shouldDeload) {
-        deloadDialog.open({
-          mesocycleId: mesocycle._id,
-          scheduledDeloadDate: null,
-          onDeloadStarted: () => goto('/sessions'),
-          severity: recommendation.severity,
-          triggeredRules: recommendation.triggeredRules
-        });
-        return;
-      }
+    if (!mesocycle || !microcycle) return;
+    const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
+    const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
+      mesocycle,
+      docs.exerciseCTOs,
+      microcycle._id,
+      docs.microcycles,
+      docs.sessions,
+      docs.sessionExercises,
+      docs.sets
+    );
+    if (recommendation.shouldDeload) {
+      deloadDialog.open({
+        mesocycleId: mesocycle._id,
+        scheduledDeloadDate: null,
+        severity: recommendation.severity,
+        triggeredRules: recommendation.triggeredRules
+      });
     }
-
-    void goto('/sessions');
   }
 
   /** Confirms the post-session review, allowing mode to advance to View. */
