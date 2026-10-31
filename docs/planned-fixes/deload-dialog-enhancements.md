@@ -28,6 +28,19 @@ Four call sites:
 ### "The session" and "leave the session when they move out of that menu"
 "The session" = the `/session?sessionId=...` route rendering `SessionPage`. Entered via `goto('/session?sessionId=...')`, left via `goto('/sessions')` / `goto('/')`. "That menu" = the deload dialog opened after session completion in `handleCompleteSession` (`SessionPage.service.svelte.ts:400`). Because that method returns without navigating when the dialog opens, dismissing (Cancel/Escape) leaves the user on the session page. Desired: when dismissed without confirming, still `goto('/sessions')`.
 
+## Related: "Start deload now" does not start today
+
+- **Repro (very-late-session):** Advance to Next Microcycle, then Start Session, then "Start deload", then Confirm. The second dialog says "The deload will start today (Oct 29, 2026)". Tap Start Deload.
+- **Result:** the hero still says "13 days late, Scheduled for Oct 16". Start Session opens the late dialog again, which says the mesocycle ends Oct 22 (in the past). The Plan calendar shows the deload on Oct 15 to 21.
+- **Same behavior elsewhere:**
+  - deload-trigger: Complete Session, then "Deload Recommended", then Start Deload. Result: "6 days late, scheduled Oct 23".
+  - mid-training: Mesocycle page, then Options, then Start Deload, then "Start now". The deload lands on Oct 25 to 31.
+- **Cause:** `WorkoutMesocycleService.generateOrUpdateMesocycle` in ts-libs `WorkoutMesocycle.service.ts` (around L146 to 152) ignores `startDate` when microcycles already exist and continues from the last microcycle's `endDate`. Called from `initiateEarlyDeload` in `src/services/documentMapServices/MesocycleMap.service.svelte.ts`.
+
+<img src="../images/ux-pass/plan-after-deload.png" alt="plan-after-deload" width="260"> <img src="../images/ux-pass/very-late-hero.png" alt="very-late-hero" width="260">
+
+Found in the UX pass ([ux-pass-findings.md](ux-pass-findings.md)). The fix approach is still open: the dialog promises "today", but generation always appends the deload after the existing microcycles.
+
 ## Implementation plan
 
 ### Library (`@aneuhold/core-ts-db-lib`)
