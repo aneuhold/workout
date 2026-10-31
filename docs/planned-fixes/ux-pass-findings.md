@@ -32,7 +32,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Cause:** `handleCompleteSession` sets `doc.complete = true` first, which flips `dataMode` to Review and re-renders the page, then calls `goto`. The navigation target is also inconsistent: mesocycle sessions go to `/sessions` and free-form sessions go to `/`.
 - **Possible fix for #2 and #3:** navigate to Home first, then mark the session complete and run the early-deload check. The deload dialog is a layout-level singleton, so it can open on Home. Cancelling it then leaves the user on Home.
 
-### 4. Negative reps can be logged
+### 4. ✅ Negative reps can be logged
 
 - **Repro (free-form-workout or mid-training):** type -3 in the reps field of a set row, then Log, then Confirm.
 - **Result:** the set saves with "-3 reps". `min={0}` on the input is not enforced.

@@ -8,14 +8,6 @@
   import { type WorkoutSet, WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
   import { IconMinus, IconPencil } from '@tabler/icons-svelte';
   import { editSetDialog } from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
-  import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
-  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
-  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
-  import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
-  import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
-  import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
-  import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
-  import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
   import { SessionPageMode, SessionPageSetState } from './sessionPageTypes';
@@ -60,8 +52,6 @@
       : (set.rir ?? set.plannedRir ?? undefined)
   );
 
-  let dialogOpen = $state(false);
-
   let repsValid = $derived(
     (mode === SessionPageMode.Planning
       ? WorkoutSetSchema.shape.plannedReps
@@ -74,15 +64,10 @@
   );
 
   function handleLogClick() {
-    if (!canLog) return;
-    dialogOpen = true;
-  }
-
-  function handleConfirm() {
+    // weight and reps are only checked again for TS to know they aren't null
     if (canLog && weight != null && reps != null) {
       onLog(weight, reps, rir ?? null);
     }
-    dialogOpen = false;
   }
 
   function handleEditClick() {
@@ -281,27 +266,3 @@
     </div>
   </div>
 {/if}
-
-<AlertDialog bind:open={dialogOpen}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Log Set</AlertDialogTitle>
-      <AlertDialogDescription>
-        {weight}lb x {reps} reps{#if rir != null}
-          @ {rir} RIR{/if}
-        {#if hasTargets}
-          <br />
-          <span class="text-muted-foreground">
-            Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ??
-              '?'}{#if set.plannedRir != null}
-              @ {set.plannedRir} RIR{/if}
-          </span>
-        {/if}
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction onclick={handleConfirm}>Confirm</AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
