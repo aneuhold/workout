@@ -39,7 +39,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Note:** negative weight is intentionally allowed (for example assisted exercises). Only reps need a floor.
 - **Files:** `src/pages/SessionPage/SessionPageSetRow.svelte` (`canLog` around L66, `handleConfirm`).
 
-### 5. Deleting an exercise leaves "Unknown Exercise" in sessions
+### 5. ✅ Deleting an exercise leaves "Unknown Exercise" in sessions
 
 - **Repro (mid-training):** Library, then Barbell Row, then Delete, then Delete. Go Home, then Continue.
 - **Result:** the session shows "Unknown Exercise" with its logged sets. The same happens to Push Day after deleting Bench Press. The dialog only warns about calibration data. Deleting an in-use muscle group or equipment is blocked, but deleting an in-use exercise is not.
@@ -68,7 +68,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 
 ## Usability: confusing or awkward
 
-### 9. Remove the confirmation dialog for logging a set
+### 9. ✅ Remove the confirmation dialog for logging a set
 
 - **Current:** tapping Log on a set row opens an "are you sure" dialog showing the values, and the set is saved only after Confirm.
 - **Expected:** Log saves the set immediately. The confirmation step exists for a reason that no longer applies.
