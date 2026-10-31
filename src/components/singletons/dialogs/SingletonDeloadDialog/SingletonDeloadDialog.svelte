@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Singleton dialog for confirming an early deload. Can be opened in two modes:
+  Singleton dialog for confirming and starting an early deload. Can be opened in two modes:
 
   1. **Manual** — the user chooses to start a deload from the mesocycle page or
      the late-session flow. Shows date options when a scheduled deload date exists.
@@ -13,16 +13,19 @@
 -->
 <script lang="ts" module>
   import { WorkoutDeloadSeverity, WorkoutDeloadTriggerRule } from '@aneuhold/core-ts-db-lib';
+  import type { UUID } from 'crypto';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
+  import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
 
   type DeloadChoice = 'now' | 'scheduled';
 
   type DeloadDialogParams = {
-    /** Title of the mesocycle being deloaded. */
-    mesocycleTitle: string;
+    /** ID of the mesocycle to deload. */
+    mesocycleId: UUID;
     /** Scheduled deload date, if one exists. Shows a "start as scheduled" option when set. */
     scheduledDeloadDate: Date | null;
-    /** Callback invoked when the user confirms the deload. */
-    onConfirm: (startDate: DeloadChoice) => Promise<void>;
+    /** Callback invoked after the deload has started. */
+    onDeloadStarted?: () => Promise<void>;
     /** Severity level from fatigue detection. When set, the dialog shows a fatigue warning. */
     severity?: WorkoutDeloadSeverity;
     /** Which fatigue detection rules triggered the recommendation. Displayed as explanatory text when present. */
@@ -34,6 +37,7 @@
   let confirming = $state(false);
   let errorMessage = $state<string | null>(null);
   let selected = $state<DeloadChoice>('now');
+  let removedSessionCount = $state(0);
 
   export const deloadDialog = {
     /**
@@ -47,6 +51,12 @@
       confirming = false;
       errorMessage = null;
       selected = 'now';
+      // Starting a deload removes every incomplete session in the mesocycle
+      removedSessionCount = microcycleMapService
+        .getOrderedSessionsForMicrocycles(
+          microcycleMapService.getOrderedMicrocyclesForMesocycle(dialogParams.mesocycleId)
+        )
+        .filter((s) => !s.complete).length;
     }
   };
 </script>
@@ -71,19 +81,14 @@
     date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const todayFormatted = $derived(formatDate(new Date()));
-
   const scheduledDateFormatted = $derived(
     params?.scheduledDeloadDate ? formatDate(params.scheduledDeloadDate) : null
   );
-
   const showScheduledOption = $derived(
     params?.scheduledDeloadDate != null && params.scheduledDeloadDate.getTime() > Date.now()
   );
-
   const hasFatigueWarning = $derived(params?.severity != null);
-
   const dialogTitle = $derived(hasFatigueWarning ? 'Deload Recommended' : 'Start Deload Early');
-
   const severityAlertVariant: AlertVariant = $derived(
     params?.severity === WorkoutDeloadSeverity.Suggested ? 'warn' : 'destructive'
   );
@@ -117,10 +122,14 @@
     confirming = true;
     errorMessage = null;
     try {
-      await params.onConfirm(selected);
+      const { mesocycleId, scheduledDeloadDate, onDeloadStarted } = params;
+      const deloadStartDate =
+        selected === 'scheduled' && scheduledDeloadDate ? scheduledDeloadDate : new Date();
+      mesocycleMapService.initiateEarlyDeload(mesocycleId, deloadStartDate);
+      await onDeloadStarted?.();
       dialogOpen = false;
     } catch (error) {
-      console.error('Deload confirmation failed:', error);
+      console.error('Starting the deload failed:', error);
       errorMessage = 'Something went wrong. Please try again.';
       confirming = false;
     }
@@ -134,6 +143,10 @@
       <AlertDialogDescription>
         This will cut the remaining sessions in the current microcycle and transition into a deload
         week.
+        {#if removedSessionCount > 0}
+          {removedSessionCount}
+          remaining {removedSessionCount === 1 ? 'session' : 'sessions'} will be removed.
+        {/if}
       </AlertDialogDescription>
     </AlertDialogHeader>
 

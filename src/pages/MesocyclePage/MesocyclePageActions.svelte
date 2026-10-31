@@ -65,11 +65,7 @@
     deloadDialog.open({
       mesocycleId: mesocycle._id,
       scheduledDeloadDate,
-      onConfirm: async (choice) => {
-        const deloadStartDate = choice === 'now' ? new Date() : (scheduledDeloadDate ?? new Date());
-        mesocycleMapService.initiateEarlyDeload(mesocycle._id, deloadStartDate);
-        await goto('/mesocycles');
-      }
+      onDeloadStarted: () => goto('/mesocycles')
     });
   }
 

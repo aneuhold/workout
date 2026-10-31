@@ -399,12 +399,9 @@ class SessionPageService {
       );
       if (recommendation.shouldDeload) {
         deloadDialog.open({
-          mesocycleTitle: mesocycle.title ?? 'Mesocycle',
+          mesocycleId: mesocycle._id,
           scheduledDeloadDate: null,
-          onConfirm: async () => {
-            mesocycleMapService.initiateEarlyDeload(mesocycle._id, new Date());
-            await goto('/sessions');
-          },
+          onDeloadStarted: () => goto('/sessions'),
           severity: recommendation.severity,
           triggeredRules: recommendation.triggeredRules
         });

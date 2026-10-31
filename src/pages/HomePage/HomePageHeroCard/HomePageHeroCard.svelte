@@ -128,13 +128,8 @@
 
     if (recommendation.shouldDeload) {
       deloadDialog.open({
-        mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
+        mesocycleId: activeMesocycle._id,
         scheduledDeloadDate: null,
-        onConfirm: () => {
-          return Promise.resolve(
-            mesocycleMapService.initiateEarlyDeload(activeMesocycle._id, new Date())
-          );
-        },
         severity: recommendation.severity,
         triggeredRules: recommendation.triggeredRules
       });
@@ -209,12 +204,8 @@
     if (!activeMesocycle) return;
 
     deloadDialog.open({
-      mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
-      scheduledDeloadDate: null,
-      onConfirm: () => {
-        mesocycleMapService.initiateEarlyDeload(activeMesocycle._id, new Date());
-        return Promise.resolve();
-      }
+      mesocycleId: activeMesocycle._id,
+      scheduledDeloadDate: null
     });
   }
 </script>
