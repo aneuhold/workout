@@ -35,6 +35,11 @@
 
 <Story name="View (Active)" args={{ storyMode: MesocyclePageStoryMode.Static }} />
 
+<Story
+  name="View (Active with In-Progress Session)"
+  args={{ storyMode: MesocyclePageStoryMode.ActiveInProgress }}
+/>
+
 <Story name="View (Completed)" args={{ storyMode: MesocyclePageStoryMode.Completed }} />
 
 <Story name="Not Found" args={{ storyMode: MesocyclePageStoryMode.NotFound }} />
