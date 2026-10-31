@@ -5,6 +5,7 @@
   Reads all state from SessionPageService.
 -->
 <script lang="ts">
+  import { triggerConfetti } from '$components/singletons/Confetti/Confetti.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -42,7 +43,10 @@
       <Button
         class="w-full"
         disabled={!canComplete}
-        onclick={() => sessionPageService.handleCompleteSession()}
+        onclick={(e: MouseEvent) => {
+          triggerConfetti(e.clientX, e.clientY);
+          sessionPageService.handleCompleteSession();
+        }}
       >
         Complete Session
       </Button>

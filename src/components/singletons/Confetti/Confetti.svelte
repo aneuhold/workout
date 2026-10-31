@@ -91,9 +91,10 @@
   .confettiContainer {
     position: fixed;
     pointer-events: none;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1;
+    /* Shorthand for left: 0, right:0 bottom and top 0. */
+    inset: 0;
+    /* Above other parts of the app */
+    z-index: 60;
   }
   .confetti {
     position: absolute;

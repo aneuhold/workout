@@ -2,7 +2,7 @@
   @component
 
   Layout for the authenticated app. Owns TopBar/NavBar, the demo mode
-  button, and the singleton dialogs, and gates rendering on `loginState`. Hydration and
+  button, the confetti, and the singleton dialogs, and gates rendering on `loginState`. Hydration and
   app-init run in the root layout, which persists across route groups.
 -->
 <script lang="ts">
@@ -11,6 +11,7 @@
   import DemoModeButton from '$components/DemoModeButton/DemoModeButton.svelte';
   import Login from '$components/Login/Login.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
+  import Confetti from '$components/singletons/Confetti/Confetti.svelte';
   import SingletonCalibrationFormDialog from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import SingletonDeleteDialog from '$components/singletons/dialogs/SingletonDeleteDialog/SingletonDeleteDialog.svelte';
   import SingletonDeloadDialog from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
@@ -47,6 +48,7 @@
     >
       {@render children?.()}
     </main>
+    <Confetti />
     <SingletonCalibrationFormDialog />
     <SingletonDeleteDialog />
     <SingletonDeloadDialog />
