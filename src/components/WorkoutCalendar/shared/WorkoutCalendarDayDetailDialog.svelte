@@ -2,9 +2,11 @@
   @component
 
   Shared detail dialog for both WorkoutMesocycleCalendar and WorkoutSessionCalendar.
-  Shows workout session details (exercises and sets) for a selected calendar day.
+  Shows workout session details (exercises and sets) for a selected calendar day. Logged sets
+  show their actual values (with the plan beneath when one exists); unlogged sets show the plan.
 -->
 <script lang="ts">
+  import { WorkoutSetService } from '@aneuhold/core-ts-db-lib';
   import { IconExternalLink } from '@tabler/icons-svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -25,8 +27,8 @@
   }: {
     /** Formatted date string for the dialog title (e.g. "Monday, March 29, 2026"). */
     formattedDate: string;
-    /** Two-part subtitle rendered as "{primary} — {secondary}" with distinct styling. */
-    description: { primary: string; secondary: string };
+    /** Subtitle shown under the date (e.g. "2 sessions"). */
+    description: string;
     /** Sessions to display in the detail view. */
     sessions: WorkoutCalendarSession[];
     /**
@@ -45,11 +47,7 @@
     {#if formattedDate}
       <DialogHeader>
         <DialogTitle>{formattedDate}</DialogTitle>
-        <DialogDescription>
-          <span>{description.primary}</span>
-          &mdash;
-          <span class="text-muted-foreground">{description.secondary}</span>
-        </DialogDescription>
+        <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
 
       <div class="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -89,34 +87,33 @@
                     <span class="text-xs font-normal text-warning">Recovery</span>
                   {/if}
                 </p>
-                {#if session.completed}
-                  <div class="grid grid-cols-4 gap-1 text-xs">
-                    {#each exercise.sets as set, setIdx (setIdx)}
-                      <span class="text-muted-foreground">S{setIdx + 1}</span>
-                      <span>{set.actualReps ?? '—'} reps</span>
-                      <span>{set.actualWeight ?? '—'} lb</span>
-                      <span>{set.rir ?? '—'} RIR</span>
-                      <span></span>
-                      <span class="text-muted-foreground text-[0.65rem]"
-                        >plan: {set.plannedReps ?? '—'} reps</span
-                      >
-                      <span class="text-muted-foreground text-[0.65rem]"
-                        >{set.plannedWeight ?? '—'} lb</span
-                      >
-                      <span class="text-muted-foreground text-[0.65rem]"
-                        >{set.plannedRir ?? '—'} RIR</span
-                      >
-                    {/each}
-                  </div>
-                {:else}
-                  <div class="grid grid-cols-3 gap-1 text-xs text-muted-foreground">
-                    {#each exercise.sets as set, setIdx (setIdx)}
-                      <span>S{setIdx + 1}</span>
-                      <span>{set.plannedReps ?? '—'} reps</span>
-                      <span>{set.plannedWeight ?? '—'} lb</span>
-                    {/each}
-                  </div>
-                {/if}
+                <div class="grid grid-cols-4 gap-1 text-xs">
+                  {#each exercise.sets as set, setIdx (setIdx)}
+                    {@const hasPlan = set.plannedReps != null || set.plannedWeight != null}
+                    <span class="text-muted-foreground">S{setIdx + 1}</span>
+                    {#if WorkoutSetService.isCompleted(set)}
+                      <span>{set.actualReps} reps</span>
+                      <span>{set.actualWeight} lb</span>
+                      <span>{set.rir != null ? `${set.rir} RIR` : ''}</span>
+                      {#if hasPlan}
+                        <div class="contents text-muted-foreground text-[0.65rem]">
+                          <span></span>
+                          <span>plan: {set.plannedReps ?? '—'} reps</span>
+                          <span>{set.plannedWeight ?? '—'} lb</span>
+                          <span>{set.plannedRir != null ? `${set.plannedRir} RIR` : ''}</span>
+                        </div>
+                      {/if}
+                    {:else if hasPlan}
+                      <div class="contents text-muted-foreground">
+                        <span>{set.plannedReps ?? '—'} reps</span>
+                        <span>{set.plannedWeight ?? '—'} lb</span>
+                        <span>{set.plannedRir != null ? `${set.plannedRir} RIR` : ''}</span>
+                      </div>
+                    {:else}
+                      <span class="col-span-3 text-muted-foreground">Not logged</span>
+                    {/if}
+                  {/each}
+                </div>
               </div>
             {/each}
           </div>
