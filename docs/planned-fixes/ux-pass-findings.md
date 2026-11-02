@@ -45,7 +45,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Result:** the session shows "Unknown Exercise" with its logged sets. The same happens to Push Day after deleting Bench Press. The dialog only warns about calibration data. Deleting an in-use muscle group or equipment is blocked, but deleting an in-use exercise is not.
 - **Files:** `SingletonDeleteDialog.svelte:83`, `SessionPageExerciseCardHeader.svelte:50`.
 
-### 6. Calendar day popup ignores logged sets for in-progress sessions
+### 6. ✅ Calendar day popup ignores logged sets for in-progress sessions
 
 - **Repro (mid-training):** Plan, then Session Calendar, then tap 22 or 29.
 - **Result:** Session 4 (Barbell Row logged 135x16 and 135x14) shows "Projected targets 15/13". Push Day (4 sets logged) shows every set as "— reps — lb". Completed free-form sessions show a meaningless "plan: — reps — lb — RIR" line on every set.
@@ -59,7 +59,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Result:** Barbell Squat C5 is 235 lb, then the deload row is 245. Bulgarian Split Squat is 50 in the deload, then 45 on set 2.
 - **Cause:** `#generateSetRepsAndWeight` in ts-libs `Set/WorkoutSet.service.ts` (around L202) starts the deload from the next progressed weight, while its comment says "same weight".
 
-### 8. No date picker highlights the selected date
+### 8. ✅ No date picker highlights the selected date
 
 - **Where:** Session, then Change Start Date; Mesocycle, then Start Date. The selected day renders with a transparent background.
 - **Cause:** `src/globalStyles/shadcnV4Tailwind.css:61` defines `@custom-variant data-selected` as `[data-selected="true"]`. bits-ui sets `data-selected=""` (`boolToEmptyStrOrUndef`), so `data-selected:bg-primary` in `src/components/ui/Calendar/CalendarDay.svelte:19` never applies.
