@@ -53,7 +53,7 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 
 <img src="../images/ux-pass/session-calendar.png" alt="session-calendar" width="260"> <img src="../images/ux-pass/session-calendar2.png" alt="session-calendar2" width="260">
 
-### 7. Deload weight is higher than the heaviest accumulation week
+### 7. ✅ Deload weight is higher than the heaviest accumulation week
 
 - **Repro:** mesocycle-start, then Start Mesocycle, then Plan, then open the mesocycle and view the Progression table.
 - **Result:** Barbell Squat C5 is 235 lb, then the deload row is 245. Bulgarian Split Squat is 50 in the deload, then 45 on set 2.
@@ -74,13 +74,13 @@ If you are a bot tasked with doing one or a few of these, know that the workout 
 - **Expected:** Log saves the set immediately. The confirmation step exists for a reason that no longer applies.
 - **Files:** `src/pages/SessionPage/SessionPageSetRow.svelte`: `handleLogClick` opens the dialog, `handleConfirm` calls `onLog`, and the `AlertDialog` is around L270 to 297.
 
-### 10. No way to finish a mesocycle session with a skipped set, and no hint why
+### 10. ✅ No way to finish a mesocycle session with a skipped set, and no hint why
 
 Complete Session stays disabled until every set is logged. A hint shows only for unfilled sliders, not for incomplete sets, and there is no skip or remove set option. Complete Review is likewise disabled with no hint.
 
 - **File:** `SessionPageSummaryCard.svelte`.
 
-### 11. Complete Review gives no feedback
+### 11. ✅ Complete Review gives no feedback
 
 The button disappears and the page stays put, while Complete Session navigates away.
 
