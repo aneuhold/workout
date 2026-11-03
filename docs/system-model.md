@@ -233,7 +233,7 @@ These are requirements that were developed after taking all the notes in the mor
 
 ## Book Reference
 
-[Here is a link to the NotebookLM notebook that has the book in it's source set](https://notebooklm.google.com/notebook/89ca292a-0f03-4f8d-a386-73ab8a048c0f) (There is a limit of 50 queries per day)
+[Full Book](./FullBook.md)
 
 ## Terms
 

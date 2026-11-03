@@ -1,7 +1,8 @@
 <!--
   @component
 
-  Summary card showing sets completed, progress percentage, and action button.
+  Summary card showing sets completed, progress percentage, and action button, with a hint
+  explaining what is left when the action button is disabled.
   Reads all state from SessionPageService.
 -->
 <script lang="ts">
@@ -18,6 +19,25 @@
       ? sessionPageService.allExercisesDone
       : setsComplete && sessionPageService.allImmediateSlidersFilled
   );
+
+  let blockedHint: string | undefined = $derived.by(() => {
+    if (sessionPageService.mode === SessionPageMode.Review) {
+      return sessionPageService.allLateFieldsFilled
+        ? undefined
+        : 'Fill in all sliders to complete the review.';
+    }
+    if (sessionPageService.mode !== SessionPageMode.Active) return undefined;
+    if (sessionPageService.isFreeForm) {
+      return !sessionPageService.allExercisesDone && sessionPageService.totalSets > 0
+        ? 'Mark all exercises as done to complete the session.'
+        : undefined;
+    }
+    if (!setsComplete) return 'Log all sets to complete the session.';
+    if (!sessionPageService.allImmediateSlidersFilled) {
+      return 'Fill in all RSM and Fatigue fields to complete the session.';
+    }
+    return undefined;
+  });
 </script>
 
 <Card>
@@ -50,15 +70,6 @@
       >
         Complete Session
       </Button>
-      {#if sessionPageService.isFreeForm && !sessionPageService.allExercisesDone && sessionPageService.totalSets > 0}
-        <p class="text-center text-xs text-muted-foreground">
-          Mark all exercises as done to complete the session.
-        </p>
-      {:else if !sessionPageService.isFreeForm && setsComplete && !sessionPageService.allImmediateSlidersFilled}
-        <p class="text-center text-xs text-muted-foreground">
-          Fill in all RSM and Fatigue fields to complete the session.
-        </p>
-      {/if}
     {:else if sessionPageService.mode === SessionPageMode.Review}
       <Button
         class="w-full"
@@ -67,6 +78,9 @@
       >
         Complete Review
       </Button>
+    {/if}
+    {#if blockedHint}
+      <p class="text-center text-xs text-muted-foreground">{blockedHint}</p>
     {/if}
   </CardContent>
 </Card>
