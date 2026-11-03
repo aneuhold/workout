@@ -30,8 +30,16 @@
     IconStopwatch
   };
 
-  function getHref(itemUrl: string): string {
-    if (itemUrl === '/sessions') {
+  /**
+   * Resolves the link for a nav item. The Sessions item links to the
+   * in-progress session, unless the Sessions tab is already active, in which
+   * case it links to the sessions list.
+   *
+   * @param itemUrl The nav item's base URL
+   * @param path The current pathname
+   */
+  function getHref(itemUrl: string, path: string): string {
+    if (itemUrl === '/sessions' && !isActive(itemUrl, path)) {
       const mesocycleSession = mesocycleMapService.activeAndNextSessions.inProgressSession;
       if (mesocycleSession) {
         return `/session?sessionId=${mesocycleSession._id}`;
@@ -58,7 +66,7 @@
 >
   {#each navBarItems as item (item.url)}
     <a
-      href={getHref(item.url)}
+      href={getHref(item.url, currentPath)}
       data-testid={`nav-${item.shortTitle.toLowerCase()}`}
       class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors
         md:flex-initial md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-md md:px-3 md:py-2.5
