@@ -11,7 +11,6 @@
     WorkoutExerciseService
   } from '@aneuhold/core-ts-db-lib';
   import type { UUID } from 'crypto';
-  import { goto } from '$app/navigation';
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
@@ -113,6 +112,6 @@
   <!-- Section G: Actions -->
   <div class="flex gap-2">
     <Button onclick={onEdit}>Edit</Button>
-    <Button variant="outline" onclick={() => goto('/library')}>Done</Button>
+    <Button variant="outline" onclick={() => history.back()}>Done</Button>
   </div>
 </div>

@@ -29,9 +29,12 @@ const routeState = {
    * new URL.
    *
    * @param url Absolute or relative URL string (e.g. `/session?sessionId=abc`)
+   * @param replaceState Replaces the current URL instead of pushing it onto the history stack
    */
-  navigate(url: string): void {
-    historyStack.push(`${currentUrl.pathname}${currentUrl.search}`);
+  navigate(url: string, replaceState = false): void {
+    if (!replaceState) {
+      historyStack.push(`${currentUrl.pathname}${currentUrl.search}`);
+    }
     const parsed = new SvelteURL(url, 'http://localhost');
     currentUrl.pathname = parsed.pathname;
     currentUrl.search = parsed.search;

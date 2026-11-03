@@ -19,8 +19,8 @@ const sbFullAppMetaBase: Parameters<typeof defineMeta>[0] = {
         }
       },
       navigation: {
-        goto: (url: string | URL) => {
-          routeState.navigate(typeof url === 'string' ? url : url.toString());
+        goto: (url: string | URL, opts?: { replaceState?: boolean }) => {
+          routeState.navigate(typeof url === 'string' ? url : url.toString(), opts?.replaceState);
           return Promise.resolve();
         }
       }
