@@ -74,7 +74,7 @@
       <Button
         class="w-full"
         disabled={!sessionPageService.allLateFieldsFilled}
-        onclick={() => sessionPageService.handleCompleteReview()}
+        onclick={async () => await sessionPageService.handleCompleteReview()}
       >
         Complete Review
       </Button>

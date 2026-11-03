@@ -412,8 +412,12 @@ class SessionPageService {
     }
   }
 
-  /** Confirms the post-session review, allowing mode to advance to View. */
-  handleCompleteReview(): void {
+  /**
+   * Navigates home, then marks the review as confirmed so it doesn't flicker the UI while the user
+   * is looking at the session.
+   */
+  async handleCompleteReview(): Promise<void> {
+    await goto('/');
     this.#reviewConfirmed = true;
   }
 
