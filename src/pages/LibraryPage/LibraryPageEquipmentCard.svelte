@@ -91,13 +91,7 @@
         <IconPencil size={14} />
         Edit
       </Button>
-      <Button
-        variant="destructive"
-        size="sm"
-        disabled={linkedExercises.length > 0}
-        title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
-        onclick={onDelete}
-      >
+      <Button variant="destructive" size="sm" onclick={onDelete}>
         <IconTrash size={14} />
         Delete
       </Button>

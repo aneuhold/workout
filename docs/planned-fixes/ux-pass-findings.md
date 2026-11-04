@@ -111,7 +111,7 @@ After a deload starts, Home says "This Week · Week 3" while Sessions says "Delo
 
 <img src="../images/ux-pass/locked-session-home.png" alt="locked-session-home" width="260"> <img src="../images/ux-pass/locked-session-page.png" alt="locked-session-page" width="260">
 
-### 16. "Create Mesocycle" does not explain why it is disabled
+### 16. ✅ "Create Mesocycle" does not explain why it is disabled
 
 The button is hidden until an exercise is selected. When it is disabled for a blank title, no message shows near it, and the "Required" error is about 2,500 px above with no scroll or focus.
 
