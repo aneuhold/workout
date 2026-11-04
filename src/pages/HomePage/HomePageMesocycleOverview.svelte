@@ -4,37 +4,26 @@
   Condensed mesocycle header showing title, cycle type, and microcycle progress.
 -->
 <script lang="ts">
-  import type {
-    WorkoutMesocycle,
-    WorkoutMicrocycle,
-    WorkoutSession
-  } from '@aneuhold/core-ts-db-lib';
+  import type { WorkoutMesocycle, WorkoutMicrocycle } from '@aneuhold/core-ts-db-lib';
+  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import Badge from '$ui/Badge/Badge.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
 
   let {
     mesocycle,
-    sortedMicrocycles,
-    sessions
+    sortedMicrocycles
   }: {
     mesocycle: WorkoutMesocycle;
     sortedMicrocycles: WorkoutMicrocycle[];
-    sessions: WorkoutSession[];
   } = $props();
 
   const title = $derived(mesocycle.title || 'Untitled Mesocycle');
   const totalCycles = $derived(sortedMicrocycles.length);
 
   const currentCycleNumber = $derived.by(() => {
-    const firstIncomplete = sessions.find((s) => !s.complete);
-    if (!firstIncomplete?.workoutMicrocycleId) {
-      return sortedMicrocycles.length;
-    }
-    const cycleIndex = sortedMicrocycles.findIndex(
-      (mc) => mc._id === firstIncomplete.workoutMicrocycleId
-    );
-    return cycleIndex >= 0 ? cycleIndex + 1 : sortedMicrocycles.length;
+    const currentMicrocycle = WorkoutMesocycleService.getCurrentMicrocycle(sortedMicrocycles);
+    return currentMicrocycle ? sortedMicrocycles.indexOf(currentMicrocycle) + 1 : totalCycles;
   });
 
   const progressValue = $derived(totalCycles > 0 ? (currentCycleNumber / totalCycles) * 100 : 0);

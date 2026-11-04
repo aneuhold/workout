@@ -3,7 +3,6 @@ import {
   type WorkoutSessionExercise,
   WorkoutSessionExerciseService,
   WorkoutSessionLockReason,
-  WorkoutSessionService,
   WorkoutSetService
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
@@ -95,16 +94,6 @@ class SessionPageService {
       this.sessionExercises.every((se) => this.#doneExerciseIds.has(se._id))
   );
 
-  previousMicrocycle = $derived.by(() => {
-    const { microcycle, mesocycle } = this;
-    if (!microcycle || !mesocycle) return undefined;
-    const orderedMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(
-      mesocycle._id
-    );
-    const currentIndex = orderedMicrocycles.findIndex((mc) => mc._id === microcycle._id);
-    return currentIndex > 0 ? orderedMicrocycles[currentIndex - 1] : undefined;
-  });
-
   previousSessionInMicrocycle = $derived.by(() => {
     const { microcycle, session } = this;
     if (!microcycle || !session) return undefined;
@@ -114,12 +103,14 @@ class SessionPageService {
   });
 
   lockReason = $derived(
-    WorkoutSessionService.getSessionLockReason(
-      this.microcycle,
-      this.mesocycle,
-      this.previousMicrocycle,
-      this.previousSessionInMicrocycle
-    )
+    this.mesocycle && this.session
+      ? WorkoutMesocycleService.getSessionLockReason(
+          this.mesocycle,
+          microcycleMapService.getOrderedMicrocyclesForMesocycle(this.mesocycle._id),
+          this.session,
+          this.previousSessionInMicrocycle
+        )
+      : null
   );
 
   /**

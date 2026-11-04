@@ -6,6 +6,7 @@
   plus a free-form sessions section for sessions without a microcycle.
 -->
 <script lang="ts">
+  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
@@ -29,6 +30,8 @@
       ? microcycleMapService.getOrderedMicrocyclesForMesocycle(activeMesocycle._id)
       : []
   );
+
+  const currentMicrocycle = $derived(WorkoutMesocycleService.getCurrentMicrocycle(microcycles));
 
   const inProgressSessionId = $derived(
     mesocycleMapService.activeAndNextSessions.inProgressSession?._id ?? null
@@ -64,6 +67,7 @@
         <SessionsPageWeekGroup
           microcycle={mc}
           label={microcycleMapService.getMicrocycleLabel(activeMesocycle, i, microcycles.length)}
+          isCurrent={mc === currentMicrocycle}
           {inProgressSessionId}
           {nextUpSessionId}
         />

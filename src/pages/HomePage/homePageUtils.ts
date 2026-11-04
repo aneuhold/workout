@@ -1,6 +1,5 @@
 import type {
   WorkoutMesocycle,
-  WorkoutMicrocycle,
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet
@@ -13,62 +12,11 @@ import sessionMapService from '$services/documentMapServices/SessionMap.service.
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 
-export type HomePageMicrocycleInfo = {
-  microcycle: WorkoutMicrocycle;
-  label: string;
-};
-
 export type HomePageSessionBundle = {
   session: WorkoutSession;
   sessionExercises: WorkoutSessionExercise[];
   sets: WorkoutSet[];
 };
-
-/**
- * Finds the microcycle containing the in-progress or next-up session.
- * Falls back to the last microcycle with any incomplete session.
- *
- * @param mesocycle The active mesocycle
- * @param microcycles Ordered microcycles for the active mesocycle
- * @param sessions All sessions for the active mesocycle
- * @param inProgressSession The currently in-progress session, if any
- * @param nextUpSession The next-up session, if any
- */
-export function getCurrentMicrocycle(
-  mesocycle: WorkoutMesocycle,
-  microcycles: WorkoutMicrocycle[],
-  sessions: WorkoutSession[],
-  inProgressSession: WorkoutSession | null,
-  nextUpSession: WorkoutSession | null
-): HomePageMicrocycleInfo | null {
-  if (microcycles.length === 0) return null;
-
-  const heroSession = inProgressSession ?? nextUpSession;
-
-  if (heroSession?.workoutMicrocycleId) {
-    const index = microcycles.findIndex((mc) => mc._id === heroSession.workoutMicrocycleId);
-    if (index >= 0) {
-      return {
-        microcycle: microcycles[index],
-        label: microcycleMapService.getMicrocycleLabel(mesocycle, index, microcycles.length)
-      };
-    }
-  }
-
-  // Fallback: last microcycle with any incomplete session
-  for (let i = microcycles.length - 1; i >= 0; i--) {
-    const mc = microcycles[i];
-    const hasIncomplete = sessions.some((s) => s.workoutMicrocycleId === mc._id && !s.complete);
-    if (hasIncomplete) {
-      return {
-        microcycle: mc,
-        label: microcycleMapService.getMicrocycleLabel(mesocycle, i, microcycles.length)
-      };
-    }
-  }
-
-  return null;
-}
 
 function sessionHasAllMetricsFilled(session: WorkoutSession): boolean {
   const exercises = sessionMapService.getOrderedSessionExercisesForSession(session);

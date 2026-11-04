@@ -210,7 +210,7 @@
           />
         {/if}
 
-        {#if !isDeload && mode !== SessionPageMode.Planning}
+        {#if !isDeload && mode !== SessionPageMode.Planning && mode !== SessionPageMode.Locked}
           <Separator />
           <SessionPageExerciseCardRsmSliders
             {sessionExercise}

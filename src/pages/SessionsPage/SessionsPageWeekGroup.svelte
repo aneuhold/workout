@@ -23,11 +23,14 @@
   let {
     microcycle,
     label,
+    isCurrent,
     inProgressSessionId,
     nextUpSessionId
   }: {
     microcycle: WorkoutMicrocycle;
     label: string;
+    /** Whether this is the mesocycle's current microcycle. Only the current microcycle shows a next-up session. */
+    isCurrent: boolean;
     inProgressSessionId: string | null;
     nextUpSessionId: string | null;
   } = $props();
@@ -40,13 +43,7 @@
     allComplete && sessions.some((s) => getStatus(s) === SessionStatus.Review)
   );
 
-  const containsActiveSession = $derived(
-    sessions.some((s) => s._id === inProgressSessionId || s._id === nextUpSessionId)
-  );
-
-  let expanded = $derived(
-    hasReview || containsActiveSession || (completedCount > 0 && !allComplete)
-  );
+  let expanded = $derived(hasReview || isCurrent || (completedCount > 0 && !allComplete));
 
   const dateRange = $derived.by(() => {
     const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
@@ -71,7 +68,7 @@
       sets,
       exercises,
       session._id === inProgressSessionId,
-      session._id === nextUpSessionId
+      isCurrent && session._id === nextUpSessionId
     );
   }
 </script>
