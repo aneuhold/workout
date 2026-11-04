@@ -8,7 +8,7 @@ export enum SessionStatus {
   Review = 'review',
   /** complete === false, at least one set with actualReps != null */
   InProgress = 'inProgress',
-  /** First incomplete session with no logged sets in the current microcycle, or an in-progress free-form session with no logged sets */
+  /** First incomplete session with no logged sets in the current microcycle while no session is in progress, or an in-progress free-form session with no logged sets */
   NextUp = 'nextUp',
   /** Remaining incomplete sessions (including planned free-form sessions and a session that is upcoming) */
   Upcoming = 'upcoming'
