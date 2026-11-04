@@ -1,7 +1,8 @@
 <!--
   @component
 
-  Summary card showing stats grid and optional Create / Save buttons.
+  Summary card showing stats grid and optional Create / Save buttons. When the
+  button is disabled, the reasons are listed directly above it.
 -->
 <script lang="ts">
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -23,27 +24,22 @@
     totalWeeks,
     totalSessions,
     uniqueExercises,
-    sessionsPerCycle,
     cycleTypeLabel,
-    isValid = false,
+    invalidReasons = [],
     onCreate,
     onSave
   }: {
     totalWeeks: number;
     totalSessions: number;
     uniqueExercises: number;
-    sessionsPerCycle?: number;
     cycleTypeLabel: string;
-    isValid?: boolean;
+    invalidReasons?: string[];
     onCreate?: () => void;
     onSave?: () => void;
   } = $props();
 
   const action = $derived(onCreate ?? onSave);
   const isCreateMode = $derived(!!onCreate);
-  const needsMoreExercises = $derived(
-    sessionsPerCycle !== undefined && uniqueExercises > 0 && uniqueExercises < sessionsPerCycle
-  );
 
   let confirmOpen = $state(false);
 </script>
@@ -74,16 +70,17 @@
 
     {#if action}
       <Separator />
-      {#if needsMoreExercises}
-        <p class="text-sm text-destructive">
-          Select at least {sessionsPerCycle} exercise{sessionsPerCycle !== 1 ? 's' : ''} to match the
-          number of sessions per cycle. Add a variation of an existing exercise if needed.
-        </p>
+      {#if invalidReasons.length > 0}
+        <ul class="list-inside list-disc text-sm text-destructive">
+          {#each invalidReasons as reason (reason)}
+            <li>{reason}</li>
+          {/each}
+        </ul>
       {/if}
       <Button
         size="lg"
         class="w-full"
-        disabled={!isValid || needsMoreExercises}
+        disabled={invalidReasons.length > 0}
         onclick={() => (confirmOpen = true)}
       >
         {isCreateMode ? 'Create Mesocycle' : 'Save Changes'}

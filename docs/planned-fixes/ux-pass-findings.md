@@ -102,7 +102,7 @@ With an in-progress session, tapping Sessions again on that page does nothing. T
 
 After a deload starts, Home says "This Week · Week 3" while Sessions says "Deload". Sessions in both are named "Microcycle 3 - Session N".
 
-### 15. Locked sessions look actionable
+### 15. ✅ Locked sessions look actionable
 
 - **Repro (very-late-session):** load Home without advancing.
 - **Result:** the hero card says "Microcycle 2 Complete! Your next session will be ready after advancing." Directly below, "This Week · Week 3" lists Microcycle 3 - Session 1 with a green "Next" badge and a highlighted border, so it reads as the session to start. Tapping it opens the session page with "Advance to the next microcycle from the home page to unlock this session." The page still renders every exercise with its targets and the RSM/Fatigue/Soreness sliders, all showing "Not Set".
