@@ -42,7 +42,15 @@
   const pendingLogs = $derived(docs ? getPendingReviewSessions(docs.sessions) : []);
 
   const currentMicrocycleInfo = $derived(
-    getCurrentMicrocycle(microcycles, docs?.sessions ?? [], inProgressSession, nextUpSession)
+    activeMesocycle
+      ? getCurrentMicrocycle(
+          activeMesocycle,
+          microcycles,
+          docs?.sessions ?? [],
+          inProgressSession,
+          nextUpSession
+        )
+      : null
   );
 
   const allRecentSessions = $derived(getRecentCompletedSessions(sessionMapService.allDocs));
@@ -79,7 +87,7 @@
   {#if currentMicrocycleInfo}
     <HomePageWeekSessions
       microcycle={currentMicrocycleInfo.microcycle}
-      weekNumber={currentMicrocycleInfo.weekNumber}
+      label={currentMicrocycleInfo.label}
       inProgressSessionId={inProgressSession?._id}
       nextUpSessionId={nextUpSession?._id}
     />

@@ -2,7 +2,7 @@
   @component
 
   Root component for the sessions page.
-  Shows all sessions in the active mesocycle grouped by microcycle (week),
+  Shows all sessions in the active mesocycle grouped by microcycle,
   plus a free-form sessions section for sessions without a microcycle.
 -->
 <script lang="ts">
@@ -45,11 +45,6 @@
       sessionMapService.freeFormSessions.completed.length > 0
   );
 
-  // Detect deload: last microcycle where all sets have plannedRir == null
-  function isDeloadMicrocycle(microcycleIndex: number): boolean {
-    return microcycleIndex === microcycles.length - 1 && microcycles.length > 1;
-  }
-
   // Performance tracking
   let sessionsListRenderedMarked = false;
   $effect(() => {
@@ -68,8 +63,7 @@
       <StaggerItem index={i}>
         <SessionsPageWeekGroup
           microcycle={mc}
-          weekNumber={i + 1}
-          isDeload={isDeloadMicrocycle(i)}
+          label={microcycleMapService.getMicrocycleLabel(activeMesocycle, i, microcycles.length)}
           {inProgressSessionId}
           {nextUpSessionId}
         />

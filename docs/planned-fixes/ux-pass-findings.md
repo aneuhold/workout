@@ -86,19 +86,19 @@ The button disappears and the page stays put, while Complete Session navigates a
 
 - **Files:** `SessionPageSummaryCard.svelte`, `SessionPage.service.svelte.ts`.
 
-### 12. Exercise page "Done" always goes to Library
+### 12. ✅ Exercise page "Done" always goes to Library
 
 It ignores where the user came from: mid-workout via "View exercise details", or the onboarding "Create exercise" step.
 
 - **File:** `src/pages/ExercisePage/ExercisePageViewMode.svelte:116` (`goto('/library')`).
 
-### 13. The Sessions tab opens the in-progress session instead of the list
+### 13. ✅ The Sessions tab opens the in-progress session instead of the list
 
 With an in-progress session, tapping Sessions again on that page does nothing. The list is reachable only through "View All Sessions".
 
 - **File:** `src/components/NavBar/NavBar.svelte:33-46`.
 
-### 14. The deload week has two names
+### 14. ✅ The deload week has two names
 
 After a deload starts, Home says "This Week · Week 3" while Sessions says "Deload". Sessions in both are named "Microcycle 3 - Session N".
 

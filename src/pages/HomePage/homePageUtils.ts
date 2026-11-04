@@ -15,8 +15,7 @@ import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 
 export type HomePageMicrocycleInfo = {
   microcycle: WorkoutMicrocycle;
-  weekNumber: number;
-  isDeload: boolean;
+  label: string;
 };
 
 export type HomePageSessionBundle = {
@@ -29,12 +28,14 @@ export type HomePageSessionBundle = {
  * Finds the microcycle containing the in-progress or next-up session.
  * Falls back to the last microcycle with any incomplete session.
  *
+ * @param mesocycle The active mesocycle
  * @param microcycles Ordered microcycles for the active mesocycle
  * @param sessions All sessions for the active mesocycle
  * @param inProgressSession The currently in-progress session, if any
  * @param nextUpSession The next-up session, if any
  */
 export function getCurrentMicrocycle(
+  mesocycle: WorkoutMesocycle,
   microcycles: WorkoutMicrocycle[],
   sessions: WorkoutSession[],
   inProgressSession: WorkoutSession | null,
@@ -49,8 +50,7 @@ export function getCurrentMicrocycle(
     if (index >= 0) {
       return {
         microcycle: microcycles[index],
-        weekNumber: index + 1,
-        isDeload: index === microcycles.length - 1 && microcycles.length > 1
+        label: microcycleMapService.getMicrocycleLabel(mesocycle, index, microcycles.length)
       };
     }
   }
@@ -62,8 +62,7 @@ export function getCurrentMicrocycle(
     if (hasIncomplete) {
       return {
         microcycle: mc,
-        weekNumber: i + 1,
-        isDeload: i === microcycles.length - 1 && microcycles.length > 1
+        label: microcycleMapService.getMicrocycleLabel(mesocycle, i, microcycles.length)
       };
     }
   }

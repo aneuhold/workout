@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Current week's sessions shown as a flat list of session cards (always expanded).
+  Current microcycle's sessions shown as a flat list of session cards (always expanded).
 -->
 <script lang="ts">
   import type {
@@ -18,12 +18,12 @@
 
   let {
     microcycle,
-    weekNumber,
+    label,
     inProgressSessionId,
     nextUpSessionId
   }: {
     microcycle: WorkoutMicrocycle;
-    weekNumber: number;
+    label: string;
     inProgressSessionId?: string | null;
     nextUpSessionId?: string | null;
   } = $props();
@@ -50,7 +50,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-  <span class="text-sm font-medium">This Week · Week {weekNumber}</span>
+  <span class="text-sm font-medium">Current · {label}</span>
   <div class="flex flex-col gap-2">
     {#each sessions as session (session._id)}
       <SessionCard

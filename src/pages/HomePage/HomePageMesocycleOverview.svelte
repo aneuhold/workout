@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Condensed mesocycle header showing title, cycle type, and week progress.
+  Condensed mesocycle header showing title, cycle type, and microcycle progress.
 -->
 <script lang="ts">
   import type {
@@ -46,7 +46,7 @@
     <Badge variant="secondary">{formatCycleType(mesocycle.cycleType)}</Badge>
   </div>
   <span class="text-xs text-muted-foreground">
-    Week {currentCycleNumber} of {totalCycles}
+    Microcycle {currentCycleNumber} of {totalCycles}
   </span>
   <Progress value={progressValue} />
 </a>

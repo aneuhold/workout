@@ -22,14 +22,12 @@
 
   let {
     microcycle,
-    weekNumber,
-    isDeload,
+    label,
     inProgressSessionId,
     nextUpSessionId
   }: {
     microcycle: WorkoutMicrocycle;
-    weekNumber: number;
-    isDeload: boolean;
+    label: string;
     inProgressSessionId: string | null;
     nextUpSessionId: string | null;
   } = $props();
@@ -49,8 +47,6 @@
   let expanded = $derived(
     hasReview || containsActiveSession || (completedCount > 0 && !allComplete)
   );
-
-  const weekLabel = $derived(isDeload ? 'Deload' : `Week ${weekNumber}`);
 
   const dateRange = $derived.by(() => {
     const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
@@ -88,7 +84,7 @@
         {expanded ? 'rotate-90' : ''}"
     />
     <div class="flex flex-1 items-center gap-2">
-      <span class="text-sm font-medium">{weekLabel}</span>
+      <span class="text-sm font-medium">{label}</span>
       <span class="text-xs text-muted-foreground">{dateRange}</span>
     </div>
     {#if !expanded}
