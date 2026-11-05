@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import AppMain from '$components/AppMain/AppMain.svelte';
   import NavBar from '$components/NavBar/NavBar.svelte';
   import TopBar from '$components/TopBar/TopBar.svelte';
   import timerService from '$services/TimerService';
@@ -40,7 +41,7 @@
 {:else}
   <TopBar username="Storybook" currentPath={routeState.path} />
   <NavBar currentPath={routeState.path} />
-  <main class="md:pt-top-nav pb-bottom-nav md:pb-0 md:pl-48">
+  <AppMain currentPath={routeState.path}>
     <SBFullAppRouter />
-  </main>
+  </AppMain>
 {/if}
