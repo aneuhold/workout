@@ -7,13 +7,13 @@
 -->
 <script lang="ts">
   import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
   import DialogContent from '$ui/Dialog/DialogContent.svelte';
   import DialogFooter from '$ui/Dialog/DialogFooter.svelte';
   import DialogHeader from '$ui/Dialog/DialogHeader.svelte';
   import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageStartDatePicker from './SessionPageStartDatePicker.svelte';
 
   let {
@@ -38,7 +38,7 @@
   function handleSave() {
     if (!pendingDate) return;
     const dateToSave = pendingDate;
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.startTime = dateToSave;
       return doc;
     });

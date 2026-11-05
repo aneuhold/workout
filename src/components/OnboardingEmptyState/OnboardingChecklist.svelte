@@ -13,7 +13,6 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -25,11 +24,6 @@
     actionLabel: string;
     action: () => void;
   };
-
-  function startFreeFormSession() {
-    const session = sessionMapService.createFreeFormSession();
-    void goto(`/session?sessionId=${session._id}`);
-  }
 
   const steps: Step[] = [
     {
@@ -50,7 +44,7 @@
     {
       label: 'Start a free-form workout',
       actionLabel: 'Start workout',
-      action: startFreeFormSession
+      action: () => void goto('/session')
     }
   ];
 

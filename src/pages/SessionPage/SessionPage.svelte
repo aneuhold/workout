@@ -6,9 +6,9 @@
 -->
 <script lang="ts">
   import type { UUID } from 'crypto';
+  import { untrack } from 'svelte';
   import SingletonEditSetDialog from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
   import SingletonExercisePickerDialog from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import sessionPageService from './SessionPage.service.svelte';
   import SessionPageExerciseCard from './SessionPageExerciseCard';
@@ -27,7 +27,10 @@
   } = $props();
 
   $effect(() => {
-    sessionPageService.init(sessionId, planning);
+    const id = sessionId;
+    const isPlanning = planning;
+    // Untrack because otherwise the changes in the state would cause infinite rerenders.
+    untrack(() => sessionPageService.init(id, isPlanning));
   });
 
   $effect(() => {
@@ -58,12 +61,11 @@
       session={sessionPageService.session}
     />
 
-    {#if sessionPageService.mode === SessionPageMode.Planning && sessionPageService.isFreeForm && sessionPageService.session}
-      {@const planningSession = sessionPageService.session}
+    {#if sessionPageService.mode === SessionPageMode.Planning && sessionPageService.isFreeForm}
       <SessionPageStartDatePicker
-        startTime={planningSession.startTime}
+        startTime={sessionPageService.session.startTime}
         onstartTimeChange={(date) => {
-          sessionMapService.updateDoc(planningSession._id, (doc) => {
+          sessionPageService.updateSession((doc) => {
             doc.startTime = date;
             return doc;
           });

@@ -83,11 +83,6 @@
       ? SessionStatus.InProgress
       : SessionStatus.NextUp;
   }
-
-  function handleStartFreeForm() {
-    const session = sessionMapService.createFreeFormSession();
-    void goto(`/session?sessionId=${session._id}`);
-  }
 </script>
 
 <div class="flex flex-col gap-4">
@@ -99,7 +94,7 @@
         variant="outline"
         size="sm"
         disabled={!exerciseMapService.hasAny}
-        onclick={() => sessionMapService.planNewFreeFormSession()}
+        onclick={() => goto('/session?planningMode=true')}
       >
         <IconCalendar size={14} />
         Plan New Workout
@@ -108,7 +103,7 @@
         variant="outline"
         size="sm"
         disabled={!exerciseMapService.hasAny}
-        onclick={handleStartFreeForm}
+        onclick={() => goto('/session')}
       >
         <IconPlus size={14} />
         Start New Workout

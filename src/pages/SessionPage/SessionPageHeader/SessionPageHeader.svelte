@@ -13,9 +13,9 @@
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageReorderDialog from '../SessionPageReorderDialog.svelte';
   import { SessionPageMode } from '../sessionPageTypes';
   import SessionPageHeaderChangeStartDateDialog from './SessionPageHeaderChangeStartDateDialog.svelte';
@@ -68,8 +68,7 @@
    * @param newOrder The reordered session exercise IDs
    */
   function handleReorderSave(newOrder: UUID[]) {
-    if (!session) return;
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.sessionExerciseOrder = newOrder;
       return doc;
     });
@@ -79,11 +78,22 @@
    * Re-opens a completed session for editing by setting complete = false.
    */
   function handleEditSession() {
-    if (!session) return;
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.complete = false;
       return doc;
     });
+  }
+
+  /**
+   * Opens the delete confirmation for a saved session. A draft session was never saved, so this
+   * leaves it and goes to the sessions list.
+   */
+  function handleDeleteSession() {
+    if (sessionPageService.isDraft) {
+      void goto('/sessions');
+    } else {
+      deleteDialogOpen = true;
+    }
   }
 </script>
 
@@ -123,7 +133,7 @@
               Change Start Date
             </DropdownMenuItem>
           {/if}
-          {#if mode !== SessionPageMode.Planning && !session.complete}
+          {#if mode !== SessionPageMode.Planning && !session.complete && !sessionPageService.isDraft}
             <DropdownMenuItem
               onclick={() => goto(`/session?sessionId=${session._id}&planningMode=true`)}
             >
@@ -134,7 +144,7 @@
         {#if !session.complete}
           <DropdownMenuItem
             class="text-destructive focus:text-destructive"
-            onclick={() => (deleteDialogOpen = true)}
+            onclick={handleDeleteSession}
           >
             Delete Session
           </DropdownMenuItem>
