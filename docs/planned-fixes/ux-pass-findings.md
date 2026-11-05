@@ -115,17 +115,17 @@ After a deload starts, Home says "This Week · Week 3" while Sessions says "Delo
 
 The button is hidden until an exercise is selected. When it is disabled for a blank title, no message shows near it, and the "Required" error is about 2,500 px above with no scroll or focus.
 
-### 17. Delete on an in-use muscle group or equipment explains itself only in a hover tooltip
+### 17. ✅ Delete on an in-use muscle group or equipment explains itself only in a hover tooltip
 
 The explanation is a `title` attribute, which never shows on a phone.
 
 - **Files:** `LibraryPageMuscleGroupCard.svelte:119`, `LibraryPageEquipmentCard.svelte:98`.
 
-### 18. Cancel on the second late-session/deload dialog closes everything
+### 18. ✅ Cancel on the second late-session/deload dialog closes everything
 
 It should return to the three-option choice instead.
 
-### 19. Abandoned free-form workouts pile up
+### 19. ✅ Abandoned free-form workouts pile up
 
 - **Repro:** Start New Workout, then leave the page without adding anything. Repeat.
 - **Result:** each attempt leaves another empty "October 29 Workout" under Planned.
