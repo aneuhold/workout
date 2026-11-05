@@ -26,6 +26,8 @@
     scheduledDeloadDate: Date | null;
     /** Callback invoked after the deload has started. */
     onDeloadStarted?: () => Promise<void>;
+    /** Callback invoked when the user dismisses the dialog without starting the deload. */
+    onCancel?: () => void;
     /** Severity level from fatigue detection. When set, the dialog shows a fatigue warning. */
     severity?: WorkoutDeloadSeverity;
     /** Which fatigue detection rules triggered the recommendation. Displayed as explanatory text when present. */
@@ -117,6 +119,15 @@
     params?.triggeredRules?.map((rule) => triggerRuleDescriptions[rule]) ?? []
   );
 
+  /**
+   * Runs `onCancel` when the dialog closes without starting the deload.
+   *
+   * @param isOpen The new open state.
+   */
+  function handleOpenChange(isOpen: boolean) {
+    if (!isOpen && !confirming) params?.onCancel?.();
+  }
+
   async function handleConfirm() {
     if (!params) return;
     confirming = true;
@@ -136,7 +147,7 @@
   }
 </script>
 
-<AlertDialog bind:open={dialogOpen}>
+<AlertDialog bind:open={dialogOpen} onOpenChange={handleOpenChange}>
   <AlertDialogContent>
     <AlertDialogHeader>
       <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>

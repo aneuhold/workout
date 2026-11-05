@@ -199,13 +199,15 @@
 
   /**
    * Opens the deload confirmation dialog from the move sessions dialog.
+   * Cancelling returns to the move sessions dialog.
    */
   function openDeloadFromMoveDialog() {
     if (!activeMesocycle) return;
 
     deloadDialog.open({
       mesocycleId: activeMesocycle._id,
-      scheduledDeloadDate: null
+      scheduledDeloadDate: null,
+      onCancel: moveSessionsDialog.reopen
     });
   }
 </script>

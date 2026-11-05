@@ -45,6 +45,16 @@
       moving = false;
       errorMessage = null;
       selectedAction = MoveSessionsDialogAction.Move;
+    },
+    /**
+     * Reopens the dialog with the parameters from the last `open` call, keeping the
+     * user's selected option.
+     */
+    reopen: () => {
+      if (!params) return;
+      dialogOpen = true;
+      moving = false;
+      errorMessage = null;
     }
   };
 </script>
