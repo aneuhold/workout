@@ -27,37 +27,6 @@ export function getSetState(
 }
 
 /**
- * Returns the interaction state for immediate slider fields (RSM mind-muscle, pump; fatigue unused muscle).
- * Interactive in Active mode, highlighted when all sets are logged, read-only otherwise.
- *
- * @param mode The current session page mode
- * @param allSetsLogged Whether all sets in the session have been logged
- */
-export function getImmediateFieldState(
-  mode: SessionPageMode,
-  allSetsLogged: boolean
-): { disabled: boolean; highlight: boolean } {
-  return {
-    disabled: mode !== SessionPageMode.Active,
-    highlight: mode === SessionPageMode.Active && allSetsLogged
-  };
-}
-
-/**
- * Returns the interaction state for late slider fields (disruption, perceived effort, joint/tissue).
- * Deferred in Active mode, interactive and highlighted in Review, read-only in View/Locked/Planning.
- *
- * @param mode The current session page mode
- */
-export function getLateFieldState(mode: SessionPageMode): {
-  disabled: boolean;
-  highlight: boolean;
-} {
-  if (mode === SessionPageMode.Review) return { disabled: false, highlight: true };
-  return { disabled: true, highlight: false };
-}
-
-/**
  * Updates an RSM field on a session exercise document.
  *
  * @param sessionExerciseId The session exercise to update

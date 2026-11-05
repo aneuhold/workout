@@ -137,6 +137,26 @@ class SessionPageService {
     deriveMode(this.dataMode, this.#planning, this.#wasInReviewMode, this.#reviewConfirmed)
   );
 
+  /**
+   * Interaction state for the slider fields recorded during the workout (mind-muscle connection,
+   * pump, unused muscle performance). Interactive in Active mode, highlighted once all sets are
+   * logged, read-only otherwise.
+   */
+  immediateFieldState = $derived({
+    disabled: this.mode !== SessionPageMode.Active,
+    highlight: this.mode === SessionPageMode.Active && this.allSetsLogged
+  });
+
+  /**
+   * Interaction state for the slider fields recorded after the workout (disruption, perceived
+   * effort, joint and tissue disruption). Interactive and highlighted in Review mode, read-only
+   * otherwise.
+   */
+  lateFieldState = $derived({
+    disabled: this.mode !== SessionPageMode.Review,
+    highlight: this.mode === SessionPageMode.Review
+  });
+
   readonly lockMessages: Record<WorkoutSessionLockReason, string> = {
     [WorkoutSessionLockReason.MesocycleNotStarted]:
       'Start the mesocycle from the home page to begin logging.',

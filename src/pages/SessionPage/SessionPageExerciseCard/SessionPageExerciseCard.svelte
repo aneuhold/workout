@@ -21,7 +21,6 @@
   import { cn } from '$util/svelte-shadcn-util';
   import sessionPageService from '../SessionPage.service.svelte';
   import { SessionPageExerciseCardState, SessionPageMode } from '../sessionPageTypes';
-  import { getImmediateFieldState, getLateFieldState } from './exerciseCardUtils';
   import SessionPageExerciseCardFatigueSliders from './SessionPageExerciseCardFatigueSliders.svelte';
   import SessionPageExerciseCardFreeFormActions from './SessionPageExerciseCardFreeFormActions.svelte';
   import SessionPageExerciseCardHeader from './SessionPageExerciseCardHeader.svelte';
@@ -69,20 +68,13 @@
     return sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
   });
   let lastSets = $derived(isFreeForm ? (exerciseCTO?.lastSessionSets ?? []) : []);
-  let allSetsLogged = $derived(sessionPageService.allSetsLogged);
   let cardState = $derived(sessionPageService.getCardState(index));
   let expanded = $derived(sessionPageService.isExpanded(sessionExercise._id));
   let exerciseDone = $derived(sessionPageService.isExerciseDone(sessionExercise._id));
   let previousSessionExercise = $derived(
     sessionPageService.previousSessionExerciseMap.get(sessionExercise.workoutExerciseId)
   );
-  let sorenessLocked = $derived(
-    sessionPageService.sorenessLockedExerciseIds.has(sessionExercise.workoutExerciseId)
-  );
   let freeFormEditable = $derived(isFreeForm && !exerciseDone);
-
-  let immediateFieldState = $derived(getImmediateFieldState(mode, allSetsLogged));
-  let lateFieldState = $derived(getLateFieldState(mode));
 
   let showRestTimer = $derived(
     mode === SessionPageMode.Active &&
@@ -212,23 +204,13 @@
 
         {#if !isDeload && mode !== SessionPageMode.Planning && mode !== SessionPageMode.Locked}
           <Separator />
-          <SessionPageExerciseCardRsmSliders
-            {sessionExercise}
-            {immediateFieldState}
-            {lateFieldState}
-            {mode}
-          />
+          <SessionPageExerciseCardRsmSliders {sessionExercise} />
 
           <Separator />
-          <SessionPageExerciseCardFatigueSliders
-            {sessionExercise}
-            {immediateFieldState}
-            {lateFieldState}
-            {mode}
-          />
+          <SessionPageExerciseCardFatigueSliders {sessionExercise} />
 
           <Separator />
-          <SessionPageExerciseCardRecovery {sessionExercise} {mode} {sorenessLocked} />
+          <SessionPageExerciseCardRecovery {sessionExercise} />
         {/if}
       </div>
     </div>

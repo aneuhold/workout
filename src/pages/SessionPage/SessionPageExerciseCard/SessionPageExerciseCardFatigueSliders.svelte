@@ -9,22 +9,13 @@
   import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageDeferredField from '../SessionPageDeferredField.svelte';
   import SessionPageSliderField from '../SessionPageSliderField.svelte';
   import { SessionPageMode, SessionPageSliderColorMode } from '../sessionPageTypes';
   import { updateFatigue } from './exerciseCardUtils';
 
-  let {
-    sessionExercise,
-    immediateFieldState,
-    lateFieldState,
-    mode
-  }: {
-    sessionExercise: WorkoutSessionExercise;
-    immediateFieldState: { disabled: boolean; highlight: boolean };
-    lateFieldState: { disabled: boolean; highlight: boolean };
-    mode: SessionPageMode;
-  } = $props();
+  let { sessionExercise }: { sessionExercise: WorkoutSessionExercise } = $props();
 </script>
 
 <div class="flex flex-col gap-3">
@@ -36,7 +27,7 @@
     </InfoPopover>
   </div>
 
-  {#if mode === SessionPageMode.Active}
+  {#if sessionPageService.mode === SessionPageMode.Active}
     <SessionPageDeferredField
       label="Perceived Effort"
       reason="requires assessing recovery and energy levels over the following days"
@@ -47,8 +38,8 @@
       value={sessionExercise.fatigue?.perceivedEffort ?? null}
       descriptions={sharedTextConstants.effortDescriptions}
       colorMode={SessionPageSliderColorMode.Negative}
-      disabled={lateFieldState.disabled}
-      highlight={lateFieldState.highlight}
+      disabled={sessionPageService.lateFieldState.disabled}
+      highlight={sessionPageService.lateFieldState.highlight}
       onValueChange={(v) => updateFatigue(sessionExercise._id, 'perceivedEffort', v)}
     />
   {/if}
@@ -58,12 +49,12 @@
     value={sessionExercise.fatigue?.unusedMusclePerformance ?? null}
     descriptions={sharedTextConstants.unusedMuscleDescriptions}
     colorMode={SessionPageSliderColorMode.Negative}
-    disabled={immediateFieldState.disabled}
-    highlight={immediateFieldState.highlight}
+    disabled={sessionPageService.immediateFieldState.disabled}
+    highlight={sessionPageService.immediateFieldState.highlight}
     onValueChange={(v) => updateFatigue(sessionExercise._id, 'unusedMusclePerformance', v)}
   />
 
-  {#if mode === SessionPageMode.Active}
+  {#if sessionPageService.mode === SessionPageMode.Active}
     <SessionPageDeferredField
       label="Joint & Tissue Disruption"
       reason="requires assessing joint stress and connective tissue response after the session"
@@ -74,8 +65,8 @@
       value={sessionExercise.fatigue?.jointAndTissueDisruption ?? null}
       descriptions={sharedTextConstants.jointDescriptions}
       colorMode={SessionPageSliderColorMode.Negative}
-      disabled={lateFieldState.disabled}
-      highlight={lateFieldState.highlight}
+      disabled={sessionPageService.lateFieldState.disabled}
+      highlight={sessionPageService.lateFieldState.highlight}
       onValueChange={(v) => updateFatigue(sessionExercise._id, 'jointAndTissueDisruption', v)}
     />
   {/if}

@@ -8,22 +8,13 @@
   import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageDeferredField from '../SessionPageDeferredField.svelte';
   import SessionPageSliderField from '../SessionPageSliderField.svelte';
   import { SessionPageMode, SessionPageSliderColorMode } from '../sessionPageTypes';
   import { updateRsm } from './exerciseCardUtils';
 
-  let {
-    sessionExercise,
-    immediateFieldState,
-    lateFieldState,
-    mode
-  }: {
-    sessionExercise: WorkoutSessionExercise;
-    immediateFieldState: { disabled: boolean; highlight: boolean };
-    lateFieldState: { disabled: boolean; highlight: boolean };
-    mode: SessionPageMode;
-  } = $props();
+  let { sessionExercise }: { sessionExercise: WorkoutSessionExercise } = $props();
 </script>
 
 <div class="flex flex-col gap-3">
@@ -40,8 +31,8 @@
     value={sessionExercise.rsm?.mindMuscleConnection ?? null}
     descriptions={sharedTextConstants.mindMuscleDescriptions}
     colorMode={SessionPageSliderColorMode.Positive}
-    disabled={immediateFieldState.disabled}
-    highlight={immediateFieldState.highlight}
+    disabled={sessionPageService.immediateFieldState.disabled}
+    highlight={sessionPageService.immediateFieldState.highlight}
     onValueChange={(v) => updateRsm(sessionExercise._id, 'mindMuscleConnection', v)}
   />
 
@@ -50,12 +41,12 @@
     value={sessionExercise.rsm?.pump ?? null}
     descriptions={sharedTextConstants.pumpDescriptions}
     colorMode={SessionPageSliderColorMode.Positive}
-    disabled={immediateFieldState.disabled}
-    highlight={immediateFieldState.highlight}
+    disabled={sessionPageService.immediateFieldState.disabled}
+    highlight={sessionPageService.immediateFieldState.highlight}
     onValueChange={(v) => updateRsm(sessionExercise._id, 'pump', v)}
   />
 
-  {#if mode === SessionPageMode.Active}
+  {#if sessionPageService.mode === SessionPageMode.Active}
     <SessionPageDeferredField
       label="Disruption"
       reason="requires assessing soreness and recovery the following day"
@@ -66,8 +57,8 @@
       value={sessionExercise.rsm?.disruption ?? null}
       descriptions={sharedTextConstants.disruptionDescriptions}
       colorMode={SessionPageSliderColorMode.Positive}
-      disabled={lateFieldState.disabled}
-      highlight={lateFieldState.highlight}
+      disabled={sessionPageService.lateFieldState.disabled}
+      highlight={sessionPageService.lateFieldState.highlight}
       onValueChange={(v) => updateRsm(sessionExercise._id, 'disruption', v)}
     />
   {/if}
