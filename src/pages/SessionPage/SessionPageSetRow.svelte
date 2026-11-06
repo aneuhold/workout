@@ -71,19 +71,13 @@
   }
 
   function handleEditClick() {
-    const targetParts: string[] = [];
-    if (set.plannedWeight != null) targetParts.push(`${set.plannedWeight}lb`);
-    if (set.plannedReps != null) targetParts.push(`x ${set.plannedReps}`);
-    if (set.plannedRir != null) targetParts.push(`@ ${set.plannedRir} RIR`);
-    const target = targetParts.length > 0 ? `Target: ${targetParts.join(' ')}` : null;
-
     editSetDialog.open({
       setNumber,
       weight: set.actualWeight ?? set.plannedWeight ?? undefined,
       reps: set.actualReps ?? set.plannedReps ?? undefined,
       rir: set.rir ?? set.plannedRir ?? undefined,
       hasRir: set.plannedRir != null,
-      targetText: target,
+      targetText: hasTargets ? targetText : null,
       onSave: onEdit
     });
   }
@@ -113,6 +107,12 @@
 
   let hasTargets = $derived(
     set.plannedWeight != null || set.plannedReps != null || set.plannedRir != null
+  );
+
+  const targetText = $derived(
+    `Target: ${set.plannedWeight ?? '?'}lb x ${set.plannedReps ?? '?'}${
+      set.plannedRir != null ? ` @ ${set.plannedRir} RIR` : ''
+    }`
   );
 
   let showPreviewLines = $derived(
@@ -235,8 +235,7 @@
   <div class="grid gap-1.5 px-2 pb-0.5 {isActive ? 'grid-cols-12' : 'grid-cols-9'}">
     <div class="col-span-1"></div>
     <div class="{isActive ? 'col-span-11' : 'col-span-8'} text-xs text-muted-foreground">
-      Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'}{#if set.plannedRir != null}
-        @ {set.plannedRir} RIR{/if}
+      {targetText}
     </div>
   </div>
 {/if}

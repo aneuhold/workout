@@ -138,7 +138,7 @@ Leaving or reviewing a session prints roughly 48 to 430 warnings per action, sta
 
 - **Stack:** `immediateFieldState` in `SessionPageExerciseCard.svelte` (around L413), read by `SessionPageExerciseCardRsmSliders.svelte:65/102` and `SessionPageSliderField.svelte:141` after the card is destroyed.
 
-### 21. Storybook Full App: top bar covers the page while the rest timer runs
+### 21. ✅ Storybook Full App: top bar covers the page while the rest timer runs
 
 - **Repro (any Full App story):** start the rest timer, then go to Library.
 - **Result:** the top bar becomes `fixed` and covers the page heading and the "Library / Add" controls.
@@ -148,11 +148,7 @@ Leaving or reviewing a session prints roughly 48 to 430 warnings per action, sta
 
 ## Polish: visual and wording
 
-### 22. Overlapping week ranges
-
-"Oct 11 – Oct 18", "Oct 18 – Oct 25", because `endDate` is exclusive (`SessionsPageWeekGroup.svelte:58`). Reschedule shows "Oct 29 – Dec 10" while the calendar ends Dec 9.
-
-### 23. Missing space before "@" in targets
+### 23. ✅ Missing space before "@" in targets
 
 "Target: 45lb x 20@ 3 RIR", "20 reps@ 3 RIR" (`SessionPageSetRow.svelte` around L242 and L272). The Edit Set dialog renders "18 @ 3".
 
