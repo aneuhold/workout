@@ -29,6 +29,7 @@
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -98,13 +99,13 @@
     const parts: string[] = [];
     const { exerciseCount, sessionCount, mesocycleCount } = usage;
     if (exerciseCount > 0) {
-      parts.push(`${exerciseCount} ${exerciseCount === 1 ? 'exercise' : 'exercises'}`);
+      parts.push(stringFormatService.pluralize(exerciseCount, 'exercise'));
     }
     if (sessionCount > 0) {
-      parts.push(`${sessionCount} ${sessionCount === 1 ? 'session' : 'sessions'}`);
+      parts.push(stringFormatService.pluralize(sessionCount, 'session'));
     }
     if (mesocycleCount > 0) {
-      parts.push(`${mesocycleCount} ${mesocycleCount === 1 ? 'mesocycle' : 'mesocycles'}`);
+      parts.push(stringFormatService.pluralize(mesocycleCount, 'mesocycle'));
     }
     return parts;
   });

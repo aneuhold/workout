@@ -9,6 +9,7 @@
   import { IconPencil, IconTrash } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import LibraryPageCard from './LibraryPageCard.svelte';
 
@@ -55,7 +56,7 @@
   {#snippet header()}
     <span class="font-medium">{muscleGroup.name}</span>
     <span class="text-xs text-muted-foreground">
-      Used in {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
+      Used in {stringFormatService.pluralize(exerciseCount, 'exercise')}
     </span>
   {/snippet}
 

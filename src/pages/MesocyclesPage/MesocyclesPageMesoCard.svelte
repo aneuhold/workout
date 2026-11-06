@@ -12,6 +12,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { IconCalendar, IconChevronRight } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import { formatCycleType } from './mesocyclesPageUtils';
@@ -69,9 +70,9 @@
         {#if totalCount > 0}
           <span>
             {#if variant === 'future'}
-              {totalCount} sessions
+              {stringFormatService.pluralize(totalCount, 'session')}
             {:else}
-              {completedCount}/{totalCount} sessions
+              {completedCount}/{stringFormatService.pluralize(totalCount, 'session')}
             {/if}
           </span>
         {/if}

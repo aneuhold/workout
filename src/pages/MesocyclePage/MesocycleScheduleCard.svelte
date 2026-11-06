@@ -13,6 +13,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import MesocycleCalendar from '$components/WorkoutCalendar/MesocycleCalendar/WorkoutMesocycleCalendar.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardDescription from '$ui/Card/CardDescription.svelte';
@@ -43,9 +44,9 @@
     const deloadCount = lastCycleIsDeload && cycleCount > 0 ? 1 : 0;
     const accumCount = cycleCount - deloadCount;
     if (deloadCount > 0) {
-      return `${accumCount} week${accumCount !== 1 ? 's' : ''} + deload`;
+      return `${stringFormatService.pluralize(accumCount, 'week')} + deload`;
     }
-    return `${cycleCount} week${cycleCount !== 1 ? 's' : ''}`;
+    return stringFormatService.pluralize(cycleCount, 'week');
   });
 </script>
 
@@ -53,7 +54,7 @@
   <CardHeader>
     <CardTitle>Schedule Preview</CardTitle>
     <CardDescription>
-      {sessions.length} sessions over {description}
+      {stringFormatService.pluralize(sessions.length, 'session')} over {description}
     </CardDescription>
   </CardHeader>
   <CardContent>

@@ -9,6 +9,7 @@
   import { mode } from 'mode-watcher';
   import { goto } from '$app/navigation';
   import authService from '$services/Auth.service';
+  import stringFormatService from '$services/StringFormat.service';
   import timerService from '$services/TimerService';
   import Avatar from '$ui/Avatar/Avatar.svelte';
   import AvatarFallback from '$ui/Avatar/AvatarFallback.svelte';
@@ -18,7 +19,6 @@
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import DropdownMenuSeparator from '$ui/DropdownMenu/DropdownMenuSeparator.svelte';
   import DropdownMenuTrigger from '$ui/DropdownMenu/DropdownMenuTrigger.svelte';
-  import { formatTime } from '$util/formatTime';
   import SyncIndicator from './SyncIndicator.svelte';
 
   let { username = '', currentPath = '' }: { username?: string; currentPath?: string } = $props();
@@ -65,7 +65,9 @@
     {#if showTimerHighlight}
       <div class="flex items-center gap-1.5">
         <IconStopwatch size={18} stroke={1.5} />
-        <span class="font-mono text-sm">{formatTime(timerService.remainingSeconds)}</span>
+        <span class="font-mono text-sm"
+          >{stringFormatService.formatTime(timerService.remainingSeconds)}</span
+        >
       </div>
     {/if}
 

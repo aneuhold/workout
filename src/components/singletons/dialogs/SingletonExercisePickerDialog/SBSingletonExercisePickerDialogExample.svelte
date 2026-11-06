@@ -1,6 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import MockDataService from '$services/MockDataService/MockData.service';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import SingletonExercisePickerDialog from './SingletonExercisePickerDialog.svelte';
   import { exercisePickerDialog } from './SingletonExercisePickerDialog.svelte';
@@ -33,7 +34,7 @@
   <Button onclick={handleOpen}>Open Exercise Picker</Button>
   {#if selectedIds.length > 0}
     <p class="text-sm text-muted-foreground">
-      Selected {selectedIds.length} exercise{selectedIds.length !== 1 ? 's' : ''}
+      Selected {stringFormatService.pluralize(selectedIds.length, 'exercise')}
     </p>
   {/if}
 </div>

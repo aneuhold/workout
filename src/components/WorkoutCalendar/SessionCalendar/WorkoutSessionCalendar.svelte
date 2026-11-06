@@ -13,6 +13,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { CalendarDate, type DateValue, getLocalTimeZone, today } from '@internationalized/date';
+  import stringFormatService from '$services/StringFormat.service';
   import Calendar from '$ui/Calendar/Calendar.svelte';
   import type { WorkoutCalendarDayCellVisual } from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayCell from '../shared/WorkoutCalendarDayCell.svelte';
@@ -91,10 +92,9 @@
       : ''
   );
 
-  const dialogDescription = $derived.by(() => {
-    const count = selectedDay?.sessions.length ?? 0;
-    return `${count} session${count !== 1 ? 's' : ''}`;
-  });
+  const dialogDescription = $derived(
+    stringFormatService.pluralize(selectedDay?.sessions.length ?? 0, 'session')
+  );
 </script>
 
 <div class="w-full max-w-md mx-auto p-1">

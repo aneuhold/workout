@@ -5,6 +5,7 @@
   button is disabled, the reasons are listed directly above it.
 -->
 <script lang="ts">
+  import stringFormatService from '$services/StringFormat.service';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -52,7 +53,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col">
         <span class="text-xs text-muted-foreground">Total Duration</span>
-        <span class="text-sm font-medium">{totalWeeks} weeks</span>
+        <span class="text-sm font-medium">{stringFormatService.pluralize(totalWeeks, 'week')}</span>
       </div>
       <div class="flex flex-col">
         <span class="text-xs text-muted-foreground">Total Sessions</span>
@@ -98,11 +99,19 @@
         </AlertDialogTitle>
         <AlertDialogDescription>
           {#if isCreateMode}
-            This will create a mesocycle with {totalSessions} sessions across {totalWeeks} weeks. Settings
-            can be edited until you start the mesocycle.
+            This will create a mesocycle with {stringFormatService.pluralize(
+              totalSessions,
+              'session'
+            )} across
+            {stringFormatService.pluralize(totalWeeks, 'week')}. Settings can be edited until you
+            start the mesocycle.
           {:else}
-            This will regenerate the mesocycle with {totalSessions} sessions across {totalWeeks}
-            weeks. All existing session data will be replaced.
+            This will regenerate the mesocycle with {stringFormatService.pluralize(
+              totalSessions,
+              'session'
+            )} across
+            {stringFormatService.pluralize(totalWeeks, 'week')}. All existing session data will be
+            replaced.
           {/if}
         </AlertDialogDescription>
       </AlertDialogHeader>

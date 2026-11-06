@@ -22,6 +22,7 @@
   } from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import { currentUserId } from '$stores/derived/currentUserId';
   import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
@@ -198,7 +199,7 @@
       reasons.push('Select at least one exercise.');
     } else if (selectedCount < formSessionsPerWeek) {
       reasons.push(
-        `Select at least ${formSessionsPerWeek} exercises to match the number of sessions per cycle, or reduce the sessions per cycle.`
+        `Select at least ${stringFormatService.pluralize(formSessionsPerWeek, 'exercise')} to match the number of sessions per cycle, or reduce the sessions per cycle.`
       );
     } else if ((previewResult?.microcycles ?? []).length === 0) {
       reasons.push('No schedule could be generated. Check the configuration values.');

@@ -39,6 +39,7 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
@@ -178,7 +179,9 @@
       </Button>
       <Button variant="outline" onclick={handleCancel}>Cancel</Button>
       <Button disabled={selectedExerciseIds.length === 0} onclick={handleConfirm}>
-        Add {selectedExerciseIds.length || ''} Exercise{selectedExerciseIds.length !== 1 ? 's' : ''}
+        Add {selectedExerciseIds.length > 0
+          ? stringFormatService.pluralize(selectedExerciseIds.length, 'Exercise')
+          : 'Exercises'}
       </Button>
     </DialogFooter>
   </DialogContent>

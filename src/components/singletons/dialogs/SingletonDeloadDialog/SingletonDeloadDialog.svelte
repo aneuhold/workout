@@ -65,6 +65,7 @@
 
 <script lang="ts">
   import AlertDialogAction from '$components/ui/AlertDialog/AlertDialogAction.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import type { AlertVariant } from '$ui/Alert/Alert.svelte';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
@@ -155,8 +156,7 @@
         This will cut the remaining sessions in the current microcycle and transition into a deload
         week.
         {#if removedSessionCount > 0}
-          {removedSessionCount}
-          remaining {removedSessionCount === 1 ? 'session' : 'sessions'} will be removed.
+          {stringFormatService.pluralize(removedSessionCount, 'remaining session')} will be removed.
         {/if}
       </AlertDialogDescription>
     </AlertDialogHeader>

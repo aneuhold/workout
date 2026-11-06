@@ -7,6 +7,7 @@
   import { WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
   import { IconChevronRight, IconClock } from '@tabler/icons-svelte';
   import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
   import CardHeader from '$ui/Card/CardHeader.svelte';
@@ -43,7 +44,11 @@
         <div class="min-w-0 flex-1">
           <span class="truncate text-sm font-medium">{bundle.session.title}</span>
           <div class="text-xs text-muted-foreground">
-            {fmt.format(new Date(bundle.session.startTime))} · {reviewCount(bundle)} exercises need review
+            {fmt.format(new Date(bundle.session.startTime))} · {stringFormatService.pluralize(
+              reviewCount(bundle),
+              'exercise needs',
+              'exercises need'
+            )} review
           </div>
         </div>
         <IconChevronRight size={14} class="shrink-0 text-muted-foreground" />

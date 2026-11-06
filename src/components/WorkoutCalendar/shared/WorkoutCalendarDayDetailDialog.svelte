@@ -8,6 +8,7 @@
 <script lang="ts">
   import { WorkoutSetService } from '@aneuhold/core-ts-db-lib';
   import { IconExternalLink } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
@@ -92,20 +93,28 @@
                     {@const hasPlan = set.plannedReps != null || set.plannedWeight != null}
                     <span class="text-muted-foreground">S{setIdx + 1}</span>
                     {#if WorkoutSetService.isCompleted(set)}
-                      <span>{set.actualReps} reps</span>
+                      <span>{stringFormatService.pluralize(set.actualReps ?? 0, 'rep')}</span>
                       <span>{set.actualWeight} lb</span>
                       <span>{set.rir != null ? `${set.rir} RIR` : ''}</span>
                       {#if hasPlan}
                         <div class="contents text-muted-foreground text-[0.65rem]">
                           <span></span>
-                          <span>plan: {set.plannedReps ?? '—'} reps</span>
+                          <span
+                            >plan: {set.plannedReps != null
+                              ? stringFormatService.pluralize(set.plannedReps, 'rep')
+                              : '— reps'}</span
+                          >
                           <span>{set.plannedWeight ?? '—'} lb</span>
                           <span>{set.plannedRir != null ? `${set.plannedRir} RIR` : ''}</span>
                         </div>
                       {/if}
                     {:else if hasPlan}
                       <div class="contents text-muted-foreground">
-                        <span>{set.plannedReps ?? '—'} reps</span>
+                        <span
+                          >{set.plannedReps != null
+                            ? stringFormatService.pluralize(set.plannedReps, 'rep')
+                            : '— reps'}</span
+                        >
                         <span>{set.plannedWeight ?? '—'} lb</span>
                         <span>{set.plannedRir != null ? `${set.plannedRir} RIR` : ''}</span>
                       </div>

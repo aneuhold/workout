@@ -60,6 +60,7 @@
 </script>
 
 <script lang="ts">
+  import stringFormatService from '$services/StringFormat.service';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -89,9 +90,7 @@
 
   const showDeloadOption = $derived((params?.daysLate ?? 0) >= 3 && params?.onDeload != null);
 
-  const daysLabel = $derived(
-    (params?.daysLate ?? 0) === 1 ? '1 day' : `${params?.daysLate ?? 0} days`
-  );
+  const daysLabel = $derived(stringFormatService.pluralize(params?.daysLate ?? 0, 'day'));
 
   async function handleConfirm() {
     if (!params) return;

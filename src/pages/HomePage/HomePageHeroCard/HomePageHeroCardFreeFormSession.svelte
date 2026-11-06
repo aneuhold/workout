@@ -6,6 +6,7 @@
 <script lang="ts">
   import { IconChevronRight } from '@tabler/icons-svelte';
   import { countCompletedSets } from '$components/SessionCard/sessionCardUtils';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -44,11 +45,14 @@
     {#if state.sets.length > 0}
       <Progress value={percent} max={100} class="h-1.5" />
       <span class="text-xs text-muted-foreground">
-        {completed}/{state.sets.length} sets · {state.sessionExercises.length} exercises
+        {completed}/{stringFormatService.pluralize(state.sets.length, 'set')} · {stringFormatService.pluralize(
+          state.sessionExercises.length,
+          'exercise'
+        )}
       </span>
     {:else}
       <span class="text-xs text-muted-foreground">
-        {state.sessionExercises.length} exercises · No sets yet
+        {stringFormatService.pluralize(state.sessionExercises.length, 'exercise')} · No sets yet
       </span>
     {/if}
   </CardContent>

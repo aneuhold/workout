@@ -11,6 +11,7 @@
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import OnboardingChecklist from './OnboardingChecklist.svelte';
   import { shouldShowOnboardingChecklist } from './onboardingEmptyStateUtils';
@@ -58,8 +59,8 @@
     {:else if calibratedExerciseCount < 4}
       <p class="font-medium">You're on your way!</p>
       <p class="mb-4 max-w-xs text-center text-xs">
-        {calibratedExerciseCount} exercise{calibratedExerciseCount === 1 ? '' : 's'} calibrated. Add a
-        few more to get the best results from your mesocycle. You can also start a free-form workout anytime.
+        {stringFormatService.pluralize(calibratedExerciseCount, 'exercise')} calibrated. Add a few more
+        to get the best results from your mesocycle. You can also start a free-form workout anytime.
       </p>
       <Button variant="outline" size="sm" href="/library">
         Go to Library

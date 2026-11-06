@@ -6,10 +6,10 @@
 -->
 <script lang="ts">
   import { IconStopwatch } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import timerService from '$services/TimerService';
   import Button from '$ui/Button/Button.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
-  import { formatTime } from '$util/formatTime';
 
   const presets = [
     { label: '0:30', seconds: 30 },
@@ -32,7 +32,7 @@
     class="bg-primary text-primary-foreground animate-timer-pulse flex min-h-[calc(100vh-var(--spacing-top-nav)-var(--spacing-bottom-nav))] flex-col items-center justify-center gap-8 px-4 md:min-h-[calc(100svh-var(--spacing-top-nav))]"
   >
     <span class="font-mono text-8xl font-bold tabular-nums sm:text-9xl">
-      {formatTime(timerService.remainingSeconds)}
+      {stringFormatService.formatTime(timerService.remainingSeconds)}
     </span>
 
     <Progress
