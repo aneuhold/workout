@@ -57,7 +57,9 @@
     return cycleIndex >= 0 ? cycleIndex + 1 : sortedMicrocycles.length;
   });
 
-  const progressValue = $derived(totalCycles > 0 ? (currentCycleNumber / totalCycles) * 100 : 0);
+  const progressValue = $derived(
+    sessions.length > 0 ? (sessions.filter((s) => s.complete).length / sessions.length) * 100 : 0
+  );
 </script>
 
 <Card>

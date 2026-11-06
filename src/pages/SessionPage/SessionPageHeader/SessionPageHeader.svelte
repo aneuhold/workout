@@ -99,7 +99,7 @@
   <div class="flex items-center gap-2">
     <div class="flex min-w-0 flex-1 flex-col">
       <div class="flex flex-wrap items-baseline gap-x-2">
-        <h1 class="text-xl font-semibold">{title}</h1>
+        <h1 class="text-xl font-semibold wrap-anywhere">{title}</h1>
         {#if session}
           <span class="shrink-0 text-sm text-muted-foreground">{formattedStartDate}</span>
         {/if}

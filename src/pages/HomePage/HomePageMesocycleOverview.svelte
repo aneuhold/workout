@@ -4,7 +4,11 @@
   Condensed mesocycle header showing title, cycle type, and microcycle progress.
 -->
 <script lang="ts">
-  import type { WorkoutMesocycle, WorkoutMicrocycle } from '@aneuhold/core-ts-db-lib';
+  import type {
+    WorkoutMesocycle,
+    WorkoutMicrocycle,
+    WorkoutSession
+  } from '@aneuhold/core-ts-db-lib';
   import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import Badge from '$ui/Badge/Badge.svelte';
@@ -12,10 +16,13 @@
 
   let {
     mesocycle,
-    sortedMicrocycles
+    sortedMicrocycles,
+    sessions
   }: {
     mesocycle: WorkoutMesocycle;
     sortedMicrocycles: WorkoutMicrocycle[];
+    /** All sessions in the mesocycle. */
+    sessions: WorkoutSession[];
   } = $props();
 
   const title = $derived(mesocycle.title || 'Untitled Mesocycle');
@@ -26,7 +33,9 @@
     return currentMicrocycle ? sortedMicrocycles.indexOf(currentMicrocycle) + 1 : totalCycles;
   });
 
-  const progressValue = $derived(totalCycles > 0 ? (currentCycleNumber / totalCycles) * 100 : 0);
+  const progressValue = $derived(
+    sessions.length > 0 ? (sessions.filter((s) => s.complete).length / sessions.length) * 100 : 0
+  );
 </script>
 
 <a href="/mesocycle?mesocycleId={mesocycle._id}" class="block">

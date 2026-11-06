@@ -54,7 +54,11 @@
 
 <div class="flex flex-col gap-4 p-4">
   {#if activeMesocycle && docs}
-    <HomePageMesocycleOverview mesocycle={activeMesocycle} sortedMicrocycles={microcycles} />
+    <HomePageMesocycleOverview
+      mesocycle={activeMesocycle}
+      sortedMicrocycles={microcycles}
+      sessions={docs.sessions}
+    />
   {/if}
   <HomePageHeroCard
     {activeMesocycle}

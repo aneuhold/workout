@@ -67,10 +67,7 @@
     {/if}
     {#if isLate}
       <div class={cn('text-xs', isSeverelyLate ? 'text-destructive' : 'text-warning')}>
-        Scheduled for {scheduledDateFormatted} &mdash; {stringFormatService.pluralize(
-          daysLate,
-          'day'
-        )} behind
+        Scheduled for {scheduledDateFormatted}
       </div>
     {:else}
       <div class="text-xs text-muted-foreground">
