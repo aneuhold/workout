@@ -8,6 +8,7 @@
   import { IconSearch } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -172,7 +173,7 @@
 
       {#if selectedCalibrationIds.length > 0}
         <p class="text-xs text-muted-foreground">
-          {selectedCalibrationIds.length} exercise{selectedCalibrationIds.length !== 1 ? 's' : ''} selected
+          {stringFormatService.pluralize(selectedCalibrationIds.length, 'exercise')} selected
         </p>
       {/if}
     {/if}

@@ -150,8 +150,7 @@
     <AlertDialogHeader>
       <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>
       <AlertDialogDescription>
-        This will cut the remaining sessions in the current microcycle and transition into a deload
-        week.
+        This will replace the remaining sessions in the mesocycle with a deload week.
         {#if removedSessionCount > 0}
           {stringFormatService.pluralize(removedSessionCount, 'remaining session')} will be removed.
         {/if}

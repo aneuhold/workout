@@ -26,7 +26,7 @@ Four call sites:
 `~/Development/GithubRepos/ts-libs/packages/core-ts-db-lib/src/documents/workout/WorkoutMesocycle.ts` (`WorkoutMesocycleSchema:32-91`) has **no dismissal field**. The trigger is `WorkoutMesocycleService.shouldTriggerEarlyDeload` (`src/services/workout/Mesocycle/WorkoutMesocycle.service.ts:367`), a pure function over the mesocycle + its docs.
 
 ### Sub-part 3 is done
-Completing any session (mesocycle or free-form) navigates to Home before the deload check runs, so the post-completion deload dialog opens on Home and no dialog callback is needed to leave the session. Fixed together with #2 and #3 in [ux-pass-findings.md](ux-pass-findings.md).
+Completing any session (mesocycle or free-form) navigates to Home before the deload check runs, so the post-completion deload dialog opens on Home and no dialog callback is needed to leave the session.
 
 ## Related: "Start deload now" does not start today
 
@@ -37,9 +37,7 @@ Completing any session (mesocycle or free-form) navigates to Home before the del
   - mid-training: Mesocycle page, then Options, then Start Deload, then "Start now". The deload lands on Oct 25 to 31.
 - **Cause:** `WorkoutMesocycleService.generateOrUpdateMesocycle` in ts-libs `WorkoutMesocycle.service.ts` (around L146 to 152) ignores `startDate` when microcycles already exist and continues from the last microcycle's `endDate`. Called from `initiateEarlyDeload` in `src/services/documentMapServices/MesocycleMap.service.svelte.ts`.
 
-<img src="../images/ux-pass/plan-after-deload.png" alt="plan-after-deload" width="260"> <img src="../images/ux-pass/very-late-hero.png" alt="very-late-hero" width="260">
-
-Found in the UX pass ([ux-pass-findings.md](ux-pass-findings.md)). The fix approach is still open: the dialog promises "today", but generation always appends the deload after the existing microcycles.
+The fix approach is still open: the dialog promises "today", but generation always appends the deload after the existing microcycles.
 
 ## Implementation plan
 

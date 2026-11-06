@@ -109,7 +109,7 @@
         return;
       }
 
-      // static and activeInProgress modes — active mesocycle with dropdown showing Deload / End
+      // static and activeInProgress modes: active mesocycle with dropdown showing Deload / End
       const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,

@@ -70,6 +70,13 @@
     }
   }
 
+  /**
+   * Saves the planned weight and reps when in planning mode and the reps are valid.
+   */
+  function handlePlannedInputChange() {
+    if (mode === SessionPageMode.Planning && repsValid) onPlannedChange?.(weight, reps);
+  }
+
   function handleEditClick() {
     editSetDialog.open({
       setNumber,
@@ -150,9 +157,7 @@
           placeholder="lb"
           class="h-7 text-sm"
           min={0}
-          onchange={() => {
-            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
-          }}
+          onchange={handlePlannedInputChange}
         />
       {/if}
     </div>
@@ -175,9 +180,7 @@
           class="h-7 text-sm"
           min={0}
           aria-invalid={!repsValid}
-          onchange={() => {
-            if (mode === SessionPageMode.Planning && repsValid) onPlannedChange?.(weight, reps);
-          }}
+          onchange={handlePlannedInputChange}
         />
       {/if}
     </div>

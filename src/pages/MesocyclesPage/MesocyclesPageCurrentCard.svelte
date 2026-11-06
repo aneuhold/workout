@@ -8,6 +8,7 @@
     CycleType,
     type WorkoutExercise,
     type WorkoutMesocycle,
+    WorkoutMesocycleService,
     type WorkoutMicrocycle,
     type WorkoutSession,
     type WorkoutSessionExercise,
@@ -47,14 +48,8 @@
   const totalCycles = $derived(sortedMicrocycles.length);
 
   const currentCycleNumber = $derived.by(() => {
-    const firstIncomplete = sessions.find((s) => !s.complete);
-    if (!firstIncomplete?.workoutMicrocycleId) {
-      return sortedMicrocycles.length;
-    }
-    const cycleIndex = sortedMicrocycles.findIndex(
-      (mc) => mc._id === firstIncomplete.workoutMicrocycleId
-    );
-    return cycleIndex >= 0 ? cycleIndex + 1 : sortedMicrocycles.length;
+    const currentMicrocycle = WorkoutMesocycleService.getCurrentMicrocycle(sortedMicrocycles);
+    return currentMicrocycle ? sortedMicrocycles.indexOf(currentMicrocycle) + 1 : totalCycles;
   });
 
   const progressValue = $derived(
@@ -72,7 +67,7 @@
       <Badge variant="secondary">{formatCycleType(mesocycle.cycleType)}</Badge>
       <IconChevronRight size={16} class="ml-auto shrink-0 text-muted-foreground" />
     </div>
-    <CardDescription>Cycle {currentCycleNumber} of {totalCycles}</CardDescription>
+    <CardDescription>Microcycle {currentCycleNumber} of {totalCycles}</CardDescription>
   </CardHeader>
   <CardContent class="flex flex-col gap-4">
     <Progress value={progressValue} />
