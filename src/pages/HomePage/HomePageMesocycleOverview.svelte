@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Condensed mesocycle header showing title, cycle type, and week progress.
+  Condensed mesocycle header showing title, cycle type, and microcycle progress.
 -->
 <script lang="ts">
   import type {
@@ -9,6 +9,7 @@
     WorkoutMicrocycle,
     WorkoutSession
   } from '@aneuhold/core-ts-db-lib';
+  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import Badge from '$ui/Badge/Badge.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
@@ -20,6 +21,7 @@
   }: {
     mesocycle: WorkoutMesocycle;
     sortedMicrocycles: WorkoutMicrocycle[];
+    /** All sessions in the mesocycle. */
     sessions: WorkoutSession[];
   } = $props();
 
@@ -27,17 +29,13 @@
   const totalCycles = $derived(sortedMicrocycles.length);
 
   const currentCycleNumber = $derived.by(() => {
-    const firstIncomplete = sessions.find((s) => !s.complete);
-    if (!firstIncomplete?.workoutMicrocycleId) {
-      return sortedMicrocycles.length;
-    }
-    const cycleIndex = sortedMicrocycles.findIndex(
-      (mc) => mc._id === firstIncomplete.workoutMicrocycleId
-    );
-    return cycleIndex >= 0 ? cycleIndex + 1 : sortedMicrocycles.length;
+    const currentMicrocycle = WorkoutMesocycleService.getCurrentMicrocycle(sortedMicrocycles);
+    return currentMicrocycle ? sortedMicrocycles.indexOf(currentMicrocycle) + 1 : totalCycles;
   });
 
-  const progressValue = $derived(totalCycles > 0 ? (currentCycleNumber / totalCycles) * 100 : 0);
+  const progressValue = $derived(
+    sessions.length > 0 ? (sessions.filter((s) => s.complete).length / sessions.length) * 100 : 0
+  );
 </script>
 
 <a href="/mesocycle?mesocycleId={mesocycle._id}" class="block">
@@ -46,7 +44,7 @@
     <Badge variant="secondary">{formatCycleType(mesocycle.cycleType)}</Badge>
   </div>
   <span class="text-xs text-muted-foreground">
-    Week {currentCycleNumber} of {totalCycles}
+    Microcycle {currentCycleNumber} of {totalCycles}
   </span>
   <Progress value={progressValue} />
 </a>

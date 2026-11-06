@@ -5,17 +5,9 @@
   Displays weight/reps/RIR inputs and an action column (Log button, Done badge, or planned targets).
 -->
 <script lang="ts">
-  import type { WorkoutSet } from '@aneuhold/core-ts-db-lib';
+  import { type WorkoutSet, WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
   import { IconMinus, IconPencil } from '@tabler/icons-svelte';
   import { editSetDialog } from '$components/singletons/dialogs/SingletonEditSetDialog/SingletonEditSetDialog.svelte';
-  import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
-  import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
-  import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
-  import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
-  import AlertDialogDescription from '$ui/AlertDialog/AlertDialogDescription.svelte';
-  import AlertDialogFooter from '$ui/AlertDialog/AlertDialogFooter.svelte';
-  import AlertDialogHeader from '$ui/AlertDialog/AlertDialogHeader.svelte';
-  import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
   import { SessionPageMode, SessionPageSetState } from './sessionPageTypes';
@@ -60,36 +52,39 @@
       : (set.rir ?? set.plannedRir ?? undefined)
   );
 
-  let dialogOpen = $state(false);
+  let repsValid = $derived(
+    (mode === SessionPageMode.Planning
+      ? WorkoutSetSchema.shape.plannedReps
+      : WorkoutSetSchema.shape.actualReps
+    ).safeParse(reps).success
+  );
 
-  let canLog = $derived(weight != null && reps != null && (rir != null || set.plannedRir == null));
+  let canLog = $derived(
+    weight != null && reps != null && repsValid && (rir != null || set.plannedRir == null)
+  );
 
   function handleLogClick() {
-    if (!canLog) return;
-    dialogOpen = true;
-  }
-
-  function handleConfirm() {
-    if (weight != null && reps != null && (rir != null || set.plannedRir == null)) {
+    // weight and reps are only checked again for TS to know they aren't null
+    if (canLog && weight != null && reps != null) {
       onLog(weight, reps, rir ?? null);
     }
-    dialogOpen = false;
+  }
+
+  /**
+   * Saves the planned weight and reps when in planning mode and the reps are valid.
+   */
+  function handlePlannedInputChange() {
+    if (mode === SessionPageMode.Planning && repsValid) onPlannedChange?.(weight, reps);
   }
 
   function handleEditClick() {
-    const targetParts: string[] = [];
-    if (set.plannedWeight != null) targetParts.push(`${set.plannedWeight}lb`);
-    if (set.plannedReps != null) targetParts.push(`x ${set.plannedReps}`);
-    if (set.plannedRir != null) targetParts.push(`@ ${set.plannedRir} RIR`);
-    const target = targetParts.length > 0 ? `Target: ${targetParts.join(' ')}` : null;
-
     editSetDialog.open({
       setNumber,
       weight: set.actualWeight ?? set.plannedWeight ?? undefined,
       reps: set.actualReps ?? set.plannedReps ?? undefined,
       rir: set.rir ?? set.plannedRir ?? undefined,
       hasRir: set.plannedRir != null,
-      targetText: target,
+      targetText: hasTargets ? targetText : null,
       onSave: onEdit
     });
   }
@@ -119,6 +114,12 @@
 
   let hasTargets = $derived(
     set.plannedWeight != null || set.plannedReps != null || set.plannedRir != null
+  );
+
+  const targetText = $derived(
+    `Target: ${set.plannedWeight ?? '?'}lb x ${set.plannedReps ?? '?'}${
+      set.plannedRir != null ? ` @ ${set.plannedRir} RIR` : ''
+    }`
   );
 
   let showPreviewLines = $derived(
@@ -156,9 +157,7 @@
           placeholder="lb"
           class="h-7 text-sm"
           min={0}
-          onchange={() => {
-            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
-          }}
+          onchange={handlePlannedInputChange}
         />
       {/if}
     </div>
@@ -180,9 +179,8 @@
           placeholder="reps"
           class="h-7 text-sm"
           min={0}
-          onchange={() => {
-            if (mode === SessionPageMode.Planning) onPlannedChange?.(weight, reps);
-          }}
+          aria-invalid={!repsValid}
+          onchange={handlePlannedInputChange}
         />
       {/if}
     </div>
@@ -240,8 +238,7 @@
   <div class="grid gap-1.5 px-2 pb-0.5 {isActive ? 'grid-cols-12' : 'grid-cols-9'}">
     <div class="col-span-1"></div>
     <div class="{isActive ? 'col-span-11' : 'col-span-8'} text-xs text-muted-foreground">
-      Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ?? '?'}{#if set.plannedRir != null}
-        @ {set.plannedRir} RIR{/if}
+      {targetText}
     </div>
   </div>
 {/if}
@@ -271,27 +268,3 @@
     </div>
   </div>
 {/if}
-
-<AlertDialog bind:open={dialogOpen}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Log Set</AlertDialogTitle>
-      <AlertDialogDescription>
-        {weight}lb x {reps} reps{#if rir != null}
-          @ {rir} RIR{/if}
-        {#if hasTargets}
-          <br />
-          <span class="text-muted-foreground">
-            Target: {set.plannedWeight ?? '?'}lb x {set.plannedReps ??
-              '?'}{#if set.plannedRir != null}
-              @ {set.plannedRir} RIR{/if}
-          </span>
-        {/if}
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction onclick={handleConfirm}>Confirm</AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>

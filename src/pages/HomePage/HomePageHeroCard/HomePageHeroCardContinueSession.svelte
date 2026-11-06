@@ -6,6 +6,7 @@
 <script lang="ts">
   import { IconChevronRight } from '@tabler/icons-svelte';
   import { countCompletedSets } from '$components/SessionCard/sessionCardUtils';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -37,6 +38,8 @@
   <CardContent class="flex flex-col gap-2">
     <span class="text-sm font-medium">{state.session.title}</span>
     <Progress value={percent} max={100} class="h-1.5" />
-    <span class="text-xs text-muted-foreground">{completed}/{totalSets} sets completed</span>
+    <span class="text-xs text-muted-foreground"
+      >{completed}/{stringFormatService.pluralize(totalSets, 'set')} completed</span
+    >
   </CardContent>
 </Card>

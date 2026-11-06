@@ -11,6 +11,7 @@
     WorkoutExerciseCalibrationService,
     type WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
+  import stringFormatService from '$services/StringFormat.service';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
 
@@ -55,18 +56,18 @@
     if (source === 'set' && bestSet?.createdDate) {
       const weight = bestSet.actualWeight ?? 0;
       const reps = bestSet.actualReps ?? 0;
-      const dateStr = new Date(bestSet.createdDate).toLocaleDateString();
+      const dateStr = stringFormatService.formatDate(bestSet.createdDate);
       if (weight === 0) {
-        return `From best set: Bodyweight x ${reps} reps on ${dateStr}`;
+        return `From best set: Bodyweight x ${stringFormatService.pluralize(reps, 'rep')} on ${dateStr}`;
       }
-      return `From best set: ${weight} lb x ${reps} reps on ${dateStr}`;
+      return `From best set: ${weight} lb x ${stringFormatService.pluralize(reps, 'rep')} on ${dateStr}`;
     }
     if (source === 'calibration' && bestCalibration) {
-      const dateStr = bestCalibration.dateRecorded.toLocaleDateString();
+      const dateStr = stringFormatService.formatDate(bestCalibration.dateRecorded);
       if (bestCalibration.weight === 0) {
-        return `From calibration: Bodyweight x ${bestCalibration.reps} reps on ${dateStr}`;
+        return `From calibration: Bodyweight x ${stringFormatService.pluralize(bestCalibration.reps, 'rep')} on ${dateStr}`;
       }
-      return `From calibration: ${bestCalibration.weight} lb x ${bestCalibration.reps} reps on ${dateStr}`;
+      return `From calibration: ${bestCalibration.weight} lb x ${stringFormatService.pluralize(bestCalibration.reps, 'rep')} on ${dateStr}`;
     }
     return '';
   }

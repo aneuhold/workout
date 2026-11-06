@@ -10,6 +10,7 @@
   import SupporterSubscribeButton from '$components/SupporterSubscribeButton/SupporterSubscribeButton.svelte';
   import LoggingService from '$services/LoggingService/Logging.service';
   import purchaseService from '$services/PurchaseService/Purchase.service';
+  import stringFormatService from '$services/StringFormat.service';
   import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -56,7 +57,7 @@
       {#if isSupporter}
         Thanks for supporting MesoPro!
         {#if expiresAt}
-          Active until {expiresAt.toLocaleDateString()}.
+          Active until {stringFormatService.formatDate(expiresAt)}.
         {/if}
       {:else}
         Unlock performance analytics and support MesoPro development for {sharedTextConstants.supporterPrice}.

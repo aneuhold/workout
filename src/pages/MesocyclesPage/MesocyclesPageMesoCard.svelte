@@ -12,6 +12,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { IconCalendar, IconChevronRight } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import { formatCycleType } from './mesocyclesPageUtils';
@@ -34,12 +35,8 @@
 
   const dateRange = $derived.by(() => {
     if (sortedMicrocycles.length === 0) return '';
-    const start = new Date(sortedMicrocycles[0].startDate);
-    const end = mesocycle.completedDate
-      ? new Date(mesocycle.completedDate)
-      : new Date(sortedMicrocycles[sortedMicrocycles.length - 1].endDate);
-    const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-    return `${fmt.format(start)} – ${fmt.format(end)}`;
+    const end = mesocycle.completedDate ?? sortedMicrocycles[sortedMicrocycles.length - 1].endDate;
+    return stringFormatService.formatDateRange(sortedMicrocycles[0].startDate, end);
   });
 
   const completedCount = $derived(sessions.filter((s) => s.complete).length);
@@ -69,9 +66,9 @@
         {#if totalCount > 0}
           <span>
             {#if variant === 'future'}
-              {totalCount} sessions
+              {stringFormatService.pluralize(totalCount, 'session')}
             {:else}
-              {completedCount}/{totalCount} sessions
+              {completedCount}/{stringFormatService.pluralize(totalCount, 'session')}
             {/if}
           </span>
         {/if}

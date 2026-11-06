@@ -2,10 +2,11 @@
   @component
 
   Root component for the sessions page.
-  Shows all sessions in the active mesocycle grouped by microcycle (week),
+  Shows all sessions in the active mesocycle grouped by microcycle,
   plus a free-form sessions section for sessions without a microcycle.
 -->
 <script lang="ts">
+  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
@@ -30,6 +31,8 @@
       : []
   );
 
+  const currentMicrocycle = $derived(WorkoutMesocycleService.getCurrentMicrocycle(microcycles));
+
   const inProgressSessionId = $derived(
     mesocycleMapService.activeAndNextSessions.inProgressSession?._id ?? null
   );
@@ -44,11 +47,6 @@
       sessionMapService.freeFormSessions.planned.length > 0 ||
       sessionMapService.freeFormSessions.completed.length > 0
   );
-
-  // Detect deload: last microcycle where all sets have plannedRir == null
-  function isDeloadMicrocycle(microcycleIndex: number): boolean {
-    return microcycleIndex === microcycles.length - 1 && microcycles.length > 1;
-  }
 
   // Performance tracking
   let sessionsListRenderedMarked = false;
@@ -68,8 +66,8 @@
       <StaggerItem index={i}>
         <SessionsPageWeekGroup
           microcycle={mc}
-          weekNumber={i + 1}
-          isDeload={isDeloadMicrocycle(i)}
+          label={microcycleMapService.getMicrocycleLabel(activeMesocycle, i, microcycles.length)}
+          isCurrent={mc === currentMicrocycle}
           {inProgressSessionId}
           {nextUpSessionId}
         />

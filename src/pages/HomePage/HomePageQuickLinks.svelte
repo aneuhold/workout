@@ -10,11 +10,6 @@
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button from '$ui/Button/Button.svelte';
-
-  function handleStartFreeForm() {
-    const session = sessionMapService.createFreeFormSession();
-    goto(`/session?sessionId=${session._id}`);
-  }
 </script>
 
 <div class="flex flex-col gap-2">
@@ -33,7 +28,7 @@
       variant="ghost"
       class="text-muted-foreground"
       disabled={!exerciseMapService.hasAny}
-      onclick={handleStartFreeForm}
+      onclick={() => goto('/session')}
     >
       <IconBarbell size={16} />
       Start Free-Form Workout

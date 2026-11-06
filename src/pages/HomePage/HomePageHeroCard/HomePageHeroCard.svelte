@@ -128,13 +128,8 @@
 
     if (recommendation.shouldDeload) {
       deloadDialog.open({
-        mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
+        mesocycleId: activeMesocycle._id,
         scheduledDeloadDate: null,
-        onConfirm: () => {
-          return Promise.resolve(
-            mesocycleMapService.initiateEarlyDeload(activeMesocycle._id, new Date())
-          );
-        },
         severity: recommendation.severity,
         triggeredRules: recommendation.triggeredRules
       });
@@ -204,17 +199,15 @@
 
   /**
    * Opens the deload confirmation dialog from the move sessions dialog.
+   * Cancelling returns to the move sessions dialog.
    */
   function openDeloadFromMoveDialog() {
     if (!activeMesocycle) return;
 
     deloadDialog.open({
-      mesocycleTitle: activeMesocycle.title ?? 'Mesocycle',
+      mesocycleId: activeMesocycle._id,
       scheduledDeloadDate: null,
-      onConfirm: () => {
-        mesocycleMapService.initiateEarlyDeload(activeMesocycle._id, new Date());
-        return Promise.resolve();
-      }
+      onCancel: moveSessionsDialog.reopen
     });
   }
 </script>

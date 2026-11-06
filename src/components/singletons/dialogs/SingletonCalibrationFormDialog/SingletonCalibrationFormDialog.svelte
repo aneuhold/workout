@@ -25,6 +25,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { untrack } from 'svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
@@ -107,7 +108,7 @@
 
       <div class="flex flex-col gap-1.5">
         <Label>Date</Label>
-        <p class="text-sm">{new Date().toLocaleDateString()}</p>
+        <p class="text-sm">{stringFormatService.formatDate(new Date())}</p>
       </div>
 
       {#if estimated1RM !== null}

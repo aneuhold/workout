@@ -5,6 +5,7 @@
     NewOverlapping = 'newOverlapping',
     Edit = 'edit',
     Static = 'static',
+    ActiveInProgress = 'activeInProgress',
     Completed = 'completed',
     NotFound = 'notFound'
   }
@@ -108,15 +109,19 @@
         return;
       }
 
-      // static mode — active mesocycle with dropdown showing Deload / End
-      const { mesocycle } = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
+      // static and activeInProgress modes: active mesocycle with dropdown showing Deload / End
+      const data = mesocycleMapServiceMock.generateFullMesocycle(baseData, {
         cycleType: CycleType.MuscleGain,
         microcycleCount: 4,
         startDate: DateService.addDays(new Date(), -21),
         completedSessionCount: 8
       });
 
-      mesocycleId = mesocycle._id;
+      if (mode === MesocyclePageStoryMode.ActiveInProgress) {
+        mesocycleMapServiceMock.makeFirstIncompleteSessionInProgress(data);
+      }
+
+      mesocycleId = data.mesocycle._id;
     });
 
     return () => {

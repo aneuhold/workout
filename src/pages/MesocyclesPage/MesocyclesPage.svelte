@@ -47,7 +47,7 @@
         variant="outline"
         size="sm"
         disabled={!exerciseMapService.hasAny}
-        onclick={() => sessionMapService.planNewFreeFormSession()}
+        onclick={() => goto('/session?planningMode=true')}
       >
         Plan Free-Form Workout
       </Button>

@@ -4,6 +4,7 @@
   Root component for the home page. Orchestrates data and renders dashboard sections.
 -->
 <script lang="ts">
+  import { WorkoutMesocycleService } from '@aneuhold/core-ts-db-lib';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
@@ -15,11 +16,7 @@
   import HomePagePendingLogs from './HomePagePendingLogs.svelte';
   import HomePageQuickLinks from './HomePageQuickLinks.svelte';
   import HomePageRecentSessions from './HomePageRecentSessions.svelte';
-  import {
-    getCurrentMicrocycle,
-    getPendingReviewSessions,
-    getRecentCompletedSessions
-  } from './homePageUtils';
+  import { getPendingReviewSessions, getRecentCompletedSessions } from './homePageUtils';
   import HomePageWeekSessions from './HomePageWeekSessions.svelte';
 
   const activeMesocycle = $derived(mesocycleMapService.categorizedMesocycles.active);
@@ -41,9 +38,7 @@
 
   const pendingLogs = $derived(docs ? getPendingReviewSessions(docs.sessions) : []);
 
-  const currentMicrocycleInfo = $derived(
-    getCurrentMicrocycle(microcycles, docs?.sessions ?? [], inProgressSession, nextUpSession)
-  );
+  const currentMicrocycle = $derived(WorkoutMesocycleService.getCurrentMicrocycle(microcycles));
 
   const allRecentSessions = $derived(getRecentCompletedSessions(sessionMapService.allDocs));
 
@@ -76,10 +71,14 @@
   {#if pendingLogs.length}
     <HomePagePendingLogs {pendingLogs} />
   {/if}
-  {#if currentMicrocycleInfo}
+  {#if activeMesocycle && currentMicrocycle}
     <HomePageWeekSessions
-      microcycle={currentMicrocycleInfo.microcycle}
-      weekNumber={currentMicrocycleInfo.weekNumber}
+      microcycle={currentMicrocycle}
+      label={microcycleMapService.getMicrocycleLabel(
+        activeMesocycle,
+        microcycles.indexOf(currentMicrocycle),
+        microcycles.length
+      )}
       inProgressSessionId={inProgressSession?._id}
       nextUpSessionId={nextUpSession?._id}
     />

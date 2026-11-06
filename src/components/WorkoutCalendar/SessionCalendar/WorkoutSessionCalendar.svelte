@@ -13,6 +13,7 @@
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
   import { CalendarDate, type DateValue, getLocalTimeZone, today } from '@internationalized/date';
+  import stringFormatService from '$services/StringFormat.service';
   import Calendar from '$ui/Calendar/Calendar.svelte';
   import type { WorkoutCalendarDayCellVisual } from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayCell from '../shared/WorkoutCalendarDayCell.svelte';
@@ -71,30 +72,6 @@
   }
 
   /**
-   * Computes the description object for the detail dialog based on the selected day's sessions.
-   *
-   * @param day - The selected day cell
-   */
-  function computeDescription(day: WorkoutSessionCalendarDayCell): {
-    primary: string;
-    secondary: string;
-  } {
-    const count = day.sessions.length;
-    const primary = `${count} session${count !== 1 ? 's' : ''}`;
-    const allCompleted = day.sessions.every((s) => s.completed);
-    const allIncomplete = day.sessions.every((s) => !s.completed);
-    let secondary: string;
-    if (allCompleted) {
-      secondary = 'Completed';
-    } else if (allIncomplete) {
-      secondary = 'Projected targets';
-    } else {
-      secondary = 'In Progress';
-    }
-    return { primary, secondary };
-  }
-
-  /**
    * Handles a user tapping a clickable day cell.
    *
    * @param day - The day cell that was clicked
@@ -105,18 +82,11 @@
   }
 
   const dialogFormattedDate = $derived(
-    selectedDay
-      ? selectedDay.date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        })
-      : ''
+    selectedDay ? stringFormatService.formatFullDate(selectedDay.date) : ''
   );
 
   const dialogDescription = $derived(
-    selectedDay ? computeDescription(selectedDay) : { primary: '', secondary: '' }
+    stringFormatService.pluralize(selectedDay?.sessions.length ?? 0, 'session')
   );
 </script>
 

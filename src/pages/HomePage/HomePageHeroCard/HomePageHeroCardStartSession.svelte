@@ -6,6 +6,7 @@
 <script lang="ts">
   import { IconChevronRight } from '@tabler/icons-svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
@@ -25,13 +26,11 @@
   const daysLate = $derived(state.daysLate);
   const isLate = $derived(daysLate > 0);
   const isSeverelyLate = $derived(daysLate >= 3);
-  const lateLabel = $derived(daysLate === 1 ? '1 day late' : `${daysLate} days late`);
+  const lateLabel = $derived(`${stringFormatService.pluralize(daysLate, 'day')} late`);
   const totalSets = $derived(state.sets.length);
 
   const scheduledDateFormatted = $derived(
-    state.scheduledDate
-      ? state.scheduledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      : null
+    state.scheduledDate ? stringFormatService.formatMonthDay(state.scheduledDate) : null
   );
 
   const exerciseBadges = $derived(
@@ -68,11 +67,14 @@
     {/if}
     {#if isLate}
       <div class={cn('text-xs', isSeverelyLate ? 'text-destructive' : 'text-warning')}>
-        Scheduled for {scheduledDateFormatted} &mdash; {daysLate} day{daysLate === 1 ? '' : 's'} behind
+        Scheduled for {scheduledDateFormatted}
       </div>
     {:else}
       <div class="text-xs text-muted-foreground">
-        {state.sessionExercises.length} exercises · {totalSets} sets
+        {stringFormatService.pluralize(state.sessionExercises.length, 'exercise')} · {stringFormatService.pluralize(
+          totalSets,
+          'set'
+        )}
       </div>
       <div class="flex flex-wrap gap-1">
         {#each exerciseBadges as { id, name } (id)}

@@ -11,6 +11,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { WorkoutSessionExerciseService } from '@aneuhold/core-ts-db-lib';
   import { IconChevronRight } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Card from '$ui/Card/Card.svelte';
   import Progress from '$ui/Progress/Progress.svelte';
@@ -57,13 +58,7 @@
 
   const sessionHref = $derived(`/session?sessionId=${session._id}`);
 
-  const formattedStartDate = $derived(
-    session.startTime.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  );
+  const formattedStartDate = $derived(stringFormatService.formatDate(session.startTime));
 </script>
 
 <a href={sessionHref} class="block">
@@ -92,23 +87,29 @@
           {#if status === SessionStatus.InProgress}
             <Progress value={percent} max={100} class="h-1.5" />
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{completed}/{totalSets} sets</span>
+              <span>{completed}/{stringFormatService.pluralize(totalSets, 'set')}</span>
               <span>·</span>
-              <span>{exerciseCount} exercises</span>
+              <span>{stringFormatService.pluralize(exerciseCount, 'exercise')}</span>
             </div>
           {:else if status === SessionStatus.Review}
             <div class="text-xs text-muted-foreground">
-              <span>{exerciseCount} exercises</span>
+              <span>{stringFormatService.pluralize(exerciseCount, 'exercise')}</span>
               <span>·</span>
-              <span class="text-warning">{exercisesNeedingReview} need review</span>
+              <span class="text-warning"
+                >{stringFormatService.pluralize(
+                  exercisesNeedingReview,
+                  'needs review',
+                  'need review'
+                )}</span
+              >
             </div>
           {:else if status === SessionStatus.Completed}
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
               <span>{formattedStartDate}</span>
               <span>·</span>
-              <span>{exerciseCount} exercises</span>
+              <span>{stringFormatService.pluralize(exerciseCount, 'exercise')}</span>
               <span>·</span>
-              <span>{totalSets} sets</span>
+              <span>{stringFormatService.pluralize(totalSets, 'set')}</span>
               {#if rsmTotal != null}
                 <span>·</span>
                 <span>RSM {rsmTotal}</span>
@@ -116,9 +117,9 @@
             </div>
           {:else if status === SessionStatus.NextUp}
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{exerciseCount} exercises</span>
+              <span>{stringFormatService.pluralize(exerciseCount, 'exercise')}</span>
               <span>·</span>
-              <span>{totalSets} sets</span>
+              <span>{stringFormatService.pluralize(totalSets, 'set')}</span>
               {#if plannedRir != null}
                 <span>·</span>
                 <span>{plannedRir} RIR</span>
@@ -126,9 +127,9 @@
             </div>
           {:else}
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{exerciseCount} exercises</span>
+              <span>{stringFormatService.pluralize(exerciseCount, 'exercise')}</span>
               <span>·</span>
-              <span>{totalSets} sets</span>
+              <span>{stringFormatService.pluralize(totalSets, 'set')}</span>
             </div>
           {/if}
         </div>

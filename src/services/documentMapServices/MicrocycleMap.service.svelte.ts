@@ -1,5 +1,10 @@
 import type { ProjectWorkoutPrimaryEndpointOptions } from '@aneuhold/core-ts-api-lib';
-import type { WorkoutMicrocycle, WorkoutSession } from '@aneuhold/core-ts-db-lib';
+import {
+  type WorkoutMesocycle,
+  type WorkoutMicrocycle,
+  WorkoutMicrocycleService,
+  type WorkoutSession
+} from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import LocalData from '$util/LocalData/LocalData';
@@ -53,6 +58,26 @@ class MicrocycleDocumentMapService extends DocumentMapStoreService<WorkoutMicroc
    */
   getOrderedSessionsForMicrocycles(microcycles: WorkoutMicrocycle[]): WorkoutSession[] {
     return microcycles.flatMap((mc) => this.getOrderedSessionsForMicrocycle(mc));
+  }
+
+  /**
+   * Returns the display label for a microcycle: "Deload" for the deload
+   * microcycle, otherwise "Microcycle N".
+   *
+   * @param mesocycle The mesocycle the microcycle belongs to
+   * @param microcycleIndex Zero-based position of the microcycle in the mesocycle
+   * @param microcycleCount Total number of microcycles in the mesocycle
+   */
+  getMicrocycleLabel(
+    mesocycle: WorkoutMesocycle,
+    microcycleIndex: number,
+    microcycleCount: number
+  ): string {
+    const deloadIndex = WorkoutMicrocycleService.getDeloadMicrocycleIndex(
+      mesocycle.cycleType,
+      microcycleCount
+    );
+    return microcycleIndex === deloadIndex ? 'Deload' : `Microcycle ${microcycleIndex + 1}`;
   }
 
   /**

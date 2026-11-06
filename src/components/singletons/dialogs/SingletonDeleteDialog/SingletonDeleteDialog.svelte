@@ -26,7 +26,10 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -47,16 +50,74 @@
     }
   }
 
-  function handleConfirm() {
-    if (!currentItem) return;
-    const itemId = currentItem.id;
-    switch (currentItem.type) {
+  /**
+   * The exercise's calibrations (deleted along with it), and how many
+   * exercises, sessions, and mesocycles reference the item.
+   */
+  let usage = $derived.by(() => {
+    if (!currentItem) return null;
+    const { id, type } = currentItem;
+    switch (type) {
       case WorkoutDocumentType.Exercise: {
         const calibrationIds = exerciseCalibrationMapService.allDocs
-          .filter((c) => c.workoutExerciseId === itemId)
+          .filter((c) => c.workoutExerciseId === id)
           .map((c) => c._id);
-        if (calibrationIds.length > 0) {
-          exerciseCalibrationMapService.deleteManyDocs(calibrationIds);
+        const sessionCount = new Set(
+          sessionExerciseMapService.allDocs
+            .filter((se) => se.workoutExerciseId === id)
+            .map((se) => se.workoutSessionId)
+        ).size;
+        const mesocycleCount = mesocycleMapService.allDocs.filter((mesocycle) =>
+          mesocycle.calibratedExercises.some((calibrationId) =>
+            calibrationIds.includes(calibrationId)
+          )
+        ).length;
+        return { calibrationIds, exerciseCount: 0, sessionCount, mesocycleCount };
+      }
+      case WorkoutDocumentType.MuscleGroup: {
+        const exerciseCount = exerciseMapService.allDocs.filter(
+          (exercise) =>
+            exercise.primaryMuscleGroups.includes(id) || exercise.secondaryMuscleGroups.includes(id)
+        ).length;
+        return { calibrationIds: [], exerciseCount, sessionCount: 0, mesocycleCount: 0 };
+      }
+      case WorkoutDocumentType.Equipment: {
+        const exerciseCount = exerciseMapService.allDocs.filter(
+          (exercise) => exercise.workoutEquipmentTypeId === id
+        ).length;
+        return { calibrationIds: [], exerciseCount, sessionCount: 0, mesocycleCount: 0 };
+      }
+    }
+  });
+
+  /**
+   * Phrases describing where the item is used, such as "2 sessions". Deletion
+   * is blocked when this is non-empty.
+   */
+  let usageParts = $derived.by(() => {
+    if (!usage) return [];
+    const parts: string[] = [];
+    const { exerciseCount, sessionCount, mesocycleCount } = usage;
+    if (exerciseCount > 0) {
+      parts.push(stringFormatService.pluralize(exerciseCount, 'exercise'));
+    }
+    if (sessionCount > 0) {
+      parts.push(stringFormatService.pluralize(sessionCount, 'session'));
+    }
+    if (mesocycleCount > 0) {
+      parts.push(stringFormatService.pluralize(mesocycleCount, 'mesocycle'));
+    }
+    return parts;
+  });
+
+  let isBlocked = $derived(usageParts.length > 0);
+
+  function handleConfirm() {
+    if (!currentItem || isBlocked) return;
+    switch (currentItem.type) {
+      case WorkoutDocumentType.Exercise: {
+        if (usage && usage.calibrationIds.length > 0) {
+          exerciseCalibrationMapService.deleteManyDocs(usage.calibrationIds);
         }
         exerciseMapService.deleteDoc(currentItem.id);
         break;
@@ -75,9 +136,17 @@
 <AlertDialog bind:open>
   <AlertDialogContent>
     <AlertDialogHeader>
-      <AlertDialogTitle>Delete {currentItem ? typeLabel(currentItem.type) : ''}?</AlertDialogTitle>
+      <AlertDialogTitle>
+        {isBlocked ? "Can't delete" : 'Delete'}
+        {currentItem ? typeLabel(currentItem.type) : ''}{isBlocked ? '' : '?'}
+      </AlertDialogTitle>
       <AlertDialogDescription>
-        {#if currentItem}
+        {#if currentItem && isBlocked}
+          "{currentItem.name}" is used in {usageParts.join(' and ')}, so it can't be deleted.
+          {#if usage && usage.exerciseCount > 0}
+            Remove it from those exercises first.
+          {/if}
+        {:else if currentItem}
           Are you sure you want to delete "{currentItem.name}"? This action cannot be undone.
           {#if currentItem.type === WorkoutDocumentType.Exercise}
             Associated calibration data will also be removed.
@@ -86,13 +155,15 @@
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction
-        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-        onclick={handleConfirm}
-      >
-        Delete
-      </AlertDialogAction>
+      <AlertDialogCancel>{isBlocked ? 'Close' : 'Cancel'}</AlertDialogCancel>
+      {#if !isBlocked}
+        <AlertDialogAction
+          class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          onclick={handleConfirm}
+        >
+          Delete
+        </AlertDialogAction>
+      {/if}
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>

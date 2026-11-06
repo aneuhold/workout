@@ -1,13 +1,14 @@
 import {
   WorkoutMesocycleService,
+  type WorkoutSession,
   type WorkoutSessionExercise,
   WorkoutSessionExerciseService,
   WorkoutSessionLockReason,
-  WorkoutSessionService,
   WorkoutSetService
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import type { Updater } from 'svelte/store';
 import { goto } from '$app/navigation';
 import { deloadDialog } from '$components/singletons/dialogs/SingletonDeloadDialog/SingletonDeloadDialog.svelte';
 import { exercisePickerDialog } from '$components/singletons/dialogs/SingletonExercisePickerDialog/SingletonExercisePickerDialog.svelte';
@@ -29,11 +30,15 @@ import {
  * Page-scoped reactive service for the SessionPage.
  * Owns all derived session state and actions, eliminating prop drilling to sub-components.
  * Call {@link init} from SessionPage whenever sessionId or planning changes.
+ *
+ * Without a session ID, the page works on an unsaved free-form draft session. The draft is saved
+ * when the first exercises are added, and discarded if the user leaves before that.
  */
 class SessionPageService {
   // --- Private mutable state ---
 
   #sessionId = $state<UUID | null>(null);
+  #draftSession = $state<WorkoutSession | null>(null);
   #planning = $state(false);
   #expandedMap = $state<Record<string, boolean | undefined>>({});
   #doneExerciseIds = new SvelteSet<UUID>();
@@ -43,7 +48,12 @@ class SessionPageService {
 
   // --- Session data (derived in dependency order) ---
 
-  session = $derived(this.#sessionId ? sessionMapService.getDoc(this.#sessionId) : undefined);
+  session = $derived(
+    this.#draftSession ?? (this.#sessionId ? sessionMapService.getDoc(this.#sessionId) : undefined)
+  );
+
+  /** True while the session is an unsaved free-form draft. */
+  isDraft = $derived(this.#draftSession !== null);
 
   isFreeForm = $derived(this.session ? sessionMapService.isFreeFormSession(this.session) : false);
 
@@ -95,16 +105,6 @@ class SessionPageService {
       this.sessionExercises.every((se) => this.#doneExerciseIds.has(se._id))
   );
 
-  previousMicrocycle = $derived.by(() => {
-    const { microcycle, mesocycle } = this;
-    if (!microcycle || !mesocycle) return undefined;
-    const orderedMicrocycles = microcycleMapService.getOrderedMicrocyclesForMesocycle(
-      mesocycle._id
-    );
-    const currentIndex = orderedMicrocycles.findIndex((mc) => mc._id === microcycle._id);
-    return currentIndex > 0 ? orderedMicrocycles[currentIndex - 1] : undefined;
-  });
-
   previousSessionInMicrocycle = $derived.by(() => {
     const { microcycle, session } = this;
     if (!microcycle || !session) return undefined;
@@ -114,12 +114,14 @@ class SessionPageService {
   });
 
   lockReason = $derived(
-    WorkoutSessionService.getSessionLockReason(
-      this.microcycle,
-      this.mesocycle,
-      this.previousMicrocycle,
-      this.previousSessionInMicrocycle
-    )
+    this.mesocycle && this.session
+      ? WorkoutMesocycleService.getSessionLockReason(
+          this.mesocycle,
+          microcycleMapService.getOrderedMicrocyclesForMesocycle(this.mesocycle._id),
+          this.session,
+          this.previousSessionInMicrocycle
+        )
+      : null
   );
 
   /**
@@ -134,6 +136,26 @@ class SessionPageService {
   mode: SessionPageMode = $derived(
     deriveMode(this.dataMode, this.#planning, this.#wasInReviewMode, this.#reviewConfirmed)
   );
+
+  /**
+   * Interaction state for the slider fields recorded during the workout (mind-muscle connection,
+   * pump, unused muscle performance). Interactive in Active mode, highlighted once all sets are
+   * logged, read-only otherwise.
+   */
+  immediateFieldState = $derived({
+    disabled: this.mode !== SessionPageMode.Active,
+    highlight: this.mode === SessionPageMode.Active && this.allSetsLogged
+  });
+
+  /**
+   * Interaction state for the slider fields recorded after the workout (disruption, perceived
+   * effort, joint and tissue disruption). Interactive and highlighted in Review mode, read-only
+   * otherwise.
+   */
+  lateFieldState = $derived({
+    disabled: this.mode !== SessionPageMode.Review,
+    highlight: this.mode === SessionPageMode.Review
+  });
 
   readonly lockMessages: Record<WorkoutSessionLockReason, string> = {
     [WorkoutSessionLockReason.MesocycleNotStarted]:
@@ -233,11 +255,13 @@ class SessionPageService {
    * Initializes or re-initializes the service for a session.
    * Resets all per-session state when the session ID changes.
    *
-   * @param sessionId The session ID to load, or null
+   * @param sessionId The session ID to load, or null to start a new free-form draft session
    * @param planning Whether the page is in planning mode
    */
   init(sessionId: UUID | null, planning: boolean): void {
-    if (sessionId !== this.#sessionId) {
+    const draftSession = sessionId ? null : sessionMapService.buildFreeFormSession();
+    const nextSessionId = draftSession?._id ?? sessionId;
+    if (nextSessionId !== this.#sessionId) {
       for (const key of Object.keys(this.#expandedMap)) {
         delete this.#expandedMap[key];
       }
@@ -246,7 +270,8 @@ class SessionPageService {
       this.#wasInReviewMode = false;
       this.#reviewConfirmed = false;
     }
-    this.#sessionId = sessionId;
+    this.#draftSession = draftSession;
+    this.#sessionId = nextSessionId;
     this.#planning = planning;
   }
 
@@ -317,14 +342,36 @@ class SessionPageService {
 
   // --- Actions ---
 
-  /** Opens the exercise picker to add exercises to the current free-form session. */
+  /**
+   * Applies a change to the current session. A draft session is changed locally only, a saved
+   * session is persisted. This should always be used in session pages vs the map.
+   *
+   * There's probably a better abstraction, but this seemed okay for now.
+   *
+   * @param mutator Function that changes and returns the session
+   */
+  updateSession(mutator: Updater<WorkoutSession>): void {
+    if (this.#draftSession) {
+      this.#draftSession = mutator(this.#draftSession);
+    } else if (this.session) {
+      sessionMapService.updateDoc(this.session._id, mutator);
+    }
+  }
+
+  /**
+   * Opens the exercise picker to add exercises to the current free-form session. Saves the
+   * session first if it is a draft, and points the URL at the saved session.
+   */
   handleAddExercise(): void {
     const { session, sessionExercises } = this;
     if (!session) return;
     const alreadyAdded = sessionExercises.map((se) => se.workoutExerciseId);
     exercisePickerDialog.open({
       excludeExerciseIds: alreadyAdded,
-      onConfirm: (exerciseIds) => {
+      onConfirm: async (exerciseIds) => {
+        if (this.#draftSession) {
+          await this.#saveDraftSession(this.#draftSession);
+        }
         sessionMapService.addExercisesToSession(session._id, exerciseIds);
       }
     });
@@ -363,10 +410,16 @@ class SessionPageService {
     this.#expandedMap[seId] = true;
   }
 
-  /** Completes the session, checks for early deload recommendation, and navigates away. */
-  handleCompleteSession(): void {
+  /**
+   * Navigates away from the session, then marks it complete and checks for an early deload
+   * recommendation. Navigating first keeps the page from re-rendering in review mode, and lets
+   * the deload dialog open on the destination page so dismissing it leaves the user there.
+   */
+  async handleCompleteSession(): Promise<void> {
     const { session, isFreeForm, sessionExercises, mesocycle, microcycle } = this;
     if (!session) return;
+
+    await goto('/');
 
     sessionMapService.updateDoc(session._id, (doc) => {
       doc.complete = true;
@@ -382,47 +435,54 @@ class SessionPageService {
         session.userId,
         sessionExercises
       );
-      void goto('/');
       return;
     }
 
-    if (mesocycle && microcycle) {
-      const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
-      const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
-        mesocycle,
-        docs.exerciseCTOs,
-        microcycle._id,
-        docs.microcycles,
-        docs.sessions,
-        docs.sessionExercises,
-        docs.sets
-      );
-      if (recommendation.shouldDeload) {
-        deloadDialog.open({
-          mesocycleTitle: mesocycle.title ?? 'Mesocycle',
-          scheduledDeloadDate: null,
-          onConfirm: async () => {
-            mesocycleMapService.initiateEarlyDeload(mesocycle._id, new Date());
-            await goto('/sessions');
-          },
-          severity: recommendation.severity,
-          triggeredRules: recommendation.triggeredRules
-        });
-        return;
-      }
+    if (!mesocycle || !microcycle) return;
+    const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
+    const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
+      mesocycle,
+      docs.exerciseCTOs,
+      microcycle._id,
+      docs.microcycles,
+      docs.sessions,
+      docs.sessionExercises,
+      docs.sets
+    );
+    if (recommendation.shouldDeload) {
+      deloadDialog.open({
+        mesocycleId: mesocycle._id,
+        scheduledDeloadDate: null,
+        severity: recommendation.severity,
+        triggeredRules: recommendation.triggeredRules
+      });
     }
-
-    void goto('/sessions');
   }
 
-  /** Confirms the post-session review, allowing mode to advance to View. */
-  handleCompleteReview(): void {
+  /**
+   * Navigates home, then marks the review as confirmed so it doesn't flicker the UI while the user
+   * is looking at the session.
+   */
+  async handleCompleteReview(): Promise<void> {
+    await goto('/');
     this.#reviewConfirmed = true;
   }
 
   /** Just goes back, in case they came from a current session, or the session page. */
   handleDonePlanning(): void {
     history.back();
+  }
+
+  /**
+   * Persists the draft session and points the URL at the saved session.
+   *
+   * @param draftSession The draft session to save
+   */
+  async #saveDraftSession(draftSession: WorkoutSession): Promise<void> {
+    sessionMapService.addDoc(draftSession);
+    this.#draftSession = null;
+    const planningParam = this.#planning ? '&planningMode=true' : '';
+    await goto(`/session?sessionId=${draftSession._id}${planningParam}`, { replaceState: true });
   }
 }
 

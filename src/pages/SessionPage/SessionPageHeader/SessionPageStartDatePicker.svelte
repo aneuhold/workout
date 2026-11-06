@@ -7,6 +7,7 @@
 <script lang="ts">
   import { fromDate, getLocalTimeZone } from '@internationalized/date';
   import { IconCalendar } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import Calendar from '$ui/Calendar/Calendar.svelte';
   import Popover from '$ui/Popover/Popover.svelte';
@@ -25,9 +26,7 @@
   const calendarValue = $derived(fromDate(startTime, tz));
   let popoverOpen = $state(false);
 
-  const formattedDate = $derived(
-    startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  );
+  const formattedDate = $derived(stringFormatService.formatDate(startTime));
 </script>
 
 <div class="flex flex-col items-start gap-1">

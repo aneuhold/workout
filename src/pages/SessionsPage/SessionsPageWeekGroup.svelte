@@ -19,17 +19,19 @@
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
 
   let {
     microcycle,
-    weekNumber,
-    isDeload,
+    label,
+    isCurrent,
     inProgressSessionId,
     nextUpSessionId
   }: {
     microcycle: WorkoutMicrocycle;
-    weekNumber: number;
-    isDeload: boolean;
+    label: string;
+    /** Whether this is the mesocycle's current microcycle. Only the current microcycle shows a next-up session. */
+    isCurrent: boolean;
     inProgressSessionId: string | null;
     nextUpSessionId: string | null;
   } = $props();
@@ -42,22 +44,11 @@
     allComplete && sessions.some((s) => getStatus(s) === SessionStatus.Review)
   );
 
-  const containsActiveSession = $derived(
-    sessions.some((s) => s._id === inProgressSessionId || s._id === nextUpSessionId)
+  let expanded = $derived(hasReview || isCurrent || (completedCount > 0 && !allComplete));
+
+  const dateRange = $derived(
+    stringFormatService.formatDateRange(microcycle.startDate, microcycle.endDate)
   );
-
-  let expanded = $derived(
-    hasReview || containsActiveSession || (completedCount > 0 && !allComplete)
-  );
-
-  const weekLabel = $derived(isDeload ? 'Deload' : `Week ${weekNumber}`);
-
-  const dateRange = $derived.by(() => {
-    const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-    const start = new Date(microcycle.startDate);
-    const end = new Date(microcycle.endDate);
-    return `${fmt.format(start)} – ${fmt.format(end)}`;
-  });
 
   function getExercisesForSession(session: WorkoutSession): WorkoutSessionExercise[] {
     return sessionMapService.getOrderedSessionExercisesForSession(session);
@@ -75,7 +66,7 @@
       sets,
       exercises,
       session._id === inProgressSessionId,
-      session._id === nextUpSessionId
+      isCurrent && session._id === nextUpSessionId
     );
   }
 </script>
@@ -88,7 +79,7 @@
         {expanded ? 'rotate-90' : ''}"
     />
     <div class="flex flex-1 items-center gap-2">
-      <span class="text-sm font-medium">{weekLabel}</span>
+      <span class="text-sm font-medium">{label}</span>
       <span class="text-xs text-muted-foreground">{dateRange}</span>
     </div>
     {#if !expanded}

@@ -12,6 +12,7 @@
     WorkoutSFRService
   } from '@aneuhold/core-ts-db-lib';
   import InfoPopover from '$components/InfoPopover/InfoPopover.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Progress from '$ui/Progress/Progress.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
@@ -59,7 +60,7 @@
 
   let sessionDateStr = $derived(
     lastAccumulationSessionExercise
-      ? new Date(lastAccumulationSessionExercise.createdDate).toLocaleDateString()
+      ? stringFormatService.formatDate(lastAccumulationSessionExercise.createdDate)
       : null
   );
 </script>

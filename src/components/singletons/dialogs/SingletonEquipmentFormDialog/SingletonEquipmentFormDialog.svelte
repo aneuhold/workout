@@ -27,6 +27,7 @@
   import { IconPlus, IconX } from '@tabler/icons-svelte';
   import { untrack } from 'svelte';
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import { currentUserId } from '$stores/derived/currentUserId';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
@@ -193,7 +194,7 @@
         {/if}
 
         <p class="text-xs text-muted-foreground">
-          {weightOptions.length} weight option{weightOptions.length !== 1 ? 's' : ''}
+          {stringFormatService.pluralize(weightOptions.length, 'weight option')}
         </p>
         {#if weightOptions.length > 0}
           <div class="flex max-h-32 flex-wrap gap-1 overflow-y-auto">

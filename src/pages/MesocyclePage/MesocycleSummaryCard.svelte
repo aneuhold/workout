@@ -1,9 +1,11 @@
 <!--
   @component
 
-  Summary card showing stats grid and optional Create / Save buttons.
+  Summary card showing stats grid and optional Create / Save buttons. When the
+  button is disabled, the reasons are listed directly above it.
 -->
 <script lang="ts">
+  import stringFormatService from '$services/StringFormat.service';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogAction from '$ui/AlertDialog/AlertDialogAction.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
@@ -23,27 +25,22 @@
     totalWeeks,
     totalSessions,
     uniqueExercises,
-    sessionsPerCycle,
     cycleTypeLabel,
-    isValid = false,
+    invalidReasons = [],
     onCreate,
     onSave
   }: {
     totalWeeks: number;
     totalSessions: number;
     uniqueExercises: number;
-    sessionsPerCycle?: number;
     cycleTypeLabel: string;
-    isValid?: boolean;
+    invalidReasons?: string[];
     onCreate?: () => void;
     onSave?: () => void;
   } = $props();
 
   const action = $derived(onCreate ?? onSave);
   const isCreateMode = $derived(!!onCreate);
-  const needsMoreExercises = $derived(
-    sessionsPerCycle !== undefined && uniqueExercises > 0 && uniqueExercises < sessionsPerCycle
-  );
 
   let confirmOpen = $state(false);
 </script>
@@ -56,7 +53,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col">
         <span class="text-xs text-muted-foreground">Total Duration</span>
-        <span class="text-sm font-medium">{totalWeeks} weeks</span>
+        <span class="text-sm font-medium">{stringFormatService.pluralize(totalWeeks, 'week')}</span>
       </div>
       <div class="flex flex-col">
         <span class="text-xs text-muted-foreground">Total Sessions</span>
@@ -74,16 +71,17 @@
 
     {#if action}
       <Separator />
-      {#if needsMoreExercises}
-        <p class="text-sm text-destructive">
-          Select at least {sessionsPerCycle} exercise{sessionsPerCycle !== 1 ? 's' : ''} to match the
-          number of sessions per cycle. Add a variation of an existing exercise if needed.
-        </p>
+      {#if invalidReasons.length > 0}
+        <ul class="list-inside list-disc text-sm text-destructive">
+          {#each invalidReasons as reason (reason)}
+            <li>{reason}</li>
+          {/each}
+        </ul>
       {/if}
       <Button
         size="lg"
         class="w-full"
-        disabled={!isValid || needsMoreExercises}
+        disabled={invalidReasons.length > 0}
         onclick={() => (confirmOpen = true)}
       >
         {isCreateMode ? 'Create Mesocycle' : 'Save Changes'}
@@ -101,11 +99,19 @@
         </AlertDialogTitle>
         <AlertDialogDescription>
           {#if isCreateMode}
-            This will create a mesocycle with {totalSessions} sessions across {totalWeeks} weeks. Settings
-            can be edited until you start the mesocycle.
+            This will create a mesocycle with {stringFormatService.pluralize(
+              totalSessions,
+              'session'
+            )} across
+            {stringFormatService.pluralize(totalWeeks, 'week')}. Settings can be edited until you
+            start the mesocycle.
           {:else}
-            This will regenerate the mesocycle with {totalSessions} sessions across {totalWeeks}
-            weeks. All existing session data will be replaced.
+            This will regenerate the mesocycle with {stringFormatService.pluralize(
+              totalSessions,
+              'session'
+            )} across
+            {stringFormatService.pluralize(totalWeeks, 'week')}. All existing session data will be
+            replaced.
           {/if}
         </AlertDialogDescription>
       </AlertDialogHeader>

@@ -6,6 +6,7 @@ import type {
   WorkoutSessionExercise,
   WorkoutSet
 } from '@aneuhold/core-ts-db-lib';
+import stringFormatService from '$services/StringFormat.service';
 import workoutCalendarUtils from '../shared/workoutCalendarUtils';
 import type {
   WorkoutMesocycleCalendarData,
@@ -175,7 +176,7 @@ class WorkoutMesocycleCalendarUtils {
         }
 
         if (workoutCalendarUtils.isNewMonth(cell.date, prevDate)) {
-          entry.monthLabel = workoutCalendarUtils.formatMonthLabel(cell.date);
+          entry.monthLabel = stringFormatService.formatMonthYear(cell.date);
           hasLabel = true;
         }
 

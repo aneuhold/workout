@@ -8,12 +8,6 @@
   import { IconBarbell } from '@tabler/icons-svelte';
   import { goto } from '$app/navigation';
   import OnboardingEmptyState from '$components/OnboardingEmptyState/OnboardingEmptyState.svelte';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
-
-  function handleStartFreeForm() {
-    const session = sessionMapService.createFreeFormSession();
-    goto(`/session?sessionId=${session._id}`);
-  }
 
   const readyButtons = [
     {
@@ -22,7 +16,12 @@
         goto('/mesocycles');
       }
     },
-    { label: 'Start Free-Form Workout', onclick: handleStartFreeForm }
+    {
+      label: 'Start Free-Form Workout',
+      onclick: () => {
+        goto('/session');
+      }
+    }
   ];
 </script>
 

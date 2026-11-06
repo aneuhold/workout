@@ -4,6 +4,7 @@
   Progress bar showing completed sets count and percentage.
 -->
 <script lang="ts">
+  import stringFormatService from '$services/StringFormat.service';
   import Progress from '$ui/Progress/Progress.svelte';
 
   let {
@@ -19,7 +20,9 @@
 
 <div class="flex flex-col gap-1.5">
   <div class="flex items-center justify-between text-sm">
-    <span class="text-muted-foreground">{completed}/{total} sets</span>
+    <span class="text-muted-foreground"
+      >{completed}/{stringFormatService.pluralize(total, 'set')}</span
+    >
     <span class="font-medium">{percent}%</span>
   </div>
   <Progress value={percent} max={100} />

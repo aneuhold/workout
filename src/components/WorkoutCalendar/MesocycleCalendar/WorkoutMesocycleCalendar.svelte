@@ -14,6 +14,7 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
+  import stringFormatService from '$services/StringFormat.service';
   import type { WorkoutCalendarDayCellVisual } from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayCell from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayDetailDialog from '../shared/WorkoutCalendarDayDetailDialog.svelte';
@@ -89,34 +90,14 @@
   }
 
   const dialogFormattedDate = $derived(
-    selectedDay
-      ? selectedDay.date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        })
-      : ''
+    selectedDay ? stringFormatService.formatFullDate(selectedDay.date) : ''
   );
 
   const dialogDescription = $derived.by(() => {
-    if (!selectedDay) return { primary: '', secondary: '' };
-    const primary = selectedDay.isDeload
+    if (!selectedDay) return '';
+    return selectedDay.isDeload
       ? 'Deload'
-      : `Cycle ${selectedDay.cycleNumber} of ${calendarData.microcycleCount}`;
-    const daySessions = selectedDay.sessions;
-    if (daySessions.length === 0) return { primary, secondary: '' };
-    const allCompleted = daySessions.every((s) => s.completed);
-    const allIncomplete = daySessions.every((s) => !s.completed);
-    let secondary: string;
-    if (allCompleted) {
-      secondary = 'Completed';
-    } else if (allIncomplete) {
-      secondary = 'Projected targets';
-    } else {
-      secondary = 'Session details';
-    }
-    return { primary, secondary };
+      : `Microcycle ${selectedDay.cycleNumber} of ${calendarData.microcycleCount}`;
   });
 </script>
 

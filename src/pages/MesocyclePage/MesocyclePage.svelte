@@ -22,6 +22,7 @@
   } from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import { currentUserId } from '$stores/derived/currentUserId';
   import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
   import MesocycleConfigCard from './MesocycleConfigCard.svelte';
@@ -184,12 +185,28 @@
 
   // --- Validation (form mode) ---
 
-  const isValid = $derived(
-    formTitle.trim() !== '' &&
-      generatedMesocycle !== null &&
-      (previewResult?.microcycles ?? []).length > 0 &&
-      overlapWarning == null
-  );
+  /** Reasons the form can't be submitted */
+  const invalidReasons = $derived.by(() => {
+    const reasons: string[] = [];
+    if (formTitle.trim() === '') {
+      reasons.push('Enter a title in the Configuration section.');
+    }
+    if (overlapWarning != null) {
+      reasons.push('Choose a start date that does not overlap another mesocycle.');
+    }
+    const selectedCount = formSelectedCalibrationIds.length;
+    if (selectedCount === 0) {
+      reasons.push('Select at least one exercise.');
+    } else if (selectedCount < formSessionsPerWeek) {
+      reasons.push(
+        `Select at least ${stringFormatService.pluralize(formSessionsPerWeek, 'exercise')} to match the number of sessions per cycle, or reduce the sessions per cycle.`
+      );
+    } else if ((previewResult?.microcycles ?? []).length === 0) {
+      reasons.push('No schedule could be generated. Check the configuration values.');
+    }
+    return reasons;
+  });
+  const isValid = $derived(invalidReasons.length === 0);
 
   // --- Title editing (static mode) ---
 
@@ -284,18 +301,17 @@
         exercises={displayExercises}
         lastCycleIsDeload={formCycleType !== CycleType.Resensitization}
       />
-
-      <MesocycleSummaryCard
-        totalWeeks={formWeeks}
-        {totalSessions}
-        {uniqueExercises}
-        sessionsPerCycle={formSessionsPerWeek}
-        {cycleTypeLabel}
-        {isValid}
-        onCreate={mode === MesocyclePageMode.New ? handleCreate : undefined}
-        onSave={mode === MesocyclePageMode.Edit ? handleSave : undefined}
-      />
     {/if}
+
+    <MesocycleSummaryCard
+      totalWeeks={formWeeks}
+      {totalSessions}
+      {uniqueExercises}
+      {cycleTypeLabel}
+      {invalidReasons}
+      onCreate={mode === MesocyclePageMode.New ? handleCreate : undefined}
+      onSave={mode === MesocyclePageMode.Edit ? handleSave : undefined}
+    />
   {:else if mesocycle}
     <MesocycleConfigCard
       bind:title={formTitle}

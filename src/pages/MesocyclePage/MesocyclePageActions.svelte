@@ -43,6 +43,10 @@
   const isActive = $derived(mesocycle.startDate != null && mesocycle.completedDate == null);
   const isFuture = $derived(mesocycle.startDate == null && mesocycle.completedDate == null);
   const isCompleted = $derived(mesocycle.completedDate != null);
+  const hasInProgressSession = $derived.by(() => {
+    const { inProgressSession } = mesocycleMapService.activeAndNextSessions;
+    return microcycles.some((mc) => mc._id === inProgressSession?.workoutMicrocycleId);
+  });
 
   let endMesocycleDialogOpen = $state(false);
   let deleteMesocycleDialogOpen = $state(false);
@@ -59,13 +63,9 @@
     const scheduledDeloadDate = lastMicrocycle ? new Date(lastMicrocycle.startDate) : null;
 
     deloadDialog.open({
-      mesocycleTitle: mesocycle.title ?? 'Mesocycle',
+      mesocycleId: mesocycle._id,
       scheduledDeloadDate,
-      onConfirm: async (choice) => {
-        const deloadStartDate = choice === 'now' ? new Date() : (scheduledDeloadDate ?? new Date());
-        mesocycleMapService.initiateEarlyDeload(mesocycle._id, deloadStartDate);
-        await goto('/mesocycles');
-      }
+      onDeloadStarted: () => goto('/mesocycles')
     });
   }
 
@@ -126,9 +126,16 @@
     </DropdownMenuItem>
   {/if}
   {#if isActive && mesocycle.cycleType !== CycleType.FreeForm}
-    <DropdownMenuItem onclick={handleStartDeload}>
+    <DropdownMenuItem onclick={handleStartDeload} disabled={hasInProgressSession}>
       <IconMoon size={16} />
-      Start Deload
+      <span class="flex flex-col gap-0.5">
+        Start Deload
+        {#if hasInProgressSession}
+          <span class="text-xs text-muted-foreground"
+            >Cannot start deload while session is still in-progress</span
+          >
+        {/if}
+      </span>
     </DropdownMenuItem>
   {/if}
   {#if isActive}

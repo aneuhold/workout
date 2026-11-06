@@ -15,7 +15,6 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Updater } from 'svelte/store';
-import { goto } from '$app/navigation';
 import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { currentUser } from '$stores/local/currentUser/currentUser';
@@ -144,12 +143,12 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
   }
 
   /**
-   * Creates a new free-form workout session (no microcycle), persists it, and
-   * returns the new session.
+   * Builds a new free-form workout session (no microcycle) without adding it
+   * to the map or persisting it.
    */
-  createFreeFormSession(): WorkoutSession {
+  buildFreeFormSession(): WorkoutSession {
     const now = new Date();
-    const session = WorkoutSessionSchema.parse({
+    return WorkoutSessionSchema.parse({
       userId: currentUser.get().userId,
       workoutMicrocycleId: null,
       title: this.getFormattedSessionTitle(now),
@@ -157,17 +156,6 @@ class SessionDocumentMapService extends DocumentMapStoreService<WorkoutSession> 
       complete: false,
       sessionExerciseOrder: []
     });
-    this.addDoc(session);
-    return session;
-  }
-
-  /**
-   * Creates a new free-form session and navigates to it in planning mode so the
-   * user can configure exercises and targets before the workout begins.
-   */
-  planNewFreeFormSession(): void {
-    const session = this.createFreeFormSession();
-    void goto(`/session?sessionId=${session._id}&planningMode=true`);
   }
 
   /**

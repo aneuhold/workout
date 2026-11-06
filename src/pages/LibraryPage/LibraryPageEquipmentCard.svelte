@@ -9,6 +9,7 @@
   import { IconPencil, IconTrash } from '@tabler/icons-svelte';
   import type { UUID } from 'crypto';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import LibraryPageCard from './LibraryPageCard.svelte';
 
@@ -53,7 +54,7 @@
       <span class="text-xs text-muted-foreground">{equipmentType.description}</span>
     {/if}
     <span class="text-xs text-muted-foreground">
-      Used in {linkedExercises.length} exercise{linkedExercises.length !== 1 ? 's' : ''}
+      Used in {stringFormatService.pluralize(linkedExercises.length, 'exercise')}
     </span>
   {/snippet}
 
@@ -91,13 +92,7 @@
         <IconPencil size={14} />
         Edit
       </Button>
-      <Button
-        variant="destructive"
-        size="sm"
-        disabled={linkedExercises.length > 0}
-        title={linkedExercises.length > 0 ? 'Remove from all exercises first' : undefined}
-        onclick={onDelete}
-      >
+      <Button variant="destructive" size="sm" onclick={onDelete}>
         <IconTrash size={14} />
         Delete
       </Button>

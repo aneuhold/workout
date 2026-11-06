@@ -13,9 +13,10 @@
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageReorderDialog from '../SessionPageReorderDialog.svelte';
   import { SessionPageMode } from '../sessionPageTypes';
   import SessionPageHeaderChangeStartDateDialog from './SessionPageHeaderChangeStartDateDialog.svelte';
@@ -42,11 +43,7 @@
   let changeStartDateDialogOpen = $state(false);
 
   const formattedStartDate = $derived(
-    session?.startTime.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }) ?? ''
+    session ? stringFormatService.formatDate(session.startTime) : ''
   );
 
   const hasMenuItems = $derived(!!session && (isFreeForm || !session.complete));
@@ -68,8 +65,7 @@
    * @param newOrder The reordered session exercise IDs
    */
   function handleReorderSave(newOrder: UUID[]) {
-    if (!session) return;
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.sessionExerciseOrder = newOrder;
       return doc;
     });
@@ -79,11 +75,22 @@
    * Re-opens a completed session for editing by setting complete = false.
    */
   function handleEditSession() {
-    if (!session) return;
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.complete = false;
       return doc;
     });
+  }
+
+  /**
+   * Opens the delete confirmation for a saved session. A draft session was never saved, so this
+   * leaves it and goes to the sessions list.
+   */
+  function handleDeleteSession() {
+    if (sessionPageService.isDraft) {
+      void goto('/sessions');
+    } else {
+      deleteDialogOpen = true;
+    }
   }
 </script>
 
@@ -92,7 +99,7 @@
   <div class="flex items-center gap-2">
     <div class="flex min-w-0 flex-1 flex-col">
       <div class="flex flex-wrap items-baseline gap-x-2">
-        <h1 class="text-xl font-semibold">{title}</h1>
+        <h1 class="text-xl font-semibold wrap-anywhere">{title}</h1>
         {#if session}
           <span class="shrink-0 text-sm text-muted-foreground">{formattedStartDate}</span>
         {/if}
@@ -123,7 +130,7 @@
               Change Start Date
             </DropdownMenuItem>
           {/if}
-          {#if mode !== SessionPageMode.Planning && !session.complete}
+          {#if mode !== SessionPageMode.Planning && !session.complete && !sessionPageService.isDraft}
             <DropdownMenuItem
               onclick={() => goto(`/session?sessionId=${session._id}&planningMode=true`)}
             >
@@ -134,7 +141,7 @@
         {#if !session.complete}
           <DropdownMenuItem
             class="text-destructive focus:text-destructive"
-            onclick={() => (deleteDialogOpen = true)}
+            onclick={handleDeleteSession}
           >
             Delete Session
           </DropdownMenuItem>

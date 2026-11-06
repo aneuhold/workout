@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import { userEvent, within } from 'storybook/test';
+  import { spyOn, userEvent, within } from 'storybook/test';
+  import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import { createEnumArgType } from '$storybook/storybookUtil';
   import SBSingletonDeloadDialogExample, {
     DeloadDialogStoryMode
@@ -25,7 +26,14 @@
 
 <Story
   name="Error State"
-  args={{ storyMode: DeloadDialogStoryMode.Error }}
+  beforeEach={() => {
+    const spy = spyOn(mesocycleMapService, 'initiateEarlyDeload').mockImplementation(() => {
+      throw new Error('Mock deload failure');
+    });
+    return () => {
+      spy.mockRestore();
+    };
+  }}
   play={async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const openButton = canvas.getByTestId('open-dialog-button');

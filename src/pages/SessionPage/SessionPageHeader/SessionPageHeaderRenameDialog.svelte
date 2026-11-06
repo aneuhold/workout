@@ -5,7 +5,6 @@
 -->
 <script lang="ts">
   import type { WorkoutSession } from '@aneuhold/core-ts-db-lib';
-  import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
   import Button, { buttonVariants } from '$ui/Button/Button.svelte';
   import Dialog from '$ui/Dialog/Dialog.svelte';
   import DialogClose from '$ui/Dialog/DialogClose.svelte';
@@ -14,6 +13,7 @@
   import DialogHeader from '$ui/Dialog/DialogHeader.svelte';
   import DialogTitle from '$ui/Dialog/DialogTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
+  import sessionPageService from '../SessionPage.service.svelte';
 
   let {
     open = $bindable(),
@@ -39,7 +39,7 @@
   function handleRename() {
     if (saveDisabled) return;
     const trimmed = newTitle.trim();
-    sessionMapService.updateDoc(session._id, (doc) => {
+    sessionPageService.updateSession((doc) => {
       doc.title = trimmed;
       return doc;
     });

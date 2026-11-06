@@ -18,6 +18,7 @@
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -72,9 +73,7 @@
     }
   });
 
-  const formattedDate = $derived(
-    startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  );
+  const formattedDate = $derived(stringFormatService.formatDate(startDate));
 
   // Trim rest days when daysPerCycle shrinks
   $effect(() => {
@@ -109,15 +108,12 @@
   const allMesocycles = $derived(disabled ? [] : mesocycleMapService.allDocs);
 
   /**
-   * Returns true if the given date falls within an existing mesocycle's date range,
-   * or if the date is before today. Used to disable overlapping dates in the Calendar.
+   * Returns true if the given date falls within an existing mesocycle's date range.
+   * Used to disable overlapping dates in the Calendar.
    *
    * @param date The calendar date to check for disabling.
    */
   function disabledDateMatcher(date: Date): boolean {
-    const todayStart = new Date(new Date().toDateString());
-    if (date.getTime() < todayStart.getTime()) return true;
-
     for (const m of allMesocycles) {
       if (m._id === editingMesocycleId) continue;
       if (m.completedDate != null) continue;
@@ -195,9 +191,7 @@
 
       // Two date ranges overlap when each starts before the other ends
       if (startDate.getTime() < mEnd.getTime() && previewEnd.getTime() > mStart.getTime()) {
-        const startStr = mStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const endStr = mEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${startStr} \u2013 ${endStr})`;
+        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${stringFormatService.formatDateRange(mStart, mEnd)})`;
       }
     }
     return null;

@@ -7,26 +7,19 @@
 <script lang="ts">
   import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import sharedTextConstants from '$util/sharedTextConstants';
+  import sessionPageService from '../SessionPage.service.svelte';
   import SessionPageDeferredField from '../SessionPageDeferredField.svelte';
   import SessionPageSliderField from '../SessionPageSliderField.svelte';
   import { SessionPageMode, SessionPageSliderColorMode } from '../sessionPageTypes';
   import { updateSoreness } from './exerciseCardUtils';
 
-  let {
-    sessionExercise,
-    mode,
-    sorenessLocked
-  }: {
-    sessionExercise: WorkoutSessionExercise;
-    mode: SessionPageMode;
-    sorenessLocked: boolean;
-  } = $props();
+  let { sessionExercise }: { sessionExercise: WorkoutSessionExercise } = $props();
 </script>
 
 <div class="flex flex-col gap-3">
   <h3 class="text-sm font-medium">Recovery</h3>
 
-  {#if mode === SessionPageMode.Active}
+  {#if sessionPageService.mode === SessionPageMode.Active}
     <SessionPageDeferredField
       label="Soreness"
       reason="DOMS typically appears 24–48 hours after training"
@@ -37,12 +30,13 @@
       value={sessionExercise.sorenessScore ?? null}
       descriptions={sharedTextConstants.sorenessDescriptions}
       colorMode={SessionPageSliderColorMode.Negative}
-      disabled={mode === SessionPageMode.Locked ||
-        (mode === SessionPageMode.View && sorenessLocked)}
-      highlight={mode === SessionPageMode.Review}
+      disabled={sessionPageService.mode === SessionPageMode.Locked ||
+        (sessionPageService.mode === SessionPageMode.View &&
+          sessionPageService.sorenessLockedExerciseIds.has(sessionExercise.workoutExerciseId))}
+      highlight={sessionPageService.mode === SessionPageMode.Review}
       onValueChange={(v) => updateSoreness(sessionExercise._id, v)}
     />
-    {#if mode === SessionPageMode.View && !sorenessLocked}
+    {#if sessionPageService.mode === SessionPageMode.View && !sessionPageService.sorenessLockedExerciseIds.has(sessionExercise.workoutExerciseId)}
       <p class="text-xs text-muted-foreground">Adjustable until you perform this exercise again.</p>
     {/if}
   {/if}

@@ -37,6 +37,7 @@
 </script>
 
 <script lang="ts">
+  import { WorkoutSetSchema } from '@aneuhold/core-ts-db-lib';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
@@ -49,10 +50,14 @@
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Input from '$ui/Input/Input.svelte';
 
-  let canSave = $derived(editWeight != null && editReps != null && (editRir != null || !hasRir));
+  let repsValid = $derived(WorkoutSetSchema.shape.actualReps.safeParse(editReps).success);
+  let canSave = $derived(
+    editWeight != null && editReps != null && repsValid && (editRir != null || !hasRir)
+  );
 
   function handleConfirm() {
-    if (editWeight != null && editReps != null && (editRir != null || !hasRir)) {
+    // editWeight and editReps are only checked again for TS to know they aren't null
+    if (canSave && editWeight != null && editReps != null) {
       onSave?.(editWeight, editReps, editRir ?? null);
     }
     open = false;
@@ -82,7 +87,13 @@
       </label>
       <label class="flex flex-col gap-1">
         <span class="text-sm font-medium">Reps</span>
-        <Input type="number" bind:value={editReps} placeholder="reps" min={0} />
+        <Input
+          type="number"
+          bind:value={editReps}
+          placeholder="reps"
+          min={0}
+          aria-invalid={!repsValid}
+        />
       </label>
       {#if hasRir}
         <label class="flex flex-col gap-1">

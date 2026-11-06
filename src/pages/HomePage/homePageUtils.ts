@@ -1,6 +1,5 @@
 import type {
   WorkoutMesocycle,
-  WorkoutMicrocycle,
   WorkoutSession,
   WorkoutSessionExercise,
   WorkoutSet
@@ -13,63 +12,11 @@ import sessionMapService from '$services/documentMapServices/SessionMap.service.
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 
-export type HomePageMicrocycleInfo = {
-  microcycle: WorkoutMicrocycle;
-  weekNumber: number;
-  isDeload: boolean;
-};
-
 export type HomePageSessionBundle = {
   session: WorkoutSession;
   sessionExercises: WorkoutSessionExercise[];
   sets: WorkoutSet[];
 };
-
-/**
- * Finds the microcycle containing the in-progress or next-up session.
- * Falls back to the last microcycle with any incomplete session.
- *
- * @param microcycles Ordered microcycles for the active mesocycle
- * @param sessions All sessions for the active mesocycle
- * @param inProgressSession The currently in-progress session, if any
- * @param nextUpSession The next-up session, if any
- */
-export function getCurrentMicrocycle(
-  microcycles: WorkoutMicrocycle[],
-  sessions: WorkoutSession[],
-  inProgressSession: WorkoutSession | null,
-  nextUpSession: WorkoutSession | null
-): HomePageMicrocycleInfo | null {
-  if (microcycles.length === 0) return null;
-
-  const heroSession = inProgressSession ?? nextUpSession;
-
-  if (heroSession?.workoutMicrocycleId) {
-    const index = microcycles.findIndex((mc) => mc._id === heroSession.workoutMicrocycleId);
-    if (index >= 0) {
-      return {
-        microcycle: microcycles[index],
-        weekNumber: index + 1,
-        isDeload: index === microcycles.length - 1 && microcycles.length > 1
-      };
-    }
-  }
-
-  // Fallback: last microcycle with any incomplete session
-  for (let i = microcycles.length - 1; i >= 0; i--) {
-    const mc = microcycles[i];
-    const hasIncomplete = sessions.some((s) => s.workoutMicrocycleId === mc._id && !s.complete);
-    if (hasIncomplete) {
-      return {
-        microcycle: mc,
-        weekNumber: i + 1,
-        isDeload: i === microcycles.length - 1 && microcycles.length > 1
-      };
-    }
-  }
-
-  return null;
-}
 
 function sessionHasAllMetricsFilled(session: WorkoutSession): boolean {
   const exercises = sessionMapService.getOrderedSessionExercisesForSession(session);
@@ -123,7 +70,8 @@ export function getRecentCompletedSessions(
  *
  * @param activeMesocycle The mesocycle to regenerate
  * @param options Optional state transitions to apply in the same batch
- * @param options.startMesocycle If true, sets `startDate` on the mesocycle
+ * @param options.startMesocycle If true, sets `startDate` on the mesocycle to
+ *   its scheduled start (the first microcycle's start), falling back to now
  * @param options.completedMicrocycleNumber 1-indexed microcycle to mark as
  *   completed via `completedDate`
  */
@@ -138,7 +86,11 @@ export function regenerateMesocycle(
 
   // Apply state transitions before regeneration so the core library sees them
   if (options?.startMesocycle) {
-    activeMesocycle.startDate = new Date();
+    const scheduledStart = mesocycleMapService.getMesocycleStartDate(
+      activeMesocycle,
+      docs.microcycles
+    );
+    activeMesocycle.startDate = scheduledStart ? new Date(scheduledStart) : new Date();
   }
 
   if (options?.completedMicrocycleNumber != null) {

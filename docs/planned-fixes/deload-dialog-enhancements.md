@@ -3,7 +3,7 @@
 ## Report
 1. Add a "Don't ask again for this mesocycle" checkbox to the deload dialog.
 2. If the user checks that, they should be able to manually start a deload from the mesocycle screen (confirm whether that already exists).
-3. Make it so the app leaves the session when the user moves out of that menu.
+3. ✅ Make it so the app leaves the session when the user moves out of that menu.
 
 ## Current behavior
 
@@ -12,10 +12,10 @@
 - **Manual** (no `severity`): "Start Deload Early" title, optional start-now/as-scheduled radio when a future `scheduledDeloadDate` is passed.
 - **Fatigue warning** (`severity` set): "Deload Recommended" title, severity alert + triggered-rule bullet list.
 
-`DeloadDialogParams` (`:19-30`): `mesocycleTitle`, `scheduledDeloadDate`, `onConfirm(choice)`, optional `severity`, `triggeredRules`. Footer is Cancel + "Start Deload" (`handleConfirm`, `:115-127`). There is **no** "don't ask again" option and **no dismiss callback** — Cancel/Escape/backdrop just sets `dialogOpen = false` and does nothing.
+`DeloadDialogParams`: `mesocycleId`, `scheduledDeloadDate`, optional `onDeloadStarted`, `severity`, `triggeredRules`. Footer is Cancel + "Start Deload". `handleConfirm` calls `mesocycleMapService.initiateEarlyDeload` itself, then `onDeloadStarted`. There is **no** "don't ask again" option and **no dismiss callback**: Cancel/Escape/backdrop just sets `dialogOpen = false` and does nothing.
 
 Four call sites:
-- `src/pages/SessionPage/SessionPage.service.svelte.ts:401` — after completing a mesocycle session; if `shouldTriggerEarlyDeload`, the dialog opens and the method `return`s early (stays on the session page). `onConfirm` runs `initiateEarlyDeload` then `goto('/sessions')`. **Cancelling strands the user on the completed session page — this is the "leave the session" gap.**
+- `src/pages/SessionPage/SessionPage.service.svelte.ts` `handleCompleteSession`: navigates to Home first, then marks the session complete and, for a mesocycle session where `shouldTriggerEarlyDeload` is true, opens the dialog. The dialog therefore always opens on Home, and confirming or dismissing it leaves the user there.
 - `src/pages/HomePage/HomePageHeroCard/HomePageHeroCard.svelte:130` (complete-microcycle flow) and `:211` (move-sessions dialog when a session is late).
 - `src/pages/MesocyclePage/MesocyclePageActions.svelte:61` — manual start.
 
@@ -25,8 +25,19 @@ Four call sites:
 ### Per-mesocycle persistence
 `~/Development/GithubRepos/ts-libs/packages/core-ts-db-lib/src/documents/workout/WorkoutMesocycle.ts` (`WorkoutMesocycleSchema:32-91`) has **no dismissal field**. The trigger is `WorkoutMesocycleService.shouldTriggerEarlyDeload` (`src/services/workout/Mesocycle/WorkoutMesocycle.service.ts:367`), a pure function over the mesocycle + its docs.
 
-### "The session" and "leave the session when they move out of that menu"
-"The session" = the `/session?sessionId=...` route rendering `SessionPage`. Entered via `goto('/session?sessionId=...')`, left via `goto('/sessions')` / `goto('/')`. "That menu" = the deload dialog opened after session completion in `handleCompleteSession` (`SessionPage.service.svelte.ts:400`). Because that method returns without navigating when the dialog opens, dismissing (Cancel/Escape) leaves the user on the session page. Desired: when dismissed without confirming, still `goto('/sessions')`.
+### Sub-part 3 is done
+Completing any session (mesocycle or free-form) navigates to Home before the deload check runs, so the post-completion deload dialog opens on Home and no dialog callback is needed to leave the session.
+
+## Related: "Start deload now" does not start today
+
+- **Repro (very-late-session):** Advance to Next Microcycle, then Start Session, then "Start deload", then Confirm. The second dialog says "The deload will start today (Oct 29, 2026)". Tap Start Deload.
+- **Result:** the hero still says "13 days late, Scheduled for Oct 16". Start Session opens the late dialog again, which says the mesocycle ends Oct 22 (in the past). The Plan calendar shows the deload on Oct 15 to 21.
+- **Same behavior elsewhere:**
+  - deload-trigger: Complete Session, then "Deload Recommended", then Start Deload. Result: "6 days late, scheduled Oct 23".
+  - mid-training: Mesocycle page, then Options, then Start Deload, then "Start now". The deload lands on Oct 25 to 31.
+- **Cause:** `WorkoutMesocycleService.generateOrUpdateMesocycle` in ts-libs `WorkoutMesocycle.service.ts` (around L146 to 152) ignores `startDate` when microcycles already exist and continues from the last microcycle's `endDate`. Called from `initiateEarlyDeload` in `src/services/documentMapServices/MesocycleMap.service.svelte.ts`.
+
+The fix approach is still open: the dialog promises "today", but generation always appends the deload after the existing microcycles.
 
 ## Implementation plan
 
@@ -36,9 +47,9 @@ Four call sites:
 3. Follow `~/Development/GithubRepos/ts-libs/.github/copilot-instructions.md`; run tests; wait ~6s for propagation.
 
 ### App
-4. `SingletonDeloadDialog.svelte`: add a "Don't ask again for this mesocycle" checkbox, gated to **fatigue-warning mode only** (`hasFatigueWarning`) — the manual and move-dialog call sites have no `severity`, so the checkbox should not appear there. Add an optional `onDismiss` param and carry the checkbox value on confirm (extend `onConfirm` signature or add `onDontAskAgain`). Track a `confirmed` flag so dismiss vs confirm is distinguishable; fire `onDismiss` when the dialog closes unconfirmed. The dialog already forwards `...restProps` through `AlertDialog` → bits-ui `Root`, so `onOpenChange` is available.
+4. `SingletonDeloadDialog.svelte`: add a "Don't ask again for this mesocycle" checkbox, gated to **fatigue-warning mode only** (`hasFatigueWarning`) — the manual and move-dialog call sites have no `severity`, so the checkbox should not appear there. Report the checkbox value whenever the dialog closes, whether the user confirms or cancels (for example an optional `onDontAskAgain` param). Checking the box and then cancelling is the main use case. The dialog already forwards `...restProps` through `AlertDialog` to the bits-ui `Root`, so `onOpenChange` is available.
 5. `src/services/documentMapServices/MesocycleMap.service.svelte.ts`: add `dismissDeloadPrompt(id)` using the base `updateDoc` (`doc.deloadPromptDismissed = true`).
-6. `SessionPage.service.svelte.ts` `handleCompleteSession`: wire the checkbox to `dismissDeloadPrompt`, and set `onDismiss: () => goto('/sessions')` so leaving the menu leaves the session. Apply the same `onDismiss`/checkbox wiring to the two `HomePageHeroCard.svelte` fatigue call sites (note their dismiss navigation differs — the home card stays on home, so its `onDismiss` should not `goto('/sessions')`).
+6. Wire the checkbox to `dismissDeloadPrompt` in `SessionPage.service.svelte.ts` `handleCompleteSession` and in the `HomePageHeroCard.svelte` fatigue call sites. No navigation is needed on dismiss, since every fatigue-warning call site already runs on Home.
 7. Verify the existing manual "Start Deload" on `MesocyclePageActions.svelte:128-133` remains available for dismissed mesocycles.
 
 ## Key files
