@@ -33,15 +33,6 @@ class WorkoutCalendarUtils {
   }
 
   /**
-   * Formats a date as a short month + year label (e.g. "Feb 2026").
-   *
-   * @param date - The date to format
-   */
-  formatMonthLabel(date: Date): string {
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  }
-
-  /**
    * Returns a string key uniquely identifying a calendar day.
    * Uses year, 0-based month, and day-of-month for consistent matching.
    *

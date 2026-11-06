@@ -13,6 +13,7 @@
   import OptionsButtonDropdownMenu from '$components/OptionsButtonDropdownMenu/OptionsButtonDropdownMenu.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import DropdownMenuItem from '$ui/DropdownMenu/DropdownMenuItem.svelte';
   import sessionPageService from '../SessionPage.service.svelte';
@@ -42,11 +43,7 @@
   let changeStartDateDialogOpen = $state(false);
 
   const formattedStartDate = $derived(
-    session?.startTime.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }) ?? ''
+    session ? stringFormatService.formatDate(session.startTime) : ''
   );
 
   const hasMenuItems = $derived(!!session && (isFreeForm || !session.complete));

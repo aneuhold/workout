@@ -7,6 +7,7 @@
 <script lang="ts">
   import type { WorkoutSessionExercise } from '@aneuhold/core-ts-db-lib';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Separator from '$ui/Separator/Separator.svelte';
   import sharedTextConstants from '$util/sharedTextConstants';
   import SessionPageSliderField from '../SessionPageSliderField.svelte';
@@ -29,7 +30,7 @@
     <h4 class="text-xs font-medium text-muted-foreground">Previous Session Soreness</h4>
     {#if previousSession}
       <span class="text-xs text-muted-foreground">
-        {previousSession.startTime.toLocaleDateString()}
+        {stringFormatService.formatDate(previousSession.startTime)}
       </span>
     {/if}
   </div>

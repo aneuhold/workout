@@ -44,6 +44,7 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import { fromDate, getLocalTimeZone } from '@internationalized/date';
   import { IconCalendarEvent } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import AlertDialog from '$ui/AlertDialog/AlertDialog.svelte';
   import AlertDialogCancel from '$ui/AlertDialog/AlertDialogCancel.svelte';
   import AlertDialogContent from '$ui/AlertDialog/AlertDialogContent.svelte';
@@ -59,22 +60,27 @@
 
   const tz = getLocalTimeZone();
 
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const currentStartFormatted = $derived(params ? formatDate(params.currentStartDate) : '');
+  const currentStartFormatted = $derived(
+    params ? stringFormatService.formatDate(params.currentStartDate) : ''
+  );
 
   const currentEndFormatted = $derived(
     params
-      ? formatDate(DateService.addDays(params.currentStartDate, params.mesocycleDurationDays))
+      ? stringFormatService.formatDate(
+          DateService.addDays(params.currentStartDate, params.mesocycleDurationDays)
+        )
       : ''
   );
 
-  const newStartFormatted = $derived(selectedDate ? formatDate(selectedDate.toDate(tz)) : null);
+  const newStartFormatted = $derived(
+    selectedDate ? stringFormatService.formatDate(selectedDate.toDate(tz)) : null
+  );
 
   const newEndFormatted = $derived(
     selectedDate && params
-      ? formatDate(DateService.addDays(selectedDate.toDate(tz), params.mesocycleDurationDays))
+      ? stringFormatService.formatDate(
+          DateService.addDays(selectedDate.toDate(tz), params.mesocycleDurationDays)
+        )
       : null
   );
 

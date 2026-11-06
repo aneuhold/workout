@@ -15,11 +15,6 @@
 
   let { pendingLogs }: { pendingLogs: HomePageSessionBundle[] } = $props();
 
-  const fmt = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric'
-  });
-
   function reviewCount(bundle: HomePageSessionBundle): number {
     return bundle.sessionExercises.filter((se) => {
       const seSets = sessionExerciseMapService.getOrderedSetsForSessionExercise(se);
@@ -44,7 +39,7 @@
         <div class="min-w-0 flex-1">
           <span class="truncate text-sm font-medium">{bundle.session.title}</span>
           <div class="text-xs text-muted-foreground">
-            {fmt.format(new Date(bundle.session.startTime))} · {stringFormatService.pluralize(
+            {stringFormatService.formatMonthDay(bundle.session.startTime)} · {stringFormatService.pluralize(
               reviewCount(bundle),
               'exercise needs',
               'exercises need'

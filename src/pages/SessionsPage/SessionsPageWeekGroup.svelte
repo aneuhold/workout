@@ -19,6 +19,7 @@
   import StaggerItem from '$components/StaggerItem/StaggerItem.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
 
   let {
     microcycle,
@@ -45,12 +46,9 @@
 
   let expanded = $derived(hasReview || isCurrent || (completedCount > 0 && !allComplete));
 
-  const dateRange = $derived.by(() => {
-    const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-    const start = new Date(microcycle.startDate);
-    const end = new Date(microcycle.endDate);
-    return `${fmt.format(start)} – ${fmt.format(end)}`;
-  });
+  const dateRange = $derived(
+    stringFormatService.formatDateRange(microcycle.startDate, microcycle.endDate)
+  );
 
   function getExercisesForSession(session: WorkoutSession): WorkoutSessionExercise[] {
     return sessionMapService.getOrderedSessionExercisesForSession(session);

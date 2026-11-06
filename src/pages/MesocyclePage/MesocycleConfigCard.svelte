@@ -18,6 +18,7 @@
   import { formatCycleType } from '$pages/MesocyclesPage/mesocyclesPageUtils';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import Button from '$ui/Button/Button.svelte';
@@ -72,9 +73,7 @@
     }
   });
 
-  const formattedDate = $derived(
-    startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  );
+  const formattedDate = $derived(stringFormatService.formatDate(startDate));
 
   // Trim rest days when daysPerCycle shrinks
   $effect(() => {
@@ -192,9 +191,7 @@
 
       // Two date ranges overlap when each starts before the other ends
       if (startDate.getTime() < mEnd.getTime() && previewEnd.getTime() > mStart.getTime()) {
-        const startStr = mStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const endStr = mEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${startStr} \u2013 ${endStr})`;
+        return `This configuration would overlap with ${m.title ?? 'another mesocycle'} (${stringFormatService.formatDateRange(mStart, mEnd)})`;
       }
     }
     return null;

@@ -14,6 +14,7 @@
     WorkoutSessionExercise,
     WorkoutSet
   } from '@aneuhold/core-ts-db-lib';
+  import stringFormatService from '$services/StringFormat.service';
   import type { WorkoutCalendarDayCellVisual } from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayCell from '../shared/WorkoutCalendarDayCell.svelte';
   import WorkoutCalendarDayDetailDialog from '../shared/WorkoutCalendarDayDetailDialog.svelte';
@@ -89,14 +90,7 @@
   }
 
   const dialogFormattedDate = $derived(
-    selectedDay
-      ? selectedDay.date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        })
-      : ''
+    selectedDay ? stringFormatService.formatFullDate(selectedDay.date) : ''
   );
 
   const dialogDescription = $derived.by(() => {

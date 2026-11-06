@@ -25,10 +25,4 @@ describe('workoutCalendarUtils', () => {
       );
     });
   });
-
-  describe('formatMonthLabel', () => {
-    it('formats a date as short month + year', () => {
-      expect(workoutCalendarUtils.formatMonthLabel(new Date(2026, 1, 1))).toBe('Feb 2026');
-    });
-  });
 });

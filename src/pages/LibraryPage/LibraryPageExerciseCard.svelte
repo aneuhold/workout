@@ -21,6 +21,7 @@
   import equipmentTypeMapService from '$services/documentMapServices/EquipmentTypeMap.service.svelte';
   import exerciseMapService from '$services/documentMapServices/ExerciseMap.service.svelte';
   import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Alert from '$ui/Alert/Alert.svelte';
   import AlertDescription from '$ui/Alert/AlertDescription.svelte';
   import AlertTitle from '$ui/Alert/AlertTitle.svelte';
@@ -122,7 +123,7 @@
       <div class="rounded-lg bg-muted/50 p-3">
         <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
           <IconCheck size={14} class="text-success" />
-          Best calibration on {bestCalibration.dateRecorded.toLocaleDateString()}
+          Best calibration on {stringFormatService.formatDate(bestCalibration.dateRecorded)}
         </div>
         <div class="mt-2 grid grid-cols-3 text-center">
           <div>

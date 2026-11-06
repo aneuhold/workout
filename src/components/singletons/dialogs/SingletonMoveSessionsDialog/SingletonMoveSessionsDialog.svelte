@@ -75,17 +75,16 @@
   import RadioGroup from '$ui/RadioGroup/RadioGroup.svelte';
   import RadioGroupItem from '$ui/RadioGroup/RadioGroupItem.svelte';
 
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const scheduledFormatted = $derived(params ? formatDate(params.scheduledDate) : '');
+  const scheduledFormatted = $derived(
+    params ? stringFormatService.formatDate(params.scheduledDate) : ''
+  );
 
   const oldEndFormatted = $derived(
-    params?.mesocycleEndDate ? formatDate(params.mesocycleEndDate) : null
+    params?.mesocycleEndDate ? stringFormatService.formatDate(params.mesocycleEndDate) : null
   );
 
   const newEndFormatted = $derived(
-    params?.newMesocycleEndDate ? formatDate(params.newMesocycleEndDate) : null
+    params?.newMesocycleEndDate ? stringFormatService.formatDate(params.newMesocycleEndDate) : null
   );
 
   const showDeloadOption = $derived((params?.daysLate ?? 0) >= 3 && params?.onDeload != null);

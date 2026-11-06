@@ -80,12 +80,9 @@
   import RadioGroup from '$ui/RadioGroup/RadioGroup.svelte';
   import RadioGroupItem from '$ui/RadioGroup/RadioGroupItem.svelte';
 
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const todayFormatted = $derived(formatDate(new Date()));
+  const todayFormatted = $derived(stringFormatService.formatDate(new Date()));
   const scheduledDateFormatted = $derived(
-    params?.scheduledDeloadDate ? formatDate(params.scheduledDeloadDate) : null
+    params?.scheduledDeloadDate ? stringFormatService.formatDate(params.scheduledDeloadDate) : null
   );
   const showScheduledOption = $derived(
     params?.scheduledDeloadDate != null && params.scheduledDeloadDate.getTime() > Date.now()

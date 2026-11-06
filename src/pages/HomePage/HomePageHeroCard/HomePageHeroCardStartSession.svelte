@@ -30,9 +30,7 @@
   const totalSets = $derived(state.sets.length);
 
   const scheduledDateFormatted = $derived(
-    state.scheduledDate
-      ? state.scheduledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      : null
+    state.scheduledDate ? stringFormatService.formatMonthDay(state.scheduledDate) : null
   );
 
   const exerciseBadges = $derived(

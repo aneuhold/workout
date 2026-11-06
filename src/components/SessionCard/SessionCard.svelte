@@ -58,13 +58,7 @@
 
   const sessionHref = $derived(`/session?sessionId=${session._id}`);
 
-  const formattedStartDate = $derived(
-    session.startTime.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  );
+  const formattedStartDate = $derived(stringFormatService.formatDate(session.startTime));
 </script>
 
 <a href={sessionHref} class="block">

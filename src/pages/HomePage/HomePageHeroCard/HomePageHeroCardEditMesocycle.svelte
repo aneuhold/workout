@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
   import { IconChevronRight, IconEdit } from '@tabler/icons-svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Button from '$ui/Button/Button.svelte';
   import Card from '$ui/Card/Card.svelte';
   import CardContent from '$ui/Card/CardContent.svelte';
@@ -30,7 +31,7 @@
   </CardHeader>
   <CardContent class="flex flex-col gap-3">
     <p class="text-xs text-muted-foreground">
-      Scheduled to start {startDate.toLocaleDateString()}
+      Scheduled to start {stringFormatService.formatDate(startDate)}
     </p>
     <Button size="sm" href="/mesocycle?mesocycleId={mesocycleId}">
       Edit Mesocycle

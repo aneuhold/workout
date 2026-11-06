@@ -14,6 +14,7 @@
   } from '@aneuhold/core-ts-db-lib';
   import { calibrationFormDialog } from '$components/singletons/dialogs/SingletonCalibrationFormDialog/SingletonCalibrationFormDialog.svelte';
   import exerciseCalibrationMapService from '$services/documentMapServices/ExerciseCalibrationMap.service.svelte';
+  import stringFormatService from '$services/StringFormat.service';
   import Badge from '$ui/Badge/Badge.svelte';
   import Button from '$ui/Button/Button.svelte';
 
@@ -53,7 +54,7 @@
       const isDuplicate = calibrations.some((cal) => cal.associatedWorkoutSetId === bestSet._id);
       if (!isDuplicate) {
         items.push({
-          date: new Date(bestSet.createdDate),
+          date: bestSet.createdDate,
           weight: bestSet.actualWeight,
           reps: bestSet.actualReps,
           oneRM: WorkoutExerciseCalibrationService.get1RMRaw(
@@ -116,7 +117,7 @@
           <Badge variant={entry.source === 'set' ? 'outline' : 'secondary'}>
             {entry.source === 'set' ? 'Set' : 'Cal'}
           </Badge>
-          <span>{entry.date.toLocaleDateString()}</span>
+          <span>{stringFormatService.formatDate(entry.date)}</span>
           <span class="text-right">{formatWeight(entry.weight, entry.reps)}</span>
           <span class="text-right">{Math.round(entry.oneRM)} lb</span>
         </div>
