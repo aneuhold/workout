@@ -124,7 +124,13 @@
 
   // --- Starting volume (form mode) ---
 
-  function handleStartingSetCountChange(muscleGroupId: UUID, setCount: number | null) {
+  /**
+   * Sets a muscle group's starting set count override.
+   *
+   * @param muscleGroupId The muscle group to override
+   * @param setCount The new starting set total, or `null` to remove the override
+   */
+  const handleStartingSetCountChange = (muscleGroupId: UUID, setCount: number | null) => {
     const startingSetCounts = { ...formStartingSetCounts };
     if (setCount == null) {
       delete startingSetCounts[muscleGroupId];
@@ -132,7 +138,7 @@
       startingSetCounts[muscleGroupId] = setCount;
     }
     formStartingSetCounts = startingSetCounts;
-  }
+  };
 
   // --- Reactive preview (form mode) ---
 

@@ -36,6 +36,7 @@
    */
   const MIN_SETS_PER_EXERCISE = 2;
 
+  const muscleGroupName = $derived(muscleGroupMapService.getMuscleGroupName(muscleGroupId));
   const volumeCTO = $derived(muscleGroupMapService.getVolumeCTO(muscleGroupId));
   const defaultSetCount = $derived(
     WorkoutVolumePlanningService.getDefaultStartingSetCount(
@@ -44,25 +45,32 @@
     )
   );
   const setCount = $derived(startingSetCount ?? defaultSetCount);
+  /** The value while the thumb is being dragged, before it is committed. */
+  let draggedSetCount = $state<number | undefined>();
+  const displayedSetCount = $derived(draggedSetCount ?? setCount);
   /**
-   * Two sets per exercise, lowered to the default when the default is below that so the default
-   * stays on the slider.
+   * Two sets per exercise, lowered to the default or the current value when either is below that
+   * so both stay on the slider.
    */
-  const min = $derived(Math.min(MIN_SETS_PER_EXERCISE * exerciseCount, defaultSetCount));
-  const max = $derived(
-    Math.max(
-      WorkoutVolumePlanningService.MAX_SETS_PER_EXERCISE * exerciseCount,
-      defaultSetCount,
-      setCount
-    )
+  const min = $derived(Math.min(MIN_SETS_PER_EXERCISE * exerciseCount, defaultSetCount, setCount));
+  /** The most sets the planner gives this muscle group, since each exercise is capped. */
+  const cappedSetCount = $derived(
+    WorkoutVolumePlanningService.MAX_SETS_PER_EXERCISE * exerciseCount
   );
+  const max = $derived(Math.max(cappedSetCount, defaultSetCount, setCount));
 
   /** The most recent mesocycle, when it had more exercises for this muscle group. */
   const previousVolume = $derived.by(() => {
     const latest = volumeCTO?.mesocycleHistory.at(0);
     return latest && latest.exerciseCount > exerciseCount ? latest : undefined;
   });
-  /** The default starting total scaled down to this mesocycle's exercise count. */
+  /**
+   * The default starting total scaled down to this mesocycle's exercise count.
+   *
+   * This divides an MEV averaged across past mesocycles by only the latest mesocycle's exercise
+   * count. It should move into `WorkoutVolumePlanningService` in core-ts-db-lib as a tested method
+   * that uses the logic already there.
+   */
   const suggestedSetCount = $derived(
     previousVolume
       ? Math.max(min, Math.round((defaultSetCount / previousVolume.exerciseCount) * exerciseCount))
@@ -79,26 +87,29 @@
    * @param setCount Total sets
    * @param count Number of exercises sharing the total
    */
-  function formatSetsPerExercise(setCount: number, count: number): string {
+  const formatSetsPerExercise = (setCount: number, count: number): string => {
     const low = Math.floor(setCount / count);
     const high = Math.ceil(setCount / count);
     return low === high ? `${low}` : `${low}-${high}`;
-  }
+  };
 </script>
 
 <div class="flex flex-col gap-2">
   <div class="flex items-baseline justify-between gap-2">
-    <span class="text-sm font-medium"
-      >{muscleGroupMapService.getMuscleGroupName(muscleGroupId)}</span
-    >
+    <span class="text-sm font-medium">{muscleGroupName}</span>
     <span class="text-sm tabular-nums">
-      {stringFormatService.pluralize(setCount, 'set')}
+      {stringFormatService.pluralize(displayedSetCount, 'set')}
     </span>
   </div>
   <Slider
     type="single"
-    value={setCount}
-    onValueChange={(value: number) => onSetCountChange(value === defaultSetCount ? null : value)}
+    value={displayedSetCount}
+    onValueChange={(value: number) => (draggedSetCount = value)}
+    onValueCommit={(value: number) => {
+      draggedSetCount = undefined;
+      onSetCountChange(value === defaultSetCount ? null : value);
+    }}
+    handleAriaLabel={muscleGroupName}
     {min}
     {max}
     step={1}
@@ -106,9 +117,11 @@
   <div class="flex min-h-6 items-center justify-between gap-2 text-xs text-muted-foreground">
     <span>
       {stringFormatService.pluralize(exerciseCount, 'exercise')} · {formatSetsPerExercise(
-        setCount,
+        Math.min(displayedSetCount, cappedSetCount),
         exerciseCount
-      )} sets each to start
+      )} sets each to start{displayedSetCount > cappedSetCount
+        ? ` (max ${cappedSetCount} total)`
+        : ''}
     </span>
     {#if startingSetCount != null}
       <Button variant="link" size="xs" class="px-0" onclick={() => onSetCountChange(null)}>

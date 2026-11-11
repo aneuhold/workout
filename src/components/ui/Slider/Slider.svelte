@@ -7,8 +7,12 @@
     value = $bindable(),
     orientation = 'horizontal',
     class: className,
+    handleAriaLabel,
     ...restProps
-  }: WithoutChildrenOrChild<SliderPrimitive.RootProps> = $props();
+  }: WithoutChildrenOrChild<SliderPrimitive.RootProps> & {
+    /** Accessible name for each draggable handle, since the handle is the element with `role="slider"`. */
+    handleAriaLabel?: string;
+  } = $props();
 </script>
 
 <!--
@@ -46,6 +50,7 @@ get along, so we shut typescript up by casting `value` to `never`.
       <SliderPrimitive.Thumb
         data-slot="slider-thumb"
         index={thumb}
+        aria-label={handleAriaLabel}
         class="border-ring ring-ring/50 relative block size-3 shrink-0 rounded-full border bg-white transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50"
       />
     {/each}
