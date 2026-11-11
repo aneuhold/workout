@@ -33,6 +33,11 @@
 
 <Story name="Edit (Not Started)" args={{ storyMode: MesocyclePageStoryMode.Edit }} />
 
+<Story
+  name="Edit (Fewer Exercises Than Last Mesocycle)"
+  args={{ storyMode: MesocyclePageStoryMode.EditWithFewerExercises }}
+/>
+
 <Story name="View (Active)" args={{ storyMode: MesocyclePageStoryMode.Static }} />
 
 <Story

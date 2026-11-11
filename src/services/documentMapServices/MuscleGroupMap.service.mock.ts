@@ -1,4 +1,12 @@
-import { type WorkoutMuscleGroup, WorkoutMuscleGroupSchema } from '@aneuhold/core-ts-db-lib';
+import {
+  CycleType,
+  DocumentService,
+  type MesocycleVolumeSummary,
+  MesocycleVolumeSummarySchema,
+  type WorkoutMuscleGroup,
+  WorkoutMuscleGroupSchema,
+  WorkoutMuscleGroupVolumeCTOSchema
+} from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import MockUsers from '$util/MockUsers';
 import muscleGroupMapService from './MuscleGroupMap.service.svelte';
@@ -51,6 +59,44 @@ class MuscleGroupMapServiceMock {
     const doc = this.createMuscleGroup(name, description);
     muscleGroupMapService.addDocWithoutPersist(doc);
     return doc;
+  }
+
+  /**
+   * Sets volume CTOs for the default muscle groups. Each muscle group in `history` gets one
+   * completed mesocycle with the given starting volume; the rest get no history.
+   *
+   * @param history Starting volume of the most recent mesocycle, by muscle group
+   */
+  setVolumeHistory(
+    history: Partial<
+      Record<
+        MockDefaultMuscleGroup,
+        Pick<MesocycleVolumeSummary, 'startingSetCount' | 'exerciseCount'>
+      >
+    >
+  ): void {
+    const volumeCTOs = Object.values(MockDefaultMuscleGroup).map((name) => {
+      const entry = history[name];
+      return WorkoutMuscleGroupVolumeCTOSchema.parse({
+        ...this.defaultMuscleGroups[name],
+        mesocycleHistory: entry
+          ? [
+              MesocycleVolumeSummarySchema.parse({
+                ...entry,
+                mesocycleId: DocumentService.generateID(),
+                cycleType: CycleType.MuscleGain,
+                peakSetCount: entry.startingSetCount + 2,
+                avgRsm: null,
+                avgSorenessScore: null,
+                avgPerformanceScore: null,
+                recoverySessionCount: 0,
+                completedDate: new Date()
+              })
+            ]
+          : []
+      });
+    });
+    muscleGroupMapService.setVolumeCTOs(volumeCTOs);
   }
 
   createMuscleGroup(name: string, description?: string): WorkoutMuscleGroup {
