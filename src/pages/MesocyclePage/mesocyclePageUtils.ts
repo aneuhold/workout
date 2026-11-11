@@ -120,7 +120,7 @@ export function persistMesocycleEdits(
   const children = generateMesocycleChildren(
     mesocycle,
     exerciseCTOs,
-    existingDocs.volumeCTOs,
+    muscleGroupMapService.allVolumeCTOs,
     startDate
   );
   if (!children) return;

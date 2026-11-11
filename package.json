@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/commands/dev-android.ts",
@@ -36,11 +36,11 @@
   "type": "module",
   "license": "BUSL-1.1",
   "devDependencies": {
-    "@aneuhold/core-ts-api-lib": "^4.0.2",
-    "@aneuhold/core-ts-db-lib": "^5.1.0",
-    "@aneuhold/core-ts-lib": "^2.4.10",
+    "@aneuhold/core-ts-api-lib": "^4.0.3",
+    "@aneuhold/core-ts-db-lib": "^5.1.1",
+    "@aneuhold/core-ts-lib": "^2.4.11",
     "@aneuhold/eslint-config": "^3.0.3",
-    "@aneuhold/local-npm-registry": "^1.0.3",
+    "@aneuhold/local-npm-registry": "^1.0.4",
     "@aneuhold/robot-instructions": "^0.4.1",
     "@capacitor-community/keep-awake": "^8.0.1",
     "@capacitor-community/sqlite": "^8.1.1",

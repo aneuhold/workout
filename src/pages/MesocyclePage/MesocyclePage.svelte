@@ -39,6 +39,7 @@
   import MesocycleProgressionCard from './MesocycleProgressionCard.svelte';
   import MesocycleScheduleCard from './MesocycleScheduleCard.svelte';
   import MesocycleSessionLayoutCard from './MesocycleSessionLayoutCard.svelte';
+  import MesocycleStartingVolumeCard from './MesocycleStartingVolumeCard.svelte';
   import MesocycleSummaryCard from './MesocycleSummaryCard.svelte';
 
   let {
@@ -87,6 +88,9 @@
   let formDaysPerCycle = $derived(mesocycle?.plannedMicrocycleLengthInDays ?? 7);
   let formRestDays = $derived<number[]>([...(mesocycle?.plannedMicrocycleRestDays ?? [0, 6])]);
   let formSelectedCalibrationIds = $derived<UUID[]>([...(mesocycle?.calibratedExercises ?? [])]);
+  let formStartingSetCounts = $derived<Record<UUID, number>>({
+    ...mesocycle?.muscleGroupStartingSetCounts
+  });
 
   // --- Exercise CTOs ---
 
@@ -118,6 +122,24 @@
     });
   });
 
+  // --- Starting volume (form mode) ---
+
+  /**
+   * Sets a muscle group's starting set count override.
+   *
+   * @param muscleGroupId The muscle group to override
+   * @param setCount The new starting set total, or `null` to remove the override
+   */
+  const handleStartingSetCountChange = (muscleGroupId: UUID, setCount: number | null) => {
+    const startingSetCounts = { ...formStartingSetCounts };
+    if (setCount == null) {
+      delete startingSetCounts[muscleGroupId];
+    } else {
+      startingSetCounts[muscleGroupId] = setCount;
+    }
+    formStartingSetCounts = startingSetCounts;
+  };
+
   // --- Reactive preview (form mode) ---
 
   function buildMesocycleInput() {
@@ -128,7 +150,8 @@
       plannedMicrocycleLengthInDays: formDaysPerCycle,
       plannedMicrocycleRestDays: formRestDays,
       plannedMicrocycleCount: formWeeks,
-      calibratedExercises: formSelectedCalibrationIds
+      calibratedExercises: formSelectedCalibrationIds,
+      muscleGroupStartingSetCounts: formStartingSetCounts
     };
   }
 
@@ -273,6 +296,12 @@
     <MesocycleExercisesCard
       {exerciseCTOs}
       bind:selectedCalibrationIds={formSelectedCalibrationIds}
+    />
+
+    <MesocycleStartingVolumeCard
+      exerciseCTOs={selectedExerciseCTOs}
+      startingSetCounts={formStartingSetCounts}
+      onSetCountChange={handleStartingSetCountChange}
     />
 
     <MesocycleSessionLayoutCard

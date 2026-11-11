@@ -4,6 +4,7 @@
     NewWithExisting = 'newWithExisting',
     NewOverlapping = 'newOverlapping',
     Edit = 'edit',
+    EditWithFewerExercises = 'editWithFewerExercises',
     Static = 'static',
     ActiveInProgress = 'activeInProgress',
     Completed = 'completed',
@@ -16,7 +17,11 @@
   import { DateService } from '@aneuhold/core-ts-lib';
   import type { UUID } from 'crypto';
   import { untrack } from 'svelte';
+  import { MockDefaultExercise } from '$services/documentMapServices/ExerciseMap.service.mock';
   import mesocycleMapServiceMock from '$services/documentMapServices/MesocycleMap.service.mock';
+  import muscleGroupMapServiceMock, {
+    MockDefaultMuscleGroup
+  } from '$services/documentMapServices/MuscleGroupMap.service.mock';
   import MockDataService from '$services/MockDataService/MockData.service';
   import MesocyclePage from '../MesocyclePage.svelte';
 
@@ -89,6 +94,34 @@
           microcycleCount: 4,
           startDate: new Date(),
           completedSessionCount: 0
+        });
+
+        mesocycleId = mesocycle._id;
+        return;
+      }
+
+      if (mode === MesocyclePageStoryMode.EditWithFewerExercises) {
+        // The last mesocycle trained Chest and Lats with two exercises each; the next one drops
+        // one of each.
+        muscleGroupMapServiceMock.setVolumeHistory({
+          [MockDefaultMuscleGroup.Chest]: { startingSetCount: 4, exerciseCount: 2 },
+          [MockDefaultMuscleGroup.Lats]: { startingSetCount: 4, exerciseCount: 2 }
+        });
+
+        const droppedExerciseNames: string[] = [
+          MockDefaultExercise.InclineDumbbellPress,
+          MockDefaultExercise.BarbellRow
+        ];
+        const droppedExerciseIds = new Set(
+          baseData.exercises
+            .filter((exercise) => droppedExerciseNames.includes(exercise.exerciseName))
+            .map((exercise) => exercise._id)
+        );
+        const mesocycle = mesocycleMapServiceMock.addMesocycle({
+          title: 'Next Block',
+          calibratedExercises: baseData.calibrations
+            .filter((calibration) => !droppedExerciseIds.has(calibration.workoutExerciseId))
+            .map((calibration) => calibration._id)
         });
 
         mesocycleId = mesocycle._id;
