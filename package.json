@@ -1,6 +1,6 @@
 {
   "name": "workout",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "scripts": {
     "dev": "vite dev",
     "dev:android": "tsx scripts/commands/dev-android.ts",
