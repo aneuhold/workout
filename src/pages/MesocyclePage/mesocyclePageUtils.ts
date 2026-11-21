@@ -54,7 +54,7 @@ export function generateMesocycleChildren(
   try {
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesocycle,
-      userConfigService.mesocyclePlanningSettings,
+      userConfigService.config.mesocyclePlanningSettings,
       exerciseCTOs,
       volumeCTOs,
       [],

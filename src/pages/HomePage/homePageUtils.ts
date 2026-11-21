@@ -105,7 +105,7 @@ export function regenerateMesocycle(
   // Call the core library to regenerate
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
-    userConfigService.mesocyclePlanningSettings,
+    userConfigService.config.mesocyclePlanningSettings,
     docs.exerciseCTOs,
     docs.volumeCTOs,
     docs.microcycles,

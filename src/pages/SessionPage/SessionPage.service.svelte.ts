@@ -443,7 +443,7 @@ class SessionPageService {
     const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
     const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
       mesocycle,
-      userConfigService.mesocyclePlanningSettings,
+      userConfigService.config.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       microcycle._id,
       docs.microcycles,

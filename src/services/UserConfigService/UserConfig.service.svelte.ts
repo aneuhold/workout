@@ -2,9 +2,14 @@ import type {
   ProjectWorkoutPrimaryEndpointOptions,
   ProjectWorkoutPrimaryOutput
 } from '@aneuhold/core-ts-api-lib';
-import { WorkoutEntitlement, type WorkoutUserConfig } from '@aneuhold/core-ts-db-lib';
+import {
+  WorkoutEntitlement,
+  type WorkoutUserConfig,
+  WorkoutUserConfigSchema
+} from '@aneuhold/core-ts-db-lib';
 import type { Updater } from 'svelte/store';
 import AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
+import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { currentUser } from '$stores/local/currentUser/currentUser';
 import LocalData from '$util/LocalData/LocalData';
 
@@ -16,15 +21,26 @@ class UserConfigService extends AbstractDocumentMapStoreService {
   #config: WorkoutUserConfig | null = $state(null);
 
   /**
-   * The config of the signed-in user, if it has been loaded.
+   * The config of the signed-in user. Throws when it has not been loaded.
    */
-  get currentConfig(): WorkoutUserConfig | undefined {
-    const { userId } = currentUser.get();
-    return this.#config?.userId === userId ? this.#config : undefined;
+  get config(): WorkoutUserConfig {
+    const config = this.#getCurrentConfig();
+    if (!config) {
+      throw new Error('The signed-in user has no loaded config.');
+    }
+    return config;
   }
 
   /**
-   * The signed-in user's entitlements, each true while it is unexpired.
+   * Whether the signed-in user's config has been loaded.
+   */
+  get isLoaded(): boolean {
+    return this.#getCurrentConfig() !== undefined;
+  }
+
+  /**
+   * The signed-in user's entitlements, each true while it is unexpired. This is helpful for quick
+   * true/false checks. To get full info, use `config`.
    */
   get entitlements(): Record<WorkoutEntitlement, boolean> {
     return { [WorkoutEntitlement.Supporter]: this.#holds(WorkoutEntitlement.Supporter) };
@@ -42,6 +58,19 @@ class UserConfigService extends AbstractDocumentMapStoreService {
   }
 
   /**
+   * Updates the signed-in user's config, persists it to local data, and sends
+   * it to the API. Does nothing when that config has not been loaded.
+   *
+   * @param updater Returns the updated config
+   */
+  update(updater: Updater<WorkoutUserConfig>): void {
+    this.updateWithoutApiPersist(updater);
+    const config = this.#getCurrentConfig();
+    if (!config) return;
+    WorkoutAPIService.queryApi({ update: { userConfig: config } });
+  }
+
+  /**
    * Updates the signed-in user's config and persists it to local data,
    * without sending it to the API. Does nothing when that config has not been
    * loaded.
@@ -49,9 +78,9 @@ class UserConfigService extends AbstractDocumentMapStoreService {
    * @param updater Returns the updated config
    */
   updateWithoutApiPersist(updater: Updater<WorkoutUserConfig>): void {
-    const { currentConfig } = this;
-    if (!currentConfig) return;
-    this.setWithoutApiPersist(updater(currentConfig));
+    const config = this.#getCurrentConfig();
+    if (!config) return;
+    this.setWithoutApiPersist(updater(config));
   }
 
   public override persistDocumentMap(): void {
@@ -63,15 +92,23 @@ class UserConfigService extends AbstractDocumentMapStoreService {
     input: ProjectWorkoutPrimaryEndpointOptions
   ): void {
     if (output.userConfig && input.get?.userConfig) {
-      this.setWithoutApiPersist(output.userConfig);
+      this.setWithoutApiPersist(WorkoutUserConfigSchema.parse(output.userConfig));
     }
   }
 
   public override async hydrate(): Promise<void> {
     const cached = await LocalData.getWorkoutUserConfig();
     if (cached) {
-      this.#config = cached;
+      this.#config = WorkoutUserConfigSchema.parse(cached);
     }
+  }
+
+  /**
+   * The config of the signed-in user, or undefined when it has not been loaded.
+   */
+  #getCurrentConfig(): WorkoutUserConfig | undefined {
+    const { userId } = currentUser.get();
+    return this.#config?.userId === userId ? this.#config : undefined;
   }
 
   /**
@@ -80,7 +117,7 @@ class UserConfigService extends AbstractDocumentMapStoreService {
    * @param entitlement The entitlement to check.
    */
   #holds(entitlement: WorkoutEntitlement): boolean {
-    const expiresAt = this.currentConfig?.entitlements[entitlement]?.expiresAt;
+    const expiresAt = this.#getCurrentConfig()?.entitlements[entitlement]?.expiresAt;
     return !!expiresAt && expiresAt.getTime() > Date.now();
   }
 }

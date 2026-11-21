@@ -389,7 +389,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
 
     const generateResult = WorkoutMesocycleService.generateOrUpdateMesocycle(
       deloadMesocycle,
-      userConfigService.mesocyclePlanningSettings,
+      userConfigService.config.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       docs.volumeCTOs,
       remainingMicrocycles,

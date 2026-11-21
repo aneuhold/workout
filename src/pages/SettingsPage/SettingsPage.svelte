@@ -7,13 +7,13 @@
   import { setMode, userPrefersMode } from 'mode-watcher';
   import AppVersion from '$components/AppVersion/AppVersion.svelte';
   import MarketingLinks from '$components/MarketingLinks/MarketingLinks.svelte';
-  import Label from '$ui/Label/Label.svelte';
   import Select from '$ui/Select/Select.svelte';
   import SelectContent from '$ui/Select/SelectContent.svelte';
   import SelectItem from '$ui/Select/SelectItem.svelte';
   import SelectTrigger from '$ui/Select/SelectTrigger.svelte';
   import Separator from '$ui/Separator/Separator.svelte';
-  import SettingsPageDeleteAccountButton from './SettingsPageDeleteAccountButton.svelte';
+  import SettingsPageAccountSection from './SettingsPageAccountSection.svelte';
+  import SettingsPageMesocyclePlanningSection from './SettingsPageMesocyclePlanningSection.svelte';
   import SettingsPageSupporterCard from './SettingsPageSupporterCard.svelte';
 
   const modeOptions = [
@@ -31,13 +31,13 @@
   }
 </script>
 
-<div class="flex flex-col gap-4 p-4">
+<div class="flex flex-col gap-6 p-4">
   <h1 class="text-xl font-semibold">Settings</h1>
 
   <SettingsPageSupporterCard />
 
-  <div class="flex items-center justify-between">
-    <Label>Appearance</Label>
+  <section class="flex items-center justify-between">
+    <h2 class="font-medium">Appearance</h2>
     <Select type="single" value={selectedMode} onValueChange={handleModeChange}>
       <SelectTrigger>
         {modeOptions.find((o) => o.value === selectedMode)?.label ?? 'System'}
@@ -50,11 +50,17 @@
         {/each}
       </SelectContent>
     </Select>
-  </div>
+  </section>
 
-  <SettingsPageDeleteAccountButton />
+  <Separator />
 
-  <Separator class="mt-4" />
+  <SettingsPageMesocyclePlanningSection />
+
+  <Separator />
+
+  <SettingsPageAccountSection />
+
+  <Separator />
 
   <section class="flex flex-col items-center gap-2">
     <h3>About</h3>

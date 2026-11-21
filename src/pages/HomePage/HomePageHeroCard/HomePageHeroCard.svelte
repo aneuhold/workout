@@ -119,7 +119,7 @@
 
     const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
       activeMesocycle,
-      userConfigService.mesocyclePlanningSettings,
+      userConfigService.config.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       completedMicrocycle._id,
       docs.microcycles,
