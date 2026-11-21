@@ -50,6 +50,16 @@ describe('Unit Tests', () => {
 
       expect(userConfigService.config.mesocyclePlanningSettings).toEqual(defaultPlanningSettings);
     });
+
+    it('treats a cached config that fails the schema as a cache miss', async () => {
+      const config = WorkoutUserConfigSchema.parse({ userId: MockUsers.currentUserCto._id });
+      Reflect.set(config.mesocyclePlanningSettings, 'recoverySessionBehavior', 'NotARealBehavior');
+      userConfigService.setWithoutApiPersist(null);
+      await LocalData.setWorkoutUserConfig(config);
+
+      expect(await userConfigService.hydrate()).toBe(false);
+      expect(() => userConfigService.config).toThrow();
+    });
   });
 
   describe('handleApiOutput', () => {

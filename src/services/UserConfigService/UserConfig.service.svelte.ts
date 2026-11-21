@@ -9,6 +9,7 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { Updater } from 'svelte/store';
 import AbstractDocumentMapStoreService from '$services/DocumentMapStoreService/AbstractDocumentMapStore.service';
+import LoggingService from '$services/LoggingService/Logging.service';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { currentUser } from '$stores/local/currentUser/currentUser';
 import LocalData from '$util/LocalData/LocalData';
@@ -18,6 +19,7 @@ import LocalData from '$util/LocalData/LocalData';
  * data and refreshed from the API.
  */
 class UserConfigService extends AbstractDocumentMapStoreService {
+  readonly #log = LoggingService.createLogger('UserConfigService');
   #config: WorkoutUserConfig | null = $state(null);
 
   /**
@@ -84,15 +86,23 @@ class UserConfigService extends AbstractDocumentMapStoreService {
     output: ProjectWorkoutPrimaryOutput,
     input: ProjectWorkoutPrimaryEndpointOptions
   ): void {
-    if (output.userConfig && input.get?.userConfig) {
-      this.setWithoutApiPersist(WorkoutUserConfigSchema.parse(output.userConfig));
+    if (!output.userConfig || !input.get?.userConfig) return;
+    const result = WorkoutUserConfigSchema.safeParse(output.userConfig);
+    if (!result.success) {
+      this.#log.error('The API returned an invalid user config.', result.error);
+      return;
     }
+    this.setWithoutApiPersist(result.data);
   }
 
+  /**
+   * Loads the cached config. A cached config that no longer matches the schema
+   * counts as a cache miss.
+   */
   public override async hydrate(): Promise<boolean> {
-    const cached = await LocalData.getWorkoutUserConfig();
-    if (!cached) return false;
-    this.#config = WorkoutUserConfigSchema.parse(cached);
+    const result = WorkoutUserConfigSchema.safeParse(await LocalData.getWorkoutUserConfig());
+    if (!result.success) return false;
+    this.#config = result.data;
     return true;
   }
 
