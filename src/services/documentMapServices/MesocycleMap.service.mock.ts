@@ -10,6 +10,7 @@ import {
 } from '@aneuhold/core-ts-db-lib';
 import type { UUID } from 'crypto';
 import { type MockBaseData } from '$services/MockDataService/types';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import MockUsers from '$util/MockUsers';
 import mesocycleMapService from './MesocycleMap.service.svelte';
 import microcycleMapServiceMock from './MicrocycleMap.service.mock';
@@ -96,6 +97,7 @@ class MesocycleMapServiceMock {
 
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesoDoc,
+      userConfigService.mesocyclePlanningSettings,
       exerciseCTOs,
       [],
       [],

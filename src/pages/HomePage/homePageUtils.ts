@@ -10,6 +10,7 @@ import microcycleMapService from '$services/documentMapServices/MicrocycleMap.se
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
 import setMapService from '$services/documentMapServices/SetMap.service.svelte';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 
 export type HomePageSessionBundle = {
@@ -104,6 +105,7 @@ export function regenerateMesocycle(
   // Call the core library to regenerate
   const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
     activeMesocycle,
+    userConfigService.mesocyclePlanningSettings,
     docs.exerciseCTOs,
     docs.volumeCTOs,
     docs.microcycles,

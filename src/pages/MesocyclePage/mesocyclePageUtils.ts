@@ -12,6 +12,7 @@ import mesocycleMapService, {
 } from '$services/documentMapServices/MesocycleMap.service.svelte';
 import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
 import muscleGroupMapService from '$services/documentMapServices/MuscleGroupMap.service.svelte';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
 
@@ -53,6 +54,7 @@ export function generateMesocycleChildren(
   try {
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesocycle,
+      userConfigService.mesocyclePlanningSettings,
       exerciseCTOs,
       volumeCTOs,
       [],

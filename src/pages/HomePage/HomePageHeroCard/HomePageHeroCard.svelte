@@ -22,6 +22,7 @@
   import { moveSessionsDialog } from '$components/singletons/dialogs/SingletonMoveSessionsDialog/SingletonMoveSessionsDialog.svelte';
   import mesocycleMapService from '$services/documentMapServices/MesocycleMap.service.svelte';
   import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+  import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
   import type { HomePageSessionBundle } from '../homePageUtils';
   import { regenerateMesocycle } from '../homePageUtils';
   import { getHeroCardState, HeroCardAction } from './heroCardUtils';
@@ -118,6 +119,7 @@
 
     const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
       activeMesocycle,
+      userConfigService.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       completedMicrocycle._id,
       docs.microcycles,
