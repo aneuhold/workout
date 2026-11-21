@@ -36,7 +36,9 @@ export default class LocalData {
     exerciseMap: `${this.#PREFIX}exerciseMap`,
     exerciseCalibrationMap: `${this.#PREFIX}exerciseCalibrationMap`,
     muscleGroupMap: `${this.#PREFIX}muscleGroupMap`,
-    equipmentTypeMap: `${this.#PREFIX}equipmentTypeMap`
+    equipmentTypeMap: `${this.#PREFIX}equipmentTypeMap`,
+    exerciseCTOMap: `${this.#PREFIX}exerciseCTOMap`,
+    muscleGroupVolumeCTOMap: `${this.#PREFIX}muscleGroupVolumeCTOMap`
   };
 
   /**

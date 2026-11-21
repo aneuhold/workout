@@ -97,7 +97,7 @@ class MesocycleMapServiceMock {
 
     const result = WorkoutMesocycleService.generateOrUpdateMesocycle(
       mesoDoc,
-      userConfigService.mesocyclePlanningSettings,
+      userConfigService.config.mesocyclePlanningSettings,
       exerciseCTOs,
       [],
       [],

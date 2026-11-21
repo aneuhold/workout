@@ -53,6 +53,16 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
     });
   }
 
+  override async hydrate(): Promise<void> {
+    const [, cachedCTOMap] = await Promise.all([
+      super.hydrate(),
+      LocalData.getDocumentMap<WorkoutExerciseCTO>(LocalData.storedKeyNames.exerciseCTOMap)
+    ]);
+    if (cachedCTOMap) {
+      this.#exerciseCTOMapState = cachedCTOMap;
+    }
+  }
+
   /**
    * Returns a single CTO by exercise ID, or undefined if not found.
    *
@@ -69,6 +79,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    */
   setExerciseCTOs(ctos: WorkoutExerciseCTO[]): void {
     this.#exerciseCTOMapState = this.convertDocumentArrayToMap(ctos);
+    this.#persistCTOMap();
   }
 
   /**
@@ -87,6 +98,7 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
     this.addDoc(exercise, ctoGet);
 
     this.#exerciseCTOMapState[exercise._id] = this.#buildMinimalCTO(exercise, equipmentType, null);
+    this.#persistCTOMap();
   }
 
   /**
@@ -99,7 +111,6 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
   updateCTOBestCalibration(calibration: WorkoutExerciseCalibration): void {
     const exerciseId = calibration.workoutExerciseId;
     const cto = this.#exerciseCTOMapState[exerciseId];
-    const new1RM = WorkoutExerciseCalibrationService.get1RM(calibration);
 
     if (!cto) {
       const exercise = this.getDoc(exerciseId);
@@ -111,17 +122,17 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
         equipmentType,
         calibration
       );
+      this.#persistCTOMap();
       return;
     }
 
-    if (!cto.bestCalibration) {
+    if (
+      !cto.bestCalibration ||
+      WorkoutExerciseCalibrationService.get1RM(calibration) >
+        WorkoutExerciseCalibrationService.get1RM(cto.bestCalibration)
+    ) {
       cto.bestCalibration = calibration;
-      return;
-    }
-
-    const existing1RM = WorkoutExerciseCalibrationService.get1RM(cto.bestCalibration);
-    if (new1RM > existing1RM) {
-      cto.bestCalibration = calibration;
+      this.#persistCTOMap();
     }
   }
 
@@ -133,23 +144,8 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    * @param set The set to evaluate
    */
   updateCTOBestSet(set: WorkoutSet): void {
-    if (set.actualWeight == null || !set.actualReps || set.actualReps <= 0) return;
-    const cto = this.#exerciseCTOMapState[set.workoutExerciseId];
-    if (!cto) return;
-
-    const new1RM = WorkoutExerciseCalibrationService.get1RMRaw(set.actualWeight, set.actualReps);
-
-    if (!cto.bestSet || cto.bestSet.actualWeight == null || !cto.bestSet.actualReps) {
-      cto.bestSet = set;
-      return;
-    }
-
-    const existing1RM = WorkoutExerciseCalibrationService.get1RMRaw(
-      cto.bestSet.actualWeight,
-      cto.bestSet.actualReps
-    );
-    if (new1RM > existing1RM) {
-      cto.bestSet = set;
+    if (this.#updateCTOBestSetWithoutPersist(set)) {
+      this.#persistCTOMap();
     }
   }
 
@@ -209,10 +205,11 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
       // Check sets against bestSet
       if (seSets) {
         for (const set of seSets) {
-          this.updateCTOBestSet(set);
+          this.#updateCTOBestSetWithoutPersist(set);
         }
       }
     }
+    this.#persistCTOMap();
   }
 
   /**
@@ -222,11 +219,47 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
    */
   removeCTO(exerciseId: UUID): void {
     delete this.#exerciseCTOMapState[exerciseId];
+    this.#persistCTOMap();
   }
 
   override deleteDoc(docId: UUID, get?: ProjectWorkoutPrimaryEndpointOptions['get']): void {
     super.deleteDoc(docId, get ?? ctoGet);
     this.removeCTO(docId);
+  }
+
+  /**
+   * Sets the CTO's bestSet for the given set's exercise if the set has a
+   * higher 1RM than the current bestSet. Skips if the set has no actual data
+   * or no CTO exists. Returns whether the CTO changed.
+   *
+   * @param set The set to evaluate
+   */
+  #updateCTOBestSetWithoutPersist(set: WorkoutSet): boolean {
+    if (set.actualWeight == null || !set.actualReps || set.actualReps <= 0) return false;
+    const cto = this.#exerciseCTOMapState[set.workoutExerciseId];
+    if (!cto) return false;
+
+    if (
+      !cto.bestSet ||
+      cto.bestSet.actualWeight == null ||
+      !cto.bestSet.actualReps ||
+      WorkoutExerciseCalibrationService.get1RMRaw(set.actualWeight, set.actualReps) >
+        WorkoutExerciseCalibrationService.get1RMRaw(
+          cto.bestSet.actualWeight,
+          cto.bestSet.actualReps
+        )
+    ) {
+      cto.bestSet = set;
+      return true;
+    }
+    return false;
+  }
+
+  #persistCTOMap(): void {
+    void LocalData.setDocumentMap(
+      LocalData.storedKeyNames.exerciseCTOMap,
+      this.#exerciseCTOMapState
+    );
   }
 
   /**
