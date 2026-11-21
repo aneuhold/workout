@@ -32,13 +32,6 @@ class UserConfigService extends AbstractDocumentMapStoreService {
   }
 
   /**
-   * Whether the signed-in user's config has been loaded.
-   */
-  get isLoaded(): boolean {
-    return this.#getCurrentConfig() !== undefined;
-  }
-
-  /**
    * The signed-in user's entitlements, each true while it is unexpired. This is helpful for quick
    * true/false checks. To get full info, use `config`.
    */
@@ -96,11 +89,11 @@ class UserConfigService extends AbstractDocumentMapStoreService {
     }
   }
 
-  public override async hydrate(): Promise<void> {
+  public override async hydrate(): Promise<boolean> {
     const cached = await LocalData.getWorkoutUserConfig();
-    if (cached) {
-      this.#config = WorkoutUserConfigSchema.parse(cached);
-    }
+    if (!cached) return false;
+    this.#config = WorkoutUserConfigSchema.parse(cached);
+    return true;
   }
 
   /**

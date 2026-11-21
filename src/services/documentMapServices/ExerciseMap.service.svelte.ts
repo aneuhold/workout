@@ -53,14 +53,14 @@ class ExerciseDocumentMapService extends DocumentMapStoreService<WorkoutExercise
     });
   }
 
-  override async hydrate(): Promise<void> {
-    const [, cachedCTOMap] = await Promise.all([
+  override async hydrate(): Promise<boolean> {
+    const [exerciseMapCached, cachedCTOMap] = await Promise.all([
       super.hydrate(),
       LocalData.getDocumentMap<WorkoutExerciseCTO>(LocalData.storedKeyNames.exerciseCTOMap)
     ]);
-    if (cachedCTOMap) {
-      this.#exerciseCTOMapState = cachedCTOMap;
-    }
+    if (!cachedCTOMap) return false;
+    this.#exerciseCTOMapState = cachedCTOMap;
+    return exerciseMapCached;
   }
 
   /**

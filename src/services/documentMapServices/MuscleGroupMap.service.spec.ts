@@ -29,5 +29,16 @@ describe('Unit Tests', () => {
       expect(ctoIds.length).toBeGreaterThan(0);
       expect(muscleGroupMapService.allVolumeCTOs.map((cto) => cto._id)).toEqual(ctoIds);
     });
+
+    it('should report the cache complete only when the muscle group map and volume CTO map are cached', async () => {
+      await LocalData.clearWorkoutDocuments();
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.muscleGroupMap, {});
+
+      expect(await muscleGroupMapService.hydrate()).toBe(false);
+
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.muscleGroupVolumeCTOMap, {});
+
+      expect(await muscleGroupMapService.hydrate()).toBe(true);
+    });
   });
 });

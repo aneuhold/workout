@@ -2,7 +2,8 @@
   @component
 
   Layout for the authenticated app. Owns TopBar/NavBar, the demo mode
-  button, the confetti, and the singleton dialogs, and gates rendering on `loginState`. Hydration and
+  button, the confetti, and the singleton dialogs, and gates rendering on `loginState` and
+  `workoutDataReady`, so the app UI only renders once its data is loaded. Hydration and
   app-init run in the root layout, which persists across route groups.
 -->
 <script lang="ts">
@@ -26,12 +27,13 @@
   import demoModeService from '$services/DemoModeService/DemoMode.service.svelte';
   import { currentUser } from '$stores/local/currentUser/currentUser';
   import { LoginState, loginState } from '$stores/session/loginState';
+  import { workoutDataReady } from '$stores/session/workoutDataReady';
 
   let { children }: { children?: Snippet } = $props();
 </script>
 
 <div class="app">
-  {#if $loginState === LoginState.Initializing}
+  {#if $loginState === LoginState.Initializing || ($loginState === LoginState.LoggedIn && !$workoutDataReady)}
     <div class="flex h-dvh items-center justify-center">
       <p class="animate-pulse text-muted-foreground">Loading...</p>
     </div>

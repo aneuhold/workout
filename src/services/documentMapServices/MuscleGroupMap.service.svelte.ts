@@ -39,16 +39,16 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
     });
   }
 
-  override async hydrate(): Promise<void> {
-    const [, cachedVolumeCTOMap] = await Promise.all([
+  override async hydrate(): Promise<boolean> {
+    const [muscleGroupMapCached, cachedVolumeCTOMap] = await Promise.all([
       super.hydrate(),
       LocalData.getDocumentMap<WorkoutMuscleGroupVolumeCTO>(
         LocalData.storedKeyNames.muscleGroupVolumeCTOMap
       )
     ]);
-    if (cachedVolumeCTOMap) {
-      this.#volumeCTOMapState = cachedVolumeCTOMap;
-    }
+    if (!cachedVolumeCTOMap) return false;
+    this.#volumeCTOMapState = cachedVolumeCTOMap;
+    return muscleGroupMapCached;
   }
 
   /**

@@ -433,6 +433,17 @@ describe('exerciseMapService CTO update methods', () => {
       expect(ctoIds.length).toBeGreaterThan(0);
       expect(exerciseMapService.exerciseCTOs.map((cto) => cto._id)).toEqual(ctoIds);
     });
+
+    it('should report the cache complete only when the exercise map and CTO map are cached', async () => {
+      await LocalData.clearWorkoutDocuments();
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseMap, {});
+
+      expect(await exerciseMapService.hydrate()).toBe(false);
+
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseCTOMap, {});
+
+      expect(await exerciseMapService.hydrate()).toBe(true);
+    });
   });
 
   describe('getCTOsForCalibrationIds utility', () => {
