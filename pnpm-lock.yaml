@@ -110,11 +110,11 @@ importers:
   .:
     devDependencies:
       '@aneuhold/core-ts-api-lib':
-        specifier: ^4.0.3
-        version: 4.0.3
+        specifier: ^4.0.4
+        version: 4.0.4
       '@aneuhold/core-ts-db-lib':
-        specifier: ^5.1.1
-        version: 5.1.1
+        specifier: ^5.1.2
+        version: 5.1.2
       '@aneuhold/core-ts-lib':
         specifier: ^2.4.11
         version: 2.4.11
@@ -125,8 +125,8 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4(encoding@0.1.13)(supports-color@10.2.2)(typanion@3.14.0)
       '@aneuhold/robot-instructions':
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.4.2
+        version: 0.4.2
       '@capacitor-community/keep-awake':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -426,11 +426,11 @@ packages:
     resolution: {integrity: sha512-H1gYPojO6krWHnUXu/T44DrEun/Wl95PJzMXRcM/szstNQczSbwq6wIFJPI9nyE95tarZfUNU3rgorT+wZ6iCQ==}
     engines: {node: '>= 14.0.0'}
 
-  '@aneuhold/core-ts-api-lib@4.0.3':
-    resolution: {integrity: sha512-NQ/r6IXqFu1hyvzj6DIAPdMBu3s5R/LCvJXYo/RllIt/DVwkJiIhdrmzF6giYG+JghvtU6HNVjx9WQaeItTH4g==}
+  '@aneuhold/core-ts-api-lib@4.0.4':
+    resolution: {integrity: sha512-vcqm1rrVZJMKcQqtrX4GEzcqi7KXHQEIbaRB7XqB5jg1HaPfc3IV8uNK1G4V8noMgBrDU/TCql7kDJac43uFxA==}
 
-  '@aneuhold/core-ts-db-lib@5.1.1':
-    resolution: {integrity: sha512-1Ju+oFjp22tPTViV75U1iA2eSBMmzwVQHwj6RM2bAHO4Dxx/n4xJRKY44FuZIBPO9FHJ+NdZq/AR4j3ezepgqw==}
+  '@aneuhold/core-ts-db-lib@5.1.2':
+    resolution: {integrity: sha512-o2/iTIPlS7fUrjK1tt300/ynGQsjoVOElVLu6O8HfFXlsR9ZVJ3vlYikfva4kGyJf6rQvPSNC+MUJbz0CKMkAg==}
 
   '@aneuhold/core-ts-lib@2.4.11':
     resolution: {integrity: sha512-sYgAGyK45bvKZX/eigrR4CoVndSdZxZmsqL9Q7DGf37LfNglPYBPOTk2vsd/Jb+ejVs6iK5/d++TZvIsD63T1A==}
@@ -445,8 +445,8 @@ packages:
     resolution: {integrity: sha512-l5vx6hBUnoKZBJ28yx8e3r2N+caXZx8hMFzpYKPZlJ5/eeY+r6wsFnzNIITG/a01HKIG9pyI+Fd89dq/QeX9rg==}
     hasBin: true
 
-  '@aneuhold/robot-instructions@0.4.1':
-    resolution: {integrity: sha512-qBVx6ukd04eSyyoVEEf3/Vhd28YZ2qX40I/ut4Dzb6uvhLiye21sLX5GaMFoc6JY6JAnB+AmBtFYRig0J1oXAg==}
+  '@aneuhold/robot-instructions@0.4.2':
+    resolution: {integrity: sha512-f63D+95Cbp5RSzCjCiD3oliAkRRli3LbY6mlcIhn5Iao6rEp54zrERgrilaqLy0Z/FZm9DZaqWwlKot5MdJ2Zg==}
 
   '@angular-devkit/architect@0.2100.3':
     resolution: {integrity: sha512-PcruWF0+IxXOTZd9MN/3y4A5aTfblALzT/+zWym26PtisaBgWQ3tRPQsf/CgT8EdmZl8eUOAWlNBSkbUj/S/lQ==}
@@ -9396,13 +9396,13 @@ snapshots:
     dependencies:
       '@algolia/client-common': 5.40.1
 
-  '@aneuhold/core-ts-api-lib@4.0.3':
+  '@aneuhold/core-ts-api-lib@4.0.4':
     dependencies:
-      '@aneuhold/core-ts-db-lib': 5.1.1
+      '@aneuhold/core-ts-db-lib': 5.1.2
       '@aneuhold/core-ts-lib': 2.4.11
       bson: 7.3.2
 
-  '@aneuhold/core-ts-db-lib@5.1.1':
+  '@aneuhold/core-ts-db-lib@5.1.2':
     dependencies:
       '@aneuhold/core-ts-lib': 2.4.11
       uuid: 14.0.2
@@ -9463,7 +9463,7 @@ snapshots:
       - supports-color
       - typanion
 
-  '@aneuhold/robot-instructions@0.4.1': {}
+  '@aneuhold/robot-instructions@0.4.2': {}
 
   '@angular-devkit/architect@0.2100.3':
     dependencies:
