@@ -362,8 +362,9 @@ describe('DocumentMapStoreService', () => {
     it('should populate mapState from loadFromLocalData when it returns a map', async () => {
       loadFromLocalDataMock.mockResolvedValue({ [doc1._id]: doc1, [doc2._id]: doc2 });
 
-      await service.hydrate();
+      const cached = await service.hydrate();
 
+      expect(cached).toBe(true);
       expect(loadFromLocalDataMock).toHaveBeenCalledTimes(1);
       expect(service.getDoc(doc1._id)).toEqual(doc1);
       expect(service.getDoc(doc2._id)).toEqual(doc2);
@@ -373,8 +374,9 @@ describe('DocumentMapStoreService', () => {
     it('should be a no-op when loadFromLocalData returns null', async () => {
       loadFromLocalDataMock.mockResolvedValue(null);
 
-      await service.hydrate();
+      const cached = await service.hydrate();
 
+      expect(cached).toBe(false);
       expect(loadFromLocalDataMock).toHaveBeenCalledTimes(1);
       expect(service.allDocs).toEqual([]);
     });

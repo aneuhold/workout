@@ -9,11 +9,15 @@ import apiResponseHandlingOrder from './WorkoutAPIService/apiResponseHandlingOrd
 export default class WorkoutHydrationService {
   /**
    * Populates every workout document map service from local storage. Safe
-   * to call multiple times — each service's `hydrate()` is a no-op when
-   * nothing is cached.
+   * to call multiple times, since each service's `hydrate()` is a no-op when
+   * nothing is cached. Resolves to whether the cache held a complete snapshot,
+   * meaning every service found all of its data.
    */
-  static async hydrateDocumentMaps(): Promise<void> {
-    await Promise.all(apiResponseHandlingOrder.map((service) => service.hydrate()));
+  static async hydrateDocumentMaps(): Promise<boolean> {
+    const cachedResults = await Promise.all(
+      apiResponseHandlingOrder.map((service) => service.hydrate())
+    );
+    return cachedResults.every((cached) => cached);
   }
 
   /**

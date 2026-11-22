@@ -27,7 +27,7 @@
   let managementUrl = $state<string | null>(null);
   let isSupporter = $derived(userConfigService.entitlements[WorkoutEntitlement.Supporter]);
   let expiresAt = $derived(
-    userConfigService.currentConfig?.entitlements[WorkoutEntitlement.Supporter]?.expiresAt
+    userConfigService.config.entitlements[WorkoutEntitlement.Supporter]?.expiresAt
   );
 
   $effect(() => {

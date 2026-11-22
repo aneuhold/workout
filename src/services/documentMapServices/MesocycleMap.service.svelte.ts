@@ -16,6 +16,7 @@ import {
 import type { UUID } from 'crypto';
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import DocumentMapStoreService from '$services/DocumentMapStoreService/DocumentMapStore.service.svelte';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import WorkoutAPIService from '$services/WorkoutAPIService/WorkoutAPI.service';
 import { ctoGet } from '$util/ctoGet';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
@@ -388,6 +389,7 @@ class MesocycleDocumentMapService extends DocumentMapStoreService<WorkoutMesocyc
 
     const generateResult = WorkoutMesocycleService.generateOrUpdateMesocycle(
       deloadMesocycle,
+      userConfigService.config.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       docs.volumeCTOs,
       remainingMicrocycles,

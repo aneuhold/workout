@@ -27,6 +27,7 @@
   import { translations } from '$stores/local/translations';
   import { appIsVisible } from '$stores/session/appIsVisible';
   import { loginState } from '$stores/session/loginState';
+  import { workoutDataReady } from '$stores/session/workoutDataReady';
   import LocalData from '$util/LocalData/LocalData';
   import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 
@@ -51,15 +52,21 @@
     const isDemoMode = page.url.searchParams.has('demo') || demoModeService.isEnabled;
     if (!isDemoMode) {
       await LocalData.init();
-      await Promise.all([
+      const [, , , cacheIsComplete] = await Promise.all([
         translations.hydrate(),
         currentUser.hydrate(),
         WorkoutAPIService.hydrate(),
         WorkoutHydrationService.hydrateDocumentMaps()
       ]);
+      // A complete cache lets the app show its data before the initial API response arrives.
+      // Without one, that response marks the data ready instead.
+      if (cacheIsComplete) {
+        workoutDataReady.set(true);
+      }
     } else {
       await LocalData.init(new SessionStorageBackend());
       await demoModeService.enter();
+      workoutDataReady.set(true);
     }
     loginState.init();
     timerService.init();

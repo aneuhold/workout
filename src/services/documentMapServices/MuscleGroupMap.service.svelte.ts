@@ -39,6 +39,18 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
     });
   }
 
+  override async hydrate(): Promise<boolean> {
+    const [muscleGroupMapCached, cachedVolumeCTOMap] = await Promise.all([
+      super.hydrate(),
+      LocalData.getDocumentMap<WorkoutMuscleGroupVolumeCTO>(
+        LocalData.storedKeyNames.muscleGroupVolumeCTOMap
+      )
+    ]);
+    if (!cachedVolumeCTOMap) return false;
+    this.#volumeCTOMapState = cachedVolumeCTOMap;
+    return muscleGroupMapCached;
+  }
+
   /**
    * Returns the display name for a muscle group by ID, or `'Unknown'` if not found.
    *
@@ -59,12 +71,17 @@ class MuscleGroupDocumentMapService extends DocumentMapStoreService<WorkoutMuscl
   }
 
   /**
-   * Replaces all stored volume CTOs with the given array.
+   * Replaces all stored volume CTOs with the given array and persists them to
+   * local data.
    *
    * @param ctos The new muscle group volume CTOs from the backend
    */
   setVolumeCTOs(ctos: WorkoutMuscleGroupVolumeCTO[]): void {
     this.#volumeCTOMapState = this.convertDocumentArrayToMap(ctos);
+    void LocalData.setDocumentMap(
+      LocalData.storedKeyNames.muscleGroupVolumeCTOMap,
+      this.#volumeCTOMapState
+    );
   }
 
   /**

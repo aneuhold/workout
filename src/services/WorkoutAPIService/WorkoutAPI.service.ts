@@ -6,6 +6,7 @@ import type AbstractDocumentMapStoreService from '$services/DocumentMapStoreServ
 import LoggingService from '$services/LoggingService/Logging.service';
 import updateCheckService from '$services/UpdateCheck.service.svelte';
 import { currentUser } from '$stores/local/currentUser/currentUser';
+import { workoutDataReady } from '$stores/session/workoutDataReady';
 import { PerfMark } from '$util/perfMarks';
 import workoutAPIQueueService from './WorkoutAPIQueue.service';
 
@@ -31,6 +32,7 @@ export default class WorkoutAPIService {
       if (!this.#initialHydrationMarked && input.get?.mesocycles?.all) {
         this.#initialHydrationMarked = true;
         performance.mark(PerfMark.HydrationNetworkComplete);
+        workoutDataReady.set(true);
       }
     });
   }
@@ -138,13 +140,15 @@ export default class WorkoutAPIService {
   }
 
   /**
-   * Clears in-memory state and the persisted queue. Call on logout so a
-   * different user signing in on the same device doesn't inherit the
-   * previous session's queue.
+   * Clears in-memory state and the persisted queue, and marks the workout
+   * data as not ready until the next initial data response. Call on logout so
+   * a different user signing in on the same device doesn't inherit the
+   * previous session's queue or see its data.
    */
   static reset(): void {
     this.lastInitialDataFetchTime = null;
     this.#initialHydrationMarked = false;
+    workoutDataReady.set(false);
     void workoutAPIQueueService.reset();
   }
 

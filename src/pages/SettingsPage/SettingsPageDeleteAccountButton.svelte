@@ -1,7 +1,7 @@
 <!--
   @component
 
-  Destructive "Delete account" row for the Settings page. Opens a confirmation
+  Destructive "Delete account" button for the Settings page. Opens a confirmation
   dialog that requires the user to retype their username before the request
   goes out. On success, AuthService clears the local session and the layout
   gate swaps to the login screen.
@@ -21,7 +21,6 @@
   import AlertDialogTitle from '$ui/AlertDialog/AlertDialogTitle.svelte';
   import Button from '$ui/Button/Button.svelte';
   import Input from '$ui/Input/Input.svelte';
-  import Label from '$ui/Label/Label.svelte';
 
   const log = LoggingService.createLogger('SettingsPageDeleteAccountButton.svelte');
 
@@ -54,17 +53,14 @@
   }
 </script>
 
-<div class="flex items-center justify-between">
-  <Label>Delete account</Label>
-  <Button
-    variant="destructive"
-    onclick={openDialog}
-    disabled={processing}
-    data-testid="delete-account-button"
-  >
-    <IconTrash size={16} /> Delete account
-  </Button>
-</div>
+<Button
+  variant="destructive"
+  onclick={openDialog}
+  disabled={processing}
+  data-testid="delete-account-button"
+>
+  <IconTrash size={16} /> Delete account
+</Button>
 
 {#if errorMessage}
   <p class="text-destructive text-sm">{errorMessage}</p>

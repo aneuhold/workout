@@ -45,8 +45,8 @@ class DemoSetupService {
 
   /**
    * Rebuilds the exercise CTOs from the documents the map services hold. CTOs
-   * are derived rather than stored, so the sessions, calibrations, and
-   * equipment they summarize have to exist before they are built.
+   * summarize the sessions, calibrations, and equipment, so those documents
+   * have to exist before they are built.
    */
   #rebuildExerciseCTOs(): void {
     exerciseMapServiceMock.setDefaultExerciseCTOs(

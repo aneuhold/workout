@@ -16,6 +16,7 @@ import mesocycleMapService from '$services/documentMapServices/MesocycleMap.serv
 import microcycleMapService from '$services/documentMapServices/MicrocycleMap.service.svelte';
 import sessionExerciseMapService from '$services/documentMapServices/SessionExerciseMap.service.svelte';
 import sessionMapService from '$services/documentMapServices/SessionMap.service.svelte';
+import userConfigService from '$services/UserConfigService/UserConfig.service.svelte';
 import { SessionPageExerciseCardState, SessionPageMode } from './sessionPageTypes';
 import {
   deriveCardState,
@@ -442,6 +443,7 @@ class SessionPageService {
     const docs = mesocycleMapService.getAssociatedDocsAndCTOsForMesocycle(mesocycle._id);
     const recommendation = WorkoutMesocycleService.shouldTriggerEarlyDeload(
       mesocycle,
+      userConfigService.config.mesocyclePlanningSettings,
       docs.exerciseCTOs,
       microcycle._id,
       docs.microcycles,

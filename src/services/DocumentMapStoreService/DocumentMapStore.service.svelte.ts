@@ -169,12 +169,12 @@ export default class DocumentMapStoreService<
     this.#config.handleApiOutput(output, input);
   }
 
-  public override async hydrate(): Promise<void> {
-    if (!this.#config.loadFromLocalData) return;
+  public override async hydrate(): Promise<boolean> {
+    if (!this.#config.loadFromLocalData) return false;
     const cached = await this.#config.loadFromLocalData();
-    if (cached) {
-      this.#mapState = cached;
-    }
+    if (!cached) return false;
+    this.#mapState = cached;
+    return true;
   }
 
   /**

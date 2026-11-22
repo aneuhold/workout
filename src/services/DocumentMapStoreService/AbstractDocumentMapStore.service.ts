@@ -32,7 +32,8 @@ export default abstract class AbstractDocumentMapStoreService {
   /**
    * Populates the reactive state from local-storage cache, if available,
    * without re-persisting. Intended to run once on app startup so the UI
-   * can show the last-known-good data before the API responds.
+   * can show the last-known-good data before the API responds. Resolves to
+   * whether the cache held all of this service's data.
    */
-  public abstract hydrate(): Promise<void>;
+  public abstract hydrate(): Promise<boolean>;
 }

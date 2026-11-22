@@ -14,6 +14,7 @@ import type { WorkoutApiInsertKey } from '$services/DocumentMapStoreService/type
 import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import MockScenarioService from '$services/MockScenarioService/MockScenario.service';
 import { FullAppScenario } from '$services/MockScenarioService/types';
+import currentUserMock from '$stores/local/currentUser/currentUser.mock';
 import perfTestUtils from '$testUtils/perfTestUtils';
 import MockUsers from '$util/MockUsers';
 
@@ -38,8 +39,10 @@ test('seed perf user', async () => {
   APIService.setAccessToken(auth.data.accessToken);
 
   // The mock factories build documents with `MockUsers.currentUserCto._id`,
-  // so point it at the perf user before generating the scenario.
+  // so point it and the signed-in user at the perf user before generating the
+  // scenario.
   MockUsers.currentUserCto._id = authedUserId;
+  currentUserMock.reset();
   MockScenarioService.setupScenario(FullAppScenario.MidTrainingWithHistory);
 
   const insertPayload: Required<NonNullable<ProjectWorkoutPrimaryEndpointOptions['insert']>> = {

@@ -14,6 +14,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import mockBackendService from '$services/MockBackendService/MockBackend.service';
 import MockDataService from '$services/MockDataService/MockData.service';
 import { getCTOsForCalibrationIds } from '$util/exerciseCTOUtils';
+import LocalData from '$util/LocalData/LocalData';
+import SessionStorageBackend from '$util/LocalData/SessionStorageBackend';
 import MockUsers from '$util/MockUsers';
 import exerciseCalibrationMapServiceMock from './ExerciseCalibrationMap.service.mock';
 import exerciseMapServiceMock from './ExerciseMap.service.mock';
@@ -411,6 +413,36 @@ describe('exerciseMapService CTO update methods', () => {
       exerciseMapService.removeCTO(exercise._id);
 
       expect(exerciseMapService.getCTO(exercise._id)).toBeUndefined();
+    });
+  });
+
+  describe('hydrate', () => {
+    beforeEach(async () => {
+      await LocalData.init(new SessionStorageBackend());
+    });
+
+    it('should restore the exercise CTOs that were set before', async () => {
+      MockDataService.setupBaseData();
+      const ctoIds = exerciseMapService.exerciseCTOs.map((cto) => cto._id);
+      const cachedCTOMap = await LocalData.getDocumentMap(LocalData.storedKeyNames.exerciseCTOMap);
+      exerciseMapService.setExerciseCTOs([]);
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseCTOMap, cachedCTOMap ?? {});
+
+      await exerciseMapService.hydrate();
+
+      expect(ctoIds.length).toBeGreaterThan(0);
+      expect(exerciseMapService.exerciseCTOs.map((cto) => cto._id)).toEqual(ctoIds);
+    });
+
+    it('should report the cache complete only when the exercise map and CTO map are cached', async () => {
+      await LocalData.clearWorkoutDocuments();
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseMap, {});
+
+      expect(await exerciseMapService.hydrate()).toBe(false);
+
+      await LocalData.setDocumentMap(LocalData.storedKeyNames.exerciseCTOMap, {});
+
+      expect(await exerciseMapService.hydrate()).toBe(true);
     });
   });
 
